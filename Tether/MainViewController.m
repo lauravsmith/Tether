@@ -207,9 +207,6 @@
     [facebookFriendsQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
         if (!error) {
             NSLog(@"QUERY: queried your facebook friends status who are on Tether");
-            sharedDataManager.tetherFriendsGoingOut = [[NSMutableArray alloc] init];
-            sharedDataManager.tetherFriendsNotGoingOut = [[NSMutableArray alloc] init];
-            sharedDataManager.tetherFriendsUndecided = [[NSMutableArray alloc] init];
             sharedDataManager.tetherFriendsDictionary = [[NSMutableDictionary alloc] init];
             sharedDataManager.tetherFriendsNearbyDictionary = [[NSMutableDictionary alloc] init];
             
@@ -219,11 +216,17 @@
                 friend.name = user[@"displayName"];
                 friend.timeLastUpdated = user[@"timeLastUpdated"];
                 friend.status = [user[@"status"] boolValue];
+                friend.placeId = @"";
+                if ([sharedDataManager.friendsToPlacesMap objectForKey:friend.friendID]) {
+                    friend.placeId = [sharedDataManager.friendsToPlacesMap objectForKey:friend.friendID];
+                }
+                
                 if ([user[@"cityLocation"] isEqualToString:city] && [user[@"stateLocation"] isEqualToString:state]) {
                     [sharedDataManager.tetherFriendsNearbyDictionary setObject:friend forKey:friend.friendID];
                 }
                 [sharedDataManager.tetherFriendsDictionary setObject:friend forKey:friend.friendID];
             }
+            
             [self sortTetherFriends];
             [self.placesViewController getFriendsCommitments];
         } else {
@@ -237,22 +240,37 @@
 -(void)sortTetherFriends {
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     NSDate *startTime = [self getStartTime];
+    NSMutableArray *tempFriendsGoingOut = [[NSMutableArray alloc] init];
+    NSMutableArray *tempFriendsNotGoingOut = [[NSMutableArray alloc] init];
+    NSMutableArray *tempFriendsUndecided = [[NSMutableArray alloc] init];
     
     for (id key in sharedDataManager.tetherFriendsNearbyDictionary) {
         Friend *friend = [sharedDataManager.tetherFriendsNearbyDictionary objectForKey:key];
         if (friend) {
             if ([startTime compare:friend.timeLastUpdated] == NSOrderedDescending) {
-                [sharedDataManager.tetherFriendsUndecided addObject:friend];
+                [tempFriendsUndecided addObject:friend];
             } else {
                 if (friend.status) {
-                    [sharedDataManager.tetherFriendsGoingOut  addObject:friend];
+                    [tempFriendsGoingOut addObject:friend];
                 } else {
-                    [sharedDataManager.tetherFriendsNotGoingOut  addObject:friend];
+                    [tempFriendsNotGoingOut addObject:friend];
                 }
             }
         }
-//        NSLog(@"Number friends going out: %lu, Not going out: %lu", (unsigned long)[self.leftPanelViewController.tetherFriendsGoingOut count], (unsigned long)[self.leftPanelViewController.tetherFriendsNotGoingOut count]);
     }
+    
+    if ([tempFriendsUndecided count] != [sharedDataManager.tetherFriendsUndecided count]) {
+        sharedDataManager.tetherFriendsUndecided = tempFriendsUndecided;
+    }
+    
+    if ([tempFriendsGoingOut count] != [sharedDataManager.tetherFriendsGoingOut count]) {
+        sharedDataManager.tetherFriendsGoingOut = tempFriendsGoingOut;
+    }
+    
+    if ([tempFriendsNotGoingOut count] != [sharedDataManager.tetherFriendsNotGoingOut count]) {
+        sharedDataManager.tetherFriendsNotGoingOut = tempFriendsNotGoingOut;
+    }
+    
     self.centerViewController.numberLabel.text = [NSString stringWithFormat:@"%lu", [sharedDataManager.tetherFriendsGoingOut count]];
     [self.leftPanelViewController updateFriendsList];
 }
@@ -614,6 +632,7 @@
     Friend *currentFriend = [sharedDataManager.tetherFriendsNearbyDictionary objectForKey:friendId];
     currentFriend.placeId = placeId;
     if (currentFriend) {
+        [sharedDataManager.friendsToPlacesMap setObject:placeId forKey:friendId];
         [sharedDataManager.tetherFriendsNearbyDictionary setObject:currentFriend forKey:placeId];
     }
 }

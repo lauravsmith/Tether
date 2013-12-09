@@ -22,7 +22,8 @@
     NSMutableArray * tetherFriendsGoingOut;
     NSMutableArray * tetherFriendsNotGoingOut;
     NSMutableArray * tetherFriendsUndecided;
-    NSMutableDictionary *friendsPlacesDictionary;
+    NSMutableDictionary *friendsToPlacesMap;
+    NSMutableDictionary *popularPlacesDictionary;
     NSMutableDictionary *foursquarePlacesDictionary;
     NSMutableDictionary *placesDictionary;
     PFObject *currentCommitmentParseObject;
@@ -40,7 +41,8 @@
 @property (nonatomic, strong) NSMutableArray * tetherFriendsGoingOut;
 @property (nonatomic, strong) NSMutableArray * tetherFriendsNotGoingOut;
 @property (nonatomic, strong) NSMutableArray * tetherFriendsUndecided;
-@property (nonatomic, strong) NSMutableDictionary *friendsPlacesDictionary;
+@property (nonatomic, strong) NSMutableDictionary *friendsToPlacesMap;
+@property (nonatomic, strong) NSMutableDictionary *popularPlacesDictionary;
 @property (nonatomic, strong) NSMutableDictionary *foursquarePlacesDictionary;
 @property (nonatomic, strong) NSMutableDictionary *placesDictionary;
 @property (retain, nonatomic) PFObject *currentCommitmentParseObject;

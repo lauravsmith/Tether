@@ -41,8 +41,9 @@
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
         Datastore *sharedDataManager = [Datastore sharedDataManager];
-        sharedDataManager.friendsPlacesDictionary = [[NSMutableDictionary alloc] init];
+        sharedDataManager.popularPlacesDictionary = [[NSMutableDictionary alloc] init];
         sharedDataManager.foursquarePlacesDictionary = [[NSMutableDictionary alloc] init];
+        sharedDataManager.friendsToPlacesMap = [[NSMutableDictionary alloc] init];
         self.placesArray = [[NSMutableArray alloc] init];
         self.friendStatusDetailsHaveLoaded = NO;
         self.foursquarePlacesDataHasLoaded = NO;
@@ -190,13 +191,13 @@
             }
             
             NSArray *tempKeys = [tempDictionary allKeys];
-            NSArray *keys = [sharedDataManager.friendsPlacesDictionary allKeys];
+            NSArray *keys = [sharedDataManager.popularPlacesDictionary allKeys];
             NSSet *tempKeySet = [NSSet setWithArray:tempKeys];
             NSSet *keySet = [NSSet setWithArray:keys];
             // check if commitments have changed, if so update map
             if (![tempKeySet isEqualToSet:keySet]) {
                 NSLog(@"Updated your friends commitments");
-                sharedDataManager.friendsPlacesDictionary = tempDictionary;
+                sharedDataManager.popularPlacesDictionary = tempDictionary;
                 [self addPinsToMap];
             }
             
@@ -221,8 +222,8 @@
 -(void)addDictionaries {
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     sharedDataManager.placesDictionary = [[NSMutableDictionary alloc] init];
-    for (id key in sharedDataManager.friendsPlacesDictionary) {
-        Place *place = [sharedDataManager.friendsPlacesDictionary objectForKey:key];
+    for (id key in sharedDataManager.popularPlacesDictionary) {
+        Place *place = [sharedDataManager.popularPlacesDictionary objectForKey:key];
         
         if ([sharedDataManager.foursquarePlacesDictionary objectForKey:key]) {
             Place *tempPlace = [sharedDataManager.foursquarePlacesDictionary objectForKey:key];
@@ -258,8 +259,8 @@
 -(void)addPinsToMap {
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     
-    for (id key in sharedDataManager.friendsPlacesDictionary) {
-        Place *p = [sharedDataManager.friendsPlacesDictionary objectForKey:key];
+    for (id key in sharedDataManager.popularPlacesDictionary) {
+        Place *p = [sharedDataManager.popularPlacesDictionary objectForKey:key];
         if (p) {
             if ([p.friendsCommitted count] > 0) {
                 NSLog(@"PLACES VIEW: Adding %@ with %d commitments to map", p.name, p.numberCommitments);
@@ -407,7 +408,7 @@
                 p.numberCommitments = 1;
             }
             [sharedDataManager.placesDictionary setObject:p forKey:place.placeId];
-            [sharedDataManager.friendsPlacesDictionary setObject:p forKey:place.placeId];
+            [sharedDataManager.popularPlacesDictionary setObject:p forKey:place.placeId];
             
             [self.delegate commitToPlace:place];
         }
@@ -436,7 +437,7 @@
             sharedDataManager.currentCommitmentPlace.numberCommitments -=1;
             [sharedDataManager.placesDictionary setObject:sharedDataManager.currentCommitmentPlace
                                                    forKey:sharedDataManager.currentCommitmentPlace.placeId];
-            [sharedDataManager.friendsPlacesDictionary removeObjectForKey:sharedDataManager.currentCommitmentPlace.placeId];
+            [sharedDataManager.popularPlacesDictionary removeObjectForKey:sharedDataManager.currentCommitmentPlace.placeId];
             if ([self.delegate respondsToSelector:@selector(placeMarkOnMapView:)]) {
                 [self.delegate placeMarkOnMapView:sharedDataManager.currentCommitmentPlace];
             }
