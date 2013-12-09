@@ -21,7 +21,6 @@
 @interface PlacesViewController () <PlaceCellDelegate, UITableViewDelegate, UITableViewDataSource>
 
 @property (nonatomic, strong) NSMutableArray *placesArray;
-@property (nonatomic, strong) UITableView *placesTableView;
 @property (nonatomic, strong) UITableViewController *placesTableViewController;
 @property (retain, nonatomic) UIView * bottomBar;
 @property (retain, nonatomic) UILabel * bottomBarLabel;
@@ -347,6 +346,13 @@
     }
 }
 
+-(void)scrollToPlaceWithId:(id)placeId {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    Place *place = [sharedDataManager.placesDictionary objectForKey:placeId];
+    
+    [self.placesTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:[self.placesArray indexOfObject:place] inSection:0]
+                                atScrollPosition:UITableViewScrollPositionTop animated:NO];
+}
 
 #pragma mark UITableViewDataSource Methods
 
@@ -373,6 +379,7 @@
     if (sharedDataManager.currentCommitmentPlace && place.placeId == sharedDataManager.currentCommitmentPlace.placeId) {
         [cell setTethered:YES];
     }
+    
     return cell;
 }
 

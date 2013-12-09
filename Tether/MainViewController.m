@@ -585,6 +585,14 @@
     [self.leftPanelViewController updateStatus];
 }
 
+#pragma mark LeftPanelViewControllerDelegate
+-(void)goToPlaceInListView:(id)placeId {
+    [self movePanelToOriginalPosition];
+    [self showListView];
+    [self.placesViewController.placesTableView reloadData];
+    [self.placesViewController scrollToPlaceWithId:placeId];
+}
+
 #pragma mark PlacesViewControllerDelegate
 
 -(void)placeMarkOnMapView:(Place*)place {
@@ -593,7 +601,6 @@
     [annotation setTitle:[NSString stringWithFormat:@"%@", place.name]];
     [annotation setSubtitle:[NSString stringWithFormat:@"%lu", (unsigned long)[place.friendsCommitted count]]];
     annotation.place = place;
-    
     
     if ([self.centerViewController.placeToAnnotationDictionary objectForKey:place.placeId]) {
             [self removePlaceMarkFromMapView:place];

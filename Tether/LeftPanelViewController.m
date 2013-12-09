@@ -21,7 +21,7 @@
 #define PADDING 10
 #define PROFILE_PICTURE_BORDER_WIDTH 4.0
 
-@interface LeftPanelViewController ()<UITableViewDelegate, UITableViewDataSource>
+@interface LeftPanelViewController ()<UITableViewDelegate, UITableViewDataSource, FriendCellDelegate>
 
 @property (nonatomic, strong) UITableView *friendsGoingOutTableView;
 @property (nonatomic, strong) UITableViewController *friendsGoingOutTableViewController;
@@ -228,6 +228,7 @@
     FriendCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell"];
     if (!cell) {
         cell = [[FriendCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Cell"];
+        cell.delegate = self;
     }
     
    if (tableView == self.friendsGoingOutTableView) {
@@ -242,6 +243,14 @@
 
 - (NSIndexPath *)tableView:(UITableView *)tableView willSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     return nil;
+}
+
+#pragma mark FriendCellDelegate methods
+
+-(void)goToPlaceInListView:(id)placeId {
+    if ([self.delegate respondsToSelector:@selector(goToPlaceInListView:)]) {
+        [self.delegate goToPlaceInListView:placeId];
+    }
 }
 
 - (void)didReceiveMemoryWarning

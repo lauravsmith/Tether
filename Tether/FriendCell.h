@@ -10,6 +10,13 @@
 #import <FacebookSDK/FacebookSDK.h>
 #import <UIKit/UIKit.h>
 
+@protocol FriendCellDelegate;
+
 @interface FriendCell : UITableViewCell
+@property (nonatomic, weak) id<FriendCellDelegate> delegate;
 @property (nonatomic, strong) Friend *friend;
+@end
+
+@protocol FriendCellDelegate <NSObject>
+-(void)goToPlaceInListView:(id)placeId;
 @end

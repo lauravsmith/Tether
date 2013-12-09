@@ -10,8 +10,7 @@
 
 #import <Parse/Parse.h>
 
-@protocol LeftPanelViewControllerDelegate <NSObject>
-@end
+@protocol LeftPanelViewControllerDelegate;
 
 @interface LeftPanelViewController : ViewController
 
@@ -25,4 +24,8 @@
 -(void)updateStatus;
 -(void)updateFriendsList;
 -(void)updateNameLabel;
+@end
+
+@protocol LeftPanelViewControllerDelegate <NSObject>
+-(void)goToPlaceInListView:(id)placeId;
 @end

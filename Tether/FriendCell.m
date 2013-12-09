@@ -16,13 +16,22 @@
 #define NAME_LABEL_OFFSET_X 70.0
 #define BORDER_WIDTH 4.0
 
+@protocol FriendCellContentViewDelegate;
+
 @interface FriendCellContentView : UIView
+@property (nonatomic, weak) id<FriendCellContentViewDelegate> delegate;
 @property (nonatomic, strong) Friend *friend;
 @property (nonatomic, strong) UILabel *friendNameLabel;
-@property (nonatomic, strong) UILabel *placeNameLabel;
+@property (nonatomic, strong) UIButton *placeButton;
 @property (nonatomic, assign) NSString *friendID;
 @property (nonatomic, strong) FBProfilePictureView *friendProfilePictureView;
 - (void)prepareForReuse;
+@end
+
+@protocol FriendCellContentViewDelegate <NSObject>
+
+-(void)goToPlaceInListView:(id)placeId;
+
 @end
 
 @implementation FriendCellContentView
@@ -35,8 +44,8 @@
         self.friendNameLabel = [[UILabel alloc] init];
         self.friendNameLabel.contentMode = UIViewContentModeScaleAspectFill;
         [self addSubview:self.friendNameLabel];
-        self.placeNameLabel = [[UILabel alloc] init];
-        [self addSubview:self.placeNameLabel];
+        self.placeButton = [[UIButton alloc] init];
+        [self addSubview:self.placeButton];
         self.layer.delegate = self;
     }
     return self;
@@ -49,7 +58,7 @@
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    self.friendNameLabel.frame = CGRectMake(NAME_LABEL_OFFSET_X, 0.0, 300.0, 40.0);
+    self.friendNameLabel.frame = CGRectMake(NAME_LABEL_OFFSET_X, 0.0, 300.0, 30.0);
     [self.friendNameLabel setTextColor:[UIColor whiteColor]];
     UIFont *champagneBold = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:18.0f];
     [self.friendNameLabel setFont:champagneBold];
@@ -59,9 +68,19 @@
     [self.friendProfilePictureView.layer setBorderColor:[[UIColor whiteColor] CGColor]];
     [self.friendProfilePictureView.layer setBorderWidth:BORDER_WIDTH];
     
-    self.placeNameLabel.frame = CGRectMake(NAME_LABEL_OFFSET_X, self.friendNameLabel.frame.origin.y + self.friendNameLabel.frame.size.height,  300.0, 40.0);
-    [self.placeNameLabel setTextColor:[UIColor whiteColor]];
-    [self.placeNameLabel setFont:champagneBold];
+    self.placeButton.frame = CGRectMake(NAME_LABEL_OFFSET_X, self.friendNameLabel.frame.origin.y + self.friendNameLabel.frame.size.height,  100.0, 30.0);
+    [self.placeButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    self.placeButton.titleLabel.font = champagneBold;
+    [self.placeButton setTitleEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 0)];
+    [self.placeButton addTarget:self action:@selector(friendsCommitmentPressed) forControlEvents:UIControlEventTouchUpInside];
+}
+
+-(void)friendsCommitmentPressed {
+    if ([self.delegate respondsToSelector:@selector(goToPlaceInListView:)]) {
+        if (self.friend.placeId) {
+           [self.delegate goToPlaceInListView:self.friend.placeId];
+        }
+    }
 }
 
 - (void)setFriend:(Friend *)friend {
@@ -75,10 +94,9 @@
     
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     if (friend.placeId) {
-
         if ([sharedDataManager.placesDictionary objectForKey:friend.placeId]) {
             Place *place = [sharedDataManager.placesDictionary objectForKey:friend.placeId];
-            self.placeNameLabel.text = place.name;
+            [self.placeButton setTitle:place.name forState:UIControlStateNormal];
         }
     }
     
@@ -88,7 +106,7 @@
 
 @end
 
-@interface FriendCell()
+@interface FriendCell() <FriendCellContentViewDelegate>
 @property (nonatomic, strong) FriendCellContentView *cellContentView;
 @end
 
@@ -119,6 +137,7 @@
         _cellContentView = [[FriendCellContentView alloc] initWithFrame:self.contentView.bounds];
         _cellContentView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
         [self.contentView addSubview:_cellContentView];
+        _cellContentView.delegate = self;
     }
     return _cellContentView;
 }
@@ -126,6 +145,14 @@
 - (void)setFriend:(id<FBGraphUser>)friend {
     _friend = friend;
     [self.cellContentView setFriend:friend];
+}
+
+#pragma mark FriendCellContentViewDelegate methods
+
+-(void)goToPlaceInListView:(id)placeId {
+    if ([self.delegate respondsToSelector:@selector(goToPlaceInListView:)]) {
+        [self.delegate goToPlaceInListView:placeId];
+    }
 }
 
 @end
