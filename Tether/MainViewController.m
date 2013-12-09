@@ -260,6 +260,7 @@
     }
     
     BOOL listsHaveChanged = NO;
+
     if ([tempFriendsUndecided count] != [sharedDataManager.tetherFriendsUndecided count]) {
         sharedDataManager.tetherFriendsUndecided = tempFriendsUndecided;
         listsHaveChanged = YES;
@@ -276,7 +277,11 @@
     }
     
     self.centerViewController.numberLabel.text = [NSString stringWithFormat:@"%lu", [sharedDataManager.tetherFriendsGoingOut count]];
-    if (listsHaveChanged) {
+    // if lists have changed or all are empty, update view
+    if (listsHaveChanged ||
+        ([sharedDataManager.tetherFriendsUndecided count] == 0 &&
+         [sharedDataManager.tetherFriendsNotGoingOut count] == 0 &&
+         [sharedDataManager.tetherFriendsGoingOut count] == 0)) {
         [self.leftPanelViewController updateFriendsList];
     }
 }
@@ -556,6 +561,7 @@
 -(void)handleChoice:(BOOL)choice {
     [self.decisionViewController.view removeFromSuperview];
     [self.decisionViewController removeFromParentViewController];
+    self.decisionViewController = nil;
 
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     sharedDataManager.status = choice;

@@ -16,6 +16,7 @@
     NSString *city;
     NSString *state;
     BOOL status;
+    BOOL userSetLocation;
     NSArray *facebookFriends;
     NSMutableDictionary *tetherFriendsNearbyDictionary;
     NSMutableDictionary *tetherFriendsDictionary;
@@ -38,6 +39,7 @@
 @property (nonatomic, retain) NSMutableDictionary *tetherFriendsNearbyDictionary;
 @property (nonatomic, retain) NSMutableDictionary *tetherFriendsDictionary;
 @property (nonatomic, assign) BOOL status;
+@property (nonatomic, assign) BOOL userSetLocation;
 @property (nonatomic, strong) NSMutableArray * tetherFriendsGoingOut;
 @property (nonatomic, strong) NSMutableArray * tetherFriendsNotGoingOut;
 @property (nonatomic, strong) NSMutableArray * tetherFriendsUndecided;

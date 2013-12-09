@@ -8,6 +8,7 @@
 
 #import "AppDelegate.h"
 #import "CenterViewController.h"
+#import "Datastore.h"
 #import "Place.h"
 #import "TetherAnnotation.h"
 
@@ -31,7 +32,7 @@
 @property (retain, nonatomic) UILabel * bottomBarLabel;
 @property (retain, nonatomic) UIButton * bottomRightButton;
 @property (strong, nonatomic) CLLocationManager * locationManager;
-@property (assign, nonatomic) CLLocation *userCoordinates;
+@property (strong, nonatomic) CLLocation *userCoordinates;
 @property (strong, nonatomic) NSTimer * finishLoadingTimer;
 @end
 
@@ -67,7 +68,19 @@
     
     self.locationManager = [[CLLocationManager alloc] init];
     self.locationManager.delegate  = self;
-    [self.locationManager startUpdatingLocation];
+    self.userCoordinates = [[CLLocation alloc] init];
+    
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    if (!sharedDataManager.userSetLocation) {
+        [self.locationManager startUpdatingLocation];
+    } else {
+        NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+        NSString *city = [userDetails objectForKey:@"city"];
+        NSString *state = [userDetails objectForKey:@"state"];
+        NSString *locationString = [NSString stringWithFormat:@"%@, %@", city, state];
+        NSLog(@"%@", locationString);
+        [self setUserLocationToCity:locationString];
+    }
     
     // number of friends going out label setup
     self.numberLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, 10, 110, 80)];
@@ -178,11 +191,12 @@
     self.mapHasAdjusted = YES;
 }
 
+
 -(void)updateLocation {
 //    self.mv.showsUserLocation = YES;
     CLLocationCoordinate2D userCoord = CLLocationCoordinate2DMake(self.userCoordinates.coordinate.latitude , self.userCoordinates.coordinate.longitude);
     
-    NSLog(@"mapViewDidFinishLoadingMap: Map updated: %f, %f", self.userCoordinates.coordinate.latitude,
+    NSLog(@"Adjusting Map: %f, %f", self.userCoordinates.coordinate.latitude,
           self.userCoordinates.coordinate.longitude);
     
     MKCoordinateRegion adjustedRegion = [self.mv regionThatFits:MKCoordinateRegionMakeWithDistance(userCoord, 10000, 10000)];
@@ -218,21 +232,44 @@
                  state = myPlacemark.administrativeArea;
              }
              
+              NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+             if (![city isEqualToString:[userDetails objectForKey:@"city"]] || ![state isEqualToString:[userDetails objectForKey:@"state"]]) {
+                 [userDetails setObject:city forKey:@"city"];
+                 [userDetails setObject:state forKey:@"state"];
+                 self.cityLabel.text = city;
+                 NSLog(@"Current City, State: %@,%@", city, state);
+                 
+                 
+                 PFUser *user = [PFUser currentUser];
+                 [user setObject:city forKey:@"cityLocation"];
+                 [user setObject:state forKey:@"stateLocation"];
+                 [user saveEventually];
+                 NSLog(@"PARSE SAVE: saving your location from the map");
+             }
+             
+             NSString *locationString = [NSString stringWithFormat:@"%@, %@", city, state];
+             NSLog(@"SETTING USER LOCATION TO %@", locationString);
+             [self setUserLocationToCity:locationString];
              // TODO : don't set location if user chose to set it in settings
-             NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-             
-             [userDetails setObject:city forKey:@"city"];
-             [userDetails setObject:state forKey:@"state"];
-             self.cityLabel.text = city;
-             NSLog(@"Current City, State: %@,%@", city, state);
-             
-             PFUser *user = [PFUser currentUser];
-             [user setObject:city forKey:@"cityLocation"];
-             [user setObject:state forKey:@"stateLocation"];
-             [user saveEventually];
-             NSLog(@"PARSE SAVE: saving your location from the map");
          }
      }];
+}
+
+-(void)setUserLocationToCity:(NSString*)city {
+    CLGeocoder *geo = [[CLGeocoder alloc] init];
+    [geo geocodeAddressString:city completionHandler:^(NSArray *placemarks, NSError *error) {
+        if (!error) {
+            if ([placemarks count] > 0) {
+                CLPlacemark *placemark = [placemarks objectAtIndex:0];
+                CLLocation *location = placemark.location;
+                NSLog(@"setting user coordinates from city name to %f %f", location.coordinate.latitude, location.coordinate.longitude);
+                self.userCoordinates = location;
+                [self updateLocation];
+            }
+        } else {
+            
+        }
+    }];
 }
 
 -(void)showListView {
@@ -248,11 +285,11 @@
           fromLocation:(CLLocation *)oldLoc {
     NSLog(@"LOCATION MANAGER: Did update location manager: %f, %f", newLoc.coordinate.latitude,
           newLoc.coordinate.longitude);
-    CLLocation *location = [[CLLocation alloc] initWithLatitude:newLoc.coordinate.latitude longitude:newLoc.coordinate.longitude];
     self.userCoordinates = newLoc;
-    [self getCityFromCLLocation:self.userCoordinates];
+    [self getCityFromCLLocation:newLoc];
     
     [self.locationManager stopUpdatingLocation];
+    [self.locationManager startMonitoringSignificantLocationChanges];
 }
 
 #pragma mark -
