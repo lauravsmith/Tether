@@ -259,20 +259,26 @@
         }
     }
     
+    BOOL listsHaveChanged = NO;
     if ([tempFriendsUndecided count] != [sharedDataManager.tetherFriendsUndecided count]) {
         sharedDataManager.tetherFriendsUndecided = tempFriendsUndecided;
+        listsHaveChanged = YES;
     }
     
     if ([tempFriendsGoingOut count] != [sharedDataManager.tetherFriendsGoingOut count]) {
         sharedDataManager.tetherFriendsGoingOut = tempFriendsGoingOut;
+        listsHaveChanged = YES;
     }
     
     if ([tempFriendsNotGoingOut count] != [sharedDataManager.tetherFriendsNotGoingOut count]) {
         sharedDataManager.tetherFriendsNotGoingOut = tempFriendsNotGoingOut;
+        listsHaveChanged = YES;
     }
     
     self.centerViewController.numberLabel.text = [NSString stringWithFormat:@"%lu", [sharedDataManager.tetherFriendsGoingOut count]];
-    [self.leftPanelViewController updateFriendsList];
+    if (listsHaveChanged) {
+        [self.leftPanelViewController updateFriendsList];
+    }
 }
 
 -(NSDate*)getStartTime{
@@ -518,15 +524,16 @@
     UIView *childView = [self getLeftView];
     [self.view sendSubviewToBack:childView];
     
-    [UIView animateWithDuration:SLIDE_TIMING delay:0 options:UIViewAnimationOptionBeginFromCurrentState
+    [UIView animateWithDuration:0.5
+                          delay:0.0
+         usingSpringWithDamping:0.7
+          initialSpringVelocity:5.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
                          _centerViewController.view.frame = CGRectMake(self.view.frame.size.width - PANEL_WIDTH, 0, self.view.frame.size.width, self.view.frame.size.height);
                      }
                      completion:^(BOOL finished) {
-                         if (finished) {
-                             
-                             _centerViewController.bottomLeftButton.tag = 0;
-                         }
+                          _centerViewController.bottomLeftButton.tag = 0;
                      }];
 }
 

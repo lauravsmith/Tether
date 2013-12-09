@@ -17,6 +17,7 @@
 @property (nonatomic, strong) Place *place;
 @property (nonatomic, strong) UILabel *placeNameLabel;
 @property (nonatomic, strong) UIButton *commitButton;
+@property (nonatomic, strong) UIButton *friendsGoingButton;
 @property (nonatomic, strong) UILabel *addressLabel;
 - (void)prepareForReuse;
 
@@ -27,6 +28,7 @@
 - (void)commitToPlace:(Place *)place;
 - (void)removePreviousCommitment;
 - (void)removeCommitmentFromDatabase;
+- (void)showFriendsView;
 
 @end
 
@@ -44,6 +46,8 @@
         [self addSubview:self.commitButton];
         self.addressLabel = [[UILabel alloc] init];
         [self addSubview:self.addressLabel];
+        self.friendsGoingButton = [[UIButton alloc] init];
+        [self addSubview:self.friendsGoingButton];
         self.layer.delegate = self;
     }
     return self;
@@ -70,6 +74,9 @@
     
     self.addressLabel.frame = CGRectMake(150.0, 50.0, 200.0, 30.0);
     self.addressLabel.text = self.place.address;
+    
+    self.friendsGoingButton.frame = CGRectMake(100.0, 50.0, 50.0, 50.0);
+    [self.friendsGoingButton setBackgroundColor:[UIColor redColor]];
 }
 
 - (void)setPlace:(Place *)place {
@@ -104,6 +111,12 @@
         }
         self.commitButton.tag = 1;
         [self layoutCommitButton];
+    }
+}
+
+-(IBAction)friendsGoingClicked:(id)sender {
+    if ([self.delegate respondsToSelector:@selector(showFriendsView)]) {
+        [self.delegate showFriendsView];
     }
 }
 
@@ -180,4 +193,11 @@
         [self.delegate removeCommitmentFromDatabase];
     }
 }
+
+-(void)showFriendsView {
+    if ([self.delegate respondsToSelector:@selector(showFriendsView)]) {
+        [self.delegate showFriendsView];
+    }
+}
+
 @end

@@ -24,5 +24,6 @@
 -(void)commitToPlace:(Place *)place fromCell:(PlaceCell*)cell;
 -(void)removePreviousCommitment;
 -(void)removeCommitmentFromDatabase;
+-(void)showFriendsView;
 
 @end

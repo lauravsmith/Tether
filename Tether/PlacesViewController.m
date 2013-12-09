@@ -159,6 +159,7 @@
                 
                 NSDate *commitmentTime = [object objectForKey:@"dateCommitted"];
                 if (commitmentTime != nil && [startTime compare:commitmentTime] == NSOrderedAscending) {
+                    // commitment for tonight
                     [place.friendsCommitted addObject:[object objectForKey:@"facebookId"]];
                     place.numberCommitments = place.numberCommitments + 1;
                     if ([sharedDataManager.facebookId isEqualToString:friendID]) {
@@ -166,13 +167,13 @@
                         sharedDataManager.currentCommitmentPlace = place;
                         sharedDataManager.currentCommitmentParseObject = object;
                     }
+                    if ([self.delegate respondsToSelector:@selector(setPlace:forFriend:)]) {
+                        [self.delegate setPlace:place.placeId forFriend:friendID];
+                    }
                 } else {
                     place.numberPastCommitments = place.numberPastCommitments + 1;
                 }
 
-                if ([self.delegate respondsToSelector:@selector(setPlace:forFriend:)]) {
-                    [self.delegate setPlace:place.placeId forFriend:friendID];
-                }
                 [tempDictionary setObject:place forKey:[object objectForKey:@"placeId"]];
             }
             
@@ -378,6 +379,7 @@
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     if (sharedDataManager.currentCommitmentPlace && place.placeId == sharedDataManager.currentCommitmentPlace.placeId) {
         [cell setTethered:YES];
+        self.previousCommitmentCellIndexPath = indexPath;
     }
     
     return cell;
@@ -460,6 +462,15 @@
         NSLog(@"PARSE DELETE: Removed previous commitment from database");
         sharedDataManager.currentCommitmentParseObject = nil;
     }
+}
+
+-(void)showFriendsView {
+//    [self.settingsViewController.view setFrame:CGRectMake( 0.0f, 480.0f, 320.0f, 768.0f)]; //notice this is OFF screen!
+//    [self.view addSubview:self.settingsViewController.view];
+//    [UIView beginAnimations:@"animateTableView" context:nil];
+//    [UIView setAnimationDuration:0.2];
+//    [self.settingsViewController.view setFrame:CGRectMake( 0.0f, 0.0f, 320.0f, 768.0f)]; //notice this is ON screen!
+//    [UIView commitAnimations];
 }
 
 -(void)unhighlightCellWithCellIndex:(NSIndexPath*)cellIndex {

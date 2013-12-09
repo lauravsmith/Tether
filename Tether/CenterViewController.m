@@ -31,6 +31,7 @@
 @property (retain, nonatomic) UILabel * bottomBarLabel;
 @property (retain, nonatomic) UIButton * bottomRightButton;
 @property (strong, nonatomic) CLLocationManager * locationManager;
+@property (assign, nonatomic) CLLocation *userCoordinates;
 @property (strong, nonatomic) NSTimer * finishLoadingTimer;
 @end
 
@@ -173,16 +174,17 @@
 
 - (void)mapLoadingIsFinished
 {
-//    NSLog(@"timer stopped");
+    NSLog(@"timer stopped");
     self.mapHasAdjusted = YES;
 }
 
 -(void)updateLocation {
-    self.mv.showsUserLocation = YES;
-    CLLocationCoordinate2D userCoord = CLLocationCoordinate2DMake(self.mv.userLocation.location.coordinate.latitude , self.mv.userLocation.location.coordinate.longitude);
+//    self.mv.showsUserLocation = YES;
+    CLLocationCoordinate2D userCoord = CLLocationCoordinate2DMake(self.userCoordinates.coordinate.latitude , self.userCoordinates.coordinate.longitude);
     
-    NSLog(@"Map updated: %f, %f", self.mv.userLocation.location.coordinate.latitude,
-          self.mv.userLocation.location.coordinate.longitude);
+    NSLog(@"mapViewDidFinishLoadingMap: Map updated: %f, %f", self.userCoordinates.coordinate.latitude,
+          self.userCoordinates.coordinate.longitude);
+    
     MKCoordinateRegion adjustedRegion = [self.mv regionThatFits:MKCoordinateRegionMakeWithDistance(userCoord, 10000, 10000)];
     [self.mv setRegion:adjustedRegion animated:NO];
 }
@@ -244,10 +246,11 @@
 -(void)locationManager:(CLLocationManager *)manager
    didUpdateToLocation:(CLLocation *)newLoc
           fromLocation:(CLLocation *)oldLoc {
-//    NSLog(@"Did update location manager: %f, %f", newLoc.coordinate.latitude,
-//          newLoc.coordinate.longitude);
+    NSLog(@"LOCATION MANAGER: Did update location manager: %f, %f", newLoc.coordinate.latitude,
+          newLoc.coordinate.longitude);
     CLLocation *location = [[CLLocation alloc] initWithLatitude:newLoc.coordinate.latitude longitude:newLoc.coordinate.longitude];
-    [self getCityFromCLLocation:location];
+    self.userCoordinates = newLoc;
+    [self getCityFromCLLocation:self.userCoordinates];
     
     [self.locationManager stopUpdatingLocation];
 }
