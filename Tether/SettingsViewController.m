@@ -35,6 +35,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 @property (retain, nonatomic) UITableView * searchResultsTableView;
 @property (retain, nonatomic) UITableViewController * searchResultsTableViewController;
 @property (nonatomic, retain) NSMutableArray *searchResults;
+@property (retain, nonatomic) UIButton * cancelSearchButton;
 
 @end
 
@@ -133,7 +134,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [self.setLocationSwitch setOnTintColor:UIColorFromRGB(0xF3F3F3)];
     [self.setLocationSwitch addTarget:self action:@selector(locationSwitchChange:) forControlEvents:UIControlEventValueChanged];
     [self.view addSubview:self.setLocationSwitch];
-    self.setLocationSwitch.on = [self.userDetails boolForKey:@"useCurrentLocation"];
+    self.setLocationSwitch.on = ![self.userDetails boolForKey:@"useCurrentLocation"];
     
     self.yesLabel = [[UILabel alloc] init];
     self.yesLabel.text = @"Yes";
@@ -143,10 +144,12 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.yesLabel.frame = CGRectMake(self.setLocationSwitch.frame.origin.x + self.setLocationSwitch.frame.size.width + 2.0, self.locationSwitchLabel.frame.origin.y + self.locationSwitchLabel.frame.size.height + PADDING, yesLabelSize.width, yesLabelSize.height);
     [self.view addSubview:self.yesLabel];
     
+    //city search
     self.cityTextField = [[UITextField  alloc] initWithFrame:CGRectMake(PADDING, self.setLocationSwitch.frame.origin.y + self.setLocationSwitch.frame.size.height + PADDING, self.view.frame.size.width - PADDING * 2, 30.0)];
     self.cityTextField.delegate = self;
-    NSString *location = [NSString stringWithFormat:@"%@,%@",[self.userDetails objectForKey:@"city"], [self.userDetails objectForKey:@"state"]];
+    NSString *location = [NSString stringWithFormat:@"%@",[self.userDetails objectForKey:@"city"]];
     self.cityTextField.text = [location uppercaseString];
+    self.cityTextField.placeholder = @"Search by city name";
     UIFont *textViewFont = [UIFont fontWithName:@"Champagne&Limousines-Italic" size:18];
     self.cityTextField.font = textViewFont;
     self.cityTextField.textColor = UIColorFromRGB(0x770051);
@@ -157,11 +160,15 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.cityTextField .clearButtonMode = UITextFieldViewModeWhileEditing;
     [self.cityTextField addTarget:self action:@selector(textFieldDidChange:) forControlEvents:UIControlEventEditingChanged];
     
-    //city search
+    [self.cityTextField setLeftView:[[UIView alloc] initWithFrame:CGRectMake(0, 0, 10, 20)]];
+    [self.cityTextField setLeftViewMode:UITextFieldViewModeAlways];
+    self.cityTextField.tag = 1;
+    
+    //pull city search results from geonames.org
     self.geocoder = [[ILGeoNamesLookup alloc] initWithUserID:kGeoNamesAccountName];
     self.geocoder.delegate = self;
     
-    self.searchResultsTableView = [[UITableView alloc] initWithFrame:CGRectMake(PADDING, self.whiteLineView.frame.origin.y + 45, self.cityTextField.frame.size.width, TABLE_VIEW_HEIGHT)];
+    self.searchResultsTableView = [[UITableView alloc] initWithFrame:CGRectMake(PADDING, self.whiteLineView.frame.origin.y + 45, self.cityTextField.frame.size.width, 0)];
     [self.searchResultsTableView setBackgroundColor:[UIColor whiteColor]];
     [self.searchResultsTableView setDataSource:self];
     [self.searchResultsTableView setDelegate:self];
@@ -172,6 +179,17 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.searchResultsTableViewController = [[UITableViewController alloc] init];
     self.searchResultsTableViewController.tableView = self.searchResultsTableView;
     [self.searchResultsTableView reloadData];
+    
+    self.cancelSearchButton = [[UIButton alloc] init];
+    [self.cancelSearchButton addTarget:self action:@selector(cancelSearchButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
+    [self.cancelSearchButton setBackgroundColor:[UIColor clearColor]];
+    [self.cancelSearchButton setTitleColor:UIColorFromRGB(0x770051) forState:UIControlStateNormal];
+    [self.cancelSearchButton setTitle:@"Cancel" forState:UIControlStateNormal];
+    CGSize size = [self.cancelSearchButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName: subheadingFont}];
+    self.cancelSearchButton.frame = CGRectMake(self.view.frame.size.width - size.width - PADDING, self.defaultCityLabel.frame.origin.y + self.defaultCityLabel.frame.size.height + PADDING, size.width, size.height);
+    self.cancelSearchButton.titleLabel.font = subheadingFont;
+    self.cancelSearchButton.hidden = YES;
+    [self.view addSubview:self.cancelSearchButton];
     
     self.whiteLineView2 = [[UIView alloc] initWithFrame:CGRectMake(0, self.cityTextField.frame.origin.y + self.cityTextField.frame.size.height + PADDING, self.view.frame.size.width, 2.0)];
     [self.whiteLineView2 setBackgroundColor:[UIColor whiteColor]];
@@ -222,17 +240,33 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 	return searchResults;
 }
 
-- (void)locationSwitchChange:(UISwitch *)theSwitch {
-    if (theSwitch == self.setLocationSwitch) {
-        [self.userDetails setBool:theSwitch.on forKey:@"useCurrentLocation"];
-        self.cityTextField.enabled = !self.setLocationSwitch.on;
-    } else {
-        [self.userDetails setBool:theSwitch.on forKey:@"status"];
-        if ([self.delegate respondsToSelector:@selector(updateStatus)]) {
-            [self.delegate updateStatus];
-        }
-    }
+-(void)closeSearchResultsTableView {
+    [self.searchResults removeAllObjects];
+    self.searchResultsTableView.hidden = YES;
+    [self.searchResultsTableView reloadData];
+    
+    self.locationSwitchLabel.hidden = NO;
+    self.setLocationSwitch.hidden = NO;
+    self.yesLabel.hidden = NO;
+    self.noLabel.hidden = NO;
+    self.cancelSearchButton.hidden = YES;
+    
+    [UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         CGRect frame = self.cityTextField.frame;
+                         frame.origin.y = self.setLocationSwitch.frame.origin.y + self.setLocationSwitch.frame.size.height + PADDING;
+                         self.cityTextField.frame = frame;
+                     }
+                     completion:^(BOOL finished) {
+                         if (finished) {
+                             self.cityTextField.tag = 1;
+                         }
+                     }];
+    [self.cityTextField resignFirstResponder];
 }
+
+
+#pragma mark UITextField delegate methods
 
 - (void)textFieldDidBeginEditing:(UITextField *)textField {
     [UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionBeginFromCurrentState
@@ -244,22 +278,41 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
                      completion:^(BOOL finished) {
                          if (finished) {
                             self.searchResultsTableView.hidden = NO;
+                             self.cancelSearchButton.hidden = NO;
+                            self.cityTextField.tag = 2;
                          }
                      }];
 
-    self.locationSwitchLabel.hidden = true;
-    self.setLocationSwitch.hidden = true;
-    self.yesLabel.hidden = true;
-    self.noLabel.hidden = true;
+    self.cityTextField.text = @"";
+    self.cityTextField.textColor = [UIColor darkGrayColor];
+    self.locationSwitchLabel.hidden = YES;
+    self.setLocationSwitch.hidden = YES;
+    self.yesLabel.hidden = YES;
+    self.noLabel.hidden = YES;
+}
+
+#pragma mark override UITextField methods
+
+- (BOOL)textFieldShouldClear:(UITextField *)textField {
+    [self.searchResults removeAllObjects];
+    [self.searchResultsTableView reloadData];
+    return YES;
 }
 
 -(void)textFieldDidChange:(UITextField*)textField {
-//    self.searchDisplayController.searchBar.prompt = NSLocalizedStringFromTable(@"ILGEONAMES_SEARCHING", @"ILGeoNames", @"");
 	[self.searchResults removeAllObjects];
-	
+	[self.searchResultsTableView reloadData];
+    
 	// Delay the search 1 second to minimize outstanding requests
 	[NSObject cancelPreviousPerformRequestsWithTarget:self];
-	[self performSelector:@selector(delayedSearch:) withObject:textField.text afterDelay:1.0];
+	[self performSelector:@selector(delayedSearch:) withObject:textField.text afterDelay:0.5];
+    [self resizeTableView];
+}
+
+-(void)resizeTableView {
+    CGRect frame = self.searchResultsTableView.frame;
+    frame.size.height = MIN([self.searchResults count] * 44.0, TABLE_VIEW_HEIGHT);
+    self.searchResultsTableView.frame = frame;
 }
 
 - (void)delayedSearch:(NSString*)searchString
@@ -277,9 +330,31 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     // Dispose of any resources that can be recreated.
 }
 
+#pragma switch methods
+
+- (void)locationSwitchChange:(UISwitch *)theSwitch {
+    if (theSwitch == self.setLocationSwitch) {
+        [self.userDetails setBool:theSwitch.on forKey:@"useCurrentLocation"];
+        self.cityTextField.enabled = !self.setLocationSwitch.on;
+        [self.userDetails synchronize];
+    } else {
+        [self.userDetails setBool:theSwitch.on forKey:@"status"];
+        if ([self.delegate respondsToSelector:@selector(updateStatus)]) {
+            [self.delegate updateStatus];
+        }
+    }
+}
+
+#pragma mark button action methods
 - (IBAction)handleCloseSettings:(id)sender {
     if ([self.delegate respondsToSelector:@selector(closeSettings)]) {
         [self.delegate closeSettings];
+    }
+    
+    if (self.cityTextField.tag == 1) {
+        
+    } else {
+        [self closeSearchResultsTableView];
     }
 }
 
@@ -288,29 +363,12 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [appDelegate logoutPressed];
 }
 
--(void)closeSearchResultsTableView {
-    [self.searchResults removeAllObjects];
-    self.searchResultsTableView.hidden = YES;
-    [self.searchResultsTableView reloadData];
-    
-    self.locationSwitchLabel.hidden = NO;
-    self.setLocationSwitch.hidden = NO;
-    self.yesLabel.hidden = NO;
-    self.noLabel.hidden = NO;
-    
-    [UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
-                         CGRect frame = self.cityTextField.frame;
-                         frame.origin.y = self.setLocationSwitch.frame.origin.y + self.setLocationSwitch.frame.size.height + PADDING;
-                         self.cityTextField.frame = frame;
-                     }
-                     completion:^(BOOL finished) {
-                         if (finished) {
-                             
-                         }
-                     }];
-    [self.cityTextField resignFirstResponder];
+-(IBAction)cancelSearchButtonPressed:(id)sender {
+    NSString *location = [NSString stringWithFormat:@"%@",[self.userDetails objectForKey:@"city"]];
+    self.cityTextField.text = [location uppercaseString];
+    [self closeSearchResultsTableView];
 }
+
 
 #pragma mark -
 #pragma mark Table view data source
@@ -379,13 +437,17 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 - (void)geoNamesSearchControllerdidFinishWithResult:(NSDictionary*)result
 {
 	NSLog(@"didFinishWithResult: %@", result);
-//	[self.controller dismissModalViewControllerAnimated:YES];
 	
 	if(result) {
 		double latitude = [[result objectForKey:kILGeoNamesLatitudeKey] doubleValue];
 		double longitude = [[result objectForKey:kILGeoNamesLongitudeKey] doubleValue];
-        self.cityTextField.text =[result objectForKey:kILGeoNamesAlternateNameKey];
+        self.cityTextField.textColor = UIColorFromRGB(0x770051);
+        self.cityTextField.text =[[result objectForKey:kILGeoNamesAlternateNameKey] uppercaseString];
         [self closeSearchResultsTableView];
+        CLLocation *location = [[CLLocation alloc] initWithLatitude:latitude longitude:longitude];
+        if ([self.delegate respondsToSelector:@selector(userChangedLocationInSettings:)]) {
+            [self.delegate userChangedLocationInSettings:location];
+        }
 	}
 }
 
@@ -409,7 +471,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 	}
     
 	[self.searchResultsTableView reloadData];
-	
+    [self resizeTableView];
     // when the table view is repopulated, its significant enough that a screen change notification should be posted
     UIAccessibilityPostNotification(UIAccessibilityLayoutChangedNotification, nil);
     UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, nil);

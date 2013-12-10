@@ -57,6 +57,10 @@
         self.placesViewController = [[PlacesViewController alloc] init];
         self.placesViewController.delegate = self;
         self.timerMultiplier = 1;
+        
+        Datastore *sharedDataManager= [Datastore sharedDataManager];
+        sharedDataManager.tetherFriendsDictionary = [[NSMutableDictionary alloc] init];
+        sharedDataManager.tetherFriendsNearbyDictionary = [[NSMutableDictionary alloc] init];
     }
     return self;
 }
@@ -207,16 +211,20 @@
     [facebookFriendsQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
         if (!error) {
             NSLog(@"QUERY: queried your facebook friends status who are on Tether");
-            sharedDataManager.tetherFriendsDictionary = [[NSMutableDictionary alloc] init];
             sharedDataManager.tetherFriendsNearbyDictionary = [[NSMutableDictionary alloc] init];
             
             for (PFUser *user in objects) {
-                Friend *friend = [[Friend alloc] init];
-                friend.friendID = user[@"facebookId"];
-                friend.name = user[@"displayName"];
+                Friend *friend;
+                if ([sharedDataManager.tetherFriendsDictionary objectForKey:user[@"facebookId"]]) {
+                    friend = [sharedDataManager.tetherFriendsDictionary objectForKey:user[@"facebookId"]];
+                } else {
+                    friend = [[Friend alloc] init];
+                    friend.friendID = user[@"facebookId"];
+                    friend.name = user[@"displayName"];
+                    friend.placeId = @"";
+                }
                 friend.timeLastUpdated = user[@"timeLastUpdated"];
                 friend.status = [user[@"status"] boolValue];
-                friend.placeId = @"";
                 if ([sharedDataManager.friendsToPlacesMap objectForKey:friend.friendID]) {
                     friend.placeId = [sharedDataManager.friendsToPlacesMap objectForKey:friend.friendID];
                 }
@@ -240,39 +248,40 @@
 -(void)sortTetherFriends {
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     NSDate *startTime = [self getStartTime];
-    NSMutableArray *tempFriendsGoingOut = [[NSMutableArray alloc] init];
-    NSMutableArray *tempFriendsNotGoingOut = [[NSMutableArray alloc] init];
-    NSMutableArray *tempFriendsUndecided = [[NSMutableArray alloc] init];
+    NSMutableSet *tempFriendsGoingOutSet = [[NSMutableSet alloc] init];
+    NSMutableSet *tempFriendsNotGoingOutSet = [[NSMutableSet alloc] init];
+    NSMutableSet *tempFriendsUndecidedSet = [[NSMutableSet alloc] init];
     
     for (id key in sharedDataManager.tetherFriendsNearbyDictionary) {
         Friend *friend = [sharedDataManager.tetherFriendsNearbyDictionary objectForKey:key];
         if (friend) {
             if ([startTime compare:friend.timeLastUpdated] == NSOrderedDescending) {
-                [tempFriendsUndecided addObject:friend];
+                [tempFriendsUndecidedSet addObject:friend];
             } else {
                 if (friend.status) {
-                    [tempFriendsGoingOut addObject:friend];
+                    [tempFriendsGoingOutSet addObject:friend];
                 } else {
-                    [tempFriendsNotGoingOut addObject:friend];
+                    [tempFriendsNotGoingOutSet addObject:friend];
                 }
             }
         }
     }
     
+    // only update lists if they have changed
     BOOL listsHaveChanged = NO;
+    
+    if (![tempFriendsUndecidedSet isEqualToSet:[NSSet setWithArray:sharedDataManager.tetherFriendsUndecided]]) {
+        sharedDataManager.tetherFriendsUndecided = [[tempFriendsUndecidedSet allObjects] mutableCopy];
+        listsHaveChanged = YES;
+    }
 
-    if ([tempFriendsUndecided count] != [sharedDataManager.tetherFriendsUndecided count]) {
-        sharedDataManager.tetherFriendsUndecided = tempFriendsUndecided;
+    if (![tempFriendsGoingOutSet isEqualToSet:[NSSet setWithArray:sharedDataManager.tetherFriendsGoingOut]]) {
+        sharedDataManager.tetherFriendsGoingOut = [[tempFriendsGoingOutSet allObjects] mutableCopy];
         listsHaveChanged = YES;
     }
     
-    if ([tempFriendsGoingOut count] != [sharedDataManager.tetherFriendsGoingOut count]) {
-        sharedDataManager.tetherFriendsGoingOut = tempFriendsGoingOut;
-        listsHaveChanged = YES;
-    }
-    
-    if ([tempFriendsNotGoingOut count] != [sharedDataManager.tetherFriendsNotGoingOut count]) {
-        sharedDataManager.tetherFriendsNotGoingOut = tempFriendsNotGoingOut;
+    if (![tempFriendsNotGoingOutSet isEqualToSet:[NSSet setWithArray:sharedDataManager.tetherFriendsNotGoingOut]]) {
+        sharedDataManager.tetherFriendsNotGoingOut = [[tempFriendsNotGoingOutSet allObjects] mutableCopy];
         listsHaveChanged = YES;
     }
     
@@ -556,6 +565,12 @@
                      }];
 }
 
+-(void)finishedResettingNewLocation {
+    self.placesViewController = [[PlacesViewController alloc] init];
+    self.placesViewController.delegate = self;
+    [self pollDatabase];
+}
+
 #pragma mark QuestionViewControllerDelegate
 
 -(void)handleChoice:(BOOL)choice {
@@ -596,6 +611,11 @@
 
 -(void)updateStatus {
     [self.leftPanelViewController updateStatus];
+}
+
+-(void)userChangedLocationInSettings:(CLLocation*)newLocation {
+    [self.centerViewController setCityFromCLLocation:newLocation
+                 shouldUpdateFriendsListOnCompletion:YES];
 }
 
 #pragma mark LeftPanelViewControllerDelegate

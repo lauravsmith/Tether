@@ -93,8 +93,8 @@
     [self addSubview:self.friendProfilePictureView];
     
     Datastore *sharedDataManager = [Datastore sharedDataManager];
-    if (friend.placeId) {
-        if ([sharedDataManager.placesDictionary objectForKey:friend.placeId]) {
+    if (self.friend.placeId != NULL) {
+        if ([sharedDataManager.placesDictionary objectForKey:self.friend.placeId]) {
             Place *place = [sharedDataManager.placesDictionary objectForKey:friend.placeId];
             [self.placeButton setTitle:place.name forState:UIControlStateNormal];
         }

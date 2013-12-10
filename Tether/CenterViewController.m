@@ -70,11 +70,10 @@
     self.locationManager.delegate  = self;
     self.userCoordinates = [[CLLocation alloc] init];
     
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
-    if (!sharedDataManager.userSetLocation) {
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    if (![userDetails boolForKey:@"useCurrentLocation"]) {
         [self.locationManager startUpdatingLocation];
     } else {
-        NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
         NSString *city = [userDetails objectForKey:@"city"];
         NSString *state = [userDetails objectForKey:@"state"];
         NSString *locationString = [NSString stringWithFormat:@"%@, %@", city, state];
@@ -96,7 +95,6 @@
     [self.cityLabel setBackgroundColor:[UIColor clearColor]];
     [self.cityLabel setTextColor:[UIColor whiteColor]];
     UIFont *champagneItalic = [UIFont fontWithName:@"Champagne&Limousines-Italic" size:18.0f];
-    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     self.cityLabel.text = [userDetails objectForKey:@"city"];
     [self.cityLabel setFont:champagneItalic];
     [self.topBar addSubview:self.cityLabel];
@@ -203,9 +201,9 @@
     [self.mv setRegion:adjustedRegion animated:NO];
 }
 
--(void)getCityFromCLLocation:(CLLocation*) location{
+-(void)setCityFromCLLocation:(CLLocation *)location shouldUpdateFriendsListOnCompletion:(BOOL)shouldUpdate
+{
     CLGeocoder *geocoder = [[CLGeocoder alloc] init];
-    
     [geocoder reverseGeocodeLocation:location completionHandler:^(NSArray *placemarks, NSError *error)
      {
          if (error)
@@ -239,7 +237,6 @@
                  self.cityLabel.text = city;
                  NSLog(@"Current City, State: %@,%@", city, state);
                  
-                 
                  PFUser *user = [PFUser currentUser];
                  [user setObject:city forKey:@"cityLocation"];
                  [user setObject:state forKey:@"stateLocation"];
@@ -251,6 +248,12 @@
              NSLog(@"SETTING USER LOCATION TO %@", locationString);
              [self setUserLocationToCity:locationString];
              // TODO : don't set location if user chose to set it in settings
+             
+             if (shouldUpdate) {
+                 if ([self.delegate respondsToSelector:@selector(finishedResettingNewLocation)]) {
+                     [self.delegate finishedResettingNewLocation];
+                 }
+             }
          }
      }];
 }
@@ -286,7 +289,7 @@
     NSLog(@"LOCATION MANAGER: Did update location manager: %f, %f", newLoc.coordinate.latitude,
           newLoc.coordinate.longitude);
     self.userCoordinates = newLoc;
-    [self getCityFromCLLocation:newLoc];
+    [self setCityFromCLLocation:newLoc shouldUpdateFriendsListOnCompletion:NO];
     
     [self.locationManager stopUpdatingLocation];
     [self.locationManager startMonitoringSignificantLocationChanges];

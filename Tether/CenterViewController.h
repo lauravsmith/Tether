@@ -28,6 +28,7 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 - (void)movePanelToOriginalPosition;
 - (void)showSettingsView;
 -(void)showListView;
+-(void)finishedResettingNewLocation;
 @end
 
 @interface CenterViewController : ViewController <MKMapViewDelegate>
@@ -40,5 +41,5 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 @property (retain, nonatomic) MKMapView * mv;
 @property (retain, nonatomic) NSMutableDictionary * placeToAnnotationDictionary;
 -(void)updateLocation;
-
+-(void)setCityFromCLLocation:(CLLocation*)location shouldUpdateFriendsListOnCompletion:(BOOL)shouldUpdate;
 @end

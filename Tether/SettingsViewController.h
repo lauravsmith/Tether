@@ -27,5 +27,6 @@
 
 -(void)closeSettings;
 -(void)updateStatus;
+-(void)userChangedLocationInSettings:(CLLocation*)newLocation;
 
 @end
