@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4702441618575E14001C19AC /* ILGeoNamesLookup.m in Sources */ = {isa = PBXBuildFile; fileRef = 4702441518575E14001C19AC /* ILGeoNamesLookup.m */; };
+		4702442118576BFD001C19AC /* CHANGELOG.md in Resources */ = {isa = PBXBuildFile; fileRef = 4702441D18576BFD001C19AC /* CHANGELOG.md */; };
+		4702442218576BFD001C19AC /* JSONKit.m in Sources */ = {isa = PBXBuildFile; fileRef = 4702441F18576BFD001C19AC /* JSONKit.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		4702442318576BFD001C19AC /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 4702442018576BFD001C19AC /* README.md */; };
 		47059D8A1842E17E00CEC50E /* FriendCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 47059D891842E17E00CEC50E /* FriendCell.m */; };
 		47059D8E18444CBE00CEC50E /* Friend.m in Sources */ = {isa = PBXBuildFile; fileRef = 47059D8D18444CBE00CEC50E /* Friend.m */; };
 		47064C86183D9E3800E9228A /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 47064C85183D9E3800E9228A /* Foundation.framework */; };
@@ -85,6 +89,12 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		4702441418575E14001C19AC /* ILGeoNamesLookup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ILGeoNamesLookup.h; sourceTree = "<group>"; };
+		4702441518575E14001C19AC /* ILGeoNamesLookup.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ILGeoNamesLookup.m; sourceTree = "<group>"; };
+		4702441D18576BFD001C19AC /* CHANGELOG.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CHANGELOG.md; sourceTree = "<group>"; };
+		4702441E18576BFD001C19AC /* JSONKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSONKit.h; sourceTree = "<group>"; };
+		4702441F18576BFD001C19AC /* JSONKit.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JSONKit.m; sourceTree = "<group>"; };
+		4702442018576BFD001C19AC /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
 		47059D881842E17E00CEC50E /* FriendCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FriendCell.h; sourceTree = "<group>"; };
 		47059D891842E17E00CEC50E /* FriendCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FriendCell.m; sourceTree = "<group>"; };
 		47059D8C18444CBE00CEC50E /* Friend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Friend.h; sourceTree = "<group>"; };
@@ -195,6 +205,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		4702441C18576BFD001C19AC /* JSONKit-master */ = {
+			isa = PBXGroup;
+			children = (
+				4702441D18576BFD001C19AC /* CHANGELOG.md */,
+				4702441E18576BFD001C19AC /* JSONKit.h */,
+				4702441F18576BFD001C19AC /* JSONKit.m */,
+				4702442018576BFD001C19AC /* README.md */,
+			);
+			path = "JSONKit-master";
+			sourceTree = "<group>";
+		};
 		47059D8B1842E18A00CEC50E /* View */ = {
 			isa = PBXGroup;
 			children = (
@@ -210,6 +231,8 @@
 			isa = PBXGroup;
 			children = (
 				47059D8C18444CBE00CEC50E /* Friend.h */,
+				4702441418575E14001C19AC /* ILGeoNamesLookup.h */,
+				4702441518575E14001C19AC /* ILGeoNamesLookup.m */,
 				47059D8D18444CBE00CEC50E /* Friend.m */,
 				47FB08D41849701400A07908 /* Place.h */,
 				47FB08D51849701400A07908 /* Place.m */,
@@ -265,6 +288,7 @@
 		47064C8B183D9E3800E9228A /* Tether */ = {
 			isa = PBXGroup;
 			children = (
+				4702441C18576BFD001C19AC /* JSONKit-master */,
 				4705F9B01847C8BA00910EE1 /* Model */,
 				47059D8B1842E18A00CEC50E /* View */,
 				470A33B118414939006E48F9 /* TetherCache.h */,
@@ -444,6 +468,7 @@
 				47064CCE183DB14C00E9228A /* Gear.png in Resources */,
 				47064CCC183DB14C00E9228A /* Arrow.png in Resources */,
 				47064CE8183E6CB200E9228A /* ListIcon.png in Resources */,
+				4702442118576BFD001C19AC /* CHANGELOG.md in Resources */,
 				470A33AD18402A37006E48F9 /* facebook.png in Resources */,
 				47064C9E183D9E3800E9228A /* Images.xcassets in Resources */,
 				47C7B6C3184AD18200358BE1 /* chevron-left.png in Resources */,
@@ -451,6 +476,7 @@
 				47064CD9183DBAE300E9228A /* Champagne&LimousinesBoldItalic.ttf in Resources */,
 				47064C90183D9E3800E9228A /* InfoPlist.strings in Resources */,
 				47064CE1183DBAE300E9228A /* readme.txt in Resources */,
+				4702442318576BFD001C19AC /* README.md in Resources */,
 				47064CDF183DBAE300E9228A /* Champagne&Limousines.ttf in Resources */,
 				47064CC8183DB13E00E9228A /* PinIcon.png in Resources */,
 				47064CD1183DB16200E9228A /* Whiteline.png in Resources */,
@@ -528,10 +554,12 @@
 				47C7B6C1184AC7BB00358BE1 /* PlaceCell.m in Sources */,
 				47064C96183D9E3800E9228A /* AppDelegate.m in Sources */,
 				47064C92183D9E3800E9228A /* main.m in Sources */,
+				4702441618575E14001C19AC /* ILGeoNamesLookup.m in Sources */,
 				470A33B71842CB98006E48F9 /* DecisionViewController.m in Sources */,
 				470A33AA184029CE006E48F9 /* LoginViewController.m in Sources */,
 				47059D8A1842E17E00CEC50E /* FriendCell.m in Sources */,
 				47064CBC183D9FD800E9228A /* MainViewController.m in Sources */,
+				4702442218576BFD001C19AC /* JSONKit.m in Sources */,
 				47064CC0183DA00D00E9228A /* CenterViewController.m in Sources */,
 				47FB08D61849701400A07908 /* Place.m in Sources */,
 			);

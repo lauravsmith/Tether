@@ -7,6 +7,7 @@
 //
 
 #import "CenterViewController.h"
+#import "ILGeoNamesLookup.h"
 #import "ViewController.h"
 
 #import <FacebookSDK/FacebookSDK.h>
@@ -18,6 +19,7 @@
 @property (nonatomic, weak) id<SettingsViewControllerDelegate> delegate;
 @property (nonatomic, strong) FBProfilePictureView *userProfilePictureView;
 @property (retain, nonatomic) NSString * city;
+@property (nonatomic, retain) ILGeoNamesLookup *geocoder;
 
 @end
 
