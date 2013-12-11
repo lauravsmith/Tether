@@ -178,7 +178,7 @@
             }
             
             if (self.friendStatusDetailsHaveLoaded) {
-                if (sharedDataManager.currentCommitmentPlace.placeId) {
+                if (sharedDataManager.currentCommitmentPlace.placeId && [sharedDataManager.currentCommitmentPlace.city isEqualToString:userCity]) {
                     Place *p = [tempDictionary objectForKey:sharedDataManager.currentCommitmentPlace.placeId];
                     if (p) {
                         [p.friendsCommitted addObject:sharedDataManager.facebookId];

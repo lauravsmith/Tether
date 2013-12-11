@@ -20,6 +20,7 @@
 #define DISTANCE_FACE_TO_PIN 20.0
 #define FACE_SIZE 40.0
 #define CORNER_RADIUS 20.0
+#define PADDING 10.0
 
 @interface CenterViewController () <MKMapViewDelegate, CLLocationManagerDelegate>
 @property (retain, nonatomic) NSString * cityLocation;
@@ -70,31 +71,25 @@
     self.locationManager.delegate  = self;
     self.userCoordinates = [[CLLocation alloc] init];
     
-    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-    if (![userDetails boolForKey:@"useCurrentLocation"]) {
-        [self.locationManager startUpdatingLocation];
-    } else {
-        NSString *city = [userDetails objectForKey:@"city"];
-        NSString *state = [userDetails objectForKey:@"state"];
-        NSString *locationString = [NSString stringWithFormat:@"%@, %@", city, state];
-        NSLog(@"%@", locationString);
-        [self setUserLocationToCity:locationString];
-    }
-    
+    [self locationSetup];
+
     // number of friends going out label setup
-    self.numberLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, 10, 110, 80)];
-    [self.numberLabel setBackgroundColor:[UIColor clearColor]];
-    [self.numberLabel setTextColor:[UIColor whiteColor]];
+    self.numberButton = [[UIButton alloc] initWithFrame:CGRectMake(PADDING, PADDING, 110, 80)];
+    [self.numberButton setBackgroundColor:[UIColor clearColor]];
+    [self.numberButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [self.numberButton setTitleColor:[UIColor grayColor] forState:UIControlStateHighlighted];
     UIFont *champagne = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:81];
-    self.numberLabel.text = @"";
-    [self.numberLabel setFont:champagne];
-    [self.topBar addSubview:self.numberLabel];
-    
+    self.numberButton.titleLabel.font = champagne;
+    [self.numberButton addTarget:self action:@selector(btnMovePanelRight:) forControlEvents:UIControlEventTouchUpInside];
+    self.numberButton.tag = 1;
+    [self.topBar addSubview:self.numberButton];
+
     // city location label setup
-    self.cityLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, self.numberLabel.frame.origin.y + self.numberLabel.frame.size.height, 110, 20)];
+    self.cityLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, self.numberButton.frame.origin.y + self.numberButton.frame.size.height, 110, 20)];
     [self.cityLabel setBackgroundColor:[UIColor clearColor]];
     [self.cityLabel setTextColor:[UIColor whiteColor]];
     UIFont *champagneItalic = [UIFont fontWithName:@"Champagne&Limousines-Italic" size:18.0f];
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     self.cityLabel.text = [userDetails objectForKey:@"city"];
     [self.cityLabel setFont:champagneItalic];
     [self.topBar addSubview:self.cityLabel];
@@ -140,9 +135,6 @@
     UIImage *leftPanelButtonImage = [UIImage imageNamed:@"Gear"];
     self.bottomLeftButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 10, 30, 30)];
     [self.bottomLeftButton setImage:leftPanelButtonImage forState:UIControlStateNormal];
-    [self.bottomBar addSubview:self.bottomLeftButton];
-    self.bottomLeftButton.tag = 1;
-    [self.bottomLeftButton addTarget:self action:@selector(btnMovePanelRight:) forControlEvents:UIControlEventTouchDown];
     
     // bottom right button setup
     UIImage *bottomRightButtonImage = [UIImage imageNamed:@"Gear"];
@@ -171,6 +163,27 @@
 
     [self.view addSubview:self.bottomBar];
     [self restartTimer];
+}
+
+-(void)locationSetup {
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    if ([userDetails boolForKey:@"useCurrentLocation"]) {
+        [self.locationManager startUpdatingLocation];
+    } else {
+        NSString *city = [userDetails objectForKey:@"city"];
+        NSString *state = [userDetails objectForKey:@"state"];
+        NSString *locationString = [NSString stringWithFormat:@"%@, %@", city, state];
+        NSLog(@"%@", locationString);
+        [self setUserLocationToCity:locationString];
+    }
+}
+
+-(void)layoutNumberLabel {
+    UIFont *champagne = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:81];
+    CGSize size = [self.numberButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:champagne}];
+    CGRect frame = self.numberButton.frame;
+    frame.size.width = size.width;
+    self.numberButton.frame = frame;
 }
 
 -(void)restartTimer {
@@ -234,6 +247,7 @@
              if (![city isEqualToString:[userDetails objectForKey:@"city"]] || ![state isEqualToString:[userDetails objectForKey:@"state"]]) {
                  [userDetails setObject:city forKey:@"city"];
                  [userDetails setObject:state forKey:@"state"];
+                 [userDetails synchronize];
                  self.cityLabel.text = city;
                  NSLog(@"Current City, State: %@,%@", city, state);
                  
@@ -247,12 +261,9 @@
              NSString *locationString = [NSString stringWithFormat:@"%@, %@", city, state];
              NSLog(@"SETTING USER LOCATION TO %@", locationString);
              [self setUserLocationToCity:locationString];
-             // TODO : don't set location if user chose to set it in settings
              
-             if (shouldUpdate) {
-                 if ([self.delegate respondsToSelector:@selector(finishedResettingNewLocation)]) {
-                     [self.delegate finishedResettingNewLocation];
-                 }
+             if ([self.delegate respondsToSelector:@selector(finishedResettingNewLocation)]) {
+                 [self.delegate finishedResettingNewLocation];
              }
          }
      }];
@@ -339,9 +350,9 @@
         MKAnnotationView *pinView = [[MKAnnotationView alloc] init];
         //[mapView dequeueReusableAnnotationViewWithIdentifier:@"CustomPinAnnotationView"];
             // If an existing pin view was not available, create one.
-            UILabel *numberLabel = [[UILabel alloc] initWithFrame:CGRectMake(18.0, 10.0, 10.0, 20.0)];
-            numberLabel.text = [annotation subtitle];
-            numberLabel.textColor = [UIColor whiteColor];
+            UILabel *numberButton = [[UILabel alloc] initWithFrame:CGRectMake(18.0, 10.0, 10.0, 20.0)];
+            numberButton.text = [annotation subtitle];
+            numberButton.textColor = [UIColor whiteColor];
             
             pinView = [[MKAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:@"CustomPinAnnotationView"];
             pinView.canShowCallout = YES;
@@ -353,7 +364,7 @@
             UIImageView *imageView = [[UIImageView alloc] initWithImage:pinImage];
             imageView.frame = CGRectMake(0, 0, 50.0, 50.0);
             [pinView addSubview:imageView];
-            [pinView addSubview:numberLabel];
+            [pinView addSubview:numberButton];
             
             TetherAnnotation *annotationPoint = (TetherAnnotation*)annotation;
             Place *p = annotationPoint.place;

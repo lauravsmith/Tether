@@ -285,7 +285,8 @@
         listsHaveChanged = YES;
     }
     
-    self.centerViewController.numberLabel.text = [NSString stringWithFormat:@"%lu", [sharedDataManager.tetherFriendsGoingOut count]];
+    [self.centerViewController.numberButton setTitle:[NSString stringWithFormat:@"%lu", [sharedDataManager.tetherFriendsGoingOut count]] forState:UIControlStateNormal];
+    [self.centerViewController layoutNumberLabel];
     // if lists have changed or all are empty, update view
     if (listsHaveChanged ||
         ([sharedDataManager.tetherFriendsUndecided count] == 0 &&
@@ -393,7 +394,7 @@
 {
     if (_leftPanelViewController != nil)
     {
-        _centerViewController.bottomLeftButton.tag = 1;
+        _centerViewController.numberButton.tag = 1;
         self.showingLeftPanel = NO;
     }
     
@@ -547,7 +548,7 @@
                          _centerViewController.view.frame = CGRectMake(self.view.frame.size.width - PANEL_WIDTH, 0, self.view.frame.size.width, self.view.frame.size.height);
                      }
                      completion:^(BOOL finished) {
-                          _centerViewController.bottomLeftButton.tag = 0;
+                          _centerViewController.numberButton.tag = 0;
                      }];
 }
 
@@ -569,6 +570,7 @@
     self.placesViewController = [[PlacesViewController alloc] init];
     self.placesViewController.delegate = self;
     [self pollDatabase];
+    [self.settingsViewController resettingNewLocationHasFinished];
 }
 
 #pragma mark QuestionViewControllerDelegate
@@ -613,9 +615,25 @@
     [self.leftPanelViewController updateStatus];
 }
 
--(void)userChangedLocationInSettings:(CLLocation*)newLocation {
+-(void)userChangedLocationInSettings:(CLLocation*)newLocation{
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    if (sharedDataManager.currentCommitmentPlace) {
+        [self.placesViewController removeCommitmentFromDatabase];
+        [self removePlaceMarkFromMapView:sharedDataManager.currentCommitmentPlace];
+        sharedDataManager.currentCommitmentPlace = nil;
+    }
     [self.centerViewController setCityFromCLLocation:newLocation
                  shouldUpdateFriendsListOnCompletion:YES];
+}
+
+-(void)userChangedSettingsToUseCurrentLocation {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    if (sharedDataManager.currentCommitmentPlace) {
+        [self.placesViewController removeCommitmentFromDatabase];
+        [self removePlaceMarkFromMapView:sharedDataManager.currentCommitmentPlace];
+        sharedDataManager.currentCommitmentPlace = nil;
+    }
+        [self.centerViewController locationSetup];
 }
 
 #pragma mark LeftPanelViewControllerDelegate

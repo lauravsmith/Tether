@@ -36,10 +36,12 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 @property (nonatomic, assign) id<CenterViewControllerDelegate> delegate;
 
 @property (retain, nonatomic) UIButton *bottomLeftButton;
-@property (retain, nonatomic) UILabel * numberLabel;
+@property (retain, nonatomic) UIButton * numberButton;
 @property (retain, nonatomic) UILabel * cityLabel;
 @property (retain, nonatomic) MKMapView * mv;
 @property (retain, nonatomic) NSMutableDictionary * placeToAnnotationDictionary;
 -(void)updateLocation;
 -(void)setCityFromCLLocation:(CLLocation*)location shouldUpdateFriendsListOnCompletion:(BOOL)shouldUpdate;
+-(void)layoutNumberLabel;
+-(void)locationSetup;
 @end

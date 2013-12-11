@@ -27,7 +27,6 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 @property (retain, nonatomic) UIView * whiteLineView2;
 @property (retain, nonatomic) UILabel * defaultCityLabel;
 @property (retain, nonatomic) UILabel * locationSwitchLabel;
-@property (retain, nonatomic) NSUserDefaults * userDetails;
 @property (retain, nonatomic) UISwitch * goingOutSwitch;
 @property (retain, nonatomic) UILabel * goingOutLabel;
 @property (retain, nonatomic) UILabel * yesLabel;
@@ -58,7 +57,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 {
     [super viewDidLoad];
     
-    self.userDetails = [NSUserDefaults standardUserDefaults];
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     [self.view setBackgroundColor:UIColorFromRGB(0xD6D6D6)];
     
     self.topBarView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 70.0)];
@@ -134,7 +133,8 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [self.setLocationSwitch setOnTintColor:UIColorFromRGB(0xF3F3F3)];
     [self.setLocationSwitch addTarget:self action:@selector(locationSwitchChange:) forControlEvents:UIControlEventValueChanged];
     [self.view addSubview:self.setLocationSwitch];
-    self.setLocationSwitch.on = ![self.userDetails boolForKey:@"useCurrentLocation"];
+    [self.setLocationSwitch setOn:[userDetails boolForKey:@"useCurrentLocation"]];
+    NSLog(@"Switch is: %d", [self.setLocationSwitch isOn]);
     
     self.yesLabel = [[UILabel alloc] init];
     self.yesLabel.text = @"Yes";
@@ -147,7 +147,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     //city search
     self.cityTextField = [[UITextField  alloc] initWithFrame:CGRectMake(PADDING, self.setLocationSwitch.frame.origin.y + self.setLocationSwitch.frame.size.height + PADDING, self.view.frame.size.width - PADDING * 2, 30.0)];
     self.cityTextField.delegate = self;
-    NSString *location = [NSString stringWithFormat:@"%@",[self.userDetails objectForKey:@"city"]];
+    NSString *location = [NSString stringWithFormat:@"%@, %@",[userDetails objectForKey:@"city"], [userDetails objectForKey:@"state"]];
     self.cityTextField.text = [location uppercaseString];
     self.cityTextField.placeholder = @"Search by city name";
     UIFont *textViewFont = [UIFont fontWithName:@"Champagne&Limousines-Italic" size:18];
@@ -215,7 +215,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [self.goingOutSwitch setOnTintColor:UIColorFromRGB(0xF3F3F3)];
     [self.goingOutSwitch addTarget:self action:@selector(locationSwitchChange:) forControlEvents:UIControlEventValueChanged];
     [self.view addSubview:self.goingOutSwitch];
-    self.goingOutSwitch.on = [self.userDetails boolForKey:@"status"];
+    self.goingOutSwitch.on = [userDetails boolForKey:@"status"];
     
     UILabel *yesLabel2 = [[UILabel alloc] init];
     yesLabel2.text = @"Yes";
@@ -265,6 +265,11 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [self.cityTextField resignFirstResponder];
 }
 
+-(void)resettingNewLocationHasFinished {
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    NSString *location = [NSString stringWithFormat:@"%@, %@",[userDetails objectForKey:@"city"], [userDetails objectForKey:@"state"]];
+    self.cityTextField.text = [location uppercaseString];
+}
 
 #pragma mark UITextField delegate methods
 
@@ -333,12 +338,19 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 #pragma switch methods
 
 - (void)locationSwitchChange:(UISwitch *)theSwitch {
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     if (theSwitch == self.setLocationSwitch) {
-        [self.userDetails setBool:theSwitch.on forKey:@"useCurrentLocation"];
+        [userDetails setBool:theSwitch.on forKey:@"useCurrentLocation"];
+
         self.cityTextField.enabled = !self.setLocationSwitch.on;
-        [self.userDetails synchronize];
+        [userDetails synchronize];
+        if (self.setLocationSwitch.on) {
+            if ([self.delegate respondsToSelector:@selector(userChangedSettingsToUseCurrentLocation)]) {
+                [self.delegate userChangedSettingsToUseCurrentLocation];
+            }
+        }
     } else {
-        [self.userDetails setBool:theSwitch.on forKey:@"status"];
+        [userDetails setBool:theSwitch.on forKey:@"status"];
         if ([self.delegate respondsToSelector:@selector(updateStatus)]) {
             [self.delegate updateStatus];
         }
@@ -364,7 +376,8 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 }
 
 -(IBAction)cancelSearchButtonPressed:(id)sender {
-    NSString *location = [NSString stringWithFormat:@"%@",[self.userDetails objectForKey:@"city"]];
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    NSString *location = [NSString stringWithFormat:@"%@",[userDetails objectForKey:@"city"]];
     self.cityTextField.text = [location uppercaseString];
     [self closeSearchResultsTableView];
 }
@@ -429,7 +442,6 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
 	[NSObject cancelPreviousPerformRequestsWithTarget:self];
 	[self.geocoder cancel];
-	self.geocoder.delegate = nil;
 	
 	[self geoNamesSearchControllerdidFinishWithResult:[self.searchResults objectAtIndex:indexPath.row]];
 }

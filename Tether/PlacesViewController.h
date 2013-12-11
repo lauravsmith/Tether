@@ -16,6 +16,7 @@
 -(void)getFriendsCommitments;
 -(void)removePreviousCommitment;
 -(void)scrollToPlaceWithId:(id)placeId;
+-(void)removeCommitmentFromDatabase;
 @end
 
 @protocol PlacesViewControllerDelegate <NSObject>

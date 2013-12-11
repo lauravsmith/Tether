@@ -20,6 +20,7 @@
 @property (nonatomic, strong) FBProfilePictureView *userProfilePictureView;
 @property (retain, nonatomic) NSString * city;
 @property (nonatomic, retain) ILGeoNamesLookup *geocoder;
+-(void)resettingNewLocationHasFinished;
 
 @end
 
@@ -28,5 +29,6 @@
 -(void)closeSettings;
 -(void)updateStatus;
 -(void)userChangedLocationInSettings:(CLLocation*)newLocation;
+-(void)userChangedSettingsToUseCurrentLocation;
 
 @end

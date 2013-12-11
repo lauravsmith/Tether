@@ -16,7 +16,6 @@
 @synthesize state;
 @synthesize facebookFriends;
 @synthesize status;
-@synthesize userSetLocation;
 @synthesize tetherFriendsNearbyDictionary;
 @synthesize tetherFriendsDictionary;
 @synthesize tetherFriendsGoingOut;
