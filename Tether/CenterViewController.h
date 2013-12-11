@@ -40,8 +40,9 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 @property (retain, nonatomic) UILabel * cityLabel;
 @property (retain, nonatomic) MKMapView * mv;
 @property (retain, nonatomic) NSMutableDictionary * placeToAnnotationDictionary;
+@property (assign, nonatomic) bool resettingLocation;
 -(void)updateLocation;
--(void)setCityFromCLLocation:(CLLocation*)location shouldUpdateFriendsListOnCompletion:(BOOL)shouldUpdate;
+-(void)setCityFromCLLocation:(CLLocation*)location;
 -(void)layoutNumberLabel;
 -(void)locationSetup;
 @end

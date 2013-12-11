@@ -214,7 +214,7 @@
     [self.mv setRegion:adjustedRegion animated:NO];
 }
 
--(void)setCityFromCLLocation:(CLLocation *)location shouldUpdateFriendsListOnCompletion:(BOOL)shouldUpdate
+-(void)setCityFromCLLocation:(CLLocation *)location
 {
     CLGeocoder *geocoder = [[CLGeocoder alloc] init];
     [geocoder reverseGeocodeLocation:location completionHandler:^(NSArray *placemarks, NSError *error)
@@ -262,9 +262,12 @@
              NSLog(@"SETTING USER LOCATION TO %@", locationString);
              [self setUserLocationToCity:locationString];
              
-             if ([self.delegate respondsToSelector:@selector(finishedResettingNewLocation)]) {
-                 [self.delegate finishedResettingNewLocation];
+             if (self.resettingLocation) {
+                 if ([self.delegate respondsToSelector:@selector(finishedResettingNewLocation)]) {
+                     [self.delegate finishedResettingNewLocation];
+                 }
              }
+             self.resettingLocation = NO;
          }
      }];
 }
@@ -300,7 +303,7 @@
     NSLog(@"LOCATION MANAGER: Did update location manager: %f, %f", newLoc.coordinate.latitude,
           newLoc.coordinate.longitude);
     self.userCoordinates = newLoc;
-    [self setCityFromCLLocation:newLoc shouldUpdateFriendsListOnCompletion:NO];
+    [self setCityFromCLLocation:newLoc];
     
     [self.locationManager stopUpdatingLocation];
     [self.locationManager startMonitoringSignificantLocationChanges];

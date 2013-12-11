@@ -622,8 +622,8 @@
         [self removePlaceMarkFromMapView:sharedDataManager.currentCommitmentPlace];
         sharedDataManager.currentCommitmentPlace = nil;
     }
-    [self.centerViewController setCityFromCLLocation:newLocation
-                 shouldUpdateFriendsListOnCompletion:YES];
+    self.centerViewController.resettingLocation = YES;
+    [self.centerViewController setCityFromCLLocation:newLocation];
 }
 
 -(void)userChangedSettingsToUseCurrentLocation {
@@ -633,7 +633,8 @@
         [self removePlaceMarkFromMapView:sharedDataManager.currentCommitmentPlace];
         sharedDataManager.currentCommitmentPlace = nil;
     }
-        [self.centerViewController locationSetup];
+    self.centerViewController.resettingLocation = YES;
+    [self.centerViewController locationSetup];
 }
 
 #pragma mark LeftPanelViewControllerDelegate

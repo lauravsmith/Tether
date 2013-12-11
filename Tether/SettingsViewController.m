@@ -11,7 +11,7 @@
 
 #define BORDER_WIDTH 4.0
 #define PADDING 15.0
-#define TABLE_VIEW_HEIGHT 140.0
+#define TABLE_VIEW_HEIGHT 250.0
 
 static NSString *kGeoNamesAccountName = @"lsmit87";
 
@@ -35,6 +35,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 @property (retain, nonatomic) UITableViewController * searchResultsTableViewController;
 @property (nonatomic, retain) NSMutableArray *searchResults;
 @property (retain, nonatomic) UIButton * cancelSearchButton;
+@property (retain, nonatomic) UIActivityIndicatorView * activityIndicator;
 
 @end
 
@@ -168,7 +169,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.geocoder = [[ILGeoNamesLookup alloc] initWithUserID:kGeoNamesAccountName];
     self.geocoder.delegate = self;
     
-    self.searchResultsTableView = [[UITableView alloc] initWithFrame:CGRectMake(PADDING, self.whiteLineView.frame.origin.y + 45, self.cityTextField.frame.size.width, 0)];
+    self.searchResultsTableView = [[UITableView alloc] initWithFrame:CGRectMake(PADDING, self.topBarView.frame.origin.y + self.topBarView.frame.size.height + 50, self.cityTextField.frame.size.width, 0)];
     [self.searchResultsTableView setBackgroundColor:[UIColor whiteColor]];
     [self.searchResultsTableView setDataSource:self];
     [self.searchResultsTableView setDelegate:self];
@@ -186,10 +187,13 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [self.cancelSearchButton setTitleColor:UIColorFromRGB(0x770051) forState:UIControlStateNormal];
     [self.cancelSearchButton setTitle:@"Cancel" forState:UIControlStateNormal];
     CGSize size = [self.cancelSearchButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName: subheadingFont}];
-    self.cancelSearchButton.frame = CGRectMake(self.view.frame.size.width - size.width - PADDING, self.defaultCityLabel.frame.origin.y + self.defaultCityLabel.frame.size.height + PADDING, size.width, size.height);
+    self.cancelSearchButton.frame = CGRectMake(self.view.frame.size.width - size.width - PADDING, self.topBarView.frame.origin.y + self.topBarView.frame.size.height + PADDING, size.width, size.height);
     self.cancelSearchButton.titleLabel.font = subheadingFont;
     self.cancelSearchButton.hidden = YES;
     [self.view addSubview:self.cancelSearchButton];
+    
+    self.activityIndicator = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake((self.view.frame.size.width - 50.0) / 2.0, self.defaultCityLabel.frame.origin.y + self.defaultCityLabel.frame.size.height , 50.0, 50.0)];
+    [self.view addSubview:self.activityIndicator];
     
     self.whiteLineView2 = [[UIView alloc] initWithFrame:CGRectMake(0, self.cityTextField.frame.origin.y + self.cityTextField.frame.size.height + PADDING, self.view.frame.size.width, 2.0)];
     [self.whiteLineView2 setBackgroundColor:[UIColor whiteColor]];
@@ -250,11 +254,16 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.yesLabel.hidden = NO;
     self.noLabel.hidden = NO;
     self.cancelSearchButton.hidden = YES;
+    self.userProfilePictureView.hidden = NO;
+    self.logoutButton.hidden = NO;
+    self.whiteLineView.hidden = NO;
+    self.defaultCityLabel.hidden = NO;
     
     [UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
                          CGRect frame = self.cityTextField.frame;
                          frame.origin.y = self.setLocationSwitch.frame.origin.y + self.setLocationSwitch.frame.size.height + PADDING;
+                         frame.size.width = self.view.frame.size.width - PADDING * 2;
                          self.cityTextField.frame = frame;
                      }
                      completion:^(BOOL finished) {
@@ -277,7 +286,8 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
                          CGRect frame = self.cityTextField.frame;
-                         frame.origin.y = self.whiteLineView.frame.origin.y + self.whiteLineView.frame.size.height + PADDING;
+                         frame.origin.y = self.topBarView.frame.origin.y + self.topBarView.frame.size.height + PADDING;
+                         frame.size.width = frame.size.width - self.cancelSearchButton.frame.size.width - PADDING;
                          self.cityTextField.frame = frame;
                      }
                      completion:^(BOOL finished) {
@@ -294,6 +304,10 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.setLocationSwitch.hidden = YES;
     self.yesLabel.hidden = YES;
     self.noLabel.hidden = YES;
+    self.userProfilePictureView.hidden = YES;
+    self.logoutButton.hidden = YES;
+    self.whiteLineView.hidden = YES;
+    self.defaultCityLabel.hidden = YES;
 }
 
 #pragma mark override UITextField methods
@@ -308,6 +322,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 	[self.searchResults removeAllObjects];
 	[self.searchResultsTableView reloadData];
     
+    [self.activityIndicator startAnimating];
 	// Delay the search 1 second to minimize outstanding requests
 	[NSObject cancelPreviousPerformRequestsWithTarget:self];
 	[self performSelector:@selector(delayedSearch:) withObject:textField.text afterDelay:0.5];
@@ -377,7 +392,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 
 -(IBAction)cancelSearchButtonPressed:(id)sender {
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-    NSString *location = [NSString stringWithFormat:@"%@",[userDetails objectForKey:@"city"]];
+    NSString *location = [NSString stringWithFormat:@"%@, %@",[userDetails objectForKey:@"city"], [userDetails objectForKey:@"state"]];
     self.cityTextField.text = [location uppercaseString];
     [self closeSearchResultsTableView];
 }
@@ -487,6 +502,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     // when the table view is repopulated, its significant enough that a screen change notification should be posted
     UIAccessibilityPostNotification(UIAccessibilityLayoutChangedNotification, nil);
     UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, nil);
+    [self.activityIndicator stopAnimating];
 }
 
 - (void)geoNamesLookup:(ILGeoNamesLookup *)handler didFailWithError:(NSError *)error
