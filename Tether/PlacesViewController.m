@@ -9,16 +9,21 @@
 #import "CenterViewController.h"
 #import "Datastore.h"
 #import "Friend.h"
+#import "FriendsListViewController.h"
 #import "Place.h"
 #import "PlaceCell.h"
 #import "PlacesViewController.h"
+#import "SearchResultCell.h"
 
 #import <AFNetworking/AFHTTPRequestOperationManager.h>
 #import <Parse/Parse.h>
 
+#define BOTTOM_BAR_HEIGHT 60.0
 #define CELL_HEIGHT 100.0
+#define SEARCH_RESULTS_CELL_HEIGHT 60.0
+#define SEARCH_BAR_HEIGHT 60.0
 
-@interface PlacesViewController () <PlaceCellDelegate, UITableViewDelegate, UITableViewDataSource>
+@interface PlacesViewController () <PlaceCellDelegate, UITableViewDelegate, UITableViewDataSource, UISearchBarDelegate>
 
 @property (nonatomic, strong) NSMutableArray *placesArray;
 @property (nonatomic, strong) UITableViewController *placesTableViewController;
@@ -30,6 +35,10 @@
 @property (assign, nonatomic) bool friendStatusDetailsHaveLoaded;
 @property (assign, nonatomic) bool foursquarePlacesDataHasLoaded;
 @property (retain, nonatomic) NSIndexPath *previousCommitmentCellIndexPath;
+@property (retain, nonatomic) UISearchBar *searchBar;
+@property (retain, nonatomic) NSMutableArray *searchResultsArray;
+@property (nonatomic, strong) UITableView *searchResultsTableView;
+@property (nonatomic, strong) UITableViewController *searchResultsTableViewController;
 
 @end
 
@@ -54,29 +63,47 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
+    // set up search bar and corresponding search results tableview
+    self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, SEARCH_BAR_HEIGHT)];
+    self.searchBar.delegate = self;
+    [self.view addSubview:self.searchBar];
+    
+    self.searchResultsArray = [[NSMutableArray alloc] init];
+    
+    self.searchResultsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, self.searchBar.frame.size.height, self.view.frame.size.width, self.view.frame.size.height - BOTTOM_BAR_HEIGHT)];
+    self.searchResultsTableView.hidden = YES;
+    [self.searchResultsTableView setDataSource:self];
+    [self.searchResultsTableView setDelegate:self];
+    
+    self.searchResultsTableViewController = [[UITableViewController alloc] init];
+    self.searchResultsTableViewController.tableView = self.searchResultsTableView;
+    [self.searchResultsTableView reloadData];
+    
     //set up friends going out table view
-    self.placesTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)];
-    //    self.friendsGoingOutTableView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
+    self.placesTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, self.searchBar.frame.size.height, self.view.frame.size.width, self.view.frame.size.height - BOTTOM_BAR_HEIGHT)];
     [self.placesTableView setSeparatorColor:[UIColor whiteColor]];
     [self.placesTableView setBackgroundColor:UIColorFromRGB(0xD6D6D6)];
     [self.placesTableView setDataSource:self];
     [self.placesTableView setDelegate:self];
+    self.placesTableView.showsVerticalScrollIndicator = NO;
     
     [self.view addSubview:self.placesTableView];
+    [self.view addSubview:self.searchResultsTableView];
     
     self.placesTableViewController = [[UITableViewController alloc] init];
     self.placesTableViewController.tableView = self.placesTableView;
-    [self.placesTableView reloadData];
     
     // bottom nav bar setup
-    self.bottomBar = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - 50.0, self.view.frame.size.width, 60.0)];
-    
+    self.bottomBar = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - BOTTOM_BAR_HEIGHT, self.view.frame.size.width, BOTTOM_BAR_HEIGHT)];
     self.bottomBar.layer.masksToBounds = NO;
     self.bottomBar.layer.shadowColor = [UIColor blackColor].CGColor;
     self.bottomBar.layer.shadowOffset = CGSizeMake(0.0f, 2.0f);
     self.bottomBar.layer.shadowOpacity = 0.5f;
     
-    UIImage *shadowImage = [[UIImage imageNamed:@"ListIcon.png"] resizableImageWithCapInsets:UIEdgeInsetsMake(2.0, 2.0, 2.0, 2.0) resizingMode:UIImageResizingModeStretch];
+    UIImage *shadowImage = [[UIImage imageNamed:@"ListIcon.png"]
+                            resizableImageWithCapInsets:UIEdgeInsetsMake(2.0, 2.0, 2.0, 2.0)
+                            resizingMode:UIImageResizingModeStretch];
     UIImageView *shadowImageView = [[UIImageView alloc] initWithImage:shadowImage];
     shadowImageView.frame = CGRectMake(-62.0, self.view.frame.size.height - 80.0, 442, 120.0);
     [self.view addSubview:shadowImageView];
@@ -211,7 +238,11 @@
             self.friendStatusDetailsHaveLoaded = YES;
         } else {
             // Log details of the failure
-            NSLog(@"Error: %@ %@", error, [error userInfo]);
+            NSLog(@"Error Querying friends commitments: %@ %@", error, [error userInfo]);
+            if (self.foursquarePlacesDataHasLoaded) {
+                [self addDictionaries];
+                [self sortPlacesByPopularity];
+            }
         }
     }];
     if (!self.foursquarePlacesDataHasLoaded) {
@@ -270,56 +301,6 @@
     }
 }
 
-- (void)loadPlaces {
-    NSLog(@"LOADING FOURSQUARE DATA");
-    NSString *urlString1 = @"https://api.foursquare.com/v2/venues/search?near=";
-    NSString *urlString2 = @"&categoryId=4d4b7105d754a06376d81259&limit=50&oauth_token=5IQQDYZZ0KJLYNQROEEFAEWR4V400IADTACODH2SYCVBNQ3P&v=20131113";
-    NSString *joinString=[NSString stringWithFormat:@"%@%@%@%@%@",urlString1,[self.userDetails objectForKey:@"city"] ,@"%20",[self.userDetails objectForKey:@"state"],urlString2];
-    joinString = [joinString stringByReplacingOccurrencesOfString:@" " withString:@"%20"];
-    
-    NSURL *url = [NSURL URLWithString:joinString];
-    
-    NSURLRequest *request = [NSURLRequest requestWithURL:url];
-    AFHTTPRequestOperation *operation = [[AFHTTPRequestOperation alloc]
-                                         initWithRequest:request];
-    operation.responseSerializer = [AFJSONResponseSerializer serializer];
-    [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSDictionary *jsonDict = (NSDictionary *) responseObject;
-        [self process:jsonDict];
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"Failure");
-    }];
-    [operation start];
-}
-
-- (void)process:(NSDictionary *)json {
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
-    NSDictionary *response = [json objectForKey:@"response"];
-    NSArray *venues = [response objectForKey:@"venues"];
-    for (NSDictionary *venue in venues) {
-        Place *newPlace = [[Place alloc] init];
-        newPlace.placeId = [venue objectForKey:@"id"];
-        newPlace.name = [venue objectForKey:@"name"];
-        CLLocationCoordinate2D location = CLLocationCoordinate2DMake([(NSString*)[[venue objectForKey:@"location"] objectForKey:@"lat"] doubleValue], [[[venue objectForKey:@"location"] objectForKey:@"lng"] doubleValue]);
-        newPlace.coord = location;
-        newPlace.city = [self.userDetails objectForKey:@"city"];
-        newPlace.state = [self.userDetails objectForKey:@"state"];
-        NSDictionary *locationDetails = [venue objectForKey:@"location"];
-        newPlace.address = [locationDetails objectForKey:@"address"];
-        
-        if (![sharedDataManager.foursquarePlacesDictionary objectForKey:newPlace.placeId]) {
-            [sharedDataManager.foursquarePlacesDictionary setObject:newPlace forKey:newPlace.placeId];
-        }
-    }
-
-    if (self.friendStatusDetailsHaveLoaded) {
-        [self addDictionaries];
-        [self sortPlacesByPopularity];
-//        [self addPinsToMap];
-    }
-    self.foursquarePlacesDataHasLoaded = YES;
-}
-
 -(void)closeListView {
     if ([self.delegate respondsToSelector:@selector(closeListView)]) {
         [self.delegate closeListView];
@@ -353,44 +334,6 @@
     
     [self.placesTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:[self.placesArray indexOfObject:place] inSection:0]
                                 atScrollPosition:UITableViewScrollPositionTop animated:NO];
-}
-
-#pragma mark UITableViewDataSource Methods
-
-- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return CELL_HEIGHT;
-}
-
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return [self.placesArray count];
-}
-
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    PlaceCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell"];
-    if (!cell) {
-        cell = [[PlaceCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Cell"];
-        cell.delegate = self;
-        cell.cellIndexPath = indexPath;
-    }
-    
-    Place *place = [self.placesArray objectAtIndex:indexPath.row];
-    [cell setPlace:place];
-    
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
-    if (sharedDataManager.currentCommitmentPlace && place.placeId == sharedDataManager.currentCommitmentPlace.placeId) {
-        [cell setTethered:YES];
-        self.previousCommitmentCellIndexPath = indexPath;
-    }
-    
-    return cell;
-}
-
-- (NSIndexPath *)tableView:(UITableView *)tableView willSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    return nil;
-}
-
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    return;
 }
 
 #pragma mark PlaceCellDelegate Methods
@@ -465,18 +408,209 @@
 }
 
 -(void)showFriendsView {
-//    [self.settingsViewController.view setFrame:CGRectMake( 0.0f, 480.0f, 320.0f, 768.0f)]; //notice this is OFF screen!
-//    [self.view addSubview:self.settingsViewController.view];
-//    [UIView beginAnimations:@"animateTableView" context:nil];
-//    [UIView setAnimationDuration:0.2];
-//    [self.settingsViewController.view setFrame:CGRectMake( 0.0f, 0.0f, 320.0f, 768.0f)]; //notice this is ON screen!
-//    [UIView commitAnimations];
+//    Place *place = [self.placesArray objectAtIndex:0];
+//    Datastore *sharedDataManager = [Datastore sharedDataManager];
+//    if ([place.friendsCommitted count] > 0) {
+//        FriendsListViewController *friendsListViewController = [[FriendsListViewController alloc] init];
+//        NSMutableArray *friends = [[NSMutableArray alloc] init];
+//        for (id friendId in place.friendsCommitted) {
+//            if ([sharedDataManager.tetherFriendsDictionary objectForKey:friendId]) {
+//                Friend *friend = [sharedDataManager.tetherFriendsDictionary objectForKey:friendId];
+//                [friends addObject:friend];
+//            }
+//        }
+//        friendsListViewController.friendsArray = friends;
+//        [self.view addSubview:friendsListViewController.view];
+//    }
 }
 
 -(void)unhighlightCellWithCellIndex:(NSIndexPath*)cellIndex {
     //indicate in list view that you are no longer tethered to the previous location
     PlaceCell *cell = (PlaceCell*)[self.placesTableView cellForRowAtIndexPath:cellIndex];
     [cell setTethered:NO];
+}
+
+#pragma mark SearchBarDelegate methods
+
+- (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
+    [self.searchBar setShowsCancelButton:YES animated:YES];
+    self.searchResultsTableView.hidden = NO;
+}
+
+- (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
+    searchBar.text=@"";
+    
+    [searchBar setShowsCancelButton:NO animated:YES];
+    [searchBar resignFirstResponder];
+    
+    self.searchResultsArray = nil;
+    [self.searchResultsTableView reloadData];
+    self.searchResultsTableView.hidden = YES;
+}
+
+- (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar {
+    [self loadPlacesForSearch:searchBar.text];
+}
+
+-(void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {
+    [self loadPlacesForSearch:searchBar.text];
+}
+
+// Intial foursquare data call
+- (void)loadPlaces {
+    NSString *urlString1 = @"https://api.foursquare.com/v2/venues/search?near=";
+    NSString *urlString2 = @"&categoryId=4d4b7105d754a06376d81259&limit=100&oauth_token=5IQQDYZZ0KJLYNQROEEFAEWR4V400IADTACODH2SYCVBNQ3P&v=20131113";
+    NSString *joinString=[NSString stringWithFormat:@"%@%@%@%@%@",urlString1,[self.userDetails objectForKey:@"city"] ,@"%20",[self.userDetails objectForKey:@"state"],urlString2];
+    joinString = [joinString stringByReplacingOccurrencesOfString:@" " withString:@"%20"];
+    
+    NSURL *url = [NSURL URLWithString:joinString];
+    
+    NSURLRequest *request = [NSURLRequest requestWithURL:url];
+    AFHTTPRequestOperation *operation = [[AFHTTPRequestOperation alloc]
+                                         initWithRequest:request];
+    operation.responseSerializer = [AFJSONResponseSerializer serializer];
+    [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSDictionary *jsonDict = (NSDictionary *) responseObject;
+        [self process:jsonDict];
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Failure");
+    }];
+    [operation start];
+}
+
+- (void)process:(NSDictionary *)json {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    NSDictionary *response = [json objectForKey:@"response"];
+    NSArray *venues = [response objectForKey:@"venues"];
+    for (NSDictionary *venue in venues) {
+        Place *newPlace = [[Place alloc] init];
+        newPlace.placeId = [venue objectForKey:@"id"];
+        newPlace.name = [venue objectForKey:@"name"];
+        CLLocationCoordinate2D location = CLLocationCoordinate2DMake([(NSString*)[[venue objectForKey:@"location"] objectForKey:@"lat"] doubleValue], [[[venue objectForKey:@"location"] objectForKey:@"lng"] doubleValue]);
+        newPlace.coord = location;
+        newPlace.city = [self.userDetails objectForKey:@"city"];
+        newPlace.state = [self.userDetails objectForKey:@"state"];
+        NSDictionary *locationDetails = [venue objectForKey:@"location"];
+        newPlace.address = [locationDetails objectForKey:@"address"];
+        
+        if (![sharedDataManager.foursquarePlacesDictionary objectForKey:newPlace.placeId]) {
+            [sharedDataManager.foursquarePlacesDictionary setObject:newPlace forKey:newPlace.placeId];
+        }
+    }
+    
+    if (self.friendStatusDetailsHaveLoaded) {
+        [self addDictionaries];
+        [self sortPlacesByPopularity];
+    }
+    NSLog(@"FINISHED LOADING FOURSQUARE DATA FOR SEARCH");
+    self.foursquarePlacesDataHasLoaded = YES;
+}
+
+// Search foursquare data call
+- (void)loadPlacesForSearch:(NSString*)search {
+    NSString *urlString1 = @"https://api.foursquare.com/v2/venues/search?near=";
+    NSString *urlString2 = @"&query=";
+    NSString *urlString3 = @"&limit=50&oauth_token=5IQQDYZZ0KJLYNQROEEFAEWR4V400IADTACODH2SYCVBNQ3P&v=20131113";
+    NSString *joinString=[NSString stringWithFormat:@"%@%@%@%@%@%@%@",urlString1,[self.userDetails objectForKey:@"city"] ,@"%20",[self.userDetails objectForKey:@"state"],urlString2, search, urlString3];
+    joinString = [joinString stringByReplacingOccurrencesOfString:@" " withString:@"%20"];
+    
+    NSURL *url = [NSURL URLWithString:joinString];
+    
+    NSURLRequest *request = [NSURLRequest requestWithURL:url];
+    AFHTTPRequestOperation *operation = [[AFHTTPRequestOperation alloc]
+                                         initWithRequest:request];
+    operation.responseSerializer = [AFJSONResponseSerializer serializer];
+    [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSDictionary *jsonDict = (NSDictionary *) responseObject;
+        [self processSearchResults:jsonDict];
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Failure");
+    }];
+    [operation start];
+}
+
+- (void)processSearchResults:(NSDictionary *)json {
+    NSDictionary *response = [json objectForKey:@"response"];
+    self.searchResultsArray = [[NSMutableArray alloc] init];
+    NSArray *venues = [response objectForKey:@"venues"];
+    for (NSDictionary *venue in venues) {
+        Place *newPlace = [[Place alloc] init];
+        newPlace.placeId = [venue objectForKey:@"id"];
+        newPlace.name = [venue objectForKey:@"name"];
+        CLLocationCoordinate2D location = CLLocationCoordinate2DMake([(NSString*)[[venue objectForKey:@"location"] objectForKey:@"lat"] doubleValue], [[[venue objectForKey:@"location"] objectForKey:@"lng"] doubleValue]);
+        newPlace.coord = location;
+        newPlace.city = [self.userDetails objectForKey:@"city"];
+        newPlace.state = [self.userDetails objectForKey:@"state"];
+        NSDictionary *locationDetails = [venue objectForKey:@"location"];
+        newPlace.address = [locationDetails objectForKey:@"address"];
+        
+        [self.searchResultsArray addObject:newPlace];
+    }
+    [self.searchResultsTableView reloadData];
+}
+
+#pragma mark UITableViewDataSource Methods
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (tableView == self.placesTableView) {
+        return CELL_HEIGHT;
+    } else {
+        return SEARCH_RESULTS_CELL_HEIGHT;
+    }
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    if (tableView == self.placesTableView) {
+        return [self.placesArray count];
+    } else {
+        return [self.searchResultsArray count];
+    }
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (tableView == self.placesTableView) {
+        PlaceCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell"];
+        if (!cell) {
+            cell = [[PlaceCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Cell"];
+            cell.delegate = self;
+            cell.cellIndexPath = indexPath;
+        }
+        
+        Place *place = [self.placesArray objectAtIndex:indexPath.row];
+        [cell setPlace:place];
+        
+        Datastore *sharedDataManager = [Datastore sharedDataManager];
+        if (sharedDataManager.currentCommitmentPlace && place.placeId == sharedDataManager.currentCommitmentPlace.placeId) {
+            [cell setTethered:YES];
+            self.previousCommitmentCellIndexPath = indexPath;
+        }
+        return cell;
+    } else {
+        SearchResultCell *cell = [[SearchResultCell alloc] init];
+        Place *p = [self.searchResultsArray objectAtIndex:indexPath.row];
+        cell.place = p;
+        UILabel *placeNameLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 40)];
+        placeNameLabel.text = p.name;
+        [cell addSubview:placeNameLabel];
+        
+        return cell;
+    }
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (tableView == self.searchResultsTableView ) {
+        SearchResultCell *cell = (SearchResultCell*)[tableView cellForRowAtIndexPath:indexPath];
+        Datastore *sharedDataManager = [Datastore sharedDataManager];
+        if (![sharedDataManager.foursquarePlacesDictionary objectForKey:cell.place.placeId]) {
+            [sharedDataManager.foursquarePlacesDictionary setObject:cell.place forKey:cell.place.placeId];
+            [self addDictionaries];
+            [self sortPlacesByPopularity];
+        }
+        [self scrollToPlaceWithId:cell.place.placeId];
+        [self searchBarCancelButtonClicked:self.searchBar];
+    }
+    
+    return;
 }
 
 - (void)didReceiveMemoryWarning

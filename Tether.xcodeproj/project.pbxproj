@@ -13,6 +13,8 @@
 		4702442318576BFD001C19AC /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 4702442018576BFD001C19AC /* README.md */; };
 		47059D8A1842E17E00CEC50E /* FriendCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 47059D891842E17E00CEC50E /* FriendCell.m */; };
 		47059D8E18444CBE00CEC50E /* Friend.m in Sources */ = {isa = PBXBuildFile; fileRef = 47059D8D18444CBE00CEC50E /* Friend.m */; };
+		4705F12A1859298F0095F8B1 /* SearchResultCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 4705F1291859298F0095F8B1 /* SearchResultCell.m */; };
+		4705F12D185940B60095F8B1 /* FriendsListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4705F12C185940B60095F8B1 /* FriendsListViewController.m */; };
 		47064C86183D9E3800E9228A /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 47064C85183D9E3800E9228A /* Foundation.framework */; };
 		47064C88183D9E3800E9228A /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 47064C87183D9E3800E9228A /* CoreGraphics.framework */; };
 		47064C8A183D9E3800E9228A /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 47064C89183D9E3800E9228A /* UIKit.framework */; };
@@ -99,6 +101,10 @@
 		47059D891842E17E00CEC50E /* FriendCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FriendCell.m; sourceTree = "<group>"; };
 		47059D8C18444CBE00CEC50E /* Friend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Friend.h; sourceTree = "<group>"; };
 		47059D8D18444CBE00CEC50E /* Friend.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Friend.m; sourceTree = "<group>"; };
+		4705F1281859298F0095F8B1 /* SearchResultCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SearchResultCell.h; sourceTree = "<group>"; };
+		4705F1291859298F0095F8B1 /* SearchResultCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SearchResultCell.m; sourceTree = "<group>"; };
+		4705F12B185940B60095F8B1 /* FriendsListViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FriendsListViewController.h; sourceTree = "<group>"; };
+		4705F12C185940B60095F8B1 /* FriendsListViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FriendsListViewController.m; sourceTree = "<group>"; };
 		47064C82183D9E3800E9228A /* Tether.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tether.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		47064C85183D9E3800E9228A /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		47064C87183D9E3800E9228A /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -304,6 +310,8 @@
 				47064C8C183D9E3800E9228A /* Supporting Files */,
 				470981A9184D7DD100779FC8 /* TetherAnnotation.h */,
 				470981AA184D7DD100779FC8 /* TetherAnnotation.m */,
+				4705F1281859298F0095F8B1 /* SearchResultCell.h */,
+				4705F1291859298F0095F8B1 /* SearchResultCell.m */,
 			);
 			path = Tether;
 			sourceTree = "<group>";
@@ -368,6 +376,8 @@
 		470A33AB184029DF006E48F9 /* Controller */ = {
 			isa = PBXGroup;
 			children = (
+				4705F12B185940B60095F8B1 /* FriendsListViewController.h */,
+				4705F12C185940B60095F8B1 /* FriendsListViewController.m */,
 				470A33A8184029CE006E48F9 /* LoginViewController.h */,
 				470A33A9184029CE006E48F9 /* LoginViewController.m */,
 				47064CBA183D9FD800E9228A /* MainViewController.h */,
@@ -545,6 +555,7 @@
 			files = (
 				47059D8E18444CBE00CEC50E /* Friend.m in Sources */,
 				470A33B318414939006E48F9 /* TetherCache.m in Sources */,
+				4705F12A1859298F0095F8B1 /* SearchResultCell.m in Sources */,
 				47064CC4183DA01B00E9228A /* LeftPanelViewController.m in Sources */,
 				478C4BFF18482B78004C6BD0 /* SettingsViewController.m in Sources */,
 				470981AB184D7DD100779FC8 /* TetherAnnotation.m in Sources */,
@@ -560,6 +571,7 @@
 				47059D8A1842E17E00CEC50E /* FriendCell.m in Sources */,
 				47064CBC183D9FD800E9228A /* MainViewController.m in Sources */,
 				4702442218576BFD001C19AC /* JSONKit.m in Sources */,
+				4705F12D185940B60095F8B1 /* FriendsListViewController.m in Sources */,
 				47064CC0183DA00D00E9228A /* CenterViewController.m in Sources */,
 				47FB08D61849701400A07908 /* Place.m in Sources */,
 			);

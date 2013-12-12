@@ -69,7 +69,9 @@
     self.commitButton.titleLabel.text = @"Commit";
     
     [self.commitButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    [self.commitButton addTarget:self action:@selector(commitClicked:) forControlEvents:UIControlEventTouchUpInside];
+    [self.commitButton addTarget:self
+                          action:@selector(commitClicked:)
+                forControlEvents:UIControlEventTouchUpInside];
     [self layoutCommitButton];
     
     self.addressLabel.frame = CGRectMake(150.0, 50.0, 200.0, 30.0);
@@ -77,6 +79,9 @@
     
     self.friendsGoingButton.frame = CGRectMake(100.0, 50.0, 50.0, 50.0);
     [self.friendsGoingButton setBackgroundColor:[UIColor redColor]];
+    [self.friendsGoingButton addTarget:self
+                                action:@selector(friendsGoingClicked:)
+                      forControlEvents:UIControlEventTouchUpInside];
 }
 
 - (void)setPlace:(Place *)place {

@@ -26,32 +26,16 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Tether/PlacesViewController.m"
-            timestampString = "408476330.90634"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "121"
-            endingLineNumber = "121"
-            landmarkName = "-getFriendsCommitments"
-            landmarkType = "5">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "Tether/PlacesViewController.m"
-            timestampString = "408476546.825284"
+            filePath = "Tether/MainViewController.m"
+            timestampString = "408500192.289107"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "214"
-            endingLineNumber = "214"
-            landmarkName = "-getFriendsCommitments"
+            startingLineNumber = "754"
+            endingLineNumber = "754"
+            landmarkName = "-commitToPlace:"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>

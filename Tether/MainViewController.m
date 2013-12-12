@@ -133,8 +133,6 @@
 
 
 -(void)populateFacebookFriends:(NSArray *) friends {
-//    NSLog(@"Loading your facebook friends: %lu friends", friends.count);
-    
     NSMutableArray *facebookFriendsIds = [[NSMutableArray alloc] init];
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     

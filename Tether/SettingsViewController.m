@@ -463,8 +463,6 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 
 - (void)geoNamesSearchControllerdidFinishWithResult:(NSDictionary*)result
 {
-	NSLog(@"didFinishWithResult: %@", result);
-	
 	if(result) {
 		double latitude = [[result objectForKey:kILGeoNamesLatitudeKey] doubleValue];
 		double longitude = [[result objectForKey:kILGeoNamesLongitudeKey] doubleValue];
