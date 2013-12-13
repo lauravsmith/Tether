@@ -55,7 +55,7 @@
     self.scrollView.contentSize=CGSizeMake(320,600);
     self.scrollView.scrollEnabled = YES;
     [self.scrollView setBackgroundColor:[UIColor whiteColor]];
-//    self.scrollView.BackgroundColor = UIColorFromRGB(0xD6D6D6);
+    [self.scrollView setBounces:NO];
     self.view= _scrollView;
     
     self.userHeaderView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, CELL_HEIGHT + 10.0)];
@@ -90,16 +90,15 @@
     
     self.scrollView.contentOffset = CGPointMake(0, 0);
     
-//    [self.view setBackgroundColor:UIColorFromRGB(0xD6D6D6)];
     [self.view setBackgroundColor:[UIColor whiteColor]];
     
     //set up friends going out table view
     self.friendsGoingOutTableView = [[UITableView alloc] init];
-//    self.friendsGoingOutTableView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
     [self.friendsGoingOutTableView setSeparatorColor:[UIColor whiteColor]];
     [self.friendsGoingOutTableView setBackgroundColor:UIColorFromRGB(0xD6D6D6)];
     [self.friendsGoingOutTableView setDataSource:self];
     [self.friendsGoingOutTableView setDelegate:self];
+    [self.friendsGoingOutTableView setBounces:NO];
 
     [self.view addSubview:self.friendsGoingOutTableView];
     
@@ -109,11 +108,11 @@
     
     //set up friends not going out table view
     self.friendsNotGoingOutTableView = [[UITableView alloc] init];
-//    self.friendsNotGoingOutTableView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
     [self.friendsNotGoingOutTableView setSeparatorColor:[UIColor whiteColor]];
     [self.friendsNotGoingOutTableView setBackgroundColor:UIColorFromRGB(0xD6D6D6)];
     [self.friendsNotGoingOutTableView setDataSource:self];
     [self.friendsNotGoingOutTableView setDelegate:self];
+    [self.friendsNotGoingOutTableView setBounces:NO];
     
     [self.view addSubview:self.friendsNotGoingOutTableView];
     
@@ -127,13 +126,13 @@
     [self.friendsUndecidedTableView setBackgroundColor:UIColorFromRGB(0xD6D6D6)];
     [self.friendsUndecidedTableView setDataSource:self];
     [self.friendsUndecidedTableView setDelegate:self];
+    [self.friendsUndecidedTableView setBounces:NO];
     
     [self.view addSubview:self.friendsUndecidedTableView];
     
     self.friendsUndecidedTableViewController = [[UITableViewController alloc] init];
     self.friendsUndecidedTableViewController.tableView = self.friendsUndecidedTableView;
     [self.friendsUndecidedTableView reloadData];
-//    [self resizeTableViews];
 }
 
 -(void)updateStatus {
@@ -163,15 +162,10 @@
 -(void)resizeTableViews {
     self.friendsGoingOutTableView.frame = CGRectMake(0, self.userHeaderView.frame.size.height, self.view.frame.size.width, MIN(TABLE_HEIGHT, self.friendsGoingOutTableView.contentSize.height));
     NSLog(@"Resizing tables");
-//    NSLog(@"First table height %f", self.friendsGoingOutTableView.frame.size.height);
     
     self.friendsNotGoingOutTableView.frame = CGRectMake(0, self.friendsGoingOutTableView.frame.origin.y + self.friendsGoingOutTableView.frame.size.height, self.view.frame.size.width, MIN(TABLE_HEIGHT, self.friendsNotGoingOutTableView.contentSize.height));
     
-//    NSLog(@"Second table height: %f", self.friendsNotGoingOutTableView.frame.size.height);
-    
     self.friendsUndecidedTableView.frame = CGRectMake(0, self.friendsNotGoingOutTableView.frame.origin.y + self.friendsNotGoingOutTableView.frame.size.height, self.view.frame.size.width, MIN(MAX(TABLE_HEIGHT, self.view.frame.size.height - self.friendsNotGoingOutTableView.frame.size.height - self.friendsGoingOutTableView.frame.size.height), self.friendsUndecidedTableView.contentSize.height));
-    
-//    NSLog(@"Third table height: %f", self.friendsUndecidedTableView.frame.size.height);
 }
 
 #pragma mark UITableViewDataSource Methods

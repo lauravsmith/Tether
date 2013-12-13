@@ -25,5 +25,6 @@
 -(void)closeListView;
 -(void)setPlace:(id)placeId forFriend:(id)friendId;
 -(void)commitToPlace:(Place*)place;
+-(void)canUpdatePlaces:(BOOL)canUpdate;
 
 @end

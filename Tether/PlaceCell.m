@@ -200,8 +200,8 @@
 }
 
 -(void)showFriendsView {
-    if ([self.delegate respondsToSelector:@selector(showFriendsView)]) {
-        [self.delegate showFriendsView];
+    if ([self.delegate respondsToSelector:@selector(showFriendsViewFromCell:)]) {
+        [self.delegate showFriendsViewFromCell:self];
     }
 }
 

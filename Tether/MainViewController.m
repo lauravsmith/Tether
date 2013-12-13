@@ -15,6 +15,7 @@
 #import "MainViewController.h"
 #import "Place.h"
 #import "PlacesViewController.h"
+#import "RightPanelViewController.h"
 #import "SettingsViewController.h"
 #import "TetherAnnotation.h"
 #import "TetherCache.h"
@@ -25,10 +26,11 @@
 
 #define CENTER_TAG 1
 #define LEFT_PANEL_TAG 2
-#define CORNER_RADIUS 4
+#define RIGHT_PANEL_TAG 3
+#define CORNER_RADIUS 4.0
 #define SLIDE_TIMING .25
 #define PANEL_WIDTH 60
-#define POLLING_INTERVAL 20
+#define POLLING_INTERVAL 10
 
 @interface MainViewController () <CenterViewControllerDelegate, DecisionViewControllerDelegate, LeftPanelViewControllerDelegate, UIGestureRecognizerDelegate, SettingsViewControllerDelegate, PlacesViewControllerDelegate>
 
@@ -37,9 +39,13 @@
 @property (nonatomic, strong) DecisionViewController *decisionViewController;
 @property (nonatomic, strong) SettingsViewController *settingsViewController;
 @property (nonatomic, strong) PlacesViewController *placesViewController;
+@property (nonatomic, strong) RightPanelViewController *rightPanelViewController;
+@property (nonatomic, assign) BOOL showingRightPanel;
 @property (nonatomic, assign) BOOL showingLeftPanel;
 @property (nonatomic, assign) BOOL showPanel;
 @property (nonatomic, assign) BOOL leftPanelNotShownYet;
+@property (nonatomic, assign) BOOL rightPanelNotShownYet;
+@property (nonatomic, assign) BOOL canUpdatePlaces;
 @property (nonatomic, strong) NSString *facebookId;
 @property (nonatomic, assign) CGPoint preVelocity;
 @property (nonatomic, assign) NSTimer *pollingTimer;
@@ -54,6 +60,8 @@
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
         self.leftPanelNotShownYet = YES;
+        self.rightPanelNotShownYet = YES;
+        self.canUpdatePlaces = YES;
         self.placesViewController = [[PlacesViewController alloc] init];
         self.placesViewController.delegate = self;
         self.timerMultiplier = 1;
@@ -96,7 +104,7 @@
 -(void)pollDatabase {
     [self queryFriendsStatus];
     [self.pollingTimer invalidate];
-    self.pollingTimer = [NSTimer scheduledTimerWithTimeInterval:POLLING_INTERVAL*self.timerMultiplier
+    self.pollingTimer = [NSTimer scheduledTimerWithTimeInterval:POLLING_INTERVAL
                                                            target:self
                                                          selector:@selector(timerFired)
                                                          userInfo:nil
@@ -104,10 +112,11 @@
 }
 
 -(void)timerFired{
-    self.timerMultiplier +=1;
-    [self pollDatabase];
-    if ([self shouldShouldDecisionView]) {
-        [self setupView];
+    if (self.canUpdatePlaces) {
+        [self pollDatabase];
+        if ([self shouldShowDecisionView]) {
+            [self setupView];
+        }
     }
 }
 
@@ -189,8 +198,21 @@
         [FBRequestConnection startForMyFriendsWithCompletionHandler:^(FBRequestConnection *connection, id friends, NSError *error) {
             if (!error) {
                 [self facebookRequestDidLoad:friends];
+            } else {
+                [self facebookRequestDidFailWithError:error];
             }
         }];
+    }
+}
+
+- (void)facebookRequestDidFailWithError:(NSError *)error {
+    NSLog(@"Facebook error: %@", error);
+    
+    if ([PFUser currentUser]) {
+        if ([[error userInfo][@"error"][@"type"] isEqualToString:@"OAuthException"]) {
+            NSLog(@"The Facebook token was invalidated. Logging out.");
+            
+        }
     }
 }
 
@@ -276,6 +298,13 @@
     if (![tempFriendsGoingOutSet isEqualToSet:[NSSet setWithArray:sharedDataManager.tetherFriendsGoingOut]]) {
         sharedDataManager.tetherFriendsGoingOut = [[tempFriendsGoingOutSet allObjects] mutableCopy];
         listsHaveChanged = YES;
+    } else {
+        NSSet *friendsCommittments = [[NSSet setWithArray:sharedDataManager.tetherFriendsGoingOut] valueForKey:@"placeId"];
+        NSSet *tempFriendsCommittments = [tempFriendsGoingOutSet valueForKey:@"placeId"];
+        if (![friendsCommittments isEqualToSet:tempFriendsCommittments]) {
+            sharedDataManager.tetherFriendsGoingOut = [[tempFriendsGoingOutSet allObjects] mutableCopy];
+            listsHaveChanged = YES;
+        }
     }
     
     if (![tempFriendsNotGoingOutSet isEqualToSet:[NSSet setWithArray:sharedDataManager.tetherFriendsNotGoingOut]]) {
@@ -283,7 +312,7 @@
         listsHaveChanged = YES;
     }
     
-    [self.centerViewController.numberButton setTitle:[NSString stringWithFormat:@"%lu", [sharedDataManager.tetherFriendsGoingOut count]] forState:UIControlStateNormal];
+    [self.centerViewController.numberButton setTitle:[NSString stringWithFormat:@"%lu", (unsigned long)[sharedDataManager.tetherFriendsGoingOut count]] forState:UIControlStateNormal];
     [self.centerViewController layoutNumberLabel];
     // if lists have changed or all are empty, update view
     if (listsHaveChanged ||
@@ -349,8 +378,12 @@
     self.leftPanelViewController.view.tag = LEFT_PANEL_TAG;
     self.leftPanelViewController.delegate = self;
     
+    // define the view for the left panel view controller
+    self.rightPanelViewController = [[RightPanelViewController alloc] init];
+    self.rightPanelViewController.view.tag = RIGHT_PANEL_TAG;
+    
     // check if user has input status today
-    if ([self shouldShouldDecisionView]) {
+    if ([self shouldShowDecisionView]) {
         self.decisionViewController = [[DecisionViewController alloc] init];
         self.decisionViewController.delegate = self;
         [self.view addSubview:self.decisionViewController.view];
@@ -361,7 +394,7 @@
     }
 }
 
--(BOOL)shouldShouldDecisionView {
+-(BOOL)shouldShowDecisionView {
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     NSDate *timeLastUpdated = [userDetails objectForKey:@"timeLastUpdated"];
     NSDate *beginningTime = [self getStartTime];
@@ -396,6 +429,14 @@
         self.showingLeftPanel = NO;
     }
     
+    if (_rightPanelViewController != nil) {
+        _centerViewController.notificationsButton.tag = 1;
+        self.showingRightPanel = NO;
+    }
+    
+    [self.leftPanelViewController.view removeFromSuperview];
+    [self.rightPanelViewController.view removeFromSuperview];
+    
     // remove view shadows
     [self showCenterViewWithShadow:NO withOffset:0];
 }
@@ -406,7 +447,6 @@
     if (self.leftPanelNotShownYet == YES)
     {
         self.leftPanelNotShownYet = NO;
-        [self.view addSubview:self.leftPanelViewController.view];
         
         [self addChildViewController:_leftPanelViewController];
         [_leftPanelViewController didMoveToParentViewController:self];
@@ -414,12 +454,38 @@
         _leftPanelViewController.view.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
     }
     
+    [self.view addSubview:self.leftPanelViewController.view];
+    
     self.showingLeftPanel = YES;
     
     // set up view shadows
     [self showCenterViewWithShadow:YES withOffset:-2];
     
     UIView *view = self.leftPanelViewController.view;
+    return view;
+}
+
+- (UIView *)getRightView
+{
+    // init view if it doesn't already exist
+    if (self.rightPanelNotShownYet == YES)
+    {
+        self.rightPanelNotShownYet = NO;
+        
+        [self addChildViewController:_rightPanelViewController];
+        [_rightPanelViewController didMoveToParentViewController:self];
+        
+        _rightPanelViewController.view.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
+    }
+    
+    [self.view addSubview:self.rightPanelViewController.view];
+    
+    self.showingRightPanel = YES;
+    
+    // set up view shadows
+    [self showCenterViewWithShadow:YES withOffset:2];
+    
+    UIView *view = self.rightPanelViewController.view;
     return view;
 }
 
@@ -447,8 +513,15 @@
         UIView *childView = nil;
         
         if(velocity.x > 0) {
-            childView = [self getLeftView];
+            if (!_showingRightPanel) {
+                childView = [self getLeftView];
+            }
+        } else{
+            if (!_showingLeftPanel) {
+                childView = [self getRightView];
+            }
         }
+        
         // Make sure the view you're working with is front and center.
         [self.view sendSubviewToBack:childView];
         [[sender view] bringSubviewToFront:[(UIPanGestureRecognizer*)sender view]];
@@ -457,7 +530,9 @@
     if([(UIPanGestureRecognizer*)sender state] == UIGestureRecognizerStateEnded) {
         
         if(velocity.x > 0) {
+            
         } else {
+            
         }
         
         if (!_showPanel) {
@@ -465,21 +540,31 @@
         } else {
             if (_showingLeftPanel) {
                 [self movePanelRight];
+            } else if(_showingRightPanel) {
+                [self movePanelLeft];
             }
         }
     }
     
     if([(UIPanGestureRecognizer*)sender state] == UIGestureRecognizerStateChanged) {
         if(velocity.x > 0) {
+            NSLog(@"Position moving right %f", [sender view].center.x);
         } else {
+            NSLog(@"Position moving left %f", [sender view].center.x);
         }
         
         // Are you more than halfway? If so, show the panel when done dragging by setting this value to YES (1).
         _showPanel = abs([sender view].center.x - _centerViewController.view.frame.size.width/2) > _centerViewController.view.frame.size.width/2;
         
         // Allow dragging only in x-coordinates by only updating the x-coordinate with translation position.
-        float xCoord = MAX(160.0,[sender view].center.x + translatedPoint.x);
-        [sender view].center = CGPointMake(xCoord, [sender view].center.y);
+        float xCoord;
+        if (_showingLeftPanel) {
+            xCoord = MAX(160.0,[sender view].center.x + translatedPoint.x);
+        } else if (_showingRightPanel) {
+            xCoord = MIN(160.0,[sender view].center.x + translatedPoint.x);
+        }
+
+        [sender view].center = CGPointMake([sender view].center.x + translatedPoint.x, [sender view].center.y);
         [(UIPanGestureRecognizer*)sender setTranslation:CGPointMake(0,0) inView:self.view];
         
         // If you needed to check for a change in direction, you could use this code to do so.
@@ -546,7 +631,25 @@
                          _centerViewController.view.frame = CGRectMake(self.view.frame.size.width - PANEL_WIDTH, 0, self.view.frame.size.width, self.view.frame.size.height);
                      }
                      completion:^(BOOL finished) {
-                          _centerViewController.numberButton.tag = 0;
+                         _centerViewController.numberButton.tag = 0;
+                     }];
+}
+
+- (void)movePanelLeft // to show left panel
+{
+    UIView *childView = [self getRightView];
+    [self.view sendSubviewToBack:childView];
+    
+    [UIView animateWithDuration:0.5
+                          delay:0.0
+         usingSpringWithDamping:0.7
+          initialSpringVelocity:5.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         _centerViewController.view.frame = CGRectMake(-self.view.frame.size.width + PANEL_WIDTH, 0, self.view.frame.size.width, self.view.frame.size.height);
+                     }
+                     completion:^(BOOL finished) {
+                         _centerViewController.notificationsButton.tag = 0;
                      }];
 }
 
@@ -565,10 +668,13 @@
 }
 
 -(void)finishedResettingNewLocation {
-    self.placesViewController = [[PlacesViewController alloc] init];
-    self.placesViewController.delegate = self;
-    [self pollDatabase];
+    if (self.canUpdatePlaces) {
+        self.placesViewController = [[PlacesViewController alloc] init];
+        self.placesViewController.delegate = self;
+        [self pollDatabase];
+    }
     [self.settingsViewController resettingNewLocationHasFinished];
+    NSLog(@"FINISHED RESETTING, NOW POLLING DATABASE");
 }
 
 #pragma mark QuestionViewControllerDelegate
@@ -754,6 +860,10 @@
             NSLog(@"Error: %@ %@", error, [error userInfo]);
         }
     }];
+}
+
+-(void)canUpdatePlaces:(BOOL)canUpdate {
+    self.canUpdatePlaces = canUpdate;
 }
 
 - (void)didReceiveMemoryWarning

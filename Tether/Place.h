@@ -18,7 +18,7 @@
 @property (nonatomic, strong) NSString *state;
 @property (nonatomic, strong) NSString *country;
 @property (nonatomic, strong) NSString *phoneNumber;
-@property (nonatomic, strong) NSMutableArray *friendsCommitted;
+@property (nonatomic, strong) NSMutableSet *friendsCommitted;
 @property (nonatomic, assign) int numberCommitments;
 @property (nonatomic, assign) int numberPastCommitments;
 @end

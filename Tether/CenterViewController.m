@@ -35,6 +35,7 @@
 @property (strong, nonatomic) CLLocationManager * locationManager;
 @property (strong, nonatomic) CLLocation *userCoordinates;
 @property (strong, nonatomic) NSTimer * finishLoadingTimer;
+
 @end
 
 @implementation CenterViewController
@@ -162,6 +163,14 @@
     [self.bottomBar addSubview:self.bottomBarLabel];
 
     [self.view addSubview:self.bottomBar];
+    
+    // notifications button to open right panel setup
+    self.notificationsButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 40, 20, 20, 20)];
+    [self.notificationsButton setBackgroundColor:[UIColor whiteColor]];
+    [self.notificationsButton addTarget:self action:@selector(btnMovePanelLeft:) forControlEvents:UIControlEventTouchUpInside];
+    self.notificationsButton.tag = 1;
+    [self.topBar addSubview:self.notificationsButton];
+    
     [self restartTimer];
 }
 
@@ -254,7 +263,7 @@
                  PFUser *user = [PFUser currentUser];
                  [user setObject:city forKey:@"cityLocation"];
                  [user setObject:state forKey:@"stateLocation"];
-                 [user saveEventually];
+                 [user saveInBackground];
                  NSLog(@"PARSE SAVE: saving your location from the map");
              }
              
@@ -338,6 +347,25 @@
     }
 }
 
+- (IBAction)btnMovePanelLeft:(id)sender
+{
+    UIButton *button = sender;
+    switch (button.tag) {
+        case 0: {
+            [_delegate movePanelToOriginalPosition];
+            break;
+        }
+            
+        case 1: {
+            [_delegate movePanelLeft];
+            break;
+        }
+            
+        default:
+            break;
+    }
+}
+
 #pragma mark MapView delegate
 
 - (MKAnnotationView *)mapView:(MKMapView *)mapView viewForAnnotation:(id <MKAnnotation>)annotation
@@ -372,9 +400,10 @@
             TetherAnnotation *annotationPoint = (TetherAnnotation*)annotation;
             Place *p = annotationPoint.place;
         
-            for (int i = 0; i < MIN([p.friendsCommitted count], MAX_FRIENDS_ON_PIN); i++) {
+            int i = 0;
+            for (id friendId in p.friendsCommitted) {
                 FBProfilePictureView *profileView = [[FBProfilePictureView alloc] initWithFrame:CGRectMake(-15.0, 0, 40.0, 40.0)];
-                profileView.profileID = [p.friendsCommitted objectAtIndex:i];
+                profileView.profileID = friendId;
                 profileView.layer.cornerRadius = CORNER_RADIUS;
                 profileView.clipsToBounds = YES;
                 [profileView.layer setBorderColor:[[UIColor whiteColor] CGColor]];
@@ -401,9 +430,9 @@
                         [pinView sendSubviewToBack:profileView];
                     default:
                         break;
-
+                }
+                i++;
             }
-        }
         return pinView;
     }
     return nil;

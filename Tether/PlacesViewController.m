@@ -87,7 +87,7 @@
     [self.placesTableView setDataSource:self];
     [self.placesTableView setDelegate:self];
     self.placesTableView.showsVerticalScrollIndicator = NO;
-    
+    self.placesTableView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
     [self.view addSubview:self.placesTableView];
     [self.view addSubview:self.searchResultsTableView];
     
@@ -177,7 +177,7 @@
                     place.placeId = [object objectForKey:@"placeId"];
                     place.numberCommitments = 0;
                     place.numberPastCommitments = 0;
-                    place.friendsCommitted = [[NSMutableArray alloc] init];
+                    place.friendsCommitted = [[NSMutableSet alloc] init];
                     NSLog(@"Created place: %@", [object objectForKey:@"placeName"]);
                 } else {
                     place = [tempDictionary objectForKey:[object objectForKey:@"placeId"]];
@@ -229,10 +229,10 @@
             }
             
             if (self.foursquarePlacesDataHasLoaded) {
-                if (![tempKeySet isEqualToSet:keySet]) {
+//                if (![tempKeySet isEqualToSet:keySet] || [keySet count] <= 0) {
                     [self addDictionaries];
                     [self sortPlacesByPopularity];
-                }
+//                }
             }
 
             self.friendStatusDetailsHaveLoaded = YES;
@@ -251,6 +251,7 @@
 }
 
 -(void)addDictionaries {
+    NSLog(@"Adding dictionaries");
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     sharedDataManager.placesDictionary = [[NSMutableDictionary alloc] init];
     for (id key in sharedDataManager.popularPlacesDictionary) {
@@ -258,7 +259,7 @@
         
         if ([sharedDataManager.foursquarePlacesDictionary objectForKey:key]) {
             Place *tempPlace = [sharedDataManager.foursquarePlacesDictionary objectForKey:key];
-            [place.friendsCommitted addObjectsFromArray:tempPlace.friendsCommitted];
+            [place.friendsCommitted unionSet:tempPlace.friendsCommitted];
             place.numberCommitments += tempPlace.numberCommitments;
         }
         [sharedDataManager.placesDictionary setObject:place forKey:place.placeId];
@@ -344,11 +345,12 @@
 
         Place *p = [sharedDataManager.placesDictionary objectForKey:place.placeId];
         if (p) {
-            NSMutableArray *friendsCommitted;
+            NSMutableSet *friendsCommitted;
             if (p.friendsCommitted) {
-                friendsCommitted = [NSMutableArray arrayWithArray:p.friendsCommitted];
+                friendsCommitted = [[NSMutableSet alloc] init];
+                friendsCommitted = p.friendsCommitted;
             } else {
-                friendsCommitted = [[NSMutableArray alloc] init];
+                friendsCommitted = [[NSMutableSet alloc] init];
             }
             
             NSString *myID = sharedDataManager.facebookId;
@@ -384,8 +386,7 @@
     if (sharedDataManager.currentCommitmentPlace) {
         NSLog(@"Removing previous commitment to %@", sharedDataManager.currentCommitmentPlace.name);
         if ([sharedDataManager.currentCommitmentPlace.friendsCommitted containsObject:sharedDataManager.facebookId]) {
-            NSUInteger index = [sharedDataManager.currentCommitmentPlace.friendsCommitted indexOfObject:sharedDataManager.facebookId];
-            [sharedDataManager.currentCommitmentPlace.friendsCommitted removeObjectAtIndex:index];
+            [sharedDataManager.currentCommitmentPlace.friendsCommitted removeObject:sharedDataManager.facebookId];
             sharedDataManager.currentCommitmentPlace.numberCommitments -=1;
             [sharedDataManager.placesDictionary setObject:sharedDataManager.currentCommitmentPlace
                                                    forKey:sharedDataManager.currentCommitmentPlace.placeId];
@@ -407,21 +408,26 @@
     }
 }
 
--(void)showFriendsView {
-//    Place *place = [self.placesArray objectAtIndex:0];
-//    Datastore *sharedDataManager = [Datastore sharedDataManager];
-//    if ([place.friendsCommitted count] > 0) {
-//        FriendsListViewController *friendsListViewController = [[FriendsListViewController alloc] init];
-//        NSMutableArray *friends = [[NSMutableArray alloc] init];
-//        for (id friendId in place.friendsCommitted) {
-//            if ([sharedDataManager.tetherFriendsDictionary objectForKey:friendId]) {
-//                Friend *friend = [sharedDataManager.tetherFriendsDictionary objectForKey:friendId];
-//                [friends addObject:friend];
-//            }
-//        }
-//        friendsListViewController.friendsArray = friends;
-//        [self.view addSubview:friendsListViewController.view];
-//    }
+-(void)showFriendsViewFromCell:(PlaceCell*) placeCell {
+    if ([self.delegate respondsToSelector:@selector(canUpdatePlaces:)]) {
+        [self.delegate canUpdatePlaces:NO];
+    }
+    Place *place = placeCell.place;
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    if ([place.friendsCommitted count] > 0) {
+        FriendsListViewController *friendsListViewController = [[FriendsListViewController alloc] init];
+        NSMutableSet *friends = [[NSMutableSet alloc] init];
+        for (id friendId in place.friendsCommitted) {
+            if ([sharedDataManager.tetherFriendsDictionary objectForKey:friendId]) {
+                Friend *friend = [sharedDataManager.tetherFriendsDictionary objectForKey:friendId];
+                [friends addObject:friend];
+            }
+        }
+        friendsListViewController.friendsArray = [[friends allObjects] mutableCopy];
+        [self.view addSubview:friendsListViewController.view];
+        [self addChildViewController:friendsListViewController];
+        [friendsListViewController didMoveToParentViewController:self];
+    }
 }
 
 -(void)unhighlightCellWithCellIndex:(NSIndexPath*)cellIndex {
@@ -502,7 +508,7 @@
         [self addDictionaries];
         [self sortPlacesByPopularity];
     }
-    NSLog(@"FINISHED LOADING FOURSQUARE DATA FOR SEARCH");
+    NSLog(@"FINISHED LOADING FOURSQUARE DATA with %d objects", [sharedDataManager.foursquarePlacesDictionary count]);
     self.foursquarePlacesDataHasLoaded = YES;
 }
 

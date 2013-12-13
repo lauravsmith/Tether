@@ -55,6 +55,7 @@
 		47064CE2183DBAE300E9228A /* readme.txt in Resources */ = {isa = PBXBuildFile; fileRef = 47064CD8183DBAE300E9228A /* readme.txt */; };
 		47064CE8183E6CB200E9228A /* ListIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 47064CE7183E6CB200E9228A /* ListIcon.png */; };
 		47064CE9183E6CB200E9228A /* ListIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 47064CE7183E6CB200E9228A /* ListIcon.png */; };
+		47065F1C185AA8BC0047A564 /* RightPanelViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 47065F1B185AA8BC0047A564 /* RightPanelViewController.m */; };
 		470981AB184D7DD100779FC8 /* TetherAnnotation.m in Sources */ = {isa = PBXBuildFile; fileRef = 470981AA184D7DD100779FC8 /* TetherAnnotation.m */; };
 		470A338F184009FC006E48F9 /* FacebookSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 470A338E184009FC006E48F9 /* FacebookSDK.framework */; };
 		470A339518400C6E006E48F9 /* Parse.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 470A339418400C6E006E48F9 /* Parse.framework */; };
@@ -140,6 +141,8 @@
 		47064CD7183DBAE300E9228A /* Champagne&Limousines.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Champagne&Limousines.ttf"; sourceTree = "<group>"; };
 		47064CD8183DBAE300E9228A /* readme.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = readme.txt; sourceTree = "<group>"; };
 		47064CE7183E6CB200E9228A /* ListIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = ListIcon.png; path = "../../../Tether/Assetes for Laura/ListIcon.png"; sourceTree = "<group>"; };
+		47065F1A185AA8BC0047A564 /* RightPanelViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RightPanelViewController.h; sourceTree = "<group>"; };
+		47065F1B185AA8BC0047A564 /* RightPanelViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RightPanelViewController.m; sourceTree = "<group>"; };
 		470981A9184D7DD100779FC8 /* TetherAnnotation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TetherAnnotation.h; sourceTree = "<group>"; };
 		470981AA184D7DD100779FC8 /* TetherAnnotation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TetherAnnotation.m; sourceTree = "<group>"; };
 		470A338E184009FC006E48F9 /* FacebookSDK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FacebookSDK.framework; path = ../../FacebookSDK/FacebookSDK.framework; sourceTree = "<group>"; };
@@ -312,6 +315,8 @@
 				470981AA184D7DD100779FC8 /* TetherAnnotation.m */,
 				4705F1281859298F0095F8B1 /* SearchResultCell.h */,
 				4705F1291859298F0095F8B1 /* SearchResultCell.m */,
+				47065F1A185AA8BC0047A564 /* RightPanelViewController.h */,
+				47065F1B185AA8BC0047A564 /* RightPanelViewController.m */,
 			);
 			path = Tether;
 			sourceTree = "<group>";
@@ -563,6 +568,7 @@
 				47FCE5271853E7A20030B1E1 /* Datastore.m in Sources */,
 				47064C9C183D9E3800E9228A /* ViewController.m in Sources */,
 				47C7B6C1184AC7BB00358BE1 /* PlaceCell.m in Sources */,
+				47065F1C185AA8BC0047A564 /* RightPanelViewController.m in Sources */,
 				47064C96183D9E3800E9228A /* AppDelegate.m in Sources */,
 				47064C92183D9E3800E9228A /* main.m in Sources */,
 				4702441618575E14001C19AC /* ILGeoNamesLookup.m in Sources */,
