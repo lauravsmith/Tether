@@ -15,15 +15,10 @@
 @interface LeftPanelViewController : ViewController
 
 @property (nonatomic, assign) id<LeftPanelViewControllerDelegate> delegate;
-@property (nonatomic, strong) FBProfilePictureView *profilePictureView;
 @property (nonatomic, strong) NSMutableArray * tetherFriendsGoingOut;
 @property (nonatomic, strong) NSMutableArray * tetherFriendsNotGoingOut;
 @property (nonatomic, strong) NSMutableArray * tetherFriendsUndecided;
-@property (retain, nonatomic) NSString * userName;
-@property (retain, nonatomic) UILabel * userNameLabel;
--(void)updateStatus;
 -(void)updateFriendsList;
--(void)updateNameLabel;
 @end
 
 @protocol LeftPanelViewControllerDelegate <NSObject>

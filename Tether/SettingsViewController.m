@@ -7,6 +7,7 @@
 //
 
 #import "AppDelegate.h"
+#import "Datastore.h"
 #import "SettingsViewController.h"
 
 #define BORDER_WIDTH 4.0
@@ -17,6 +18,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 
 @interface SettingsViewController () <ILGeoNamesLookupDelegate, UITextFieldDelegate, UITableViewDelegate, UITableViewDataSource>
 
+@property (retain, nonatomic) UITextField *statusMessageTextField;
 @property (retain, nonatomic) UIButton * settingsButton;
 @property (retain, nonatomic) UIView * topBarView;
 @property (retain, nonatomic) UILabel * settingsLabel;
@@ -90,19 +92,22 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.userProfilePictureView.frame = CGRectMake(10.0, 100.0, 50.0, 50.0);
     [self.view addSubview:self.userProfilePictureView];
     
-    self.logoutButton = [[UIButton alloc] initWithFrame:CGRectMake(100.0, 100.0, 100.0, 50.0)];
-    [self.logoutButton setTitle:@"Logout" forState:UIControlStateNormal];
-    [self.logoutButton setTitleColor:UIColorFromRGB(0x770051) forState:UIControlStateNormal];
-    UIFont *smallChampagneFont = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:28];
-    self.logoutButton.titleLabel.font = smallChampagneFont;
-    [self.logoutButton addTarget:self action:@selector(logoutButtonWasPressed:) forControlEvents:UIControlEventTouchDown];
-    [self.view addSubview:self.logoutButton];
+    self.statusMessageTextField = [[UITextField alloc] initWithFrame:CGRectMake(100.0, 100.0, 200.0, 50.0)];
+    self.statusMessageTextField.delegate = self;
+    self.statusMessageTextField.placeholder = @"Enter status message";
+    [self.statusMessageTextField setBackgroundColor:[UIColor whiteColor]];
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    if (sharedDataManager.statusMessage) {
+        self.statusMessageTextField.text = sharedDataManager.statusMessage;
+    }
+    [self.view addSubview:self.statusMessageTextField];
     
     // white line separator
     self.whiteLineView = [[UIView alloc] initWithFrame:CGRectMake(0, self.topBarView.frame.size.height + 100.0, self.view.frame.size.width, 2.0)];
     [self.whiteLineView setBackgroundColor:[UIColor whiteColor]];
     [self.view addSubview:self.whiteLineView];
     
+    UIFont *smallChampagneFont = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:28];
     self.defaultCityLabel = [[UILabel alloc] init];
     self.defaultCityLabel.text = @"Default City";
     self.defaultCityLabel.font = smallChampagneFont;
@@ -227,6 +232,13 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     yesLabel2.textColor = [UIColor whiteColor];
     yesLabel2.frame = CGRectMake(self.goingOutSwitch.frame.origin.x + self.goingOutSwitch.frame.size.width + 2.0, self.goingOutLabel.frame.origin.y + self.goingOutLabel.frame.size.height + PADDING, yesLabelSize.width, yesLabelSize.height);
     [self.view addSubview:yesLabel2];
+    
+    self.logoutButton = [[UIButton alloc] initWithFrame:CGRectMake(100.0, 500.0, 100.0, 50.0)];
+    [self.logoutButton setTitle:@"Logout" forState:UIControlStateNormal];
+    [self.logoutButton setTitleColor:UIColorFromRGB(0x770051) forState:UIControlStateNormal];
+    self.logoutButton.titleLabel.font = smallChampagneFont;
+    [self.logoutButton addTarget:self action:@selector(logoutButtonWasPressed:) forControlEvents:UIControlEventTouchDown];
+    [self.view addSubview:self.logoutButton];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -255,9 +267,9 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.noLabel.hidden = NO;
     self.cancelSearchButton.hidden = YES;
     self.userProfilePictureView.hidden = NO;
-    self.logoutButton.hidden = NO;
     self.whiteLineView.hidden = NO;
     self.defaultCityLabel.hidden = NO;
+    self.statusMessageTextField.hidden = NO;
     
     [UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
@@ -283,50 +295,67 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 #pragma mark UITextField delegate methods
 
 - (void)textFieldDidBeginEditing:(UITextField *)textField {
-    [UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
-                         CGRect frame = self.cityTextField.frame;
-                         frame.origin.y = self.topBarView.frame.origin.y + self.topBarView.frame.size.height + PADDING;
-                         frame.size.width = frame.size.width - self.cancelSearchButton.frame.size.width - PADDING;
-                         self.cityTextField.frame = frame;
-                     }
-                     completion:^(BOOL finished) {
-                         if (finished) {
-                            self.searchResultsTableView.hidden = NO;
-                             self.cancelSearchButton.hidden = NO;
-                            self.cityTextField.tag = 2;
+    if (textField == self.cityTextField) {
+        [UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                             CGRect frame = self.cityTextField.frame;
+                             frame.origin.y = self.topBarView.frame.origin.y + self.topBarView.frame.size.height + PADDING;
+                             frame.size.width = frame.size.width - self.cancelSearchButton.frame.size.width - PADDING;
+                             self.cityTextField.frame = frame;
                          }
-                     }];
-
-    self.cityTextField.text = @"";
-    self.cityTextField.textColor = [UIColor darkGrayColor];
-    self.locationSwitchLabel.hidden = YES;
-    self.setLocationSwitch.hidden = YES;
-    self.yesLabel.hidden = YES;
-    self.noLabel.hidden = YES;
-    self.userProfilePictureView.hidden = YES;
-    self.logoutButton.hidden = YES;
-    self.whiteLineView.hidden = YES;
-    self.defaultCityLabel.hidden = YES;
+                         completion:^(BOOL finished) {
+                             if (finished) {
+                                 self.searchResultsTableView.hidden = NO;
+                                 self.cancelSearchButton.hidden = NO;
+                                 self.cityTextField.tag = 2;
+                             }
+                         }];
+        
+        self.cityTextField.text = @"";
+        self.cityTextField.textColor = [UIColor darkGrayColor];
+        self.locationSwitchLabel.hidden = YES;
+        self.setLocationSwitch.hidden = YES;
+        self.yesLabel.hidden = YES;
+        self.noLabel.hidden = YES;
+        self.userProfilePictureView.hidden = YES;
+        self.whiteLineView.hidden = YES;
+        self.defaultCityLabel.hidden = YES;
+        self.statusMessageTextField.hidden = YES;
+    } else if (textField == self.statusMessageTextField) {
+        
+    }
 }
 
 #pragma mark override UITextField methods
 
 - (BOOL)textFieldShouldClear:(UITextField *)textField {
-    [self.searchResults removeAllObjects];
-    [self.searchResultsTableView reloadData];
+    if (textField == self.cityTextField) {
+        [self.searchResults removeAllObjects];
+        [self.searchResultsTableView reloadData];
+    }
     return YES;
 }
 
 -(void)textFieldDidChange:(UITextField*)textField {
-	[self.searchResults removeAllObjects];
-	[self.searchResultsTableView reloadData];
-    
-    [self.activityIndicator startAnimating];
-	// Delay the search 1 second to minimize outstanding requests
-	[NSObject cancelPreviousPerformRequestsWithTarget:self];
-	[self performSelector:@selector(delayedSearch:) withObject:textField.text afterDelay:0.5];
-    [self resizeTableView];
+    if (textField == self.cityTextField) {
+        [self.searchResults removeAllObjects];
+        [self.searchResultsTableView reloadData];
+        
+        [self.activityIndicator startAnimating];
+        // Delay the search 1 second to minimize outstanding requests
+        [NSObject cancelPreviousPerformRequestsWithTarget:self];
+        [self performSelector:@selector(delayedSearch:) withObject:textField.text afterDelay:0.5];
+        [self resizeTableView];
+    }
+}
+
+- (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
+    if (textField == self.cityTextField) {
+        return YES;
+    } else {
+        NSUInteger newLength = [textField.text length] + [string length] - range.length;
+        return (newLength > 25) ? NO : YES;
+    }
 }
 
 -(void)resizeTableView {
@@ -366,9 +395,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
         }
     } else {
         [userDetails setBool:theSwitch.on forKey:@"status"];
-        if ([self.delegate respondsToSelector:@selector(updateStatus)]) {
-            [self.delegate updateStatus];
-        }
+        [userDetails synchronize];
     }
 }
 
@@ -382,6 +409,15 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
         
     } else {
         [self closeSearchResultsTableView];
+    }
+    
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    if (![self.statusMessageTextField.text isEqualToString:sharedDataManager.statusMessage]) {
+        sharedDataManager.statusMessage = self.statusMessageTextField.text;
+        PFUser *user = [PFUser currentUser];
+        [user setObject:self.statusMessageTextField.text forKey:@"statusMessage"];
+        [user saveInBackground];
+        NSLog(@"PARSE SAVE: saving status message");
     }
 }
 

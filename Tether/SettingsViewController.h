@@ -27,7 +27,6 @@
 @protocol SettingsViewControllerDelegate <NSObject>
 
 -(void)closeSettings;
--(void)updateStatus;
 -(void)userChangedLocationInSettings:(CLLocation*)newLocation;
 -(void)userChangedSettingsToUseCurrentLocation;
 

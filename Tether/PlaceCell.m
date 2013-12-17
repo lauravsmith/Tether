@@ -47,8 +47,6 @@
         self.addressLabel = [[UILabel alloc] init];
         [self addSubview:self.addressLabel];
         self.friendsGoingButton = [[UIButton alloc] init];
-        [self addSubview:self.friendsGoingButton];
-        self.layer.delegate = self;
     }
     return self;
 }
@@ -77,11 +75,15 @@
     self.addressLabel.frame = CGRectMake(150.0, 50.0, 200.0, 30.0);
     self.addressLabel.text = self.place.address;
     
-    self.friendsGoingButton.frame = CGRectMake(100.0, 50.0, 50.0, 50.0);
+    self.friendsGoingButton.frame = CGRectMake(260.0, 10.0, 50.0, 50.0);
+    [self.friendsGoingButton setTitle:[NSString stringWithFormat:@"%d", self.place.numberCommitments] forState:UIControlStateNormal];
     [self.friendsGoingButton setBackgroundColor:[UIColor redColor]];
     [self.friendsGoingButton addTarget:self
                                 action:@selector(friendsGoingClicked:)
                       forControlEvents:UIControlEventTouchUpInside];
+    if (self.place.numberCommitments > 0) {
+        [self addSubview:self.friendsGoingButton];
+    }
 }
 
 - (void)setPlace:(Place *)place {

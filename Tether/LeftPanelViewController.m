@@ -16,7 +16,7 @@
 #define PROFILE_PICTURE_OFFSET_X 10.0
 #define CELL_HEIGHT 70
 #define SECOND_TABLE_OFFSET_Y 350.0
-#define TABLE_HEIGHT 250.0
+#define TABLE_HEIGHT 400.0
 #define PANEL_WIDTH 60
 #define PADDING 10
 #define PROFILE_PICTURE_BORDER_WIDTH 4.0
@@ -30,8 +30,6 @@
 @property (nonatomic, strong) UITableView *friendsUndecidedTableView;
 @property (nonatomic, strong) UITableViewController *friendsUndecidedTableViewController;
 @property (retain, nonatomic) UIScrollView * scrollView;
-@property (retain, nonatomic) UIView * userHeaderView;
-@property (retain, nonatomic) UILabel * statusLabel;
 
 @end
 
@@ -41,10 +39,7 @@
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
-        // Custom initialization
-        NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-        self.userName = [userDetails stringForKey:@"name"];
-        self.profilePictureView = [[FBProfilePictureView alloc] initWithProfileID:[userDetails stringForKey:@"facebookId"] pictureCropping:FBProfilePictureCroppingSquare];
+        
     }
     return self;
 }
@@ -52,36 +47,10 @@
 - (void)loadView {
     CGRect fullScreenRect=[[UIScreen mainScreen] applicationFrame];
     self.scrollView=[[UIScrollView alloc] initWithFrame:fullScreenRect];
-    self.scrollView.contentSize=CGSizeMake(320,600);
     self.scrollView.scrollEnabled = YES;
     [self.scrollView setBackgroundColor:[UIColor whiteColor]];
     [self.scrollView setBounces:NO];
     self.view= _scrollView;
-    
-    self.userHeaderView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, CELL_HEIGHT + 10.0)];
-    self.userHeaderView.backgroundColor = UIColorFromRGB(0xD6D6D6);
-    [self.view addSubview:self.userHeaderView];
-    
-    self.userNameLabel = [[UILabel alloc] initWithFrame:CGRectMake(NAME_OFFSET_X, NAME_OFFSET_Y, self.view.frame.size.width, 30.0)];
-    self.userNameLabel.text = self.userName;
-    [self.userNameLabel setBackgroundColor:[UIColor clearColor]];
-    [self.userNameLabel setTextColor:[UIColor whiteColor]];
-    UIFont *champagneBold = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:18.0f];
-    [self.userNameLabel setFont:champagneBold];
-    [self.userHeaderView addSubview:self.userNameLabel];
-    
-    self.statusLabel = [[UILabel alloc] initWithFrame:CGRectMake(NAME_OFFSET_X, NAME_OFFSET_Y + 20.0, self.view.frame.size.width, 30.0)];
-    [self.statusLabel setBackgroundColor:[UIColor clearColor]];
-    [self.statusLabel setTextColor:[UIColor whiteColor]];
-    [self.statusLabel setFont:champagneBold];
-    [self.userHeaderView addSubview:self.statusLabel];
-    
-    self.profilePictureView.frame = CGRectMake(PROFILE_PICTURE_OFFSET_X, 20.0, 50.0, 50.0);
-    self.profilePictureView.layer.cornerRadius = 24.0;
-    self.profilePictureView.clipsToBounds = YES;
-    [self.profilePictureView.layer setBorderColor:[[UIColor whiteColor] CGColor]];
-    [self.profilePictureView.layer setBorderWidth:PROFILE_PICTURE_BORDER_WIDTH];
-    [self.userHeaderView addSubview:self.profilePictureView];
 }
 
 - (void)viewDidLoad
@@ -135,23 +104,6 @@
     [self.friendsUndecidedTableView reloadData];
 }
 
--(void)updateStatus {
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
-    BOOL status = sharedDataManager.status;
-
-    if (status) {
-        self.statusLabel.text = @"Going Out";
-    } else {
-        self.statusLabel.text = @"Not Going Out";
-    }
-}
-
--(void)updateNameLabel {
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
-    self.userName = sharedDataManager.name;
-    self.userNameLabel.text = sharedDataManager.name;
-}
-
 -(void)updateFriendsList {
     [self.friendsGoingOutTableView reloadData];
     [self.friendsNotGoingOutTableView reloadData];
@@ -160,7 +112,7 @@
 }
 
 -(void)resizeTableViews {
-    self.friendsGoingOutTableView.frame = CGRectMake(0, self.userHeaderView.frame.size.height, self.view.frame.size.width, MIN(TABLE_HEIGHT, self.friendsGoingOutTableView.contentSize.height));
+    self.friendsGoingOutTableView.frame = CGRectMake(0.0, 0.0, self.view.frame.size.width, MIN(TABLE_HEIGHT, self.friendsGoingOutTableView.contentSize.height));
     NSLog(@"Resizing tables");
     
     self.friendsNotGoingOutTableView.frame = CGRectMake(0, self.friendsGoingOutTableView.frame.origin.y + self.friendsGoingOutTableView.frame.size.height, self.view.frame.size.width, MIN(TABLE_HEIGHT, self.friendsNotGoingOutTableView.contentSize.height));

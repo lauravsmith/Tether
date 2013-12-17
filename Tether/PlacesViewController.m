@@ -152,12 +152,11 @@
     PFQuery *query = [PFQuery queryWithClassName:@"Commitment"];
     [query whereKey:@"facebookId" containedIn:friendsArrayWithMe];
     [query whereKey:@"placeCityName" equalTo:userCity];
-    query.limit = 1000; // is this an appropriate limit?
+    query.limit = 10000; // is this an appropriate limit?
     //TODO: Check for same State
     
     NSDate *startTime = [self getStartTime];
 
-    //TODO: more than 100 objects?
     [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
         if (!error) {
             NSLog(@"QUERY: finding friends commitments for tonight");

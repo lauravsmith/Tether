@@ -12,7 +12,9 @@
 @interface Friend : NSObject
 @property (nonatomic, strong) NSString *name;
 @property (nonatomic, strong) NSString *friendID;
+@property (nonatomic, strong) NSString *statusMessage;
 @property (nonatomic, strong) NSDate *timeLastUpdated;
+@property (nonatomic, strong) NSArray *friendsArray;
 @property (nonatomic, assign) BOOL status;
 @property (nonatomic, assign) id placeId;
 @end

@@ -31,7 +31,6 @@
 @property (strong, nonatomic) UIButton *arrowButton;
 @property (retain, nonatomic) UIView * bottomBar;
 @property (retain, nonatomic) UILabel * bottomBarLabel;
-@property (retain, nonatomic) UIButton * bottomRightButton;
 @property (strong, nonatomic) CLLocationManager * locationManager;
 @property (strong, nonatomic) CLLocation *userCoordinates;
 @property (strong, nonatomic) NSTimer * finishLoadingTimer;
@@ -136,14 +135,16 @@
     UIImage *leftPanelButtonImage = [UIImage imageNamed:@"Gear"];
     self.bottomLeftButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 10, 30, 30)];
     [self.bottomLeftButton setImage:leftPanelButtonImage forState:UIControlStateNormal];
+    [self.bottomBar addSubview:self.bottomLeftButton];
+    self.bottomLeftButton.tag = 1;
+    [self.bottomLeftButton addTarget:self action:@selector(settingsPressed:) forControlEvents:UIControlEventTouchDown];
     
-    // bottom right button setup
-    UIImage *bottomRightButtonImage = [UIImage imageNamed:@"Gear"];
-    self.bottomRightButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 30.0, 10, 30, 30)];
-    [self.bottomRightButton setImage:bottomRightButtonImage forState:UIControlStateNormal];
-    [self.bottomBar addSubview:self.bottomRightButton];
-    self.bottomRightButton.tag = 1;
-    [self.bottomRightButton addTarget:self action:@selector(settingsPressed:) forControlEvents:UIControlEventTouchDown];
+    // notifications button to open right panel setup
+    self.notificationsButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 30.0, 10, 30, 30)];
+    [self.notificationsButton setBackgroundColor:[UIColor whiteColor]];
+    [self.notificationsButton addTarget:self action:@selector(btnMovePanelLeft:) forControlEvents:UIControlEventTouchUpInside];
+    self.notificationsButton.tag = 1;
+    [self.bottomBar addSubview:self.notificationsButton];
     
     // Tether label setup
     self.bottomBarLabel = [[UILabel alloc] init];
@@ -164,19 +165,12 @@
 
     [self.view addSubview:self.bottomBar];
     
-    // notifications button to open right panel setup
-    self.notificationsButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 40, 20, 20, 20)];
-    [self.notificationsButton setBackgroundColor:[UIColor whiteColor]];
-    [self.notificationsButton addTarget:self action:@selector(btnMovePanelLeft:) forControlEvents:UIControlEventTouchUpInside];
-    self.notificationsButton.tag = 1;
-    [self.topBar addSubview:self.notificationsButton];
-    
     [self restartTimer];
 }
 
 -(void)locationSetup {
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-    if ([userDetails boolForKey:@"useCurrentLocation"]) {
+    if ([userDetails boolForKey:@"useCurrentLocation"] || ![userDetails objectForKey:@"city"] || ![userDetails objectForKey:@"state"]) {
         [self.locationManager startUpdatingLocation];
     } else {
         NSString *city = [userDetails objectForKey:@"city"];
@@ -260,11 +254,9 @@
                  self.cityLabel.text = city;
                  NSLog(@"Current City, State: %@,%@", city, state);
                  
-                 PFUser *user = [PFUser currentUser];
-                 [user setObject:city forKey:@"cityLocation"];
-                 [user setObject:state forKey:@"stateLocation"];
-                 [user saveInBackground];
-                 NSLog(@"PARSE SAVE: saving your location from the map");
+                 if ([self.delegate respondsToSelector:@selector(saveCity:state:)]) {
+                     [self.delegate saveCity:city state:state];
+                 }
              }
              
              NSString *locationString = [NSString stringWithFormat:@"%@, %@", city, state];
@@ -487,8 +479,21 @@
 }
 
 - (void)mapView:(MKMapView *)mapView didAddAnnotationViews:(NSArray *)views {
-
+    MKAnnotationView *aV;
+    for (aV in views) {
+        CGRect endFrame = aV.frame;
+        
+        aV.frame = CGRectMake(aV.frame.origin.x, aV.frame.origin.y - 230.0, aV.frame.size.width, aV.frame.size.height);
+        
+        [UIView beginAnimations:nil context:NULL];
+        [UIView setAnimationDuration:0.45];
+        [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
+        [aV setFrame:endFrame];
+        [UIView commitAnimations];
+        
+    }
 }
+
 
 -(void)mapViewDidFinishLoadingMap:(MKMapView *)mapView {
     if (!self.mapHasAdjusted) {

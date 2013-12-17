@@ -42,6 +42,7 @@
 @property (nonatomic, strong) RightPanelViewController *rightPanelViewController;
 @property (nonatomic, assign) BOOL showingRightPanel;
 @property (nonatomic, assign) BOOL showingLeftPanel;
+@property (nonatomic, assign) BOOL showingDecisionView;
 @property (nonatomic, assign) BOOL showPanel;
 @property (nonatomic, assign) BOOL leftPanelNotShownYet;
 @property (nonatomic, assign) BOOL rightPanelNotShownYet;
@@ -50,6 +51,7 @@
 @property (nonatomic, assign) CGPoint preVelocity;
 @property (nonatomic, assign) NSTimer *pollingTimer;
 @property (nonatomic, assign) int timerMultiplier;
+@property (nonatomic, strong) PFUser *currentUser;
 
 @end
 
@@ -65,6 +67,7 @@
         self.placesViewController = [[PlacesViewController alloc] init];
         self.placesViewController.delegate = self;
         self.timerMultiplier = 1;
+        self.showingDecisionView = NO;
         
         Datastore *sharedDataManager= [Datastore sharedDataManager];
         sharedDataManager.tetherFriendsDictionary = [[NSMutableDictionary alloc] init];
@@ -114,7 +117,7 @@
 -(void)timerFired{
     if (self.canUpdatePlaces) {
         [self pollDatabase];
-        if ([self shouldShowDecisionView]) {
+        if ([self shouldShowDecisionView] && !self.showingDecisionView) {
             [self setupView];
         }
     }
@@ -153,16 +156,17 @@
     
     sharedDataManager.facebookFriends = facebookFriendsIds;
     
-    PFUser *user = [PFUser currentUser];
-    [user setObject:sharedDataManager.facebookFriends forKey:@"facebookFriends"];
-    [user saveEventually];
+    [self.currentUser setObject:sharedDataManager.facebookFriends forKey:@"facebookFriends"];
+    
+    [self.currentUser saveEventually];
+    
     NSLog(@"PARSE SAVE: saving your facebook friends");
     [self queryFriendsStatus];
 
 }
 
 -(void)facebookRequestDidLoad:(id)result {
-    PFUser *user = [PFUser currentUser];
+    self.currentUser = [PFUser currentUser];
     
     NSArray *data = [result objectForKey:@"data"];
     Datastore *sharedDataManager = [Datastore sharedDataManager];
@@ -172,27 +176,45 @@
         [self populateFacebookFriends:data];
 
     } else {
-        if (user) {
+        if (self.currentUser) {
             Datastore *sharedDataManager = [Datastore sharedDataManager];
             
             NSString *facebookName = result[@"name"];
             if (facebookName && [facebookName length] != 0) {
-                [user setObject:facebookName forKey:@"displayName"];
+                [self.currentUser setObject:facebookName forKey:@"displayName"];
                 sharedDataManager.name = facebookName;
-                [self.leftPanelViewController updateNameLabel];
             } else {
-                [user setObject:@"Someone" forKey:@"displayName"];
+                [self.currentUser setObject:@"Someone" forKey:@"displayName"];
+            }
+            
+            NSString *firstName = result[@"first_name"];
+            if (firstName && [firstName length] != 0) {
+                [self.currentUser setObject:firstName forKey:@"firstName"];
             }
             
             NSString *facebookId = result[@"id"];
             if (facebookId && [facebookId length] != 0) {
-                [user setObject:facebookId forKey:@"facebookId"];
-                self.leftPanelViewController.profilePictureView.profileID = facebookId;
+                [self.currentUser setObject:facebookId forKey:@"facebookId"];
                 sharedDataManager.facebookId = facebookId;
                 self.facebookId = facebookId;
             }
-            NSLog(@"PARSE SAVE: setting your user details");
-            [user saveEventually];
+            
+            NSString *gender = result[@"gender"];
+            if (gender && [gender length] != 0) {
+                [self.currentUser setObject:gender forKey:@"gender"];
+            }
+            
+            NSString *relationshipStatus = result[@"relationship_status"];
+            if (relationshipStatus && [relationshipStatus length] != 0) {
+                [self.currentUser setObject:relationshipStatus forKey:@"relationshipStatus"];
+            }
+            
+            NSLog(@"PARSE SAVE: setting your user facebook details");
+            [self.currentUser saveEventually];
+            
+            if ([self.currentUser objectForKey:@"statusMessage"]) {
+                sharedDataManager.statusMessage = [self.currentUser objectForKey:@"statusMessage"];
+            }
         }
         
         [FBRequestConnection startForMyFriendsWithCompletionHandler:^(FBRequestConnection *connection, id friends, NSError *error) {
@@ -223,46 +245,51 @@
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     NSLog(@"Your city: %@ state: %@", city, state);
     
-    PFQuery *facebookFriendsQuery = [PFUser query];
-    [facebookFriendsQuery whereKey:@"facebookId" containedIn:sharedDataManager.facebookFriends];
-    [facebookFriendsQuery whereKey:@"cityLocation" equalTo:city];
-    [facebookFriendsQuery whereKey:@"stateLocation" equalTo:state];
+    if (city && state) {
+        PFQuery *facebookFriendsQuery = [PFUser query];
+        [facebookFriendsQuery whereKey:@"facebookId" containedIn:sharedDataManager.facebookFriends];
+        [facebookFriendsQuery whereKey:@"cityLocation" equalTo:city];
+        [facebookFriendsQuery whereKey:@"stateLocation" equalTo:state];
 
-    [facebookFriendsQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
-        if (!error) {
-            NSLog(@"QUERY: queried your facebook friends status who are on Tether");
-            sharedDataManager.tetherFriendsNearbyDictionary = [[NSMutableDictionary alloc] init];
-            
-            for (PFUser *user in objects) {
-                Friend *friend;
-                if ([sharedDataManager.tetherFriendsDictionary objectForKey:user[@"facebookId"]]) {
-                    friend = [sharedDataManager.tetherFriendsDictionary objectForKey:user[@"facebookId"]];
-                } else {
-                    friend = [[Friend alloc] init];
-                    friend.friendID = user[@"facebookId"];
-                    friend.name = user[@"displayName"];
-                    friend.placeId = @"";
-                }
-                friend.timeLastUpdated = user[@"timeLastUpdated"];
-                friend.status = [user[@"status"] boolValue];
-                if ([sharedDataManager.friendsToPlacesMap objectForKey:friend.friendID]) {
-                    friend.placeId = [sharedDataManager.friendsToPlacesMap objectForKey:friend.friendID];
+        [facebookFriendsQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+            if (!error) {
+                NSLog(@"QUERY: queried your facebook friends status who are on Tether");
+                sharedDataManager.tetherFriendsNearbyDictionary = [[NSMutableDictionary alloc] init];
+                
+                for (PFUser *user in objects) {
+                    Friend *friend;
+                    if ([sharedDataManager.tetherFriendsDictionary objectForKey:user[@"facebookId"]]) {
+                        friend = [sharedDataManager.tetherFriendsDictionary objectForKey:user[@"facebookId"]];
+                    } else {
+                        friend = [[Friend alloc] init];
+                        friend.friendID = user[@"facebookId"];
+                        friend.name = user[@"displayName"];
+                        friend.placeId = @"";
+                        friend.friendsArray = user[@"facebookFriends"];
+                    }
+                    friend.timeLastUpdated = user[@"timeLastUpdated"];
+                    friend.status = [user[@"status"] boolValue];
+                    friend.statusMessage = user[@"statusMessage"];
+                    
+                    if ([sharedDataManager.friendsToPlacesMap objectForKey:friend.friendID]) {
+                        friend.placeId = [sharedDataManager.friendsToPlacesMap objectForKey:friend.friendID];
+                    }
+                    
+                    if ([user[@"cityLocation"] isEqualToString:city] && [user[@"stateLocation"] isEqualToString:state]) {
+                        [sharedDataManager.tetherFriendsNearbyDictionary setObject:friend forKey:friend.friendID];
+                    }
+                    [sharedDataManager.tetherFriendsDictionary setObject:friend forKey:friend.friendID];
                 }
                 
-                if ([user[@"cityLocation"] isEqualToString:city] && [user[@"stateLocation"] isEqualToString:state]) {
-                    [sharedDataManager.tetherFriendsNearbyDictionary setObject:friend forKey:friend.friendID];
-                }
-                [sharedDataManager.tetherFriendsDictionary setObject:friend forKey:friend.friendID];
+                [self sortTetherFriends];
+                [self.placesViewController getFriendsCommitments];
+            } else {
+                // The network was inaccessible and we have no cached data for r
+                // this query.
+                NSLog(@"Query error");
             }
-            
-            [self sortTetherFriends];
-            [self.placesViewController getFriendsCommitments];
-        } else {
-            // The network was inaccessible and we have no cached data for r
-            // this query.
-            NSLog(@"Query error");
-        }
-    }];
+        }];
+    }
 }
 
 -(void)sortTetherFriends {
@@ -389,8 +416,7 @@
         [self.view addSubview:self.decisionViewController.view];
         [self addChildViewController:_decisionViewController];
         [_decisionViewController didMoveToParentViewController:self];
-    } else {
-        [self.leftPanelViewController updateStatus];
+        self.showingDecisionView = YES;
     }
 }
 
@@ -548,23 +574,21 @@
     
     if([(UIPanGestureRecognizer*)sender state] == UIGestureRecognizerStateChanged) {
         if(velocity.x > 0) {
-            NSLog(@"Position moving right %f", [sender view].center.x);
         } else {
-            NSLog(@"Position moving left %f", [sender view].center.x);
         }
         
         // Are you more than halfway? If so, show the panel when done dragging by setting this value to YES (1).
         _showPanel = abs([sender view].center.x - _centerViewController.view.frame.size.width/2) > _centerViewController.view.frame.size.width/2;
         
         // Allow dragging only in x-coordinates by only updating the x-coordinate with translation position.
-        float xCoord;
+        float xCoord = 0.0;
         if (_showingLeftPanel) {
             xCoord = MAX(160.0,[sender view].center.x + translatedPoint.x);
         } else if (_showingRightPanel) {
             xCoord = MIN(160.0,[sender view].center.x + translatedPoint.x);
         }
 
-        [sender view].center = CGPointMake([sender view].center.x + translatedPoint.x, [sender view].center.y);
+        [sender view].center = CGPointMake(xCoord, [sender view].center.y);
         [(UIPanGestureRecognizer*)sender setTranslation:CGPointMake(0,0) inView:self.view];
         
         // If you needed to check for a change in direction, you could use this code to do so.
@@ -607,13 +631,13 @@
         self.placesViewController.delegate = self;
     }
     
-    [self addChildViewController:self.placesViewController];
-    [self.placesViewController didMoveToParentViewController:self];
-    [self.placesViewController.view setFrame:CGRectMake(320.0f, 0.0f, 320.0f, 768.0f)];
-    [self.view addSubview:self.placesViewController.view];
+    [self.centerViewController addChildViewController:self.placesViewController];
+    [self.placesViewController didMoveToParentViewController:self.centerViewController];
+    [self.placesViewController.view setFrame:CGRectMake(320.0f, 0.0f, 320.0f, 700.0f)];
+    [self.centerViewController.view addSubview:self.placesViewController.view];
     [UIView beginAnimations:@"animateTableView" context:nil];
     [UIView setAnimationDuration:0.2];
-    [self.placesViewController.view setFrame:CGRectMake( 0.0f, 0.0f, 320.0f, 768.0f)]; //notice this is ON screen!
+    [self.placesViewController.view setFrame:CGRectMake( 0.0f, 0.0f, 320.0f, 700.0f)]; //notice this is ON screen!
     [UIView commitAnimations];
 }
 
@@ -673,8 +697,18 @@
         self.placesViewController.delegate = self;
         [self pollDatabase];
     }
+    
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     [self.settingsViewController resettingNewLocationHasFinished];
+    [self saveCity:[userDetails objectForKey:@"city"] state:[userDetails objectForKey:@"state"]];
     NSLog(@"FINISHED RESETTING, NOW POLLING DATABASE");
+}
+
+-(void)saveCity:(NSString*)city state:(NSString*)state {
+    [self.currentUser setObject:city forKey:@"cityLocation"];
+    [self.currentUser setObject:state forKey:@"stateLocation"];
+    [self.currentUser saveInBackground];
+    NSLog(@"PARSE SAVE: saving your location %@ %@",city, state);
 }
 
 #pragma mark QuestionViewControllerDelegate
@@ -683,13 +717,11 @@
     [self.decisionViewController.view removeFromSuperview];
     [self.decisionViewController removeFromParentViewController];
     self.decisionViewController = nil;
+    self.showingDecisionView = NO;
 
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
-    sharedDataManager.status = choice;
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     [userDetails setBool:choice forKey:@"status"];
     [userDetails setObject:[NSDate date] forKey:@"timeLastUpdated"];
-    [self.leftPanelViewController updateStatus];
     
     NSLog(@"PARSE SAVE: Saving your going out choice");
     PFUser *user = [PFUser currentUser];
@@ -713,10 +745,6 @@
         [self.settingsViewController.view removeFromSuperview];
         [self.settingsViewController removeFromParentViewController];
     }];
-}
-
--(void)updateStatus {
-    [self.leftPanelViewController updateStatus];
 }
 
 -(void)userChangedLocationInSettings:(CLLocation*)newLocation{
@@ -842,16 +870,18 @@
             [commitment saveInBackground];
             NSLog(@"PARSE SAVE: saving your commitment");
             
-            Datastore *sharedDataManager = [Datastore sharedDataManager];
-            if (!sharedDataManager.status) {
-                sharedDataManager.status = YES;
-                [self.leftPanelViewController updateStatus];
+            NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+            BOOL status = [userDetails boolForKey:@"status"];
+            if (!status) {
+                [userDetails setBool:YES forKey:@"status"];
+                [userDetails synchronize];
                 
                 PFUser *user = [PFUser currentUser];
                 [user setObject:[NSNumber numberWithBool:YES] forKey:@"status"];
                 [user setObject:[NSDate date] forKey:@"timeLastUpdated"];
                 [user saveInBackground];
             }
+            Datastore *sharedDataManager = [Datastore sharedDataManager];
             sharedDataManager.currentCommitmentParseObject = commitment;
             
             [self placeMarkOnMapView:place];

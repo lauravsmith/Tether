@@ -30,6 +30,7 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 - (void)showSettingsView;
 -(void)showListView;
 -(void)finishedResettingNewLocation;
+-(void)saveCity:(NSString*)city state:(NSString*)state;
 @end
 
 @interface CenterViewController : ViewController <MKMapViewDelegate>
