@@ -15,22 +15,20 @@
 #import <FacebookSDK/FacebookSDK.h>
 #import <MapKit/MapKit.h> 
 
-#define TOP_BAR_HEIGHT 120.0
-#define MAX_FRIENDS_ON_PIN 4.0
+#define BOTTOM_BAR_HEIGHT 50.0
+#define CORNER_RADIUS 20.0
 #define DISTANCE_FACE_TO_PIN 20.0
 #define FACE_SIZE 40.0
-#define CORNER_RADIUS 20.0
+#define MAX_FRIENDS_ON_PIN 4.0
 #define PADDING 10.0
+#define TOP_BAR_HEIGHT 80.0
 
 @interface CenterViewController () <MKMapViewDelegate, CLLocationManagerDelegate>
 @property (retain, nonatomic) NSString * cityLocation;
 @property (retain, nonatomic) UIView * topBar;
-@property (retain, nonatomic) UIImageView * whiteLineImageView;
 @property (assign, nonatomic) bool mapHasAdjusted;
-@property (strong, nonatomic) UIButton *listViewButton;
 @property (strong, nonatomic) UIButton *arrowButton;
 @property (retain, nonatomic) UIView * bottomBar;
-@property (retain, nonatomic) UILabel * bottomBarLabel;
 @property (strong, nonatomic) CLLocationManager * locationManager;
 @property (strong, nonatomic) CLLocation *userCoordinates;
 @property (strong, nonatomic) NSTimer * finishLoadingTimer;
@@ -53,19 +51,16 @@
 {
     [super viewDidLoad];
     
+    // mapview setup
+    self.mv = [[MKMapView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)];
+    self.mv.delegate = self;
+    [self.view addSubview:self.mv];
+    
     // top bar setup
     self.topBar = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width,TOP_BAR_HEIGHT)];
     [self.topBar setBackgroundColor:UIColorFromRGB(0x770051)];
     [self.view addSubview:self.topBar];
-    self.topBar.layer.masksToBounds = NO;
-    self.topBar.layer.shadowColor = [UIColor blackColor].CGColor;
-    self.topBar.layer.shadowOffset = CGSizeMake(0.0f, 2.0f);
-    self.topBar.layer.shadowOpacity = 0.5f;
-    
-    // mapview setup
-    self.mv = [[MKMapView alloc] initWithFrame:CGRectMake(0, self.topBar.frame.origin.y + self.topBar.frame.size.height, self.view.frame.size.width, self.view.frame.size.height)];
-    self.mv.delegate = self;
-    [self.view addSubview:self.mv];
+    [self.topBar setAlpha:0.8];
     
     self.locationManager = [[CLLocationManager alloc] init];
     self.locationManager.delegate  = self;
@@ -74,11 +69,11 @@
     [self locationSetup];
 
     // number of friends going out label setup
-    self.numberButton = [[UIButton alloc] initWithFrame:CGRectMake(PADDING, PADDING, 110, 80)];
+    self.numberButton = [[UIButton alloc] initWithFrame:CGRectMake(PADDING, PADDING, 110, 40)];
     [self.numberButton setBackgroundColor:[UIColor clearColor]];
     [self.numberButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [self.numberButton setTitleColor:[UIColor grayColor] forState:UIControlStateHighlighted];
-    UIFont *champagne = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:81];
+    UIFont *champagne = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:20];
     self.numberButton.titleLabel.font = champagne;
     [self.numberButton addTarget:self action:@selector(btnMovePanelRight:) forControlEvents:UIControlEventTouchUpInside];
     self.numberButton.tag = 1;
@@ -94,42 +89,16 @@
     [self.cityLabel setFont:champagneItalic];
     [self.topBar addSubview:self.cityLabel];
     
-    // white top bar line setup
-    self.whiteLineImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"Whiteline.png"]];
-    CGRect frame = self.whiteLineImageView.frame;
-    frame.size.height = self.topBar.frame.size.height - 20.0;
-    frame.size.width = 80.0;
-    frame.origin.x = 75.0;
-    frame.origin.y = 10.0;
-    self.whiteLineImageView.frame = frame;
-    [self.topBar addSubview:self.whiteLineImageView];
-    
-    // list view button setup
-    self.listViewButton = [[UIButton alloc] initWithFrame:CGRectMake(130, 30, 180, 30)];
-    [self.listViewButton setTitle:@"where will you go?" forState:UIControlStateNormal];
-    [self.listViewButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    self.listViewButton.titleLabel.font = [UIFont fontWithName:@"Champagne&Limousines" size:22.0f];
-    [self.listViewButton addTarget:self action:@selector(showListView) forControlEvents:UIControlEventTouchDown];
-    [self.topBar addSubview:self.listViewButton];
-    
     // list view arrow button setup
-    self.arrowButton = [[UIButton alloc] initWithFrame:CGRectMake(self.listViewButton.frame.origin.x + (self.listViewButton.frame.size.width - 18)/ 2, self.listViewButton.frame.origin.y + self.listViewButton.frame.size.height, 18, 18)];
+    self.arrowButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 50.0, (self.topBar.frame.size.height - 30) / 2, 30, 30)];
     [self.arrowButton setImage:[UIImage imageNamed:@"Arrow"] forState:UIControlStateNormal];
-//    [self.arrowButton addTarget:self action:@selector(searchPlaces:) forControlEvents:UIControlEventTouchDown];
+    [self.arrowButton addTarget:self action:@selector(showListView) forControlEvents:UIControlEventTouchDown];
     [self.topBar addSubview:self.arrowButton];
     
     // bottom nav bar setup
-    self.bottomBar = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - 50.0, self.view.frame.size.width, 60.0)];
-    
-    self.bottomBar.layer.masksToBounds = NO;
-    self.bottomBar.layer.shadowColor = [UIColor blackColor].CGColor;
-    self.bottomBar.layer.shadowOffset = CGSizeMake(0.0f, 2.0f);
-    self.bottomBar.layer.shadowOpacity = 0.5f;
-
-    UIImage *shadowImage = [[UIImage imageNamed:@"ListIcon.png"] resizableImageWithCapInsets:UIEdgeInsetsMake(2.0, 2.0, 2.0, 2.0) resizingMode:UIImageResizingModeStretch];
-    UIImageView *shadowImageView = [[UIImageView alloc] initWithImage:shadowImage];
-    shadowImageView.frame = CGRectMake(-62.0, self.view.frame.size.height - 80.0, 442, 120.0);
-    [self.view addSubview:shadowImageView];
+    self.bottomBar = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - BOTTOM_BAR_HEIGHT, self.view.frame.size.width, BOTTOM_BAR_HEIGHT)];
+    [self.bottomBar setBackgroundColor:[UIColor whiteColor]];
+    [self.bottomBar setAlpha:0.8];
     
     // left panel view button setup
     UIImage *leftPanelButtonImage = [UIImage imageNamed:@"Gear"];
@@ -141,31 +110,36 @@
     
     // notifications button to open right panel setup
     self.notificationsButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 30.0, 10, 30, 30)];
+    [self.notificationsButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     [self.notificationsButton setBackgroundColor:[UIColor whiteColor]];
     [self.notificationsButton addTarget:self action:@selector(btnMovePanelLeft:) forControlEvents:UIControlEventTouchUpInside];
     self.notificationsButton.tag = 1;
     [self.bottomBar addSubview:self.notificationsButton];
+    [self refreshNotificationsNumber];
     
-    // Tether label setup
-    self.bottomBarLabel = [[UILabel alloc] init];
-    self.bottomBarLabel.text = @"T  E  T  H  E  R";
-    frame = self.bottomBarLabel.frame;
-    frame.size.width = [self.bottomBarLabel.text sizeWithAttributes:@{NSFontAttributeName:[UIFont systemFontOfSize:22]}].width;
-    frame.size.height =  [self.bottomBarLabel.text sizeWithAttributes:@{NSFontAttributeName:[UIFont systemFontOfSize:22]}].height;
-    frame.origin.x = (self.view.frame.size.width - frame.size.width) / 2;
-    frame.origin.y = (self.bottomBar.frame.size.height - frame.size.height) / 2;
-    self.bottomBarLabel.frame = frame;
-    self.bottomBarLabel.font = [UIFont systemFontOfSize:22.0];
-    self.bottomBarLabel.textColor = [UIColor whiteColor];
-    self.bottomBarLabel.layer.shadowOpacity = 0.5;
-    self.bottomBarLabel.layer.shadowRadius = 0;
-    self.bottomBarLabel.layer.shadowColor = [UIColor grayColor].CGColor;
-    self.bottomBarLabel.layer.shadowOffset = CGSizeMake(1.0, 1.0);
-    [self.bottomBar addSubview:self.bottomBarLabel];
-
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    self.placeLabel = [[UILabel alloc] init];
+    self.placeNumberLabel = [[UILabel alloc] init];
+    if (sharedDataManager.currentCommitmentPlace) {
+        self.placeLabel.text = sharedDataManager.currentCommitmentPlace.name;
+        self.placeNumberLabel.text = [NSString stringWithFormat:@"%d", sharedDataManager.currentCommitmentPlace.numberCommitments];
+    }
+    self.placeLabel.frame = CGRectMake(self.view.frame.size.width / 4, self.bottomBar.frame.size.height / 4, 200.0, 20.0);
+    [self.placeLabel setTextColor:[UIColor blackColor]];
+    [self.bottomBar addSubview:self.placeLabel];
+    
+    self.placeNumberLabel.frame = CGRectMake(self.placeLabel.frame.origin.x + self.placeLabel.frame.size.width, self.bottomBar.frame.size.height / 4, 20.0, 20.0);
+    [self.placeNumberLabel setTextColor:[UIColor blackColor]];
+    [self.bottomBar addSubview:self.placeNumberLabel];
+    
     [self.view addSubview:self.bottomBar];
     
     [self restartTimer];
+}
+
+-(void)refreshNotificationsNumber {
+    PFInstallation *currentInstallation = [PFInstallation currentInstallation];
+    [self.notificationsButton setTitle:[NSString stringWithFormat:@"%d",currentInstallation.badge] forState:UIControlStateNormal];
 }
 
 -(void)locationSetup {
@@ -196,7 +170,6 @@
                                                              selector:@selector(mapLoadingIsFinished)
                                                              userInfo:nil
                                                               repeats:NO];
-//    NSLog(@"timer started");
 }
 
 - (void)mapLoadingIsFinished
@@ -207,7 +180,6 @@
 
 
 -(void)updateLocation {
-//    self.mv.showsUserLocation = YES;
     CLLocationCoordinate2D userCoord = CLLocationCoordinate2DMake(self.userCoordinates.coordinate.latitude , self.userCoordinates.coordinate.longitude);
     
     NSLog(@"Adjusting Map: %f, %f", self.userCoordinates.coordinate.latitude,
@@ -398,8 +370,6 @@
                 profileView.profileID = friendId;
                 profileView.layer.cornerRadius = CORNER_RADIUS;
                 profileView.clipsToBounds = YES;
-                [profileView.layer setBorderColor:[[UIColor whiteColor] CGColor]];
-                [profileView.layer setBorderWidth:2.0];
                 profileView.tag = 2;
                 [pinView addSubview:profileView];
                 profileView.alpha = 0.0;
@@ -411,15 +381,19 @@
                         [pinView sendSubviewToBack:profileView];
                         break;
                     case 1:
-                        frame = CGRectMake(DISTANCE_FACE_TO_PIN, 0, FACE_SIZE, FACE_SIZE);
+                        frame = CGRectMake(DISTANCE_FACE_TO_PIN + 5.0, 0, FACE_SIZE, FACE_SIZE);
                         profileView.frame = frame;
+                        [pinView sendSubviewToBack:profileView];
+                        break;
                     case 2:
-                        frame = CGRectMake(0, DISTANCE_FACE_TO_PIN, FACE_SIZE, FACE_SIZE);
+                        frame = CGRectMake(0, DISTANCE_FACE_TO_PIN + 5.0, FACE_SIZE, FACE_SIZE);
                         profileView.frame = frame;
+                        break;
                     case 3:
                         frame = CGRectMake(0, -DISTANCE_FACE_TO_PIN, FACE_SIZE, FACE_SIZE);
                         profileView.frame = frame;
                         [pinView sendSubviewToBack:profileView];
+                        break;
                     default:
                         break;
                 }

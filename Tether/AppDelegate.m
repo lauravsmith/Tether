@@ -32,6 +32,12 @@ NSString *const SessionStateChangedNotification =
     [self.window makeKeyAndVisible];
     
     [application registerForRemoteNotificationTypes:UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound | UIRemoteNotificationTypeNone];
+    
+      NSDictionary *notificationPayload = launchOptions[UIApplicationLaunchOptionsRemoteNotificationKey];
+    if (notificationPayload) {
+        [self.mainViewController movePanelLeft];
+    }
+    
     // See if the app has a valid token for the current state.
     if ([PFUser currentUser] && // Check if a user is cached
         [PFFacebookUtils isLinkedWithUser:[PFUser currentUser]]) {
@@ -57,6 +63,12 @@ NSString *const SessionStateChangedNotification =
 -(void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo {
     [PFPush handlePush:userInfo];
     NSLog(@"Remote notification received");
+}
+
+- (void)application:(UIApplication *)application
+didReceiveRemoteNotification:(NSDictionary *)userInfo
+fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
+    NSLog(@"user info");
 }
 
 - (void)showLoginView

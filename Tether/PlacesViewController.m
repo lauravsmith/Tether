@@ -10,6 +10,7 @@
 #import "Datastore.h"
 #import "Friend.h"
 #import "FriendsListViewController.h"
+#import "InviteViewController.h"
 #import "Place.h"
 #import "PlaceCell.h"
 #import "PlacesViewController.h"
@@ -18,17 +19,16 @@
 #import <AFNetworking/AFHTTPRequestOperationManager.h>
 #import <Parse/Parse.h>
 
-#define BOTTOM_BAR_HEIGHT 60.0
-#define CELL_HEIGHT 100.0
+#define BOTTOM_BAR_HEIGHT 50.0
+#define CELL_HEIGHT 150.0
 #define SEARCH_RESULTS_CELL_HEIGHT 60.0
 #define SEARCH_BAR_HEIGHT 60.0
 
-@interface PlacesViewController () <PlaceCellDelegate, UITableViewDelegate, UITableViewDataSource, UISearchBarDelegate>
+@interface PlacesViewController () <InviteViewControllerDelegate, FriendsListViewControllerDelegate, PlaceCellDelegate, UISearchBarDelegate, UITableViewDelegate, UITableViewDataSource>
 
 @property (nonatomic, strong) NSMutableArray *placesArray;
 @property (nonatomic, strong) UITableViewController *placesTableViewController;
 @property (retain, nonatomic) UIView * bottomBar;
-@property (retain, nonatomic) UILabel * bottomBarLabel;
 @property (retain, nonatomic) UIButton *bottomLeftButton;
 @property (retain, nonatomic) UIButton * bottomRightButton;
 @property (retain, nonatomic) NSUserDefaults *userDetails;
@@ -81,7 +81,8 @@
     [self.searchResultsTableView reloadData];
     
     //set up friends going out table view
-    self.placesTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, self.searchBar.frame.size.height, self.view.frame.size.width, self.view.frame.size.height - BOTTOM_BAR_HEIGHT)];
+    self.placesTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, self.searchBar.frame.size.height, self.view.frame.size.width, self.view.frame.size.height - self.searchBar.frame.size.height - BOTTOM_BAR_HEIGHT)];
+    [self.placesTableView setAlpha:0.95];
     [self.placesTableView setSeparatorColor:[UIColor whiteColor]];
     [self.placesTableView setBackgroundColor:UIColorFromRGB(0xD6D6D6)];
     [self.placesTableView setDataSource:self];
@@ -96,17 +97,8 @@
     
     // bottom nav bar setup
     self.bottomBar = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - BOTTOM_BAR_HEIGHT, self.view.frame.size.width, BOTTOM_BAR_HEIGHT)];
-    self.bottomBar.layer.masksToBounds = NO;
-    self.bottomBar.layer.shadowColor = [UIColor blackColor].CGColor;
-    self.bottomBar.layer.shadowOffset = CGSizeMake(0.0f, 2.0f);
-    self.bottomBar.layer.shadowOpacity = 0.5f;
-    
-    UIImage *shadowImage = [[UIImage imageNamed:@"ListIcon.png"]
-                            resizableImageWithCapInsets:UIEdgeInsetsMake(2.0, 2.0, 2.0, 2.0)
-                            resizingMode:UIImageResizingModeStretch];
-    UIImageView *shadowImageView = [[UIImageView alloc] initWithImage:shadowImage];
-    shadowImageView.frame = CGRectMake(-62.0, self.view.frame.size.height - 80.0, 442, 120.0);
-    [self.view addSubview:shadowImageView];
+    [self.bottomBar setBackgroundColor:[UIColor whiteColor]];
+    [self.bottomBar setAlpha:0.8];
     
     // left panel view button setup
     UIImage *leftPanelButtonImage = [UIImage imageNamed:@"chevron-left"];
@@ -116,23 +108,6 @@
     self.bottomLeftButton.tag = 1;
     [self.bottomLeftButton addTarget:self action:@selector(closeListView) forControlEvents:UIControlEventTouchDown];
     
-    // Tether label setup
-    self.bottomBarLabel = [[UILabel alloc] init];
-    self.bottomBarLabel.text = @"T  E  T  H  E  R";
-    CGRect frame = self.bottomBarLabel.frame;
-    frame.size.width = [self.bottomBarLabel.text sizeWithAttributes:@{NSFontAttributeName:[UIFont systemFontOfSize:22]}].width;
-    frame.size.height =  [self.bottomBarLabel.text sizeWithAttributes:@{NSFontAttributeName:[UIFont systemFontOfSize:22]}].height;
-    frame.origin.x = (self.view.frame.size.width - frame.size.width) / 2;
-    frame.origin.y = (self.bottomBar.frame.size.height - frame.size.height) / 2;
-    self.bottomBarLabel.frame = frame;
-    self.bottomBarLabel.font = [UIFont systemFontOfSize:22.0];
-    self.bottomBarLabel.textColor = [UIColor whiteColor];
-    self.bottomBarLabel.layer.shadowOpacity = 0.5;
-    self.bottomBarLabel.layer.shadowRadius = 0;
-    self.bottomBarLabel.layer.shadowColor = [UIColor grayColor].CGColor;
-    self.bottomBarLabel.layer.shadowOffset = CGSizeMake(1.0, 1.0);
-    [self.bottomBar addSubview:self.bottomBarLabel];
-    
     [self.view addSubview:self.bottomBar];
 }
 
@@ -140,9 +115,8 @@
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     NSMutableArray *friendsArrayWithMe = [[NSMutableArray alloc] initWithArray:sharedDataManager.facebookFriends];
 
-    if  (sharedDataManager.facebookId && !self.friendStatusDetailsHaveLoaded) {
+    if (sharedDataManager.facebookId) {
         [friendsArrayWithMe addObject:sharedDataManager.facebookId];
-    }
     
     NSString *userCity;
     NSString *userState = [[NSString alloc] init];
@@ -188,10 +162,13 @@
                     // commitment for tonight
                     [place.friendsCommitted addObject:[object objectForKey:@"facebookId"]];
                     place.numberCommitments = place.numberCommitments + 1;
-                    if ([sharedDataManager.facebookId isEqualToString:friendID]) {
+                    if ([sharedDataManager.facebookId isEqualToString:friendID] && ![sharedDataManager.currentCommitmentPlace.name isEqualToString:place.name]) {
                         NSLog(@"Setting your current commitment to %@", place.name);
                         sharedDataManager.currentCommitmentPlace = place;
                         sharedDataManager.currentCommitmentParseObject = object;
+                        if ([self.delegate respondsToSelector:@selector(refreshCommitmentName)]) {
+                            [self.delegate refreshCommitmentName];
+                        }
                     }
                     if ([self.delegate respondsToSelector:@selector(setPlace:forFriend:)]) {
                         [self.delegate setPlace:place.placeId forFriend:friendID];
@@ -207,9 +184,11 @@
                 if (sharedDataManager.currentCommitmentPlace.placeId && [sharedDataManager.currentCommitmentPlace.city isEqualToString:userCity]) {
                     Place *p = [tempDictionary objectForKey:sharedDataManager.currentCommitmentPlace.placeId];
                     if (p) {
-                        [p.friendsCommitted addObject:sharedDataManager.facebookId];
-                        p.numberCommitments +=1;
-                        [tempDictionary setObject:p forKey:p.placeId];
+                        if (![p.friendsCommitted containsObject:sharedDataManager.facebookId]) {
+                            [p.friendsCommitted addObject:sharedDataManager.facebookId];
+                            p.numberCommitments +=1;
+                            [tempDictionary setObject:p forKey:p.placeId];
+                        }
                     } else {
                         [tempDictionary setObject:sharedDataManager.currentCommitmentPlace forKey:sharedDataManager.currentCommitmentPlace.placeId];
                     }
@@ -228,10 +207,8 @@
             }
             
             if (self.foursquarePlacesDataHasLoaded) {
-//                if (![tempKeySet isEqualToSet:keySet] || [keySet count] <= 0) {
                     [self addDictionaries];
                     [self sortPlacesByPopularity];
-//                }
             }
 
             self.friendStatusDetailsHaveLoaded = YES;
@@ -246,6 +223,7 @@
     }];
     if (!self.foursquarePlacesDataHasLoaded) {
         [self loadPlaces];
+    }
     }
 }
 
@@ -389,7 +367,8 @@
             sharedDataManager.currentCommitmentPlace.numberCommitments -=1;
             [sharedDataManager.placesDictionary setObject:sharedDataManager.currentCommitmentPlace
                                                    forKey:sharedDataManager.currentCommitmentPlace.placeId];
-            [sharedDataManager.popularPlacesDictionary removeObjectForKey:sharedDataManager.currentCommitmentPlace.placeId];
+            [sharedDataManager.popularPlacesDictionary setObject:sharedDataManager.currentCommitmentPlace
+                                                          forKey:sharedDataManager.currentCommitmentPlace.placeId];
             if ([self.delegate respondsToSelector:@selector(placeMarkOnMapView:)]) {
                 [self.delegate placeMarkOnMapView:sharedDataManager.currentCommitmentPlace];
             }
@@ -415,6 +394,7 @@
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     if ([place.friendsCommitted count] > 0) {
         FriendsListViewController *friendsListViewController = [[FriendsListViewController alloc] init];
+        friendsListViewController.delegate = self;
         NSMutableSet *friends = [[NSMutableSet alloc] init];
         for (id friendId in place.friendsCommitted) {
             if ([sharedDataManager.tetherFriendsDictionary objectForKey:friendId]) {
@@ -423,9 +403,78 @@
             }
         }
         friendsListViewController.friendsArray = [[friends allObjects] mutableCopy];
+        friendsListViewController.place = placeCell.place;
+        [friendsListViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
         [self.view addSubview:friendsListViewController.view];
         [self addChildViewController:friendsListViewController];
         [friendsListViewController didMoveToParentViewController:self];
+        
+        [UIView animateWithDuration:0.5
+                              delay:0.0
+             usingSpringWithDamping:1.0
+              initialSpringVelocity:5.0
+                            options:UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                             [friendsListViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                         }
+                         completion:^(BOOL finished) {
+                         }];
+    }
+}
+
+-(void)inviteToPlace:(Place *)place {
+    InviteViewController *inviteViewController = [[InviteViewController alloc] init];
+    inviteViewController.delegate = self;
+    inviteViewController.place = place;
+    [inviteViewController.view setBackgroundColor:[UIColor whiteColor]];
+    [inviteViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+    [self.view addSubview:inviteViewController.view];
+    [self addChildViewController:inviteViewController];
+    [inviteViewController didMoveToParentViewController:self];
+    
+    [UIView animateWithDuration:0.5
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:5.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [inviteViewController.view setFrame:CGRectMake( 0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                     }];
+}
+
+-(void)closeInviteView {
+    for (UIViewController *childViewController in self.childViewControllers) {
+        [UIView animateWithDuration:0.5
+                              delay:0.0
+             usingSpringWithDamping:1.0
+              initialSpringVelocity:5.0
+                            options:UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                             [childViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                         }
+                         completion:^(BOOL finished) {
+                             [childViewController.view removeFromSuperview];
+                             [childViewController removeFromParentViewController];
+                         }];
+    }
+}
+
+-(void)closeFriendsView {
+    for (UIViewController *childViewController in self.childViewControllers) {
+        [UIView animateWithDuration:0.5
+                              delay:0.0
+             usingSpringWithDamping:1.0
+              initialSpringVelocity:5.0
+                            options:UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                             [childViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                         }
+                         completion:^(BOOL finished) {
+                             [childViewController.view removeFromSuperview];
+                             [childViewController removeFromParentViewController];
+                         }];
     }
 }
 
@@ -585,7 +634,7 @@
         [cell setPlace:place];
         
         Datastore *sharedDataManager = [Datastore sharedDataManager];
-        if (sharedDataManager.currentCommitmentPlace && place.placeId == sharedDataManager.currentCommitmentPlace.placeId) {
+        if (sharedDataManager.currentCommitmentPlace && [place.placeId isEqualToString:sharedDataManager.currentCommitmentPlace.placeId]) {
             [cell setTethered:YES];
             self.previousCommitmentCellIndexPath = indexPath;
         }

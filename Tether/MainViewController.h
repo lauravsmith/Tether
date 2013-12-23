@@ -11,4 +11,5 @@
 @interface MainViewController : ViewController
 @property (strong, nonatomic) NSMutableDictionary *friendsDictionary;
 -(void)pollDatabase;
+- (void)movePanelLeft;
 @end

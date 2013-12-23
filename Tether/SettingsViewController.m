@@ -10,8 +10,9 @@
 #import "Datastore.h"
 #import "SettingsViewController.h"
 
-#define BORDER_WIDTH 4.0
+#define BORDER_WIDTH 0.0
 #define PADDING 15.0
+#define STATUS_MESSAGE_LENGTH 25.0
 #define TABLE_VIEW_HEIGHT 250.0
 
 static NSString *kGeoNamesAccountName = @"lsmit87";
@@ -92,8 +93,9 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.userProfilePictureView.frame = CGRectMake(10.0, 100.0, 50.0, 50.0);
     [self.view addSubview:self.userProfilePictureView];
     
-    self.statusMessageTextField = [[UITextField alloc] initWithFrame:CGRectMake(100.0, 100.0, 200.0, 50.0)];
+    self.statusMessageTextField = [[UITextField alloc] initWithFrame:CGRectMake(80.0, 100.0, 200.0, 30.0)];
     self.statusMessageTextField.delegate = self;
+    self.statusMessageTextField.layer.cornerRadius = 5.0;
     self.statusMessageTextField.placeholder = @"Enter status message";
     [self.statusMessageTextField setBackgroundColor:[UIColor whiteColor]];
     Datastore *sharedDataManager = [Datastore sharedDataManager];
@@ -354,7 +356,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
         return YES;
     } else {
         NSUInteger newLength = [textField.text length] + [string length] - range.length;
-        return (newLength > 25) ? NO : YES;
+        return (newLength > STATUS_MESSAGE_LENGTH) ? NO : YES;
     }
 }
 

@@ -9,5 +9,5 @@
 #import <UIKit/UIKit.h>
 
 @interface RightPanelViewController : UIViewController
-
+-(void)loadNotifications;
 @end

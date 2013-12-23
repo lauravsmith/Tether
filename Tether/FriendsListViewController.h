@@ -8,6 +8,16 @@
 
 #import <UIKit/UIKit.h>
 
+@protocol FriendsListViewControllerDelegate;
+
 @interface FriendsListViewController : UIViewController
+@property (nonatomic, weak) id<FriendsListViewControllerDelegate> delegate;
 @property (nonatomic, retain) NSMutableArray *friendsArray;
+@property (nonatomic, retain) Place *place;
+@end
+
+@protocol FriendsListViewControllerDelegate <NSObject>
+
+-(void)closeFriendsView;
+
 @end

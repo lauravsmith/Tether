@@ -8,6 +8,7 @@
 
 #import "AppDelegate.h"
 #import "CenterViewController.h"
+#import "Constants.h"
 #import "DecisionViewController.h"
 #import "Friend.h"
 #import "LeftPanelViewController.h"
@@ -28,9 +29,9 @@
 #define LEFT_PANEL_TAG 2
 #define RIGHT_PANEL_TAG 3
 #define CORNER_RADIUS 4.0
-#define SLIDE_TIMING .25
+#define SLIDE_TIMING 0.5
 #define PANEL_WIDTH 60
-#define POLLING_INTERVAL 10
+#define POLLING_INTERVAL 20
 
 @interface MainViewController () <CenterViewControllerDelegate, DecisionViewControllerDelegate, LeftPanelViewControllerDelegate, UIGestureRecognizerDelegate, SettingsViewControllerDelegate, PlacesViewControllerDelegate>
 
@@ -194,14 +195,14 @@
             
             NSString *facebookId = result[@"id"];
             if (facebookId && [facebookId length] != 0) {
-                [self.currentUser setObject:facebookId forKey:@"facebookId"];
+                [self.currentUser setObject:facebookId forKey:kUserFacebookIDKey];
                 sharedDataManager.facebookId = facebookId;
                 self.facebookId = facebookId;
             }
             
             NSString *gender = result[@"gender"];
             if (gender && [gender length] != 0) {
-                [self.currentUser setObject:gender forKey:@"gender"];
+                [self.currentUser setObject:gender forKey:kUserGenderKey];
             }
             
             NSString *relationshipStatus = result[@"relationship_status"];
@@ -212,8 +213,8 @@
             NSLog(@"PARSE SAVE: setting your user facebook details");
             [self.currentUser saveEventually];
             
-            if ([self.currentUser objectForKey:@"statusMessage"]) {
-                sharedDataManager.statusMessage = [self.currentUser objectForKey:@"statusMessage"];
+            if ([self.currentUser objectForKey:kUserStatusMessageKey]) {
+                sharedDataManager.statusMessage = [self.currentUser objectForKey:kUserStatusMessageKey];
             }
         }
         
@@ -240,16 +241,14 @@
 
 -(void)queryFriendsStatus{
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-    NSString *city = [userDetails objectForKey:@"city"];
-    NSString *state = [userDetails objectForKey:@"state"];
+    NSString *city = [userDetails objectForKey:kUserDefaultsCityKey];
+    NSString *state = [userDetails objectForKey:kUserDefaultsStateKey];
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     NSLog(@"Your city: %@ state: %@", city, state);
     
-    if (city && state) {
+    if (city && state && sharedDataManager.facebookFriends) {
         PFQuery *facebookFriendsQuery = [PFUser query];
-        [facebookFriendsQuery whereKey:@"facebookId" containedIn:sharedDataManager.facebookFriends];
-        [facebookFriendsQuery whereKey:@"cityLocation" equalTo:city];
-        [facebookFriendsQuery whereKey:@"stateLocation" equalTo:state];
+        [facebookFriendsQuery whereKey:kUserFacebookIDKey containedIn:sharedDataManager.facebookFriends];
 
         [facebookFriendsQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
             if (!error) {
@@ -258,24 +257,24 @@
                 
                 for (PFUser *user in objects) {
                     Friend *friend;
-                    if ([sharedDataManager.tetherFriendsDictionary objectForKey:user[@"facebookId"]]) {
-                        friend = [sharedDataManager.tetherFriendsDictionary objectForKey:user[@"facebookId"]];
+                    if ([sharedDataManager.tetherFriendsDictionary objectForKey:user[kUserFacebookIDKey]]) {
+                        friend = [sharedDataManager.tetherFriendsDictionary objectForKey:user[kUserFacebookIDKey]];
                     } else {
                         friend = [[Friend alloc] init];
-                        friend.friendID = user[@"facebookId"];
-                        friend.name = user[@"displayName"];
+                        friend.friendID = user[kUserFacebookIDKey];
+                        friend.name = user[kUserDisplayNameKey];
                         friend.placeId = @"";
-                        friend.friendsArray = user[@"facebookFriends"];
+                        friend.friendsArray = user[kUserFacebookFriendsKey];
                     }
-                    friend.timeLastUpdated = user[@"timeLastUpdated"];
-                    friend.status = [user[@"status"] boolValue];
-                    friend.statusMessage = user[@"statusMessage"];
+                    friend.timeLastUpdated = user[kUserTimeLastUpdatedKey];
+                    friend.status = [user[kUserStatusKey] boolValue];
+                    friend.statusMessage = user[kUserStatusMessageKey];
                     
                     if ([sharedDataManager.friendsToPlacesMap objectForKey:friend.friendID]) {
                         friend.placeId = [sharedDataManager.friendsToPlacesMap objectForKey:friend.friendID];
                     }
                     
-                    if ([user[@"cityLocation"] isEqualToString:city] && [user[@"stateLocation"] isEqualToString:state]) {
+                    if ([user[kUserCityKey] isEqualToString:city] && [user[kUserStateKey] isEqualToString:state]) {
                         [sharedDataManager.tetherFriendsNearbyDictionary setObject:friend forKey:friend.friendID];
                     }
                     [sharedDataManager.tetherFriendsDictionary setObject:friend forKey:friend.friendID];
@@ -417,7 +416,7 @@
         [self addChildViewController:_decisionViewController];
         [_decisionViewController didMoveToParentViewController:self];
         self.showingDecisionView = YES;
-    }
+    } 
 }
 
 -(BOOL)shouldShowDecisionView {
@@ -616,12 +615,19 @@
     
     [self addChildViewController:self.settingsViewController];
     [self.settingsViewController didMoveToParentViewController:self];
-    [self.settingsViewController.view setFrame:CGRectMake( 0.0f, 480.0f, 320.0f, 768.0f)]; //notice this is OFF screen!
+    [self.settingsViewController.view setFrame:CGRectMake(0.0f, self.view.frame.size.height, self.view.frame.size.width, self.view.frame.size.height)]; //notice this is OFF screen!
     [self.view addSubview:self.settingsViewController.view];
-    [UIView beginAnimations:@"animateTableView" context:nil];
-    [UIView setAnimationDuration:0.2];
-    [self.settingsViewController.view setFrame:CGRectMake( 0.0f, 0.0f, 320.0f, 768.0f)]; //notice this is ON screen!
-    [UIView commitAnimations];
+    
+    [UIView animateWithDuration:0.5
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:5.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                            [self.settingsViewController.view setFrame:CGRectMake( 0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                     }];
 }
 
 -(void)showListView
@@ -633,12 +639,21 @@
     
     [self.centerViewController addChildViewController:self.placesViewController];
     [self.placesViewController didMoveToParentViewController:self.centerViewController];
-    [self.placesViewController.view setFrame:CGRectMake(320.0f, 0.0f, 320.0f, 700.0f)];
+    [self.placesViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
     [self.centerViewController.view addSubview:self.placesViewController.view];
-    [UIView beginAnimations:@"animateTableView" context:nil];
-    [UIView setAnimationDuration:0.2];
-    [self.placesViewController.view setFrame:CGRectMake( 0.0f, 0.0f, 320.0f, 700.0f)]; //notice this is ON screen!
-    [UIView commitAnimations];
+    
+    [UIView animateWithDuration:0.5
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:5.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                        [self.placesViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                         [self resetMainView];
+                         [self canUpdatePlaces:NO];
+                     }];
 }
 
 - (void)movePanelRight // to show left panel
@@ -661,6 +676,7 @@
 
 - (void)movePanelLeft // to show left panel
 {
+    [self.rightPanelViewController loadNotifications];
     UIView *childView = [self getRightView];
     [self.view sendSubviewToBack:childView];
     
@@ -675,19 +691,27 @@
                      completion:^(BOOL finished) {
                          _centerViewController.notificationsButton.tag = 0;
                      }];
+    
+    PFInstallation *currentInstallation = [PFInstallation currentInstallation];
+    if (currentInstallation.badge != 0) {
+        currentInstallation.badge = 0;
+        [currentInstallation saveEventually];
+        [self.centerViewController refreshNotificationsNumber];
+    }
 }
 
 - (void)movePanelToOriginalPosition
 {
-    [UIView animateWithDuration:SLIDE_TIMING delay:0 options:UIViewAnimationOptionBeginFromCurrentState
+    [UIView animateWithDuration:0.5
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:5.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
                          _centerViewController.view.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
                      }
                      completion:^(BOOL finished) {
-                         if (finished) {
-                             
-                             [self resetMainView];
-                         }
+                         [self resetMainView];
                      }];
 }
 
@@ -705,8 +729,8 @@
 }
 
 -(void)saveCity:(NSString*)city state:(NSString*)state {
-    [self.currentUser setObject:city forKey:@"cityLocation"];
-    [self.currentUser setObject:state forKey:@"stateLocation"];
+    [self.currentUser setObject:city forKey:kUserCityKey];
+    [self.currentUser setObject:state forKey:kUserStateKey];
     [self.currentUser saveInBackground];
     NSLog(@"PARSE SAVE: saving your location %@ %@",city, state);
 }
@@ -720,31 +744,33 @@
     self.showingDecisionView = NO;
 
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-    [userDetails setBool:choice forKey:@"status"];
-    [userDetails setObject:[NSDate date] forKey:@"timeLastUpdated"];
+    [userDetails setBool:choice forKey:kUserDefaultsStatusKey];
+    [userDetails setObject:[NSDate date] forKey:kUserDefaultsTimeLastUpdatedKey];
     
     NSLog(@"PARSE SAVE: Saving your going out choice");
     PFUser *user = [PFUser currentUser];
-    [user setObject:[NSNumber numberWithBool:choice] forKey:@"status"];
-    [user setObject:[NSDate date] forKey:@"timeLastUpdated"];
+    [user setObject:[NSNumber numberWithBool:choice] forKey:kUserStatusKey];
+    [user setObject:[NSDate date] forKey:kUserTimeLastUpdatedKey];
     [user saveInBackground];
     
     [self.centerViewController updateLocation];
-    
-    if (!choice) {
-        // TODO: change button text if not going out?
-    }
 }
 
 #pragma mark SettingsViewControllerDelegate
 
 -(void)closeSettings {
-    [UIView animateWithDuration:0.2 animations:^{
-        [self.settingsViewController.view setFrame:CGRectMake( 0.0f, 480.0f, 320.0f, 768.0f)];
-    } completion:^(BOOL finished) {
-        [self.settingsViewController.view removeFromSuperview];
-        [self.settingsViewController removeFromParentViewController];
-    }];
+    [UIView animateWithDuration:0.5
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:5.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                            [self.settingsViewController.view setFrame:CGRectMake( 0.0f, self.view.frame.size.height, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                         [self.settingsViewController.view removeFromSuperview];
+                         [self.settingsViewController removeFromParentViewController];
+                     }];
 }
 
 -(void)userChangedLocationInSettings:(CLLocation*)newLocation{
@@ -810,12 +836,19 @@
 }
 
 -(void)closeListView {
-    [UIView animateWithDuration:0.2 animations:^{
-        [self.placesViewController.view setFrame:CGRectMake(320.0f, 0.0f, 320.0f, 768.0f)];
-    } completion:^(BOOL finished) {
-        [self.placesViewController.view removeFromSuperview];
-        [self.placesViewController removeFromParentViewController];
-    }];
+    [UIView animateWithDuration:0.5
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:5.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                        [self.placesViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                         [self.placesViewController.view removeFromSuperview];
+                         [self.placesViewController removeFromParentViewController];
+                         [self canUpdatePlaces:YES];
+                     }];
 }
 
 -(void)setPlace:(id)placeId forFriend:(id)friendId {
@@ -829,10 +862,10 @@
 }
 
 -(void)commitToPlace:(Place *)place {
-    PFQuery *query = [PFQuery queryWithClassName:@"Commitment"];
-    [query whereKey:@"facebookId" equalTo:self.facebookId];
+    PFQuery *query = [PFQuery queryWithClassName:kCommitmentClassKey];
+    [query whereKey:kUserFacebookIDKey equalTo:self.facebookId];
     
-    [query whereKey:@"dateCommitted" greaterThan:[self getStartTime]];
+    [query whereKey:kCommitmentDateKey greaterThan:[self getStartTime]];
 
     [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
         if (!error) {
@@ -840,51 +873,56 @@
             if ([objects count] > 0) {
                 commitment = [objects objectAtIndex:0];
             } else {
-                commitment = [PFObject objectWithClassName:@"Commitment"];
-                [commitment setObject:self.facebookId forKey:@"facebookId"];
+                commitment = [PFObject objectWithClassName:kCommitmentClassKey];
+                [commitment setObject:self.facebookId forKey:kUserFacebookIDKey];
             }
             
             if (place.placeId) {
-                [commitment setObject:place.placeId forKey:@"placeId"];
+                [commitment setObject:place.placeId forKey:kCommitmentPlaceIDKey];
             }
 
-            [commitment setObject:[NSDate date] forKey:@"dateCommitted"];
+            [commitment setObject:[NSDate date] forKey:kCommitmentDateKey];
             
             if (place.coord.latitude && place.coord.longitude) {
                 [commitment setObject:[PFGeoPoint geoPointWithLatitude:place.coord.latitude
-                                                             longitude:place.coord.longitude] forKey:@"placePoint"];
+                                                             longitude:place.coord.longitude] forKey:kCommitmentGeoPointKey];
             }
 
             if (place.name) {
-                [commitment setObject:place.name forKey:@"placeName"];
+                [commitment setObject:place.name forKey:kCommitmentPlaceKey];
             }
 
             if (place.city) {
-                [commitment setObject:place.city forKey:@"placeCityName"];
+                [commitment setObject:place.city forKey:kCommitmentCityKey];
+            }
+            
+            if (place.state) {
+                [commitment setObject:place.state forKey:kCommitmentStateKey];
             }
 
             if (place.address) {
-                [commitment setObject:place.address forKey:@"address"];
+                [commitment setObject:place.address forKey:kCommitmentAddressKey];
             }
 
             [commitment saveInBackground];
             NSLog(@"PARSE SAVE: saving your commitment");
             
             NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-            BOOL status = [userDetails boolForKey:@"status"];
+            BOOL status = [userDetails boolForKey:kUserDefaultsStatusKey];
             if (!status) {
-                [userDetails setBool:YES forKey:@"status"];
+                [userDetails setBool:YES forKey:kUserDefaultsStatusKey];
                 [userDetails synchronize];
                 
                 PFUser *user = [PFUser currentUser];
-                [user setObject:[NSNumber numberWithBool:YES] forKey:@"status"];
-                [user setObject:[NSDate date] forKey:@"timeLastUpdated"];
+                [user setObject:[NSNumber numberWithBool:YES] forKey:kUserStatusKey];
+                [user setObject:[NSDate date] forKey:kUserTimeLastUpdatedKey];
                 [user saveInBackground];
             }
             Datastore *sharedDataManager = [Datastore sharedDataManager];
             sharedDataManager.currentCommitmentParseObject = commitment;
             
             [self placeMarkOnMapView:place];
+            [self refreshCommitmentName];
         } else {
             // Log details of the failure
             NSLog(@"Error: %@ %@", error, [error userInfo]);
@@ -894,6 +932,12 @@
 
 -(void)canUpdatePlaces:(BOOL)canUpdate {
     self.canUpdatePlaces = canUpdate;
+}
+
+-(void)refreshCommitmentName {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    self.centerViewController.placeLabel.text = sharedDataManager.currentCommitmentPlace.name;
+    self.centerViewController.placeNumberLabel.text = [NSString stringWithFormat:@"%d", sharedDataManager.currentCommitmentPlace.numberCommitments];
 }
 
 - (void)didReceiveMemoryWarning

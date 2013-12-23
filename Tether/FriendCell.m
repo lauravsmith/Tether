@@ -14,7 +14,6 @@
 #define PROFILE_PICTURE_OFFSET_X 10.0
 #define PROFILE_PICTURE_SIZE 50.0
 #define NAME_LABEL_OFFSET_X 70.0
-#define BORDER_WIDTH 4.0
 
 @protocol FriendCellContentViewDelegate;
 
@@ -25,13 +24,13 @@
 @property (nonatomic, strong) UIButton *placeButton;
 @property (nonatomic, assign) NSString *friendID;
 @property (nonatomic, strong) FBProfilePictureView *friendProfilePictureView;
+@property (nonatomic, strong) UILabel *statusLabel;
+@property (nonatomic, assign) BOOL showingStatusMessage;
 - (void)prepareForReuse;
 @end
 
 @protocol FriendCellContentViewDelegate <NSObject>
-
 -(void)goToPlaceInListView:(id)placeId;
-
 @end
 
 @implementation FriendCellContentView
@@ -47,6 +46,7 @@
         self.placeButton = [[UIButton alloc] init];
         [self addSubview:self.placeButton];
         self.layer.delegate = self;
+        self.showingStatusMessage = NO;
     }
     return self;
 }
@@ -65,8 +65,13 @@
     self.friendProfilePictureView.frame = CGRectMake(PROFILE_PICTURE_OFFSET_X, (self.frame.size.height - PROFILE_PICTURE_SIZE) / 2, PROFILE_PICTURE_SIZE, PROFILE_PICTURE_SIZE);
     self.friendProfilePictureView.layer.cornerRadius = 24.0;
     self.friendProfilePictureView.clipsToBounds = YES;
-    [self.friendProfilePictureView.layer setBorderColor:[[UIColor whiteColor] CGColor]];
-    [self.friendProfilePictureView.layer setBorderWidth:BORDER_WIDTH];
+    self.friendProfilePictureView.tag = 0;
+    
+    //The setup code (in viewDidLoad in your view controller)
+    UITapGestureRecognizer *profilePictureTap =
+    [[UITapGestureRecognizer alloc] initWithTarget:self
+                                            action:@selector(handleProfilePictureTap:)];
+    [self.friendProfilePictureView addGestureRecognizer:profilePictureTap];
     
     self.placeButton.frame = CGRectMake(NAME_LABEL_OFFSET_X, self.friendNameLabel.frame.origin.y + self.friendNameLabel.frame.size.height,  100.0, 30.0);
     [self.placeButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
@@ -102,6 +107,21 @@
     
     [self setNeedsLayout];
     [self setNeedsDisplay];
+}
+
+-(void)handleProfilePictureTap:(UITapGestureRecognizer *)sender {
+    if (!self.showingStatusMessage) {
+        if (self.friend.statusMessage) {
+            self.statusLabel = [[UILabel alloc] initWithFrame:CGRectMake(80, 0, 200, 20)];
+            [self.statusLabel setBackgroundColor:[UIColor redColor]];
+            self.statusLabel.text = self.friend.statusMessage;
+            [self addSubview:self.statusLabel];
+            self.showingStatusMessage = YES;
+        }
+    } else {
+        [self.statusLabel removeFromSuperview];
+        self.showingStatusMessage = NO;
+    }
 }
 
 @end

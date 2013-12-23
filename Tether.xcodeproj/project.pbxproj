@@ -70,8 +70,11 @@
 		470A33A718400D42006E48F9 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 470A33A618400D42006E48F9 /* SystemConfiguration.framework */; };
 		470A33AA184029CE006E48F9 /* LoginViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 470A33A9184029CE006E48F9 /* LoginViewController.m */; };
 		470A33AD18402A37006E48F9 /* facebook.png in Resources */ = {isa = PBXBuildFile; fileRef = 470A33AC18402A37006E48F9 /* facebook.png */; };
-		470A33B318414939006E48F9 /* TetherCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 470A33B218414939006E48F9 /* TetherCache.m */; };
 		470A33B71842CB98006E48F9 /* DecisionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 470A33B61842CB98006E48F9 /* DecisionViewController.m */; };
+		47194F3618639AF900E114F5 /* InviteViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 47194F3518639AF900E114F5 /* InviteViewController.m */; };
+		472392A718649298000D0C7E /* Notification.m in Sources */ = {isa = PBXBuildFile; fileRef = 472392A618649298000D0C7E /* Notification.m */; };
+		472392AA1864D304000D0C7E /* NotificationCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 472392A91864D304000D0C7E /* NotificationCell.m */; };
+		472392B51867D08C000D0C7E /* Constants.m in Sources */ = {isa = PBXBuildFile; fileRef = 472392B41867D08C000D0C7E /* Constants.m */; };
 		478C4BFF18482B78004C6BD0 /* SettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 478C4BFE18482B78004C6BD0 /* SettingsViewController.m */; };
 		47C7B6C1184AC7BB00358BE1 /* PlaceCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 47C7B6C0184AC7BB00358BE1 /* PlaceCell.m */; };
 		47C7B6C3184AD18200358BE1 /* chevron-left.png in Resources */ = {isa = PBXBuildFile; fileRef = 47C7B6C2184AD18200358BE1 /* chevron-left.png */; };
@@ -159,10 +162,16 @@
 		470A33A8184029CE006E48F9 /* LoginViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LoginViewController.h; sourceTree = "<group>"; };
 		470A33A9184029CE006E48F9 /* LoginViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LoginViewController.m; sourceTree = "<group>"; };
 		470A33AC18402A37006E48F9 /* facebook.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = facebook.png; path = ../../../FacebookSDK/Samples/Scrumptious/scrumptious/images/facebook.png; sourceTree = "<group>"; };
-		470A33B118414939006E48F9 /* TetherCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TetherCache.h; sourceTree = "<group>"; };
-		470A33B218414939006E48F9 /* TetherCache.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TetherCache.m; sourceTree = "<group>"; };
 		470A33B51842CB98006E48F9 /* DecisionViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DecisionViewController.h; sourceTree = "<group>"; };
 		470A33B61842CB98006E48F9 /* DecisionViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DecisionViewController.m; sourceTree = "<group>"; };
+		47194F3418639AF900E114F5 /* InviteViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InviteViewController.h; sourceTree = "<group>"; };
+		47194F3518639AF900E114F5 /* InviteViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = InviteViewController.m; sourceTree = "<group>"; };
+		472392A518649298000D0C7E /* Notification.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Notification.h; sourceTree = "<group>"; };
+		472392A618649298000D0C7E /* Notification.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Notification.m; sourceTree = "<group>"; };
+		472392A81864D304000D0C7E /* NotificationCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NotificationCell.h; sourceTree = "<group>"; };
+		472392A91864D304000D0C7E /* NotificationCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NotificationCell.m; sourceTree = "<group>"; };
+		472392B31867D08C000D0C7E /* Constants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Constants.h; sourceTree = "<group>"; };
+		472392B41867D08C000D0C7E /* Constants.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Constants.m; sourceTree = "<group>"; };
 		478C4BFD18482B78004C6BD0 /* SettingsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SettingsViewController.h; sourceTree = "<group>"; };
 		478C4BFE18482B78004C6BD0 /* SettingsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SettingsViewController.m; sourceTree = "<group>"; };
 		47C7B6BF184AC7BB00358BE1 /* PlaceCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlaceCell.h; sourceTree = "<group>"; };
@@ -228,6 +237,8 @@
 		47059D8B1842E18A00CEC50E /* View */ = {
 			isa = PBXGroup;
 			children = (
+				472392A81864D304000D0C7E /* NotificationCell.h */,
+				472392A91864D304000D0C7E /* NotificationCell.m */,
 				47059D881842E17E00CEC50E /* FriendCell.h */,
 				47059D891842E17E00CEC50E /* FriendCell.m */,
 				47C7B6BF184AC7BB00358BE1 /* PlaceCell.h */,
@@ -247,6 +258,8 @@
 				47FB08D51849701400A07908 /* Place.m */,
 				47FCE5251853E7A20030B1E1 /* Datastore.h */,
 				47FCE5261853E7A20030B1E1 /* Datastore.m */,
+				472392A518649298000D0C7E /* Notification.h */,
+				472392A618649298000D0C7E /* Notification.m */,
 			);
 			name = Model;
 			sourceTree = "<group>";
@@ -300,8 +313,6 @@
 				4702441C18576BFD001C19AC /* JSONKit-master */,
 				4705F9B01847C8BA00910EE1 /* Model */,
 				47059D8B1842E18A00CEC50E /* View */,
-				470A33B118414939006E48F9 /* TetherCache.h */,
-				470A33B218414939006E48F9 /* TetherCache.m */,
 				470A33AB184029DF006E48F9 /* Controller */,
 				47064C94183D9E3800E9228A /* AppDelegate.h */,
 				47064C95183D9E3800E9228A /* AppDelegate.m */,
@@ -317,6 +328,10 @@
 				4705F1291859298F0095F8B1 /* SearchResultCell.m */,
 				47065F1A185AA8BC0047A564 /* RightPanelViewController.h */,
 				47065F1B185AA8BC0047A564 /* RightPanelViewController.m */,
+				47194F3418639AF900E114F5 /* InviteViewController.h */,
+				47194F3518639AF900E114F5 /* InviteViewController.m */,
+				472392B31867D08C000D0C7E /* Constants.h */,
+				472392B41867D08C000D0C7E /* Constants.m */,
 			);
 			path = Tether;
 			sourceTree = "<group>";
@@ -558,9 +573,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				472392A718649298000D0C7E /* Notification.m in Sources */,
 				47059D8E18444CBE00CEC50E /* Friend.m in Sources */,
-				470A33B318414939006E48F9 /* TetherCache.m in Sources */,
+				47194F3618639AF900E114F5 /* InviteViewController.m in Sources */,
 				4705F12A1859298F0095F8B1 /* SearchResultCell.m in Sources */,
+				472392AA1864D304000D0C7E /* NotificationCell.m in Sources */,
+				472392B51867D08C000D0C7E /* Constants.m in Sources */,
 				47064CC4183DA01B00E9228A /* LeftPanelViewController.m in Sources */,
 				478C4BFF18482B78004C6BD0 /* SettingsViewController.m in Sources */,
 				470981AB184D7DD100779FC8 /* TetherAnnotation.m in Sources */,

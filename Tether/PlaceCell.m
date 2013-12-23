@@ -19,6 +19,7 @@
 @property (nonatomic, strong) UIButton *commitButton;
 @property (nonatomic, strong) UIButton *friendsGoingButton;
 @property (nonatomic, strong) UILabel *addressLabel;
+@property (nonatomic, strong) UIButton *inviteButton;
 - (void)prepareForReuse;
 
 @end
@@ -29,6 +30,7 @@
 - (void)removePreviousCommitment;
 - (void)removeCommitmentFromDatabase;
 - (void)showFriendsView;
+- (void)inviteToPlace:(Place *)place;
 
 @end
 
@@ -47,6 +49,8 @@
         self.addressLabel = [[UILabel alloc] init];
         [self addSubview:self.addressLabel];
         self.friendsGoingButton = [[UIButton alloc] init];
+        self.inviteButton = [[UIButton alloc] init];
+        [self addSubview:self.inviteButton];
     }
     return self;
 }
@@ -75,15 +79,21 @@
     self.addressLabel.frame = CGRectMake(150.0, 50.0, 200.0, 30.0);
     self.addressLabel.text = self.place.address;
     
-    self.friendsGoingButton.frame = CGRectMake(260.0, 10.0, 50.0, 50.0);
-    [self.friendsGoingButton setTitle:[NSString stringWithFormat:@"%d", self.place.numberCommitments] forState:UIControlStateNormal];
-    [self.friendsGoingButton setBackgroundColor:[UIColor redColor]];
-    [self.friendsGoingButton addTarget:self
-                                action:@selector(friendsGoingClicked:)
-                      forControlEvents:UIControlEventTouchUpInside];
     if (self.place.numberCommitments > 0) {
+        self.friendsGoingButton.frame = CGRectMake(260.0, 10.0, 50.0, 50.0);
+        [self.friendsGoingButton setTitle:[NSString stringWithFormat:@"%d", self.place.numberCommitments] forState:UIControlStateNormal];
+        [self.friendsGoingButton setBackgroundColor:[UIColor clearColor]];
+        [self.friendsGoingButton addTarget:self
+                                    action:@selector(friendsGoingClicked:)
+                          forControlEvents:UIControlEventTouchUpInside];
         [self addSubview:self.friendsGoingButton];
     }
+    
+    self.inviteButton.frame = CGRectMake(0, 100, 100, 20);
+    [self.inviteButton setTitle:@"invite" forState:UIControlStateNormal];
+    [self.inviteButton addTarget:self
+                          action:@selector(inviteClicked:)
+                forControlEvents:UIControlEventTouchUpInside];
 }
 
 - (void)setPlace:(Place *)place {
@@ -118,6 +128,12 @@
         }
         self.commitButton.tag = 1;
         [self layoutCommitButton];
+    }
+}
+
+-(IBAction)inviteClicked:(id)sender {
+    if ([self.delegate respondsToSelector:@selector(inviteToPlace:)]) {
+        [self.delegate inviteToPlace:self.place];
     }
 }
 
@@ -178,6 +194,12 @@
         self.cellContentView.commitButton.tag = 1;
     }
     [self.cellContentView layoutCommitButton];
+}
+
+-(void)inviteToPlace:(Place *)place {
+    if ([self.delegate respondsToSelector:@selector(inviteToPlace:)]) {
+        [self.delegate inviteToPlace:place];
+    }
 }
 
 #pragma mark PlaceCellContentViewDelegate Methods

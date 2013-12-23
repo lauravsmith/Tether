@@ -80,6 +80,12 @@
     if (loggedIn) {
         AppDelegate* appDelegate = [UIApplication sharedApplication].delegate;
         [appDelegate sessionStateChanged:[FBSession activeSession] state:[FBSession activeSession].state error:nil];
+        
+        // Saving the device's owner to the push installation
+        PFInstallation *installation = [PFInstallation currentInstallation];
+        [installation setObject:[PFUser currentUser] forKey:@"owner"];
+        [installation saveInBackground];
+        
     } else {
         // Show error alert
 		[[[UIAlertView alloc] initWithTitle:@"Login Failed"

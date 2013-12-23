@@ -44,8 +44,11 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 @property (retain, nonatomic) NSMutableDictionary * placeToAnnotationDictionary;
 @property (assign, nonatomic) bool resettingLocation;
 @property (strong, nonatomic) UIButton *notificationsButton;
+@property (retain, nonatomic) UILabel * placeLabel;
+@property (retain, nonatomic) UILabel * placeNumberLabel;
 -(void)updateLocation;
 -(void)setCityFromCLLocation:(CLLocation*)location;
 -(void)layoutNumberLabel;
 -(void)locationSetup;
+-(void)refreshNotificationsNumber;
 @end
