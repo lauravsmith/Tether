@@ -6,9 +6,12 @@
 //  Copyright (c) 2013 Laura Smith. All rights reserved.
 //
 
+#import "Datastore.h"
 #import "CenterViewController.h"
 #import "Place.h"
 #import "PlaceCell.h"
+
+#define degreesToRadian(x) (M_PI * (x) / 180.0)
 
 @protocol PlaceCellContentViewDelegate;
 
@@ -18,8 +21,10 @@
 @property (nonatomic, strong) UILabel *placeNameLabel;
 @property (nonatomic, strong) UIButton *commitButton;
 @property (nonatomic, strong) UIButton *friendsGoingButton;
+@property (nonatomic, strong) UIButton *arrowButton;
 @property (nonatomic, strong) UILabel *addressLabel;
 @property (nonatomic, strong) UIButton *inviteButton;
+@property (nonatomic, strong) UIButton *moreInfoButton;
 - (void)prepareForReuse;
 
 @end
@@ -39,7 +44,6 @@
 - (id) initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
-        self.backgroundColor = UIColorFromRGB(0xD6D6D6);
         self.placeNameLabel = [[UILabel alloc] init];
         self.placeNameLabel.contentMode = UIViewContentModeScaleAspectFill;
         [self addSubview:self.placeNameLabel];
@@ -49,48 +53,88 @@
         self.addressLabel = [[UILabel alloc] init];
         [self addSubview:self.addressLabel];
         self.friendsGoingButton = [[UIButton alloc] init];
+        [self addSubview:self.friendsGoingButton];
+        self.arrowButton = [[UIButton alloc] init];
+        [self addSubview:self.arrowButton];
         self.inviteButton = [[UIButton alloc] init];
         [self addSubview:self.inviteButton];
+        self.moreInfoButton = [[UIButton alloc] init];
+        [self addSubview:self.moreInfoButton];
     }
     return self;
 }
 
 - (void)prepareForReuse {
-
+    [self layoutSubviews];
 }
 
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    self.placeNameLabel.frame = CGRectMake(0.0, 0.0, 300.0, 40.0);
-    [self.placeNameLabel setTextColor:UIColorFromRGB(0x770051)];
-    UIFont *champagneBold = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:30.0f];
+    self.placeNameLabel.frame = CGRectMake(10.0, 10.0, 300.0, 20.0);
+    [self.placeNameLabel setTextColor:UIColorFromRGB(0x8e0528)];
+    UIFont *champagneBold = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:18.0f];
     [self.placeNameLabel setFont:champagneBold];
     
-    self.commitButton.frame = CGRectMake(0.0, 50.0, 100.0, 30.0);
-    self.commitButton.titleLabel.text = @"Commit";
+    UIFont *champagneSmall = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:12.0f];
+    [self.addressLabel setText:self.place.address];
+    CGSize size = [self.addressLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneSmall}];
+    self.addressLabel.frame = CGRectMake(self.placeNameLabel.frame.origin.x, self.placeNameLabel.frame.origin.y + self.placeNameLabel.frame.size.height, size.width, size.height);
+    [self.addressLabel setFont:champagneSmall];
+    [self.addressLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
     
-    [self.commitButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    UIFont *champagneExtraSmall = [UIFont fontWithName:@"Champagne&Limousines" size:10.0f];
+    [self.moreInfoButton setTitle:@"(more info)" forState:UIControlStateNormal];
+    [self.moreInfoButton setTitleColor:UIColorFromRGB(0x05528e)  forState:UIControlStateNormal];
+    self.moreInfoButton.titleLabel.font = champagneExtraSmall;
+    size = [self.moreInfoButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneExtraSmall}];
+    self.moreInfoButton.frame = CGRectMake(self.placeNameLabel.frame.origin.x, self.addressLabel.frame.origin.y + self.addressLabel.frame.size.height + 4.0, size.width, size.height);
+    [self.moreInfoButton addTarget:self
+                          action:@selector(moreInfoClicked:)
+                forControlEvents:UIControlEventTouchUpInside];
+    [self layoutCommitButton];
+    
+    [self.commitButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
+    self.commitButton.titleLabel.font = champagneBold;
     [self.commitButton addTarget:self
                           action:@selector(commitClicked:)
                 forControlEvents:UIControlEventTouchUpInside];
     [self layoutCommitButton];
     
-    self.addressLabel.frame = CGRectMake(150.0, 50.0, 200.0, 30.0);
-    self.addressLabel.text = self.place.address;
+    self.arrowButton.frame = CGRectMake(self.frame.size.width - 20.0, (self.frame.size.height - 15.0) / 2, 15.0, 15.0);
+    self.arrowButton.transform = CGAffineTransformMakeRotation(degreesToRadian(180));
+    UIImage *btnImage = [UIImage imageNamed:@"RedTriangle"];
+    [self.arrowButton setImage:btnImage forState:UIControlStateNormal];
+    [self.arrowButton addTarget:self
+                                action:@selector(friendsGoingClicked:)
+                      forControlEvents:UIControlEventTouchUpInside];
     
+    UIFont *champagneBoldLarge = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:30.0f];
     if (self.place.numberCommitments > 0) {
-        self.friendsGoingButton.frame = CGRectMake(260.0, 10.0, 50.0, 50.0);
         [self.friendsGoingButton setTitle:[NSString stringWithFormat:@"%d", self.place.numberCommitments] forState:UIControlStateNormal];
-        [self.friendsGoingButton setBackgroundColor:[UIColor clearColor]];
+        size = [self.friendsGoingButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneBoldLarge}];
+        self.friendsGoingButton.frame = CGRectMake(self.frame.size.width - size.width - 20.0, (self.frame.size.height - size.height) / 2, size.width, size.height);
+        [self.friendsGoingButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+        self.friendsGoingButton.titleLabel.font = champagneBoldLarge;
         [self.friendsGoingButton addTarget:self
                                     action:@selector(friendsGoingClicked:)
                           forControlEvents:UIControlEventTouchUpInside];
-        [self addSubview:self.friendsGoingButton];
+        Datastore *sharedDataManager = [Datastore sharedDataManager];
+        if (self.place.numberCommitments == 1 && [self.place.friendsCommitted containsObject:sharedDataManager.facebookId]) {
+            [self.arrowButton setHidden:YES];
+            [self.friendsGoingButton setEnabled:NO];
+        } else {
+            [self.arrowButton setHidden:NO];
+            [self.friendsGoingButton setEnabled:YES];
+        }
+    } else {
+        [self.friendsGoingButton setTitle:@"" forState:UIControlStateNormal];
+        [self.arrowButton setHidden:YES];
     }
     
-    self.inviteButton.frame = CGRectMake(0, 100, 100, 20);
-    [self.inviteButton setTitle:@"invite" forState:UIControlStateNormal];
+    self.inviteButton.frame = CGRectMake(self.commitButton.frame.origin.x + self.commitButton.frame.size.width, self.moreInfoButton.frame.origin.y + self.moreInfoButton.frame.size.height + 4.0, 100, 20);
+    [self.inviteButton setTitle:@"+1" forState:UIControlStateNormal];
+    [self.inviteButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
     [self.inviteButton addTarget:self
                           action:@selector(inviteClicked:)
                 forControlEvents:UIControlEventTouchUpInside];
@@ -105,10 +149,15 @@
 
 -(void)layoutCommitButton {
     if (self.commitButton.tag == 1) {
-        [self.commitButton setBackgroundColor:[UIColor whiteColor]];
+        [self.commitButton setTitle:@"Tethr" forState:UIControlStateNormal];
+        [self.commitButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
     } else {
-        [self.commitButton setBackgroundColor:[UIColor blackColor]];
+        [self.commitButton setTitle:@"Tethred" forState:UIControlStateNormal];
+        [self.commitButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
     }
+    UIFont *champagne = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:18.0f];
+    CGSize size = [self.commitButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:champagne}];
+    self.commitButton.frame = CGRectMake(self.placeNameLabel.frame.origin.x, self.moreInfoButton.frame.origin.y + self.moreInfoButton.frame.size.height + 4.0, size.width, size.height);
 }
 
 -(IBAction)commitClicked:(id)sender {
@@ -126,6 +175,7 @@
         if ([self.delegate respondsToSelector:@selector(removeCommitmentFromDatabase)]) {
             [self.delegate removeCommitmentFromDatabase];
         }
+        
         self.commitButton.tag = 1;
         [self layoutCommitButton];
     }
@@ -141,6 +191,14 @@
     if ([self.delegate respondsToSelector:@selector(showFriendsView)]) {
         [self.delegate showFriendsView];
     }
+}
+
+-(IBAction)moreInfoClicked:(id)sender {
+    NSString *urlString = [NSString stringWithFormat:@"http://foursquare.com/v/%@", self.place.placeId];
+    NSURL *url = [NSURL URLWithString:urlString];
+    
+    if (![[UIApplication sharedApplication] openURL:url])
+        NSLog(@"%@%@",@"Failed to open url:",[url description]);
 }
 
 @end
@@ -169,7 +227,8 @@
 }
 
 - (void)prepareForReuse {
-    self.cellContentView = nil;
+    [super prepareForReuse];
+    [self.cellContentView setNeedsDisplay];
 }
 
 - (PlaceCellContentView *)cellContentView {
@@ -184,6 +243,7 @@
 
 - (void)setPlace:(Place*)place {
     _place = place;
+    self.cellContentView.commitButton.tag = 1;
     [self.cellContentView setPlace:place];
 }
 

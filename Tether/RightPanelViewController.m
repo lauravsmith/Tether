@@ -15,9 +15,9 @@
 
 #define CELL_HEIGHT 100.0
 #define PANEL_WIDTH 60.0
+#define STATUS_BAR_HEIGHT 20.0
 
 @interface RightPanelViewController () <UITableViewDataSource, UITableViewDelegate>
-@property (retain, nonatomic) NSMutableArray *notificationsArray;
 @property (nonatomic, strong) UITableView *notificationsTableView;
 @property (nonatomic, strong) UITableViewController *notificationsTableViewController;
 @end
@@ -29,7 +29,8 @@
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
         self.notificationsArray = [[NSMutableArray alloc] init];
-        [self.view setBackgroundColor:[UIColor whiteColor]];
+        [self.view setBackgroundColor:[UIColor blackColor]];
+        [self.view setAlpha:0.8];
     }
     return self;
 }
@@ -38,9 +39,10 @@
 {
     [super viewDidLoad];
     
-    self.notificationsTableView = [[UITableView alloc] initWithFrame:CGRectMake(PANEL_WIDTH, 0, self.view.frame.size.width - PANEL_WIDTH, self.view.frame.size.height)];
+    self.notificationsTableView = [[UITableView alloc] initWithFrame:CGRectMake(PANEL_WIDTH, STATUS_BAR_HEIGHT, self.view.frame.size.width - PANEL_WIDTH, self.view.frame.size.height)];
     [self.notificationsTableView setDataSource:self];
     [self.notificationsTableView setDelegate:self];
+    [self.notificationsTableView setBackgroundColor:[UIColor blackColor]];
     [self.view addSubview:self.notificationsTableView];
     
     self.notificationsTableViewController = [[UITableViewController alloc] init];
@@ -50,6 +52,7 @@
 -(void)loadNotifications {
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     self.notificationsArray = [[NSMutableArray alloc] init];
+    NSLog(@"PARSE QUERY: POLLING NOTIFICATIONS");
     
     PFQuery *query = [PFQuery queryWithClassName:@"Invitation"];
     
@@ -132,10 +135,8 @@
         cell.notification = [self.notificationsArray objectAtIndex:indexPath.row];
         [cell loadNotification];
     }
+    cell.selectionStyle = UITableViewCellSelectionStyleNone;
     return cell;
-}
-
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
 }
 
 - (void)didReceiveMemoryWarning

@@ -7,6 +7,7 @@
 //
 
 #import "AppDelegate.h"
+#import "Constants.h"
 #import "Datastore.h"
 #import "SettingsViewController.h"
 
@@ -237,7 +238,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     
     self.logoutButton = [[UIButton alloc] initWithFrame:CGRectMake(100.0, 500.0, 100.0, 50.0)];
     [self.logoutButton setTitle:@"Logout" forState:UIControlStateNormal];
-    [self.logoutButton setTitleColor:UIColorFromRGB(0x770051) forState:UIControlStateNormal];
+    [self.logoutButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
     self.logoutButton.titleLabel.font = smallChampagneFont;
     [self.logoutButton addTarget:self action:@selector(logoutButtonWasPressed:) forControlEvents:UIControlEventTouchDown];
     [self.view addSubview:self.logoutButton];
@@ -398,6 +399,22 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     } else {
         [userDetails setBool:theSwitch.on forKey:@"status"];
         [userDetails synchronize];
+        
+        PFUser *user = [PFUser currentUser];
+        [user setObject:[NSNumber numberWithBool:theSwitch.on] forKey:kUserStatusKey];
+        [user saveInBackground];
+        
+        Datastore *sharedDataManager = [Datastore sharedDataManager];
+        if (!theSwitch.on && sharedDataManager.currentCommitmentPlace != nil) {
+            if ([self.delegate respondsToSelector:@selector(removePreviousCommitment)]) {
+                [self.delegate removePreviousCommitment];
+            }
+            if ([self.delegate respondsToSelector:@selector(removeCommitmentFromDatabase)]) {
+                [self.delegate removeCommitmentFromDatabase];
+            }
+        }
+        
+        NSLog(@"PARSE SAVE: updating status");
     }
 }
 
@@ -504,7 +521,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 	if(result) {
 		double latitude = [[result objectForKey:kILGeoNamesLatitudeKey] doubleValue];
 		double longitude = [[result objectForKey:kILGeoNamesLongitudeKey] doubleValue];
-        self.cityTextField.textColor = UIColorFromRGB(0x770051);
+        self.cityTextField.textColor = UIColorFromRGB(0x8e0528);
         self.cityTextField.text =[[result objectForKey:kILGeoNamesAlternateNameKey] uppercaseString];
         [self closeSearchResultsTableView];
         CLLocation *location = [[CLLocation alloc] initWithLatitude:latitude longitude:longitude];

@@ -11,24 +11,24 @@
 #import "Datastore.h"
 #import "Place.h"
 #import "TetherAnnotation.h"
+#import "TetherAnnotationView.h"
 
 #import <FacebookSDK/FacebookSDK.h>
 #import <MapKit/MapKit.h> 
 
-#define BOTTOM_BAR_HEIGHT 50.0
+#define BOTTOM_BAR_HEIGHT 40.0
 #define CORNER_RADIUS 20.0
 #define DISTANCE_FACE_TO_PIN 20.0
 #define FACE_SIZE 40.0
 #define MAX_FRIENDS_ON_PIN 4.0
-#define PADDING 10.0
-#define TOP_BAR_HEIGHT 80.0
+#define PADDING 20.0
+#define TOP_BAR_HEIGHT 70.0
 
 @interface CenterViewController () <MKMapViewDelegate, CLLocationManagerDelegate>
 @property (retain, nonatomic) NSString * cityLocation;
 @property (retain, nonatomic) UIView * topBar;
 @property (assign, nonatomic) bool mapHasAdjusted;
-@property (strong, nonatomic) UIButton *arrowButton;
-@property (retain, nonatomic) UIView * bottomBar;
+@property (strong, nonatomic) UIButton *listViewButton;
 @property (strong, nonatomic) CLLocationManager * locationManager;
 @property (strong, nonatomic) CLLocation *userCoordinates;
 @property (strong, nonatomic) NSTimer * finishLoadingTimer;
@@ -43,6 +43,7 @@
     if (self) {
         // Custom initialization
         self.mapHasAdjusted = NO;
+        self.annotationsArray = [[NSMutableArray alloc] init];
     }
     return self;
 }
@@ -58,9 +59,9 @@
     
     // top bar setup
     self.topBar = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width,TOP_BAR_HEIGHT)];
-    [self.topBar setBackgroundColor:UIColorFromRGB(0x770051)];
+    [self.topBar setBackgroundColor:UIColorFromRGB(0x8e0528)];
     [self.view addSubview:self.topBar];
-    [self.topBar setAlpha:0.8];
+    [self.topBar setAlpha:0.85];
     
     self.locationManager = [[CLLocationManager alloc] init];
     self.locationManager.delegate  = self;
@@ -69,18 +70,26 @@
     [self locationSetup];
 
     // number of friends going out label setup
-    self.numberButton = [[UIButton alloc] initWithFrame:CGRectMake(PADDING, PADDING, 110, 40)];
-    [self.numberButton setBackgroundColor:[UIColor clearColor]];
+    self.numberButton = [[UIButton alloc] initWithFrame:CGRectMake(PADDING, PADDING, 40.0, 40.0)];
     [self.numberButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [self.numberButton setTitleColor:[UIColor grayColor] forState:UIControlStateHighlighted];
-    UIFont *champagne = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:20];
-    self.numberButton.titleLabel.font = champagne;
+    UIFont *champagneBold = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:30];
+    self.numberButton.titleLabel.font = champagneBold;
     [self.numberButton addTarget:self action:@selector(btnMovePanelRight:) forControlEvents:UIControlEventTouchUpInside];
     self.numberButton.tag = 1;
+    [self layoutNumberButton];
     [self.topBar addSubview:self.numberButton];
+    
+    UIImage *triangleImage = [UIImage imageNamed:@"WhiteTriangle"];
+    self.triangleButton = [[UIButton alloc] initWithFrame:CGRectMake(5.0, 25.0, 15.0, 15.0)];
+    [self.triangleButton setImage:triangleImage forState:UIControlStateNormal];
+    [self.view addSubview:self.triangleButton];
+    self.triangleButton.tag = 1;
+    [self.triangleButton addTarget:self action:@selector(btnMovePanelRight:) forControlEvents:UIControlEventTouchDown];
+    [self.topBar addSubview:self.triangleButton];
 
     // city location label setup
-    self.cityLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, self.numberButton.frame.origin.y + self.numberButton.frame.size.height, 110, 20)];
+    self.cityLabel = [[UILabel alloc] initWithFrame:CGRectMake(PADDING, self.topBar.frame.size.height - 20.0, 110.0, 20.0)];
     [self.cityLabel setBackgroundColor:[UIColor clearColor]];
     [self.cityLabel setTextColor:[UIColor whiteColor]];
     UIFont *champagneItalic = [UIFont fontWithName:@"Champagne&Limousines-Italic" size:18.0f];
@@ -90,19 +99,19 @@
     [self.topBar addSubview:self.cityLabel];
     
     // list view arrow button setup
-    self.arrowButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 50.0, (self.topBar.frame.size.height - 30) / 2, 30, 30)];
-    [self.arrowButton setImage:[UIImage imageNamed:@"Arrow"] forState:UIControlStateNormal];
-    [self.arrowButton addTarget:self action:@selector(showListView) forControlEvents:UIControlEventTouchDown];
-    [self.topBar addSubview:self.arrowButton];
+    self.listViewButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 40.0, (self.topBar.frame.size.height - 25.0) / 2.0 +  5.0, 25.0, 25.0)];
+    [self.listViewButton setImage:[UIImage imageNamed:@"LineNavigator"] forState:UIControlStateNormal];
+    [self.listViewButton addTarget:self action:@selector(showListView) forControlEvents:UIControlEventTouchDown];
+    [self.topBar addSubview:self.listViewButton];
     
     // bottom nav bar setup
     self.bottomBar = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - BOTTOM_BAR_HEIGHT, self.view.frame.size.width, BOTTOM_BAR_HEIGHT)];
     [self.bottomBar setBackgroundColor:[UIColor whiteColor]];
-    [self.bottomBar setAlpha:0.8];
+    [self.bottomBar setAlpha:0.85];
     
     // left panel view button setup
     UIImage *leftPanelButtonImage = [UIImage imageNamed:@"Gear"];
-    self.bottomLeftButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 10, 30, 30)];
+    self.bottomLeftButton = [[UIButton alloc] initWithFrame:CGRectMake(10.0, (self.bottomBar.frame.size.height - 22.0) / 2, 22.0, 22.0)];
     [self.bottomLeftButton setImage:leftPanelButtonImage forState:UIControlStateNormal];
     [self.bottomBar addSubview:self.bottomLeftButton];
     self.bottomLeftButton.tag = 1;
@@ -117,29 +126,54 @@
     [self.bottomBar addSubview:self.notificationsButton];
     [self refreshNotificationsNumber];
     
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    UIFont *champagneSmall = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:18];
+    UIFont *champagneExtraSmall = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:14];
     self.placeLabel = [[UILabel alloc] init];
-    self.placeNumberLabel = [[UILabel alloc] init];
-    if (sharedDataManager.currentCommitmentPlace) {
-        self.placeLabel.text = sharedDataManager.currentCommitmentPlace.name;
-        self.placeNumberLabel.text = [NSString stringWithFormat:@"%d", sharedDataManager.currentCommitmentPlace.numberCommitments];
-    }
-    self.placeLabel.frame = CGRectMake(self.view.frame.size.width / 4, self.bottomBar.frame.size.height / 4, 200.0, 20.0);
-    [self.placeLabel setTextColor:[UIColor blackColor]];
+    [self.placeLabel setFont:champagneExtraSmall];
+    [self.placeLabel setTextColor:UIColorFromRGB(0x8e0528)];
     [self.bottomBar addSubview:self.placeLabel];
     
-    self.placeNumberLabel.frame = CGRectMake(self.placeLabel.frame.origin.x + self.placeLabel.frame.size.width, self.bottomBar.frame.size.height / 4, 20.0, 20.0);
-    [self.placeNumberLabel setTextColor:[UIColor blackColor]];
+    self.placeNumberLabel = [[UILabel alloc] init];
+    [self.placeNumberLabel setFont:champagneSmall];
+    [self.placeNumberLabel setTextColor:UIColorFromRGB(0x8e0528)];
     [self.bottomBar addSubview:self.placeNumberLabel];
+    [self layoutCurrentCommitment];
     
     [self.view addSubview:self.bottomBar];
     
     [self restartTimer];
 }
 
+
+-(void)layoutNumberButton {
+    UIFont *champagne = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:30];
+    CGSize size = [self.numberButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:champagne}];
+    self.numberButton.frame = CGRectMake(PADDING, PADDING, size.width, size.height);
+    self.numberButton.tag = 1;
+    [self.topBar addSubview:self.numberButton];
+}
+
+-(void)layoutCurrentCommitment {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    if (sharedDataManager.currentCommitmentPlace) {
+        self.placeLabel.text = sharedDataManager.currentCommitmentPlace.name;
+        self.placeNumberLabel.text = [NSString stringWithFormat:@"%d", sharedDataManager.currentCommitmentPlace.numberCommitments];
+    } else {
+        self.placeLabel.text = @"";
+        self.placeNumberLabel.text = @"";
+    }
+    UIFont *champagneSmall = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:18];
+    UIFont *champagneExtraSmall = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:14];
+    CGSize size = [self.placeLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneExtraSmall}];
+    self.placeLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2, self.bottomBar.frame.size.height - size.height, size.width, size.height);
+    size = [self.placeNumberLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneSmall}];
+    self.placeNumberLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2, 0, size.width, size.height);
+}
+
+
 -(void)refreshNotificationsNumber {
-    PFInstallation *currentInstallation = [PFInstallation currentInstallation];
-    [self.notificationsButton setTitle:[NSString stringWithFormat:@"%d",currentInstallation.badge] forState:UIControlStateNormal];
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    [self.notificationsButton setTitle:[NSString stringWithFormat:@"%d",sharedDataManager.notifications] forState:UIControlStateNormal];
 }
 
 -(void)locationSetup {
@@ -153,14 +187,6 @@
         NSLog(@"%@", locationString);
         [self setUserLocationToCity:locationString];
     }
-}
-
--(void)layoutNumberLabel {
-    UIFont *champagne = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:81];
-    CGSize size = [self.numberButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:champagne}];
-    CGRect frame = self.numberButton.frame;
-    frame.size.width = size.width;
-    self.numberButton.frame = frame;
 }
 
 -(void)restartTimer {
@@ -225,6 +251,9 @@
                  [userDetails synchronize];
                  self.cityLabel.text = city;
                  NSLog(@"Current City, State: %@,%@", city, state);
+                 Datastore *sharedDataManager = [Datastore sharedDataManager];
+                 sharedDataManager.city = city;
+                 sharedDataManager.state = state;
                  
                  if ([self.delegate respondsToSelector:@selector(saveCity:state:)]) {
                      [self.delegate saveCity:city state:state];
@@ -330,6 +359,31 @@
     }
 }
 
+- (IBAction)showListViewForPlace:(UIButton*)sender
+{
+    if ([self.delegate respondsToSelector:@selector(showListView)]) {
+        [self.delegate showListView];
+    }
+    
+    if ([self.delegate respondsToSelector:@selector(goToPlaceInListView:)]) {
+        Place *p = [self.annotationsArray objectAtIndex:sender.tag];
+        [self.delegate goToPlaceInListView:p.placeId];
+    }
+}
+
+- (void) handlePinButtonTap:(UITapGestureRecognizer *)gestureRecognizer {
+    if ([self.delegate respondsToSelector:@selector(commitToPlace:)]) {
+        NSInteger index = ((UILabel*)gestureRecognizer.view).tag;
+        if (index) {
+            Place *p = [self.annotationsArray objectAtIndex:index];
+            [self.delegate commitToPlace:p];
+            if ([self.delegate respondsToSelector:@selector(pollDatabase)]) {
+                [self.delegate pollDatabase];
+            }
+        }
+    }
+}
+
 #pragma mark MapView delegate
 
 - (MKAnnotationView *)mapView:(MKMapView *)mapView viewForAnnotation:(id <MKAnnotation>)annotation
@@ -342,63 +396,89 @@
     if ([annotation isKindOfClass:[TetherAnnotation class]])
     {
         // Try to dequeue an existing pin view first.
-        MKAnnotationView *pinView = [[MKAnnotationView alloc] init];
-        //[mapView dequeueReusableAnnotationViewWithIdentifier:@"CustomPinAnnotationView"];
-            // If an existing pin view was not available, create one.
-            UILabel *numberButton = [[UILabel alloc] initWithFrame:CGRectMake(18.0, 10.0, 10.0, 20.0)];
-            numberButton.text = [annotation subtitle];
-            numberButton.textColor = [UIColor whiteColor];
-            
-            pinView = [[MKAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:@"CustomPinAnnotationView"];
-            pinView.canShowCallout = YES;
-            UIImage *pinImage = [UIImage imageNamed:@"PinIcon"];
+        TetherAnnotationView *pinView = [[TetherAnnotationView alloc] init];
         
-            pinView.tag = 1;
-            pinView.image = NULL;
-            pinView.frame = CGRectMake(0, 0, 50.0, 50.0);
-            UIImageView *imageView = [[UIImageView alloc] initWithImage:pinImage];
-            imageView.frame = CGRectMake(0, 0, 50.0, 50.0);
-            [pinView addSubview:imageView];
-            [pinView addSubview:numberButton];
-            
-            TetherAnnotation *annotationPoint = (TetherAnnotation*)annotation;
-            Place *p = annotationPoint.place;
+        // If an existing pin view was not available, create one.
+        UILabel *numberLabel = [[UILabel alloc] initWithFrame:CGRectMake(15.0, 5.0, 10.0, 20.0)];
+        numberLabel.adjustsFontSizeToFitWidth = YES;
+        numberLabel.text = [NSString stringWithFormat:@"%d", ((TetherAnnotation*)annotation).place.numberCommitments];
+        numberLabel.textColor = [UIColor whiteColor];
         
-            int i = 0;
-            for (id friendId in p.friendsCommitted) {
-                FBProfilePictureView *profileView = [[FBProfilePictureView alloc] initWithFrame:CGRectMake(-15.0, 0, 40.0, 40.0)];
-                profileView.profileID = friendId;
-                profileView.layer.cornerRadius = CORNER_RADIUS;
-                profileView.clipsToBounds = YES;
-                profileView.tag = 2;
-                [pinView addSubview:profileView];
-                profileView.alpha = 0.0;
-                CGRect frame;
-                switch (i) {
-                    case 0:
-                        frame = CGRectMake(-DISTANCE_FACE_TO_PIN, 0, FACE_SIZE, FACE_SIZE);
-                        profileView.frame = frame;
-                        [pinView sendSubviewToBack:profileView];
-                        break;
-                    case 1:
-                        frame = CGRectMake(DISTANCE_FACE_TO_PIN + 5.0, 0, FACE_SIZE, FACE_SIZE);
-                        profileView.frame = frame;
-                        [pinView sendSubviewToBack:profileView];
-                        break;
-                    case 2:
-                        frame = CGRectMake(0, DISTANCE_FACE_TO_PIN + 5.0, FACE_SIZE, FACE_SIZE);
-                        profileView.frame = frame;
-                        break;
-                    case 3:
-                        frame = CGRectMake(0, -DISTANCE_FACE_TO_PIN, FACE_SIZE, FACE_SIZE);
-                        profileView.frame = frame;
-                        [pinView sendSubviewToBack:profileView];
-                        break;
-                    default:
-                        break;
-                }
-                i++;
+        pinView = [[TetherAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:@"CustomPinAnnotationView"];
+        pinView.canShowCallout = YES;
+        UIImage *pinImage = [UIImage imageNamed:@"LocationIcon"];
+    
+        pinView.tag = 1;
+        pinView.image = NULL;
+        pinView.frame = CGRectMake(0, 0, 40.0, 40.0);
+        UIImageView *imageView = [[UIImageView alloc] initWithImage:pinImage];
+        imageView.frame = CGRectMake(0, 0, 40.0, 40.0);
+        [pinView addSubview:imageView];
+        [pinView addSubview:numberLabel];
+    
+        UIButton* rightButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, 25.0, 25.0)];
+        [rightButton setImage:[UIImage imageNamed:@"Arrow"] forState:UIControlStateNormal];
+        [rightButton addTarget:self action:@selector(showListViewForPlace:) forControlEvents:UIControlEventTouchUpInside];
+        pinView.rightCalloutAccessoryView = rightButton;
+    
+        UILabel* leftLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 30.0, 50.0)];
+        leftLabel.userInteractionEnabled = YES;
+        [leftLabel setTextColor:[UIColor whiteColor]];
+        UIFont *champagne = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:20];
+        [leftLabel setFont:champagne];
+        [leftLabel setText:[NSString stringWithFormat:@"  %d",((TetherAnnotation*)annotation).place.numberCommitments]];
+        [leftLabel setBackgroundColor:UIColorFromRGB(0x8e0528)];
+        CGSize size = [leftLabel.text sizeWithAttributes:@{NSFontAttributeName:champagne}];
+        pinView.leftCalloutAccessoryView = leftLabel;
+        [pinView.leftCalloutAccessoryView setFrame:CGRectMake(0, 0, size.width + 10.0, 45.0)];
+    
+        TetherAnnotation *annotationPoint = (TetherAnnotation*)annotation;
+        Place *p = annotationPoint.place;
+    
+        [self.annotationsArray addObject:p];
+        rightButton.tag = [self.annotationsArray indexOfObject:p];
+        leftLabel.tag = rightButton.tag;
+        NSLog(@"INDEX: %d", leftLabel.tag);
+        
+        UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc]
+                                       initWithTarget:self action:@selector(handlePinButtonTap:)];
+        [leftLabel addGestureRecognizer:tap];
+    
+        int i = 0;
+        for (id friendId in p.friendsCommitted) {
+            FBProfilePictureView *profileView = [[FBProfilePictureView alloc] initWithFrame:CGRectMake(-15.0, 0, 40.0, 40.0)];
+            profileView.profileID = friendId;
+            profileView.layer.cornerRadius = CORNER_RADIUS;
+            profileView.clipsToBounds = YES;
+            profileView.tag = 2;
+            [pinView addSubview:profileView];
+            profileView.alpha = 0.0;
+            CGRect frame;
+            switch (i) {
+                case 0:
+                    frame = CGRectMake(-DISTANCE_FACE_TO_PIN, 0, FACE_SIZE, FACE_SIZE);
+                    profileView.frame = frame;
+                    [pinView sendSubviewToBack:profileView];
+                    break;
+                case 1:
+                    frame = CGRectMake(DISTANCE_FACE_TO_PIN + 5.0, 0, FACE_SIZE, FACE_SIZE);
+                    profileView.frame = frame;
+                    [pinView sendSubviewToBack:profileView];
+                    break;
+                case 2:
+                    frame = CGRectMake(0, DISTANCE_FACE_TO_PIN + 5.0, FACE_SIZE, FACE_SIZE);
+                    profileView.frame = frame;
+                    break;
+                case 3:
+                    frame = CGRectMake(0, -DISTANCE_FACE_TO_PIN, FACE_SIZE, FACE_SIZE);
+                    profileView.frame = frame;
+                    [pinView sendSubviewToBack:profileView];
+                    break;
+                default:
+                    break;
             }
+            i++;
+        }
         return pinView;
     }
     return nil;
@@ -453,7 +533,7 @@
 }
 
 - (void)mapView:(MKMapView *)mapView didAddAnnotationViews:(NSArray *)views {
-    MKAnnotationView *aV;
+    TetherAnnotationView *aV;
     for (aV in views) {
         CGRect endFrame = aV.frame;
         

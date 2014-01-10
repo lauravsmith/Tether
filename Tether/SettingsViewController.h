@@ -29,5 +29,7 @@
 -(void)closeSettings;
 -(void)userChangedLocationInSettings:(CLLocation*)newLocation;
 -(void)userChangedSettingsToUseCurrentLocation;
+-(void)removePreviousCommitment;
+-(void)removeCommitmentFromDatabase;
 
 @end

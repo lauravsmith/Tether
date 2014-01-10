@@ -28,6 +28,7 @@
     NSMutableDictionary *placesDictionary;
     PFObject *currentCommitmentParseObject;
     Place *currentCommitmentPlace;
+    int notifications;
 }
 
 @property (nonatomic, retain) NSString *facebookId;
@@ -47,6 +48,7 @@
 @property (nonatomic, strong) NSMutableDictionary *placesDictionary;
 @property (retain, nonatomic) PFObject *currentCommitmentParseObject;
 @property (retain, nonatomic) Place *currentCommitmentPlace;
+@property (nonatomic, assign) int notifications;
 
 + (id)sharedDataManager;
 

@@ -48,6 +48,7 @@
 @property (nonatomic, assign) BOOL leftPanelNotShownYet;
 @property (nonatomic, assign) BOOL rightPanelNotShownYet;
 @property (nonatomic, assign) BOOL canUpdatePlaces;
+@property (nonatomic, assign) BOOL shouldSortFriendsList;
 @property (nonatomic, strong) NSString *facebookId;
 @property (nonatomic, assign) CGPoint preVelocity;
 @property (nonatomic, assign) NSTimer *pollingTimer;
@@ -73,6 +74,8 @@
         Datastore *sharedDataManager= [Datastore sharedDataManager];
         sharedDataManager.tetherFriendsDictionary = [[NSMutableDictionary alloc] init];
         sharedDataManager.tetherFriendsNearbyDictionary = [[NSMutableDictionary alloc] init];
+        
+        [self refreshNotificationsNumber];
     }
     return self;
 }
@@ -107,6 +110,7 @@
 
 -(void)pollDatabase {
     [self queryFriendsStatus];
+    [self refreshNotificationsNumber];
     [self.pollingTimer invalidate];
     self.pollingTimer = [NSTimer scheduledTimerWithTimeInterval:POLLING_INTERVAL
                                                            target:self
@@ -122,6 +126,18 @@
             [self setupView];
         }
     }
+}
+
+-(void)loadNotifications {
+    [self.rightPanelViewController loadNotifications];
+}
+
+-(void)refreshNotificationsNumber {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    PFInstallation *currentInstallation = [PFInstallation currentInstallation];
+    sharedDataManager.notifications = (int)currentInstallation.badge;
+    [self.centerViewController refreshNotificationsNumber];
+    [self.placesViewController refreshNotificationsNumber];
 }
 
 #pragma mark load user facebook information
@@ -162,8 +178,11 @@
     [self.currentUser saveEventually];
     
     NSLog(@"PARSE SAVE: saving your facebook friends");
+    
+    if(sharedDataManager.city && sharedDataManager.state) {
+        [self saveCity:sharedDataManager.city state:sharedDataManager.state];
+    }
     [self queryFriendsStatus];
-
 }
 
 -(void)facebookRequestDidLoad:(id)result {
@@ -282,6 +301,9 @@
                 
                 [self sortTetherFriends];
                 [self.placesViewController getFriendsCommitments];
+                if ([self.rightPanelViewController.notificationsArray count] == 0) {
+                    [self loadNotifications];
+                }
             } else {
                 // The network was inaccessible and we have no cached data for r
                 // this query.
@@ -301,10 +323,10 @@
     for (id key in sharedDataManager.tetherFriendsNearbyDictionary) {
         Friend *friend = [sharedDataManager.tetherFriendsNearbyDictionary objectForKey:key];
         if (friend) {
-            if ([startTime compare:friend.timeLastUpdated] == NSOrderedDescending) {
+            if ([startTime compare:friend.timeLastUpdated] == NSOrderedDescending || !friend.status) {
                 [tempFriendsUndecidedSet addObject:friend];
             } else {
-                if (friend.status) {
+                if (![friend.placeId isEqualToString:@""]) {
                     [tempFriendsGoingOutSet addObject:friend];
                 } else {
                     [tempFriendsNotGoingOutSet addObject:friend];
@@ -338,8 +360,8 @@
         listsHaveChanged = YES;
     }
     
-    [self.centerViewController.numberButton setTitle:[NSString stringWithFormat:@"%lu", (unsigned long)[sharedDataManager.tetherFriendsGoingOut count]] forState:UIControlStateNormal];
-    [self.centerViewController layoutNumberLabel];
+    [self.centerViewController.numberButton setTitle:[NSString stringWithFormat:@"%lu", (unsigned long)([sharedDataManager.tetherFriendsGoingOut count] + [sharedDataManager.tetherFriendsNotGoingOut count])] forState:UIControlStateNormal];
+    [self.centerViewController layoutNumberButton];
     // if lists have changed or all are empty, update view
     if (listsHaveChanged ||
         ([sharedDataManager.tetherFriendsUndecided count] == 0 &&
@@ -409,7 +431,8 @@
     self.rightPanelViewController.view.tag = RIGHT_PANEL_TAG;
     
     // check if user has input status today
-    if ([self shouldShowDecisionView]) {
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    if ([self shouldShowDecisionView] || ![userDetails boolForKey:kUserDefaultsStatusKey]) {
         self.decisionViewController = [[DecisionViewController alloc] init];
         self.decisionViewController.delegate = self;
         [self.view addSubview:self.decisionViewController.view];
@@ -427,6 +450,19 @@
         return YES;
     }
     return NO;
+}
+
+-(void)showDecisionView {
+    // check if user has input status today
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    if ([self shouldShowDecisionView] || ![userDetails boolForKey:kUserDefaultsStatusKey]) {
+        self.decisionViewController = [[DecisionViewController alloc] init];
+        self.decisionViewController.delegate = self;
+        [self.view addSubview:self.decisionViewController.view];
+        [self addChildViewController:_decisionViewController];
+        [_decisionViewController didMoveToParentViewController:self];
+        self.showingDecisionView = YES;
+    }
 }
 
 - (void)showCenterViewWithShadow:(BOOL)value withOffset:(double)offset
@@ -448,14 +484,15 @@
 
 - (void)resetMainView
 {
-    if (_leftPanelViewController != nil)
-    {
+    if (_leftPanelViewController != nil) {
+        _centerViewController.triangleButton.tag = 1;
         _centerViewController.numberButton.tag = 1;
         self.showingLeftPanel = NO;
     }
     
     if (_rightPanelViewController != nil) {
         _centerViewController.notificationsButton.tag = 1;
+        _placesViewController.notificationsButton.tag = 1;
         self.showingRightPanel = NO;
     }
     
@@ -635,9 +672,8 @@
     if (!self.placesViewController) {
         self.placesViewController = [[PlacesViewController alloc] init];
         self.placesViewController.delegate = self;
-    }
-    
-    [self.centerViewController addChildViewController:self.placesViewController];
+    } 
+
     [self.placesViewController didMoveToParentViewController:self.centerViewController];
     [self.placesViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
     [self.centerViewController.view addSubview:self.placesViewController.view];
@@ -648,11 +684,18 @@
           initialSpringVelocity:5.0
                         options:UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
+                         [self.centerViewController.bottomBar setAlpha:1.0];
                         [self.placesViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
                      }
                      completion:^(BOOL finished) {
                          [self resetMainView];
                          [self canUpdatePlaces:NO];
+                         [UIView animateWithDuration:0.3
+                                          animations:^{
+                                               [self.placesViewController.bottomBar setAlpha:1.0];
+                                          } completion:^(BOOL finished) {
+                                              
+                                          }];
                      }];
 }
 
@@ -671,12 +714,12 @@
                      }
                      completion:^(BOOL finished) {
                          _centerViewController.numberButton.tag = 0;
+                          _centerViewController.triangleButton.tag = 0;
                      }];
 }
 
 - (void)movePanelLeft // to show left panel
 {
-    [self.rightPanelViewController loadNotifications];
     UIView *childView = [self getRightView];
     [self.view sendSubviewToBack:childView];
     
@@ -690,6 +733,7 @@
                      }
                      completion:^(BOOL finished) {
                          _centerViewController.notificationsButton.tag = 0;
+                          _placesViewController.notificationsButton.tag = 0;
                      }];
     
     PFInstallation *currentInstallation = [PFInstallation currentInstallation];
@@ -725,6 +769,8 @@
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     [self.settingsViewController resettingNewLocationHasFinished];
     [self saveCity:[userDetails objectForKey:@"city"] state:[userDetails objectForKey:@"state"]];
+    [self.centerViewController layoutCurrentCommitment];
+    [self.placesViewController layoutCurrentCommitment];
     NSLog(@"FINISHED RESETTING, NOW POLLING DATABASE");
 }
 
@@ -809,17 +855,21 @@
     TetherAnnotation *annotation = [[TetherAnnotation alloc] init];
     [annotation setCoordinate:place.coord];
     [annotation setTitle:[NSString stringWithFormat:@"%@", place.name]];
-    [annotation setSubtitle:[NSString stringWithFormat:@"%lu", (unsigned long)[place.friendsCommitted count]]];
+    [annotation setSubtitle:[NSString stringWithFormat:@"%@", place.address]];
     annotation.place = place;
     
     if ([self.centerViewController.placeToAnnotationDictionary objectForKey:place.placeId]) {
-            [self removePlaceMarkFromMapView:place];
+        TetherAnnotation *previousAnnotation = [self.centerViewController.placeToAnnotationDictionary objectForKey:place.placeId];
+        if ([place.friendsCommitted isEqualToSet:previousAnnotation.place.friendsCommitted]) {
+            return;
+        }
+        [self removePlaceMarkFromMapView:place];
     }
     [self.centerViewController.placeToAnnotationDictionary  setObject:annotation forKey:place.placeId];
-        if (place.numberCommitments > 0) {
-            NSLog(@"MAIN VIEW: Adding annotation with %d commitments", place.numberCommitments);
-            [self.centerViewController.mv addAnnotation:annotation];
-        }
+    if (place.numberCommitments > 0) {
+        NSLog(@"MAIN VIEW: Adding annotation with %d commitments", place.numberCommitments);
+        [self.centerViewController.mv addAnnotation:annotation];
+    }
 }
 
 -(void)removePlaceMarkFromMapView:(Place*)place {
@@ -830,6 +880,13 @@
 
         if ([sharedDataManager.placesDictionary objectForKey:place.placeId]) {
             [sharedDataManager.placesDictionary setObject:place forKey:place.placeId];
+        }
+        if ([self.centerViewController.placeToAnnotationDictionary objectForKey:place.placeId]) {
+            [self.centerViewController.placeToAnnotationDictionary removeObjectForKey:place.placeId];
+        }
+        
+        if ([self.centerViewController.annotationsArray containsObject:annotation]) {
+            [self.centerViewController.annotationsArray removeObject:annotation];
         }
         NSLog(@"MAIN VIEW: Removed annotation for %@", place.name);
     }
@@ -843,11 +900,20 @@
                         options:UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
                         [self.placesViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                         
+                         [UIView animateWithDuration:0.1 animations:^{
+                             [self.centerViewController.placeNumberLabel setAlpha:1.0];
+                             [self.centerViewController.placeLabel setAlpha:1.0];
+                             [self.centerViewController.bottomLeftButton setAlpha:1.0];
+                         } completion:^(BOOL finished) {
+                              [self.placesViewController.bottomBar setAlpha:0.0];
+                         }];
                      }
                      completion:^(BOOL finished) {
                          [self.placesViewController.view removeFromSuperview];
                          [self.placesViewController removeFromParentViewController];
                          [self canUpdatePlaces:YES];
+                         [self.placesViewController sortPlacesByPopularity];
                      }];
 }
 
@@ -855,9 +921,10 @@
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     Friend *currentFriend = [sharedDataManager.tetherFriendsNearbyDictionary objectForKey:friendId];
     currentFriend.placeId = placeId;
-    if (currentFriend) {
+    if (currentFriend && ![[sharedDataManager.friendsToPlacesMap objectForKey:friendId] isEqualToString:placeId]) {
         [sharedDataManager.friendsToPlacesMap setObject:placeId forKey:friendId];
         [sharedDataManager.tetherFriendsNearbyDictionary setObject:currentFriend forKey:placeId];
+        self.shouldSortFriendsList = YES;
     }
 }
 
@@ -930,14 +997,48 @@
     }];
 }
 
+-(void)removePreviousCommitment {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    if (sharedDataManager.currentCommitmentPlace) {
+        NSLog(@"Removing previous commitment to %@", sharedDataManager.currentCommitmentPlace.name);
+        if ([sharedDataManager.currentCommitmentPlace.friendsCommitted containsObject:sharedDataManager.facebookId]) {
+            [sharedDataManager.currentCommitmentPlace.friendsCommitted removeObject:sharedDataManager.facebookId];
+            sharedDataManager.currentCommitmentPlace.numberCommitments -=1;
+            [sharedDataManager.placesDictionary setObject:sharedDataManager.currentCommitmentPlace
+                                                   forKey:sharedDataManager.currentCommitmentPlace.placeId];
+            [sharedDataManager.popularPlacesDictionary setObject:sharedDataManager.currentCommitmentPlace
+                                                          forKey:sharedDataManager.currentCommitmentPlace.placeId];
+            [self removePlaceMarkFromMapView:sharedDataManager.currentCommitmentPlace];
+        }
+        sharedDataManager.currentCommitmentPlace = nil;
+    }
+    [self.centerViewController layoutCurrentCommitment];
+    [self.placesViewController layoutCurrentCommitment];
+}
+
+-(void)removeCommitmentFromDatabase {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    if (sharedDataManager.currentCommitmentParseObject) {
+        [sharedDataManager.currentCommitmentParseObject deleteInBackground];
+        NSLog(@"PARSE DELETE: Removed previous commitment from database");
+        sharedDataManager.currentCommitmentParseObject = nil;
+    }
+}
+
+-(void)sortFriendsList {
+    if (self.shouldSortFriendsList) {
+        [self sortTetherFriends];
+        self.shouldSortFriendsList = NO;
+    }
+}
+
 -(void)canUpdatePlaces:(BOOL)canUpdate {
     self.canUpdatePlaces = canUpdate;
 }
 
 -(void)refreshCommitmentName {
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
-    self.centerViewController.placeLabel.text = sharedDataManager.currentCommitmentPlace.name;
-    self.centerViewController.placeNumberLabel.text = [NSString stringWithFormat:@"%d", sharedDataManager.currentCommitmentPlace.numberCommitments];
+    [self.centerViewController layoutCurrentCommitment];
+    [self.placesViewController layoutCurrentCommitment];
 }
 
 - (void)didReceiveMemoryWarning

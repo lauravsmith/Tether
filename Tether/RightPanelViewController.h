@@ -9,5 +9,6 @@
 #import <UIKit/UIKit.h>
 
 @interface RightPanelViewController : UIViewController
+@property (retain, nonatomic) NSMutableArray *notificationsArray;
 -(void)loadNotifications;
 @end

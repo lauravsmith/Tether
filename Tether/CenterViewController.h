@@ -7,6 +7,7 @@
 //
 
 #import "LeftPanelViewController.h"
+#import "Place.h"
 #import "ViewController.h"
 
 #import <MapKit/MapKit.h>
@@ -31,6 +32,9 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 -(void)showListView;
 -(void)finishedResettingNewLocation;
 -(void)saveCity:(NSString*)city state:(NSString*)state;
+-(void)goToPlaceInListView:(id)placeId;
+-(void)commitToPlace:(Place *)place;
+-(void)pollDatabase;
 @end
 
 @interface CenterViewController : ViewController <MKMapViewDelegate>
@@ -39,6 +43,7 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 
 @property (retain, nonatomic) UIButton *bottomLeftButton;
 @property (retain, nonatomic) UIButton * numberButton;
+@property (retain, nonatomic) UIButton * triangleButton;
 @property (retain, nonatomic) UILabel * cityLabel;
 @property (retain, nonatomic) MKMapView * mv;
 @property (retain, nonatomic) NSMutableDictionary * placeToAnnotationDictionary;
@@ -46,9 +51,12 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 @property (strong, nonatomic) UIButton *notificationsButton;
 @property (retain, nonatomic) UILabel * placeLabel;
 @property (retain, nonatomic) UILabel * placeNumberLabel;
+@property (retain, nonatomic) UIView * bottomBar;
+@property (strong, nonatomic) NSMutableArray * annotationsArray;
 -(void)updateLocation;
 -(void)setCityFromCLLocation:(CLLocation*)location;
--(void)layoutNumberLabel;
+-(void)layoutNumberButton;
+-(void)layoutCurrentCommitment;
 -(void)locationSetup;
 -(void)refreshNotificationsNumber;
 @end

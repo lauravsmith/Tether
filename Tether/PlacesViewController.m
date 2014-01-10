@@ -19,18 +19,18 @@
 #import <AFNetworking/AFHTTPRequestOperationManager.h>
 #import <Parse/Parse.h>
 
-#define BOTTOM_BAR_HEIGHT 50.0
-#define CELL_HEIGHT 150.0
+#define BOTTOM_BAR_HEIGHT 40.0
+#define CELL_HEIGHT 90.0
 #define SEARCH_RESULTS_CELL_HEIGHT 60.0
-#define SEARCH_BAR_HEIGHT 60.0
+#define SEARCH_BAR_HEIGHT 50.0
+#define SEARCH_BAR_WIDTH 280.0
+#define STATUS_BAR_HEIGHT 20.0
 
 @interface PlacesViewController () <InviteViewControllerDelegate, FriendsListViewControllerDelegate, PlaceCellDelegate, UISearchBarDelegate, UITableViewDelegate, UITableViewDataSource>
 
 @property (nonatomic, strong) NSMutableArray *placesArray;
 @property (nonatomic, strong) UITableViewController *placesTableViewController;
-@property (retain, nonatomic) UIView * bottomBar;
-@property (retain, nonatomic) UIButton *bottomLeftButton;
-@property (retain, nonatomic) UIButton * bottomRightButton;
+@property (retain, nonatomic) UIButton *backButton;
 @property (retain, nonatomic) NSUserDefaults *userDetails;
 @property (assign, nonatomic) bool friendStatusDetailsHaveLoaded;
 @property (assign, nonatomic) bool foursquarePlacesDataHasLoaded;
@@ -65,13 +65,19 @@
     [super viewDidLoad];
     
     // set up search bar and corresponding search results tableview
-    self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, SEARCH_BAR_HEIGHT)];
+    UIView *searchBarBackground = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, STATUS_BAR_HEIGHT + SEARCH_BAR_HEIGHT)];
+    [searchBarBackground setBackgroundColor:UIColorFromRGB(0x8e0528)];
+    [self.view addSubview:searchBarBackground];
+    self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake((self.view.frame.size.width - SEARCH_BAR_WIDTH) / 2, STATUS_BAR_HEIGHT, SEARCH_BAR_WIDTH, SEARCH_BAR_HEIGHT)];
     self.searchBar.delegate = self;
+    [self.searchBar setBackgroundImage:[UIImage new]];
+    [self.searchBar setTranslucent:YES];
+    self.searchBar.layer.cornerRadius = 5.0;
     [self.view addSubview:self.searchBar];
     
     self.searchResultsArray = [[NSMutableArray alloc] init];
     
-    self.searchResultsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, self.searchBar.frame.size.height, self.view.frame.size.width, self.view.frame.size.height - BOTTOM_BAR_HEIGHT)];
+    self.searchResultsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, STATUS_BAR_HEIGHT + self.searchBar.frame.size.height, self.view.frame.size.width, self.view.frame.size.height - BOTTOM_BAR_HEIGHT)];
     self.searchResultsTableView.hidden = YES;
     [self.searchResultsTableView setDataSource:self];
     [self.searchResultsTableView setDelegate:self];
@@ -81,10 +87,8 @@
     [self.searchResultsTableView reloadData];
     
     //set up friends going out table view
-    self.placesTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, self.searchBar.frame.size.height, self.view.frame.size.width, self.view.frame.size.height - self.searchBar.frame.size.height - BOTTOM_BAR_HEIGHT)];
-    [self.placesTableView setAlpha:0.95];
-    [self.placesTableView setSeparatorColor:[UIColor whiteColor]];
-    [self.placesTableView setBackgroundColor:UIColorFromRGB(0xD6D6D6)];
+    self.placesTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, STATUS_BAR_HEIGHT + self.searchBar.frame.size.height, self.view.frame.size.width, self.view.frame.size.height - self.searchBar.frame.size.height - BOTTOM_BAR_HEIGHT - STATUS_BAR_HEIGHT)];
+    [self.placesTableView setSeparatorColor:UIColorFromRGB(0xc8c8c8)];
     [self.placesTableView setDataSource:self];
     [self.placesTableView setDelegate:self];
     self.placesTableView.showsVerticalScrollIndicator = NO;
@@ -98,17 +102,66 @@
     // bottom nav bar setup
     self.bottomBar = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - BOTTOM_BAR_HEIGHT, self.view.frame.size.width, BOTTOM_BAR_HEIGHT)];
     [self.bottomBar setBackgroundColor:[UIColor whiteColor]];
-    [self.bottomBar setAlpha:0.8];
+    UIBezierPath *shadowPath = [UIBezierPath bezierPathWithRect:self.bottomBar.bounds];
+    self.bottomBar.layer.masksToBounds = NO;
+    self.bottomBar.layer.shadowColor = [UIColor blackColor].CGColor;
+    self.bottomBar.layer.shadowOffset = CGSizeMake(0.0f, -0.1f);
+    self.bottomBar.layer.shadowOpacity = 0.1f;
+    self.bottomBar.layer.shadowPath = shadowPath.CGPath;
     
-    // left panel view button setup
-    UIImage *leftPanelButtonImage = [UIImage imageNamed:@"chevron-left"];
-    self.bottomLeftButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 10, 30, 30)];
-    [self.bottomLeftButton setImage:leftPanelButtonImage forState:UIControlStateNormal];
-    [self.bottomBar addSubview:self.bottomLeftButton];
-    self.bottomLeftButton.tag = 1;
-    [self.bottomLeftButton addTarget:self action:@selector(closeListView) forControlEvents:UIControlEventTouchDown];
+    UIImage *triangleImage = [UIImage imageNamed:@"WhiteTriangle"];
+    self.backButton = [[UIButton alloc] initWithFrame:CGRectMake(0, STATUS_BAR_HEIGHT + 9.0, 30.0, 30.0)];
+    [self.backButton setImage:triangleImage forState:UIControlStateNormal];
+    [self.view addSubview:self.backButton];
+    self.backButton.tag = 1;
+    [self.backButton addTarget:self action:@selector(closeListView) forControlEvents:UIControlEventTouchDown];
     
+    UIFont *champagneSmall = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:18];
+    UIFont *champagneExtraSmall = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:14];
+    self.placeLabel = [[UILabel alloc] init];
+    [self.placeLabel setFont:champagneExtraSmall];
+    [self.placeLabel setTextColor:UIColorFromRGB(0x8e0528)];
+    [self.bottomBar addSubview:self.placeLabel];
+    
+    self.placeNumberLabel = [[UILabel alloc] init];
+    [self.placeNumberLabel setFont:champagneSmall];
+    [self.placeNumberLabel setTextColor:UIColorFromRGB(0x8e0528)];
+    [self.bottomBar addSubview:self.placeNumberLabel];
+    [self layoutCurrentCommitment];
+    
+    // notifications button to open right panel setup
+    self.notificationsButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 30.0, 10, 30, 30)];
+    [self.notificationsButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    [self.notificationsButton setBackgroundColor:[UIColor whiteColor]];
+    [self.notificationsButton addTarget:self action:@selector(btnMovePanelLeft:) forControlEvents:UIControlEventTouchUpInside];
+    self.notificationsButton.tag = 1;
+    [self.bottomBar addSubview:self.notificationsButton];
+    [self refreshNotificationsNumber];
+    
+    [self.bottomBar setAlpha:0.0];
     [self.view addSubview:self.bottomBar];
+}
+
+-(void)refreshNotificationsNumber {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    [self.notificationsButton setTitle:[NSString stringWithFormat:@"%d",sharedDataManager.notifications] forState:UIControlStateNormal];
+}
+
+-(void)layoutCurrentCommitment {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    if (sharedDataManager.currentCommitmentPlace) {
+        self.placeLabel.text = sharedDataManager.currentCommitmentPlace.name;
+        self.placeNumberLabel.text = [NSString stringWithFormat:@"%d", sharedDataManager.currentCommitmentPlace.numberCommitments];
+    } else {
+        self.placeLabel.text = @"";
+        self.placeNumberLabel.text = @"";
+    }
+    UIFont *champagneSmall = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:18];
+    UIFont *champagneExtraSmall = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:14];
+    CGSize size = [self.placeLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneExtraSmall}];
+    self.placeLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2, self.bottomBar.frame.size.height - size.height, size.width, size.height);
+    size = [self.placeNumberLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneSmall}];
+    self.placeNumberLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2, 0, size.width, size.height);
 }
 
 -(void)getFriendsCommitments {
@@ -122,11 +175,14 @@
     NSString *userState = [[NSString alloc] init];
     userCity = [self.userDetails objectForKey:@"city"];
     userState = [self.userDetails objectForKey:@"state"];
+        
+    NSDate *lastWeek = [self getThisWeek];
     
     PFQuery *query = [PFQuery queryWithClassName:@"Commitment"];
     [query whereKey:@"facebookId" containedIn:friendsArrayWithMe];
     [query whereKey:@"placeCityName" equalTo:userCity];
-    query.limit = 10000; // is this an appropriate limit?
+    [query whereKey:@"dateCommitted" greaterThan:lastWeek];
+    query.limit = 5000; // is this an appropriate limit?
     //TODO: Check for same State
     
     NSDate *startTime = [self getStartTime];
@@ -138,6 +194,7 @@
             NSLog(@"Commitments found: %lu",(unsigned long)[objects count]);
             PFGeoPoint *geoPoint;
             NSMutableDictionary *tempDictionary = [[NSMutableDictionary alloc] init];
+
             for (PFObject *object in objects) {
                 Place *place = [[Place alloc] init];
                 geoPoint = [object objectForKey:@"placePoint"];
@@ -180,31 +237,35 @@
                 [tempDictionary setObject:place forKey:[object objectForKey:@"placeId"]];
             }
             
+            if ([self.delegate respondsToSelector:@selector(sortFriendsList)]) {
+                [self.delegate sortFriendsList];
+            }
+            
             if (self.friendStatusDetailsHaveLoaded) {
                 if (sharedDataManager.currentCommitmentPlace.placeId && [sharedDataManager.currentCommitmentPlace.city isEqualToString:userCity]) {
                     Place *p = [tempDictionary objectForKey:sharedDataManager.currentCommitmentPlace.placeId];
-                    if (p) {
-                        if (![p.friendsCommitted containsObject:sharedDataManager.facebookId]) {
-                            [p.friendsCommitted addObject:sharedDataManager.facebookId];
-                            p.numberCommitments +=1;
-                            [tempDictionary setObject:p forKey:p.placeId];
-                        }
-                    } else {
+                    if (!p) {
                         [tempDictionary setObject:sharedDataManager.currentCommitmentPlace forKey:sharedDataManager.currentCommitmentPlace.placeId];
                     }
                 }
             }
             
-            NSArray *tempKeys = [tempDictionary allKeys];
-            NSArray *keys = [sharedDataManager.popularPlacesDictionary allKeys];
-            NSSet *tempKeySet = [NSSet setWithArray:tempKeys];
-            NSSet *keySet = [NSSet setWithArray:keys];
-            // check if commitments have changed, if so update map
-            if (![tempKeySet isEqualToSet:keySet]) {
-                NSLog(@"Updated your friends commitments");
-                sharedDataManager.popularPlacesDictionary = tempDictionary;
-                [self addPinsToMap];
+            //check for old commitments to remove from the map
+            for (id key in sharedDataManager.popularPlacesDictionary) {
+                Place *place = [sharedDataManager.popularPlacesDictionary objectForKey:key];
+                if ([tempDictionary objectForKey:key]) {
+                    Place *placeTemp = [tempDictionary objectForKey:key];
+                    if (![place.friendsCommitted isEqualToSet:placeTemp.friendsCommitted]) {
+                        [self.delegate removePlaceMarkFromMapView:place];
+                    }
+                } else {
+                    [self.delegate removePlaceMarkFromMapView:place];
+                }
             }
+
+            NSLog(@"Updated your friends commitments");
+            sharedDataManager.popularPlacesDictionary = tempDictionary;
+            [self addPinsToMap];
             
             if (self.foursquarePlacesDataHasLoaded) {
                     [self addDictionaries];
@@ -237,7 +298,7 @@
         if ([sharedDataManager.foursquarePlacesDictionary objectForKey:key]) {
             Place *tempPlace = [sharedDataManager.foursquarePlacesDictionary objectForKey:key];
             [place.friendsCommitted unionSet:tempPlace.friendsCommitted];
-            place.numberCommitments += tempPlace.numberCommitments;
+            place.numberCommitments = [place.friendsCommitted count];
         }
         [sharedDataManager.placesDictionary setObject:place forKey:place.placeId];
     }
@@ -306,12 +367,61 @@
     }
 }
 
+-(NSDate*)getThisWeek{
+    NSDate *now = [NSDate date];
+    NSCalendar *calendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
+    NSDateComponents *components = [calendar components:NSYearCalendarUnit|NSMonthCalendarUnit|NSDayCalendarUnit fromDate:now];
+    NSDateComponents* deltaComps = [[NSDateComponents alloc] init];
+    [deltaComps setDay:-7.0];
+    return [calendar dateByAddingComponents:deltaComps toDate:[calendar dateFromComponents:components] options:0];
+}
+
 -(void)scrollToPlaceWithId:(id)placeId {
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     Place *place = [sharedDataManager.placesDictionary objectForKey:placeId];
     
     [self.placesTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:[self.placesArray indexOfObject:place] inSection:0]
                                 atScrollPosition:UITableViewScrollPositionTop animated:NO];
+}
+
+#pragma mark gesture handlers
+
+- (IBAction)btnMovePanelRight:(id)sender
+{
+    UIButton *button = sender;
+    switch (button.tag) {
+        case 0: {
+            [_delegate movePanelToOriginalPosition];
+            break;
+        }
+            
+        case 1: {
+            [_delegate movePanelRight];
+            break;
+        }
+            
+        default:
+            break;
+    }
+}
+
+- (IBAction)btnMovePanelLeft:(id)sender
+{
+    UIButton *button = sender;
+    switch (button.tag) {
+        case 0: {
+            [_delegate movePanelToOriginalPosition];
+            break;
+        }
+            
+        case 1: {
+            [_delegate movePanelLeft];
+            break;
+        }
+            
+        default:
+            break;
+    }
 }
 
 #pragma mark PlaceCellDelegate Methods
@@ -359,30 +469,14 @@
 }
 
 -(void)removePreviousCommitment {
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
-    if (sharedDataManager.currentCommitmentPlace) {
-        NSLog(@"Removing previous commitment to %@", sharedDataManager.currentCommitmentPlace.name);
-        if ([sharedDataManager.currentCommitmentPlace.friendsCommitted containsObject:sharedDataManager.facebookId]) {
-            [sharedDataManager.currentCommitmentPlace.friendsCommitted removeObject:sharedDataManager.facebookId];
-            sharedDataManager.currentCommitmentPlace.numberCommitments -=1;
-            [sharedDataManager.placesDictionary setObject:sharedDataManager.currentCommitmentPlace
-                                                   forKey:sharedDataManager.currentCommitmentPlace.placeId];
-            [sharedDataManager.popularPlacesDictionary setObject:sharedDataManager.currentCommitmentPlace
-                                                          forKey:sharedDataManager.currentCommitmentPlace.placeId];
-            if ([self.delegate respondsToSelector:@selector(placeMarkOnMapView:)]) {
-                [self.delegate placeMarkOnMapView:sharedDataManager.currentCommitmentPlace];
-            }
-        }
-        sharedDataManager.currentCommitmentPlace = nil;
+    if ([self.delegate respondsToSelector:@selector(removePreviousCommitment)]) {
+        [self.delegate removePreviousCommitment];
     }
 }
 
 -(void)removeCommitmentFromDatabase {
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
-    if (sharedDataManager.currentCommitmentParseObject) {
-        [sharedDataManager.currentCommitmentParseObject deleteInBackground];
-        NSLog(@"PARSE DELETE: Removed previous commitment from database");
-        sharedDataManager.currentCommitmentParseObject = nil;
+    if ([self.delegate respondsToSelector:@selector(removeCommitmentFromDatabase)]) {
+        [self.delegate removeCommitmentFromDatabase];
     }
 }
 
@@ -426,7 +520,7 @@
     InviteViewController *inviteViewController = [[InviteViewController alloc] init];
     inviteViewController.delegate = self;
     inviteViewController.place = place;
-    [inviteViewController.view setBackgroundColor:[UIColor whiteColor]];
+    [inviteViewController.view setBackgroundColor:[UIColor blackColor]];
     [inviteViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
     [self.view addSubview:inviteViewController.view];
     [self addChildViewController:inviteViewController];
@@ -488,7 +582,6 @@
 
 - (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
     [self.searchBar setShowsCancelButton:YES animated:YES];
-    self.searchResultsTableView.hidden = NO;
 }
 
 - (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
@@ -507,6 +600,7 @@
 }
 
 -(void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {
+    self.searchResultsTableView.hidden = NO;
     [self loadPlacesForSearch:searchBar.text];
 }
 
@@ -638,6 +732,7 @@
             [cell setTethered:YES];
             self.previousCommitmentCellIndexPath = indexPath;
         }
+        
         return cell;
     } else {
         SearchResultCell *cell = [[SearchResultCell alloc] init];

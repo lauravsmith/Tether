@@ -27,6 +27,7 @@
 @synthesize placesDictionary;
 @synthesize currentCommitmentParseObject;
 @synthesize currentCommitmentPlace;
+@synthesize notifications;
 
 #pragma mark Singleton Methods
 

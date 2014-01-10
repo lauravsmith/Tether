@@ -11,9 +11,10 @@
 #import "Friend.h"
 #import "FriendCell.h"
 
-#define PROFILE_PICTURE_OFFSET_X 10.0
-#define PROFILE_PICTURE_SIZE 50.0
 #define NAME_LABEL_OFFSET_X 70.0
+#define PROFILE_PICTURE_CORNER_RADIUS 22.0
+#define PROFILE_PICTURE_OFFSET_X 10.0
+#define PROFILE_PICTURE_SIZE 45.0
 
 @protocol FriendCellContentViewDelegate;
 
@@ -39,7 +40,6 @@
 - (id) initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
-        self.backgroundColor = UIColorFromRGB(0xD6D6D6);
         self.friendNameLabel = [[UILabel alloc] init];
         self.friendNameLabel.contentMode = UIViewContentModeScaleAspectFill;
         [self addSubview:self.friendNameLabel];
@@ -52,38 +52,49 @@
 }
 
 - (void)prepareForReuse {
-    self.friendProfilePictureView = nil;
+    [self layoutSubviews];
 }
 
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    self.friendNameLabel.frame = CGRectMake(NAME_LABEL_OFFSET_X, 0.0, 300.0, 30.0);
-    [self.friendNameLabel setTextColor:[UIColor whiteColor]];
-    UIFont *champagneBold = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:18.0f];
-    [self.friendNameLabel setFont:champagneBold];
     self.friendProfilePictureView.frame = CGRectMake(PROFILE_PICTURE_OFFSET_X, (self.frame.size.height - PROFILE_PICTURE_SIZE) / 2, PROFILE_PICTURE_SIZE, PROFILE_PICTURE_SIZE);
-    self.friendProfilePictureView.layer.cornerRadius = 24.0;
+    self.friendProfilePictureView.layer.cornerRadius = 22.0;
     self.friendProfilePictureView.clipsToBounds = YES;
     self.friendProfilePictureView.tag = 0;
+
+    UIFont *champagneBold = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:18.0f];
+    CGSize size = [self.friendNameLabel.text sizeWithAttributes:@{NSFontAttributeName: champagneBold}];
+    self.friendNameLabel.frame = CGRectMake(NAME_LABEL_OFFSET_X, self.friendProfilePictureView.frame.origin.y, size.width, size.height);
+    [self.friendNameLabel setTextColor:UIColorFromRGB(0x8e0528)];
+    [self.friendNameLabel setFont:champagneBold];
     
-    //The setup code (in viewDidLoad in your view controller)
-    UITapGestureRecognizer *profilePictureTap =
-    [[UITapGestureRecognizer alloc] initWithTarget:self
-                                            action:@selector(handleProfilePictureTap:)];
-    [self.friendProfilePictureView addGestureRecognizer:profilePictureTap];
-    
-    self.placeButton.frame = CGRectMake(NAME_LABEL_OFFSET_X, self.friendNameLabel.frame.origin.y + self.friendNameLabel.frame.size.height,  100.0, 30.0);
-    [self.placeButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    self.placeButton.titleLabel.font = champagneBold;
+    UIFont *champagne = [UIFont fontWithName:@"Champagne&Limousines" size:16.0f];
+    [self.placeButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    size = [self.placeButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName: champagne}];
+    self.placeButton.frame = CGRectMake(NAME_LABEL_OFFSET_X, self.friendNameLabel.frame.origin.y + self.friendNameLabel.frame.size.height,  size.width, size.height);
+    self.placeButton.titleLabel.font = champagne;
     [self.placeButton setTitleEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 0)];
     [self.placeButton addTarget:self action:@selector(friendsCommitmentPressed) forControlEvents:UIControlEventTouchUpInside];
+    
+    self.statusLabel = [[UILabel alloc] init];
+    [self.statusLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
+    if (self.friend.statusMessage.length > 0) {
+        self.statusLabel.text = [NSString stringWithFormat:@"\"%@\"", self.friend.statusMessage];
+    }
+    UIFont *champagneSmall = [UIFont fontWithName:@"Champagne&Limousines" size:14.0f];
+    size = [self.statusLabel.text sizeWithAttributes:@{NSFontAttributeName: champagneSmall}];
+    self.statusLabel.frame = CGRectMake(NAME_LABEL_OFFSET_X, self.friendNameLabel.frame.origin.y + self.friendNameLabel.frame.size.height + self.placeButton.frame.size.height, size.width, size.height);
+    [self.statusLabel setFont:champagneSmall];
+    [self addSubview:self.statusLabel];
 }
 
 -(void)friendsCommitmentPressed {
-    if ([self.delegate respondsToSelector:@selector(goToPlaceInListView:)]) {
-        if (self.friend.placeId) {
-           [self.delegate goToPlaceInListView:self.friend.placeId];
+    if (![self.placeButton.titleLabel.text isEqualToString:@""] && self.placeButton.titleLabel.text != nil) {
+        if ([self.delegate respondsToSelector:@selector(goToPlaceInListView:)]) {
+            if (self.friend.placeId) {
+               [self.delegate goToPlaceInListView:self.friend.placeId];
+            }
         }
     }
 }
@@ -103,25 +114,12 @@
             Place *place = [sharedDataManager.placesDictionary objectForKey:friend.placeId];
             [self.placeButton setTitle:place.name forState:UIControlStateNormal];
         }
+    } else {
+        [self.placeButton setTitle:@"" forState:UIControlStateNormal];
     }
     
     [self setNeedsLayout];
     [self setNeedsDisplay];
-}
-
--(void)handleProfilePictureTap:(UITapGestureRecognizer *)sender {
-    if (!self.showingStatusMessage) {
-        if (self.friend.statusMessage) {
-            self.statusLabel = [[UILabel alloc] initWithFrame:CGRectMake(80, 0, 200, 20)];
-            [self.statusLabel setBackgroundColor:[UIColor redColor]];
-            self.statusLabel.text = self.friend.statusMessage;
-            [self addSubview:self.statusLabel];
-            self.showingStatusMessage = YES;
-        }
-    } else {
-        [self.statusLabel removeFromSuperview];
-        self.showingStatusMessage = NO;
-    }
 }
 
 @end
@@ -149,7 +147,7 @@
 }
 
 - (void)prepareForReuse {
-    self.cellContentView = nil;
+    [self.cellContentView prepareForReuse];
 }
 
 - (FriendCellContentView *)cellContentView {

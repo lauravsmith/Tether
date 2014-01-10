@@ -15,12 +15,10 @@
 @interface LeftPanelViewController : ViewController
 
 @property (nonatomic, assign) id<LeftPanelViewControllerDelegate> delegate;
-@property (nonatomic, strong) NSMutableArray * tetherFriendsGoingOut;
-@property (nonatomic, strong) NSMutableArray * tetherFriendsNotGoingOut;
-@property (nonatomic, strong) NSMutableArray * tetherFriendsUndecided;
 -(void)updateFriendsList;
 @end
 
 @protocol LeftPanelViewControllerDelegate <NSObject>
 -(void)goToPlaceInListView:(id)placeId;
+-(void)pollDatabase;
 @end

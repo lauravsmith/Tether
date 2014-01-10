@@ -29,11 +29,12 @@
     [super viewDidLoad];
     
     UILabel *questionLabel = [[UILabel alloc] init];
-    questionLabel.text = @"Are you going out tonight?";
+    questionLabel.text = @"Are you going out?";
     questionLabel.textColor = [UIColor whiteColor];
     UIFont *champagne = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:25];
     questionLabel.font = champagne;
-    questionLabel.frame = CGRectMake((self.view.frame.size.width - 270.0)/ 2, 100.0, [questionLabel.text sizeWithFont:[UIFont systemFontOfSize:30]].width, [questionLabel.text sizeWithFont:[UIFont systemFontOfSize:30]].height);
+    CGSize size = [questionLabel.text sizeWithAttributes:@{NSFontAttributeName:champagne}];
+    questionLabel.frame = CGRectMake((self.view.frame.size.width - size.width)/ 2, 100.0, size.width, size.height);
     [self.view addSubview:questionLabel];
     
     UIButton *yesButton = [[UIButton alloc] initWithFrame:CGRectMake((self.view.frame.size.width - 100.0)/ 2, 200.0, 100.0, 50.0)];
@@ -53,7 +54,7 @@
     
     [self.view addSubview:noButton];
     
-    self.view.backgroundColor = UIColorFromRGB(0x770051);
+    self.view.backgroundColor = UIColorFromRGB(0x8e0528);
 }
 
 - (void)didReceiveMemoryWarning

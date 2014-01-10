@@ -9,6 +9,7 @@
 #import "CenterViewController.h"
 #import "Datastore.h"
 #import "Friend.h"
+#import "FriendAtPlaceCell.h"
 #import "FriendsListViewController.h"
 
 #import <FacebookSDK/FacebookSDK.h>
@@ -16,16 +17,18 @@
 #define BORDER_WIDTH 4.0
 #define BOTTOM_BAR_HEIGHT 60.0
 #define CELL_HEIGHT 60.0
+#define HEADER_HEIGHT 30.0
 #define NAME_LABEL_OFFSET_X 70.0
 #define PROFILE_PICTURE_OFFSET_X 10.0
 #define PROFILE_PICTURE_SIZE 50.0
+#define STATUS_BAR_HEIGHT 20.0
 
 @interface FriendsListViewController () <UITableViewDataSource, UITableViewDelegate>
 @property (retain, nonatomic) UITableView * friendsTableView;
 @property (retain, nonatomic) UITableViewController * friendsTableViewController;
 @property (retain, nonatomic) NSMutableArray * friendsOfFriendsArray;
-@property (retain, nonatomic) UIView * bottomBar;
-@property (retain, nonatomic) UIButton *bottomLeftButton;
+@property (retain, nonatomic) UIView * topBar;
+@property (retain, nonatomic) UIButton * backButton;
 @end
 
 @implementation FriendsListViewController
@@ -42,12 +45,27 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-	// Do any additional setup after loading the view.
+    self.topBar = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 50.0)];
+    [self.topBar setBackgroundColor:UIColorFromRGB(0x8e0528)];
+    UILabel *placeLabel = [[UILabel alloc] initWithFrame:CGRectMake(30.0, 10.0, self.view.frame.size.width, 40.0)];
+    placeLabel.text = self.place.name;
+    [placeLabel setTextColor:[UIColor whiteColor]];
+    UIFont *champagneBold = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:24];
+    placeLabel.font = champagneBold;
+    [self.topBar addSubview:placeLabel];
+    [self.view addSubview:self.topBar];
+    
+    // left panel view button setup
+    UIImage *leftPanelButtonImage = [UIImage imageNamed:@"WhiteTriangle"];
+    self.backButton = [[UIButton alloc] initWithFrame:CGRectMake(0,  STATUS_BAR_HEIGHT - 5.0, 30.0, 30.0)];
+    [self.backButton setImage:leftPanelButtonImage forState:UIControlStateNormal];
+    [self.view addSubview:self.backButton];
+    self.backButton.tag = 1;
+    [self.backButton addTarget:self action:@selector(closeFriendsView) forControlEvents:UIControlEventTouchDown];
     
     //set up friends going out table view
-    self.friendsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)];
-    [self.friendsTableView setSeparatorColor:[UIColor whiteColor]];
-    [self.friendsTableView setBackgroundColor:UIColorFromRGB(0xD6D6D6)];
+    self.friendsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, self.topBar.frame.size.height, self.view.frame.size.width, self.view.frame.size.height)];
+    [self.friendsTableView setSeparatorColor:UIColorFromRGB(0xD6D6D6)];
     [self.friendsTableView setDataSource:self];
     [self.friendsTableView setDelegate:self];
     self.friendsTableView.showsVerticalScrollIndicator = NO;
@@ -59,20 +77,6 @@
     
     self.friendsOfFriendsArray = [[NSMutableArray alloc] init];
     [self loadFriendsOfFriends];
-    
-    // bottom nav bar setup
-    self.bottomBar = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - BOTTOM_BAR_HEIGHT, self.view.frame.size.width, BOTTOM_BAR_HEIGHT)];
-    [self.bottomBar setBackgroundColor:[UIColor whiteColor]];
-    
-    // left panel view button setup
-    UIImage *leftPanelButtonImage = [UIImage imageNamed:@"chevron-left"];
-    self.bottomLeftButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 10, 30, 30)];
-    [self.bottomLeftButton setImage:leftPanelButtonImage forState:UIControlStateNormal];
-    [self.bottomBar addSubview:self.bottomLeftButton];
-    self.bottomLeftButton.tag = 1;
-    [self.bottomLeftButton addTarget:self action:@selector(closeFriendsView) forControlEvents:UIControlEventTouchDown];
-    
-    [self.view addSubview:self.bottomBar];
 }
 
 -(void)closeFriendsView {
@@ -110,17 +114,30 @@
             
             [facebookFriendsQuery findObjectsInBackgroundWithBlock:^(NSArray *userObjects, NSError *error) {
                 if (!error) {
+                    NSMutableDictionary* friendsOfFriendsDictionary = [[NSMutableDictionary alloc] init];
                     for (PFUser *user in userObjects) {
                         Friend *friend;
                         friend = [[Friend alloc] init];
-                        friend.friendID = user[@"facebookId"];
-                        friend.name = user[@"displayName"];
-                        friend.placeId = self.place.placeId;
-                        friend.status = [user[@"status"] boolValue];
-                        friend.statusMessage = user[@"statusMessage"];
+                        if ([friendsOfFriendsDictionary objectForKey:user[@"facebookId"]]) {
+                            friend = [friendsOfFriendsDictionary objectForKey:user[@"facebookId"]];
+                            friend.mutualFriends += 1;
+                        } else {
+                            friend.friendID = user[@"facebookId"];
+                            friend.name = user[@"displayName"];
+                            friend.placeId = self.place.placeId;
+                            friend.status = [user[@"status"] boolValue];
+                            friend.statusMessage = user[@"statusMessage"];
+                            friend.mutualFriends = 1;
+                        }
                         
-                        [self.friendsOfFriendsArray addObject:friend];
+                        [friendsOfFriendsDictionary setObject:friend forKey:friend.friendID];
                     }
+                    for (id key in friendsOfFriendsDictionary) {
+                        [self.friendsOfFriendsArray addObject:[friendsOfFriendsDictionary objectForKey:key]];
+                    }
+                    NSSortDescriptor *mutualFriendsDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"mutualFriends" ascending:NO];
+                    [self.friendsOfFriendsArray sortUsingDescriptors:[NSArray arrayWithObjects:mutualFriendsDescriptor, nil]];
+                    
                     [self.friendsTableView reloadData];
                 }
             }];
@@ -156,20 +173,25 @@
 }
 
 -(CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    return CELL_HEIGHT;
+    return HEADER_HEIGHT;
 }
 
 -(UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
 {
-    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, tableView.frame.size.width, 80.0)];
+    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, tableView.frame.size.width, HEADER_HEIGHT)];
+    [view setBackgroundColor:UIColorFromRGB(0x8e0528)];
     
-    UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(0, 5, tableView.frame.size.width, 20.0)];
-    [label setFont:[UIFont boldSystemFontOfSize:18]];
-    if(section == 0)
-        [label setText:@"Friends Going"];
-    else
-        [label setText:@"Friends of Friends Going"];
-    
+    UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(10.0, 5.0, tableView.frame.size.width, HEADER_HEIGHT - 5.0)];
+    [label setTextColor:UIColorFromRGB(0xD6D6D6)];
+    UIFont *champagne = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:16.0];
+    [label setFont:champagne];
+    if(section == 0) {
+        NSString *headerString = [NSString stringWithFormat:@"Friends Going Here (%lu)", (unsigned long)[self.friendsArray count]];
+        [label setText:headerString];
+    } else {
+        NSString *headerString = [NSString stringWithFormat:@"Friends of Friends Going Here (%lu)", (unsigned long)[self.friendsOfFriendsArray count]];
+        [label setText:headerString];
+    }
     [view addSubview:label];
     return view;
 }
@@ -183,47 +205,19 @@
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return 2;
-}
-
-- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
-{
-    if(section == 0)
-        return @"Friends Going";
-    else
-        return @"Friends of Friends";
+        return 2;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    UITableViewCell *cell = [[UITableViewCell alloc] init];
+    FriendAtPlaceCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell"];
+    if (!cell) {
+        cell = [[FriendAtPlaceCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Cell"];
+    }
+    
     if (indexPath.section == 0) {
-        Friend *friend = [self.friendsArray objectAtIndex:indexPath.row];
-        UILabel *friendNameLabel = [[UILabel alloc] initWithFrame:CGRectMake(NAME_LABEL_OFFSET_X, 0, 300, 40)];
-        friendNameLabel.text = friend.name;
-        [cell addSubview:friendNameLabel];
-        FBProfilePictureView *friendProfilePictureView = [[FBProfilePictureView alloc] initWithProfileID:(NSString *)friend.friendID pictureCropping:FBProfilePictureCroppingSquare];
-        
-        friendProfilePictureView.clipsToBounds = YES;
-        friendProfilePictureView.frame = CGRectMake(PROFILE_PICTURE_OFFSET_X, (cell.frame.size.height - PROFILE_PICTURE_SIZE) / 2, PROFILE_PICTURE_SIZE, PROFILE_PICTURE_SIZE);
-        friendProfilePictureView.layer.cornerRadius = 24.0;
-        friendProfilePictureView.clipsToBounds = YES;
-        [friendProfilePictureView.layer setBorderColor:[[UIColor whiteColor] CGColor]];
-        [friendProfilePictureView.layer setBorderWidth:BORDER_WIDTH];
-        [cell addSubview:friendProfilePictureView];
+       [cell setFriend:[self.friendsArray objectAtIndex:indexPath.row]];
     } else {
-        Friend *friend = [self.friendsOfFriendsArray objectAtIndex:indexPath.row];
-        UILabel *friendNameLabel = [[UILabel alloc] initWithFrame:CGRectMake(NAME_LABEL_OFFSET_X, 0, 300, 40)];
-        friendNameLabel.text = friend.name;
-        [cell addSubview:friendNameLabel];
-        FBProfilePictureView *friendProfilePictureView = [[FBProfilePictureView alloc] initWithProfileID:(NSString *)friend.friendID pictureCropping:FBProfilePictureCroppingSquare];
-        
-        friendProfilePictureView.clipsToBounds = YES;
-        friendProfilePictureView.frame = CGRectMake(PROFILE_PICTURE_OFFSET_X, (cell.frame.size.height - PROFILE_PICTURE_SIZE) / 2, PROFILE_PICTURE_SIZE, PROFILE_PICTURE_SIZE);
-        friendProfilePictureView.layer.cornerRadius = 24.0;
-        friendProfilePictureView.clipsToBounds = YES;
-        [friendProfilePictureView.layer setBorderColor:[[UIColor whiteColor] CGColor]];
-        [friendProfilePictureView.layer setBorderWidth:BORDER_WIDTH];
-        [cell addSubview:friendProfilePictureView];
+        [cell setFriend:[self.friendsOfFriendsArray objectAtIndex:indexPath.row]];
     }
 
     return cell;

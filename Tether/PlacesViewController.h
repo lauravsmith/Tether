@@ -13,10 +13,18 @@
 @interface PlacesViewController : ViewController
 @property (nonatomic, weak) id<PlacesViewControllerDelegate> delegate;
 @property (nonatomic, strong) UITableView *placesTableView;
+@property (retain, nonatomic) UILabel * placeLabel;
+@property (retain, nonatomic) UILabel * placeNumberLabel;
+@property (retain, nonatomic) UIView * bottomBar;
+@property (strong, nonatomic) UIButton *notificationsButton;
 -(void)getFriendsCommitments;
 -(void)removePreviousCommitment;
 -(void)scrollToPlaceWithId:(id)placeId;
 -(void)removeCommitmentFromDatabase;
+-(void)sortPlacesByPopularity;
+-(void)refreshNotificationsNumber;
+-(void)layoutCurrentCommitment;
+
 @end
 
 @protocol PlacesViewControllerDelegate <NSObject>
@@ -27,5 +35,12 @@
 -(void)commitToPlace:(Place*)place;
 -(void)canUpdatePlaces:(BOOL)canUpdate;
 -(void)refreshCommitmentName;
+-(void)removePreviousCommitment;
+-(void)removeCommitmentFromDatabase;
+-(void)movePanelToOriginalPosition;
+-(void)movePanelRight;
+-(void)movePanelLeft;
+-(void)removePlaceMarkFromMapView:(Place*)place;
+-(void)sortFriendsList;
 
 @end

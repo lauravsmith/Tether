@@ -69,6 +69,7 @@ NSString *const SessionStateChangedNotification =
 didReceiveRemoteNotification:(NSDictionary *)userInfo
 fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
     NSLog(@"user info");
+    [self.mainViewController loadNotifications];
 }
 
 - (void)showLoginView
@@ -167,6 +168,7 @@ fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
 - (void)applicationWillEnterForeground:(UIApplication *)application
 {
     [self.mainViewController pollDatabase];
+    [self.mainViewController showDecisionView];
     // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
 }
 
