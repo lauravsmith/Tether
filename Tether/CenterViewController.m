@@ -22,13 +22,14 @@
 #define FACE_SIZE 40.0
 #define MAX_FRIENDS_ON_PIN 4.0
 #define PADDING 20.0
+#define SPINNER_SIZE 30.0
+#define STATUS_BAR_HEIGHT 20.0
 #define TOP_BAR_HEIGHT 70.0
 
 @interface CenterViewController () <MKMapViewDelegate, CLLocationManagerDelegate>
 @property (retain, nonatomic) NSString * cityLocation;
 @property (retain, nonatomic) UIView * topBar;
 @property (assign, nonatomic) bool mapHasAdjusted;
-@property (strong, nonatomic) UIButton *listViewButton;
 @property (strong, nonatomic) CLLocationManager * locationManager;
 @property (strong, nonatomic) CLLocation *userCoordinates;
 @property (strong, nonatomic) NSTimer * finishLoadingTimer;
@@ -61,13 +62,17 @@
     self.topBar = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width,TOP_BAR_HEIGHT)];
     [self.topBar setBackgroundColor:UIColorFromRGB(0x8e0528)];
     [self.view addSubview:self.topBar];
-    [self.topBar setAlpha:0.85];
     
     self.locationManager = [[CLLocationManager alloc] init];
     self.locationManager.delegate  = self;
     self.userCoordinates = [[CLLocation alloc] init];
     
     [self locationSetup];
+    
+    self.leftPanelButtonLarge = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, self.topBar.frame.size.width / 4, self.topBar.frame.size.height)];
+    [self.leftPanelButtonLarge addTarget:self action:@selector(btnMovePanelRight:) forControlEvents:UIControlEventTouchUpInside];
+    self.leftPanelButtonLarge.tag = 1;
+    [self.topBar addSubview:self.leftPanelButtonLarge];
 
     // number of friends going out label setup
     self.numberButton = [[UIButton alloc] initWithFrame:CGRectMake(PADDING, PADDING, 40.0, 40.0)];
@@ -77,11 +82,24 @@
     self.numberButton.titleLabel.font = champagneBold;
     [self.numberButton addTarget:self action:@selector(btnMovePanelRight:) forControlEvents:UIControlEventTouchUpInside];
     self.numberButton.tag = 1;
-    [self layoutNumberButton];
     [self.topBar addSubview:self.numberButton];
     
+    self.tethrLabel = [[UILabel alloc] init];
+    UIFont *champagneTall = [UIFont fontWithName:@"Champagne&Limousines" size:30];
+    self.tethrLabel.font = champagneTall;
+    self.tethrLabel.text = @"tethr.";
+    [self.tethrLabel setTextColor:[UIColor whiteColor]];
+    CGSize size = [self.tethrLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneTall}];
+    self.tethrLabel.frame = CGRectMake((self.topBar.frame.size.width - size.width) / 2, (self.topBar.frame.size.height - size.height +STATUS_BAR_HEIGHT) / 2, size.width, size.height);
+    self.tethrLabel.userInteractionEnabled = YES;
+    UITapGestureRecognizer *refreshTapGesture =
+    [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(refreshTapped:)];
+    [self.tethrLabel addGestureRecognizer:refreshTapGesture];
+    [self.tethrLabel setHidden:YES];
+    [self.topBar addSubview:self.tethrLabel];
+    
     UIImage *triangleImage = [UIImage imageNamed:@"WhiteTriangle"];
-    self.triangleButton = [[UIButton alloc] initWithFrame:CGRectMake(5.0, 25.0, 15.0, 15.0)];
+    self.triangleButton = [[UIButton alloc] initWithFrame:CGRectMake(5.0, 30.0, 10.0, 10.0)];
     [self.triangleButton setImage:triangleImage forState:UIControlStateNormal];
     [self.view addSubview:self.triangleButton];
     self.triangleButton.tag = 1;
@@ -96,7 +114,13 @@
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     self.cityLabel.text = [userDetails objectForKey:@"city"];
     [self.cityLabel setFont:champagneItalic];
+    
     [self.topBar addSubview:self.cityLabel];
+    
+    self.spinner = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake((self.topBar.frame.size.width - SPINNER_SIZE) / 2.0, STATUS_BAR_HEIGHT, SPINNER_SIZE, SPINNER_SIZE)];
+    self.spinner.hidesWhenStopped = YES;
+    [self.spinner startAnimating];
+    [self.topBar addSubview:self.spinner];
     
     // list view arrow button setup
     self.listViewButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 40.0, (self.topBar.frame.size.height - 25.0) / 2.0 +  5.0, 25.0, 25.0)];
@@ -104,27 +128,45 @@
     [self.listViewButton addTarget:self action:@selector(showListView) forControlEvents:UIControlEventTouchDown];
     [self.topBar addSubview:self.listViewButton];
     
+    self.listViewButtonLarge = [[UIButton alloc] initWithFrame:CGRectMake(self.topBar.frame.size.width - self.topBar.frame.size.width / 4.0, 0.0, self.topBar.frame.size.width / 4.0, self.topBar.frame.size.height)];
+    [self.listViewButtonLarge addTarget:self action:@selector(showListView) forControlEvents:UIControlEventTouchDown];
+    [self.topBar addSubview:self.listViewButtonLarge];
+    
     // bottom nav bar setup
     self.bottomBar = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - BOTTOM_BAR_HEIGHT, self.view.frame.size.width, BOTTOM_BAR_HEIGHT)];
     [self.bottomBar setBackgroundColor:[UIColor whiteColor]];
     [self.bottomBar setAlpha:0.85];
     
-    // left panel view button setup
-    UIImage *leftPanelButtonImage = [UIImage imageNamed:@"Gear"];
-    self.bottomLeftButton = [[UIButton alloc] initWithFrame:CGRectMake(10.0, (self.bottomBar.frame.size.height - 22.0) / 2, 22.0, 22.0)];
-    [self.bottomLeftButton setImage:leftPanelButtonImage forState:UIControlStateNormal];
-    [self.bottomBar addSubview:self.bottomLeftButton];
-    self.bottomLeftButton.tag = 1;
-    [self.bottomLeftButton addTarget:self action:@selector(settingsPressed:) forControlEvents:UIControlEventTouchDown];
+    // large background button to increase touch surface area
+    self.settingsButtonLarge = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, self.bottomBar.frame.size.width / 4.0, self.bottomBar.frame.size.height)];
+    [self.settingsButtonLarge addTarget:self action:@selector(settingsPressed:) forControlEvents:UIControlEventTouchDown];
     
     // notifications button to open right panel setup
+    self.notificationsButtonLarge = [[UIButton alloc] initWithFrame:CGRectMake(self.bottomBar.frame.size.width - self.bottomBar.frame.size.width / 4.0, 0.0, self.bottomBar.frame.size.width / 4.0, self.bottomBar.frame.size.height)];
+    [self.notificationsButtonLarge addTarget:self action:@selector(btnMovePanelLeft:) forControlEvents:UIControlEventTouchUpInside];
+    self.notificationsButtonLarge.tag = 1;
+    [self.bottomBar addSubview:self.notificationsButtonLarge];
+    
     self.notificationsButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 30.0, 10, 30, 30)];
-    [self.notificationsButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    [self.notificationsButton setBackgroundImage:[UIImage imageNamed:@"FriendsThing"] forState:UIControlStateNormal];
     [self.notificationsButton setBackgroundColor:[UIColor whiteColor]];
     [self.notificationsButton addTarget:self action:@selector(btnMovePanelLeft:) forControlEvents:UIControlEventTouchUpInside];
     self.notificationsButton.tag = 1;
     [self.bottomBar addSubview:self.notificationsButton];
     [self refreshNotificationsNumber];
+    
+    self.notificationsLabel = [[UILabel alloc] initWithFrame:CGRectMake(self.notificationsButton.frame.origin.x + 2.0, self.notificationsButton.frame.origin.y + 2.0, 12.0, 12.0)];
+    self.notificationsLabel.layer.cornerRadius = 6.0;
+    self.notificationsLabel.layer.borderWidth = 1.0;
+    self.notificationsLabel.layer.borderColor = [UIColor whiteColor].CGColor;
+    [self.notificationsLabel setBackgroundColor:UIColorFromRGB(0x8e0528)];
+    [self.notificationsLabel setTextColor:[UIColor whiteColor]];
+    [self.notificationsLabel setTextAlignment:NSTextAlignmentCenter];
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:8];
+    self.notificationsLabel.font = montserrat;
+    [self.notificationsLabel sizeThatFits:CGSizeMake(10.0, 10.0)];
+    self.notificationsLabel.adjustsFontSizeToFitWidth = YES;
+    [self.bottomBar addSubview:self.notificationsLabel];
     
     UIFont *champagneSmall = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:18];
     UIFont *champagneExtraSmall = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:14];
@@ -151,6 +193,7 @@
     self.numberButton.frame = CGRectMake(PADDING, PADDING, size.width, size.height);
     self.numberButton.tag = 1;
     [self.topBar addSubview:self.numberButton];
+    [self refreshComplete];
 }
 
 -(void)layoutCurrentCommitment {
@@ -158,28 +201,52 @@
     if (sharedDataManager.currentCommitmentPlace) {
         self.placeLabel.text = sharedDataManager.currentCommitmentPlace.name;
         self.placeNumberLabel.text = [NSString stringWithFormat:@"%d", sharedDataManager.currentCommitmentPlace.numberCommitments];
+        self.tethrLabel.text = @"tethrd.";
     } else {
         self.placeLabel.text = @"";
         self.placeNumberLabel.text = @"";
+        self.tethrLabel.text = @"tethr.";
     }
+    UIFont *champagneTall = [UIFont fontWithName:@"Champagne&Limousines" size:30];
     UIFont *champagneSmall = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:18];
     UIFont *champagneExtraSmall = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:14];
     CGSize size = [self.placeLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneExtraSmall}];
     self.placeLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2, self.bottomBar.frame.size.height - size.height, size.width, size.height);
     size = [self.placeNumberLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneSmall}];
     self.placeNumberLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2, 0, size.width, size.height);
+    size = [self.tethrLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneTall}];
+    self.tethrLabel.frame = CGRectMake((self.topBar.frame.size.width - size.width) / 2, (self.topBar.frame.size.height - size.height  + STATUS_BAR_HEIGHT) / 2, size.width, size.height);
+
 }
 
+- (void)refreshTapped:(UIGestureRecognizer*)recognizer {
+    if ([self.delegate respondsToSelector:@selector(pollDatabase)]) {
+        [self.delegate pollDatabase];
+        [self.tethrLabel setHidden:YES];
+        [self.spinner startAnimating];
+        [self performSelector:@selector(refreshComplete) withObject:self.spinner afterDelay:1.0];
+        [self updateLocation];
+    }
+}
+
+-(void)refreshComplete {
+    [self.tethrLabel setHidden:NO];
+    [self.spinner stopAnimating];
+}
 
 -(void)refreshNotificationsNumber {
     Datastore *sharedDataManager = [Datastore sharedDataManager];
-    [self.notificationsButton setTitle:[NSString stringWithFormat:@"%d",sharedDataManager.notifications] forState:UIControlStateNormal];
+    self.notificationsLabel.text = [NSString stringWithFormat:@"%d", sharedDataManager.notifications];
 }
 
 -(void)locationSetup {
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     if ([userDetails boolForKey:@"useCurrentLocation"] || ![userDetails objectForKey:@"city"] || ![userDetails objectForKey:@"state"]) {
         [self.locationManager startUpdatingLocation];
+        if (![userDetails objectForKey:@"city"] || ![userDetails objectForKey:@"state"]) {
+            [userDetails setBool:YES forKey:@"useCurrentLocation"];
+            [userDetails synchronize];
+        }
     } else {
         NSString *city = [userDetails objectForKey:@"city"];
         NSString *state = [userDetails objectForKey:@"state"];
@@ -368,6 +435,9 @@
     if ([self.delegate respondsToSelector:@selector(goToPlaceInListView:)]) {
         Place *p = [self.annotationsArray objectAtIndex:sender.tag];
         [self.delegate goToPlaceInListView:p.placeId];
+        if ([self.delegate respondsToSelector:@selector(openPageForPlaceWithId:)]) {
+            [self.delegate openPageForPlaceWithId:p.placeId];
+        }
     }
 }
 
@@ -399,7 +469,9 @@
         TetherAnnotationView *pinView = [[TetherAnnotationView alloc] init];
         
         // If an existing pin view was not available, create one.
-        UILabel *numberLabel = [[UILabel alloc] initWithFrame:CGRectMake(15.0, 5.0, 10.0, 20.0)];
+        UILabel *numberLabel = [[UILabel alloc] initWithFrame:CGRectMake(16.0, 7.0, 10.0, 15.0)];
+        UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:15];
+        numberLabel.font = montserrat;
         numberLabel.adjustsFontSizeToFitWidth = YES;
         numberLabel.text = [NSString stringWithFormat:@"%d", ((TetherAnnotation*)annotation).place.numberCommitments];
         numberLabel.textColor = [UIColor whiteColor];

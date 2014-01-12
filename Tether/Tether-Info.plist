@@ -55,6 +55,8 @@
 		<string>Champagne&amp;LimousinesItalic.ttf</string>
 		<string>Champagne&amp;Limousines.ttf</string>
 		<string>Champagne&amp;LimousinesBold.ttf</string>
+		<string>Montserrat.ttf</string>
+		<string>MontserratBold.ttf</string>
 	</array>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>

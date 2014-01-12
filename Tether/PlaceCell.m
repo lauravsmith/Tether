@@ -25,6 +25,7 @@
 @property (nonatomic, strong) UILabel *addressLabel;
 @property (nonatomic, strong) UIButton *inviteButton;
 @property (nonatomic, strong) UIButton *moreInfoButton;
+@property (nonatomic, strong) UILabel *plusIconLabel;
 - (void)prepareForReuse;
 
 @end
@@ -60,6 +61,8 @@
         [self addSubview:self.inviteButton];
         self.moreInfoButton = [[UIButton alloc] init];
         [self addSubview:self.moreInfoButton];
+        self.plusIconLabel = [[UILabel alloc] init];
+        [self addSubview:self.plusIconLabel];
     }
     return self;
 }
@@ -71,14 +74,15 @@
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    self.placeNameLabel.frame = CGRectMake(10.0, 10.0, 300.0, 20.0);
     [self.placeNameLabel setTextColor:UIColorFromRGB(0x8e0528)];
     UIFont *champagneBold = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:18.0f];
+    CGSize size = [self.placeNameLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneBold}];
+    self.placeNameLabel.frame = CGRectMake(10.0, 10.0, size.width, size.height);
     [self.placeNameLabel setFont:champagneBold];
     
     UIFont *champagneSmall = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:12.0f];
     [self.addressLabel setText:self.place.address];
-    CGSize size = [self.addressLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneSmall}];
+    size = [self.addressLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneSmall}];
     self.addressLabel.frame = CGRectMake(self.placeNameLabel.frame.origin.x, self.placeNameLabel.frame.origin.y + self.placeNameLabel.frame.size.height, size.width, size.height);
     [self.addressLabel setFont:champagneSmall];
     [self.addressLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
@@ -88,7 +92,7 @@
     [self.moreInfoButton setTitleColor:UIColorFromRGB(0x05528e)  forState:UIControlStateNormal];
     self.moreInfoButton.titleLabel.font = champagneExtraSmall;
     size = [self.moreInfoButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneExtraSmall}];
-    self.moreInfoButton.frame = CGRectMake(self.placeNameLabel.frame.origin.x, self.addressLabel.frame.origin.y + self.addressLabel.frame.size.height + 4.0, size.width, size.height);
+    self.moreInfoButton.frame = CGRectMake(self.placeNameLabel.frame.origin.x + self.placeNameLabel.frame.size.width + 5.0, self.placeNameLabel.frame.origin.y + self.placeNameLabel.frame.size.height - size.height, size.width, size.height);
     [self.moreInfoButton addTarget:self
                           action:@selector(moreInfoClicked:)
                 forControlEvents:UIControlEventTouchUpInside];
@@ -101,7 +105,7 @@
                 forControlEvents:UIControlEventTouchUpInside];
     [self layoutCommitButton];
     
-    self.arrowButton.frame = CGRectMake(self.frame.size.width - 20.0, (self.frame.size.height - 15.0) / 2, 15.0, 15.0);
+    self.arrowButton.frame = CGRectMake(self.frame.size.width - 20.0, (self.frame.size.height - 10.0) / 2, 10.0, 10.0);
     self.arrowButton.transform = CGAffineTransformMakeRotation(degreesToRadian(180));
     UIImage *btnImage = [UIImage imageNamed:@"RedTriangle"];
     [self.arrowButton setImage:btnImage forState:UIControlStateNormal];
@@ -132,12 +136,22 @@
         [self.arrowButton setHidden:YES];
     }
     
-    self.inviteButton.frame = CGRectMake(self.commitButton.frame.origin.x + self.commitButton.frame.size.width, self.moreInfoButton.frame.origin.y + self.moreInfoButton.frame.size.height + 4.0, 100, 20);
-    [self.inviteButton setTitle:@"+1" forState:UIControlStateNormal];
-    [self.inviteButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
+    self.inviteButton.frame = CGRectMake(self.commitButton.frame.origin.x + self.commitButton.frame.size.width + 10.0, self.addressLabel.frame.origin.y + self.addressLabel.frame.size.height, 20, 30);
+    [self.inviteButton setImage:[UIImage imageNamed:@"FriendIcon"] forState:UIControlStateNormal];
     [self.inviteButton addTarget:self
                           action:@selector(inviteClicked:)
                 forControlEvents:UIControlEventTouchUpInside];
+    
+    self.plusIconLabel.frame = CGRectMake(self.inviteButton.frame.origin.x + 3.0, self.inviteButton.frame.origin.y + 7.0, 8.0, 8.0);
+    [self.plusIconLabel setBackgroundColor:UIColorFromRGB(0x8e0528)];
+    [self.plusIconLabel setTextColor:[UIColor whiteColor]];
+    self.plusIconLabel.layer.borderWidth = 0.5;
+    self.plusIconLabel.layer.borderColor = [UIColor whiteColor].CGColor;
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:8];
+    self.plusIconLabel.font = montserrat;
+    self.plusIconLabel.text = @"+";
+    self.plusIconLabel.textAlignment = NSTextAlignmentCenter;
+    self.plusIconLabel.layer.cornerRadius = 5.0;
 }
 
 - (void)setPlace:(Place *)place {
@@ -157,7 +171,7 @@
     }
     UIFont *champagne = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:18.0f];
     CGSize size = [self.commitButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:champagne}];
-    self.commitButton.frame = CGRectMake(self.placeNameLabel.frame.origin.x, self.moreInfoButton.frame.origin.y + self.moreInfoButton.frame.size.height + 4.0, size.width, size.height);
+    self.commitButton.frame = CGRectMake(self.placeNameLabel.frame.origin.x, self.addressLabel.frame.origin.y + self.addressLabel.frame.size.height + 4.0, size.width, size.height);
 }
 
 -(IBAction)commitClicked:(id)sender {

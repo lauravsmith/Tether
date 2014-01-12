@@ -32,13 +32,26 @@
     
     [self.view setBackgroundColor:[UIColor whiteColor]];
     
-    self.loginButton = [[UIButton alloc] initWithFrame:CGRectMake(50.0, 100.0, 100.0, 50.0)];
-    [self.loginButton setBackgroundImage:[UIImage imageNamed:@"facebook"] forState:UIControlStateNormal];
-    [self.loginButton setBackgroundColor:UIColorFromRGB(0x770051)];
+    self.loginButton = [[UIButton alloc] init];
+    [self.loginButton setTitle:@"Login with facebook" forState:UIControlStateNormal];
+    UIFont *champagne = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:25];
+    CGSize size = [self.loginButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:champagne}];
+    CGRect frame = self.loginButton.frame;
+    frame.origin.x = (self.view.frame.size.width - size.width) / 2.0;
+    frame.origin.y = self.view.frame.size.height / 2.0;
+    frame.size.width = size.width + 10.0;
+    frame.size.height = size.height;
+    self.loginButton.frame = frame;
+    [self.loginButton setBackgroundColor:UIColorFromRGB(0x8e0528)];
+    [self.loginButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    self.loginButton.titleLabel.font = champagne;
+    self.loginButton.layer.cornerRadius = 10.0;
+    [self.loginButton setTitleEdgeInsets:UIEdgeInsetsMake(5.0, 5.0, 5.0, 5.0)];
     [self.loginButton addTarget:self action:@selector(loginButtonTouchHandler:) forControlEvents:UIControlEventTouchDown];
     [self.view addSubview:self.loginButton];
     
-    self.spinner = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake((self.view.frame.size.width - 50.0) / 2, 200.0, 50.0, 50.0)];
+    self.spinner = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake((self.view.frame.size.width - 50.0) / 2, 100.0, 50.0, 50.0)];
+    [self.spinner setColor:UIColorFromRGB(0x8e0528)];
     [self.view addSubview:self.spinner];
 }
 

@@ -29,6 +29,7 @@
 @property (retain, nonatomic) NSMutableArray * friendsOfFriendsArray;
 @property (retain, nonatomic) UIView * topBar;
 @property (retain, nonatomic) UIButton * backButton;
+@property (retain, nonatomic) UIButton *backButtonLarge;
 @end
 
 @implementation FriendsListViewController
@@ -57,11 +58,14 @@
     
     // left panel view button setup
     UIImage *leftPanelButtonImage = [UIImage imageNamed:@"WhiteTriangle"];
-    self.backButton = [[UIButton alloc] initWithFrame:CGRectMake(0,  STATUS_BAR_HEIGHT - 5.0, 30.0, 30.0)];
+    self.backButton = [[UIButton alloc] initWithFrame:CGRectMake(10.0,  (self.topBar.frame.size.height) / 2.0, 10.0, 10.0)];
     [self.backButton setImage:leftPanelButtonImage forState:UIControlStateNormal];
     [self.view addSubview:self.backButton];
-    self.backButton.tag = 1;
     [self.backButton addTarget:self action:@selector(closeFriendsView) forControlEvents:UIControlEventTouchDown];
+    
+    self.backButtonLarge = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, (self.view.frame.size.width) / 4.0, 50.0)];
+    [self.backButtonLarge addTarget:self action:@selector(closeFriendsView) forControlEvents:UIControlEventTouchDown];
+    [self.view addSubview:self.backButtonLarge];
     
     //set up friends going out table view
     self.friendsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, self.topBar.frame.size.height, self.view.frame.size.width, self.view.frame.size.height)];

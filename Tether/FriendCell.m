@@ -77,10 +77,22 @@
     [self.placeButton setTitleEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 0)];
     [self.placeButton addTarget:self action:@selector(friendsCommitmentPressed) forControlEvents:UIControlEventTouchUpInside];
     
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    if (self.friend.placeId != NULL) {
+        if ([sharedDataManager.placesDictionary objectForKey:self.friend.placeId]) {
+            Place *place = [sharedDataManager.placesDictionary objectForKey:self.friend.placeId];
+            [self.placeButton setTitle:place.name forState:UIControlStateNormal];
+        }
+    } else {
+        [self.placeButton setTitle:@"" forState:UIControlStateNormal];
+    }
+    
     self.statusLabel = [[UILabel alloc] init];
     [self.statusLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
     if (self.friend.statusMessage.length > 0) {
         self.statusLabel.text = [NSString stringWithFormat:@"\"%@\"", self.friend.statusMessage];
+    } else {
+        self.statusLabel.text = @"";
     }
     UIFont *champagneSmall = [UIFont fontWithName:@"Champagne&Limousines" size:14.0f];
     size = [self.statusLabel.text sizeWithAttributes:@{NSFontAttributeName: champagneSmall}];

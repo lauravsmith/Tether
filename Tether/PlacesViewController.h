@@ -13,17 +13,12 @@
 @interface PlacesViewController : ViewController
 @property (nonatomic, weak) id<PlacesViewControllerDelegate> delegate;
 @property (nonatomic, strong) UITableView *placesTableView;
-@property (retain, nonatomic) UILabel * placeLabel;
-@property (retain, nonatomic) UILabel * placeNumberLabel;
-@property (retain, nonatomic) UIView * bottomBar;
-@property (strong, nonatomic) UIButton *notificationsButton;
 -(void)getFriendsCommitments;
 -(void)removePreviousCommitment;
 -(void)scrollToPlaceWithId:(id)placeId;
 -(void)removeCommitmentFromDatabase;
 -(void)sortPlacesByPopularity;
--(void)refreshNotificationsNumber;
--(void)layoutCurrentCommitment;
+-(void)openPageForPlaceWithId:(id)placeId;
 
 @end
 

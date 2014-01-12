@@ -19,7 +19,6 @@
 #import <AFNetworking/AFHTTPRequestOperationManager.h>
 #import <Parse/Parse.h>
 
-#define BOTTOM_BAR_HEIGHT 40.0
 #define CELL_HEIGHT 90.0
 #define SEARCH_RESULTS_CELL_HEIGHT 60.0
 #define SEARCH_BAR_HEIGHT 50.0
@@ -31,6 +30,7 @@
 @property (nonatomic, strong) NSMutableArray *placesArray;
 @property (nonatomic, strong) UITableViewController *placesTableViewController;
 @property (retain, nonatomic) UIButton *backButton;
+@property (retain, nonatomic) UIButton *backButtonLarge;
 @property (retain, nonatomic) NSUserDefaults *userDetails;
 @property (assign, nonatomic) bool friendStatusDetailsHaveLoaded;
 @property (assign, nonatomic) bool foursquarePlacesDataHasLoaded;
@@ -39,6 +39,7 @@
 @property (retain, nonatomic) NSMutableArray *searchResultsArray;
 @property (nonatomic, strong) UITableView *searchResultsTableView;
 @property (nonatomic, strong) UITableViewController *searchResultsTableViewController;
+@property (nonatomic, strong) UIRefreshControl *refreshControl;
 
 @end
 
@@ -77,7 +78,7 @@
     
     self.searchResultsArray = [[NSMutableArray alloc] init];
     
-    self.searchResultsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, STATUS_BAR_HEIGHT + self.searchBar.frame.size.height, self.view.frame.size.width, self.view.frame.size.height - BOTTOM_BAR_HEIGHT)];
+    self.searchResultsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, STATUS_BAR_HEIGHT + self.searchBar.frame.size.height, self.view.frame.size.width, self.view.frame.size.height)];
     self.searchResultsTableView.hidden = YES;
     [self.searchResultsTableView setDataSource:self];
     [self.searchResultsTableView setDelegate:self];
@@ -87,7 +88,7 @@
     [self.searchResultsTableView reloadData];
     
     //set up friends going out table view
-    self.placesTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, STATUS_BAR_HEIGHT + self.searchBar.frame.size.height, self.view.frame.size.width, self.view.frame.size.height - self.searchBar.frame.size.height - BOTTOM_BAR_HEIGHT - STATUS_BAR_HEIGHT)];
+    self.placesTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, STATUS_BAR_HEIGHT + self.searchBar.frame.size.height, self.view.frame.size.width, self.view.frame.size.height - self.searchBar.frame.size.height - STATUS_BAR_HEIGHT)];
     [self.placesTableView setSeparatorColor:UIColorFromRGB(0xc8c8c8)];
     [self.placesTableView setDataSource:self];
     [self.placesTableView setDelegate:self];
@@ -99,69 +100,20 @@
     self.placesTableViewController = [[UITableViewController alloc] init];
     self.placesTableViewController.tableView = self.placesTableView;
     
-    // bottom nav bar setup
-    self.bottomBar = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - BOTTOM_BAR_HEIGHT, self.view.frame.size.width, BOTTOM_BAR_HEIGHT)];
-    [self.bottomBar setBackgroundColor:[UIColor whiteColor]];
-    UIBezierPath *shadowPath = [UIBezierPath bezierPathWithRect:self.bottomBar.bounds];
-    self.bottomBar.layer.masksToBounds = NO;
-    self.bottomBar.layer.shadowColor = [UIColor blackColor].CGColor;
-    self.bottomBar.layer.shadowOffset = CGSizeMake(0.0f, -0.1f);
-    self.bottomBar.layer.shadowOpacity = 0.1f;
-    self.bottomBar.layer.shadowPath = shadowPath.CGPath;
+    self.refreshControl = [[UIRefreshControl alloc] init];
+    self.refreshControl.tintColor = UIColorFromRGB(0x8e0528);
+    [self.refreshControl addTarget:self action:@selector(refresh) forControlEvents:UIControlEventValueChanged];
+    self.placesTableViewController.refreshControl = self.refreshControl;
     
     UIImage *triangleImage = [UIImage imageNamed:@"WhiteTriangle"];
-    self.backButton = [[UIButton alloc] initWithFrame:CGRectMake(0, STATUS_BAR_HEIGHT + 9.0, 30.0, 30.0)];
+    self.backButton = [[UIButton alloc] initWithFrame:CGRectMake(10.0, (SEARCH_BAR_HEIGHT + STATUS_BAR_HEIGHT + 5.0) / 2.0, 10.0, 10.0)];
     [self.backButton setImage:triangleImage forState:UIControlStateNormal];
-    [self.view addSubview:self.backButton];
-    self.backButton.tag = 1;
     [self.backButton addTarget:self action:@selector(closeListView) forControlEvents:UIControlEventTouchDown];
+    [self.view addSubview:self.backButton];
     
-    UIFont *champagneSmall = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:18];
-    UIFont *champagneExtraSmall = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:14];
-    self.placeLabel = [[UILabel alloc] init];
-    [self.placeLabel setFont:champagneExtraSmall];
-    [self.placeLabel setTextColor:UIColorFromRGB(0x8e0528)];
-    [self.bottomBar addSubview:self.placeLabel];
-    
-    self.placeNumberLabel = [[UILabel alloc] init];
-    [self.placeNumberLabel setFont:champagneSmall];
-    [self.placeNumberLabel setTextColor:UIColorFromRGB(0x8e0528)];
-    [self.bottomBar addSubview:self.placeNumberLabel];
-    [self layoutCurrentCommitment];
-    
-    // notifications button to open right panel setup
-    self.notificationsButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 30.0, 10, 30, 30)];
-    [self.notificationsButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    [self.notificationsButton setBackgroundColor:[UIColor whiteColor]];
-    [self.notificationsButton addTarget:self action:@selector(btnMovePanelLeft:) forControlEvents:UIControlEventTouchUpInside];
-    self.notificationsButton.tag = 1;
-    [self.bottomBar addSubview:self.notificationsButton];
-    [self refreshNotificationsNumber];
-    
-    [self.bottomBar setAlpha:0.0];
-    [self.view addSubview:self.bottomBar];
-}
-
--(void)refreshNotificationsNumber {
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
-    [self.notificationsButton setTitle:[NSString stringWithFormat:@"%d",sharedDataManager.notifications] forState:UIControlStateNormal];
-}
-
--(void)layoutCurrentCommitment {
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
-    if (sharedDataManager.currentCommitmentPlace) {
-        self.placeLabel.text = sharedDataManager.currentCommitmentPlace.name;
-        self.placeNumberLabel.text = [NSString stringWithFormat:@"%d", sharedDataManager.currentCommitmentPlace.numberCommitments];
-    } else {
-        self.placeLabel.text = @"";
-        self.placeNumberLabel.text = @"";
-    }
-    UIFont *champagneSmall = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:18];
-    UIFont *champagneExtraSmall = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:14];
-    CGSize size = [self.placeLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneExtraSmall}];
-    self.placeLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2, self.bottomBar.frame.size.height - size.height, size.width, size.height);
-    size = [self.placeNumberLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneSmall}];
-    self.placeNumberLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2, 0, size.width, size.height);
+    self.backButtonLarge = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, (self.view.frame.size.width - SEARCH_BAR_WIDTH) / 2.0, 60.0)];
+    [self.backButtonLarge addTarget:self action:@selector(closeListView) forControlEvents:UIControlEventTouchDown];
+    [self.view addSubview:self.backButtonLarge];
 }
 
 -(void)getFriendsCommitments {
@@ -382,6 +334,30 @@
     
     [self.placesTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:[self.placesArray indexOfObject:place] inSection:0]
                                 atScrollPosition:UITableViewScrollPositionTop animated:NO];
+}
+
+-(void)openPageForPlaceWithId:(id)placeId {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    Place *place = [sharedDataManager.placesDictionary objectForKey:placeId];
+    if (place.numberCommitments > 0) {
+        if (place.numberCommitments == 1 && [place.friendsCommitted containsObject:sharedDataManager.facebookId]) {
+            return;
+        } else {
+            PlaceCell *cell = (PlaceCell*)[self.placesTableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:[self.placesArray indexOfObject:place] inSection:0]];
+            [self showFriendsViewFromCell:cell];
+        }
+    }
+}
+
+-(void)refresh {
+    [self.refreshControl beginRefreshing];
+    [self performSelector:@selector(endRefresh:) withObject:self.refreshControl afterDelay:1.0f];
+    [self getFriendsCommitments];
+}
+
+- (void)endRefresh:(UIRefreshControl *)refresh
+{
+    [refresh performSelectorOnMainThread:@selector(endRefreshing) withObject:nil waitUntilDone:NO];
 }
 
 #pragma mark gesture handlers
@@ -738,9 +714,16 @@
         SearchResultCell *cell = [[SearchResultCell alloc] init];
         Place *p = [self.searchResultsArray objectAtIndex:indexPath.row];
         cell.place = p;
-        UILabel *placeNameLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 40)];
+        UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:18];
+        UIFont *montserratSubLabelFont = [UIFont fontWithName:@"Montserrat" size:12];
+        UILabel *placeNameLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 20.0)];
         placeNameLabel.text = p.name;
+        placeNameLabel.font = montserrat;
         [cell addSubview:placeNameLabel];
+        UILabel *placeAddressLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 30.0, self.view.frame.size.width, 15.0)];
+        placeAddressLabel.text = p.address;
+        placeAddressLabel.font = montserratSubLabelFont;
+        [cell addSubview:placeAddressLabel];
         
         return cell;
     }

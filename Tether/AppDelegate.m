@@ -7,6 +7,7 @@
 //
 
 #import "AppDelegate.h"
+#import "CenterViewController.h"
 #import "LoginViewController.h"
 #import "MainViewController.h"
 
@@ -30,6 +31,12 @@ NSString *const SessionStateChangedNotification =
                           initWithRootViewController:self.mainViewController];
     self.window.rootViewController = self.navController;
     [self.window makeKeyAndVisible];
+    
+    [[UIBarButtonItem appearanceWhenContainedIn:[UISearchBar class], nil] setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys:
+                                                                                                  UIColorFromRGB(0xD6D6D6),
+                                                                                                  NSForegroundColorAttributeName,
+                                                                                                  nil]
+                                                                                        forState:UIControlStateNormal];
     
     [application registerForRemoteNotificationTypes:UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound | UIRemoteNotificationTypeNone];
     

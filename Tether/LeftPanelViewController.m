@@ -14,25 +14,22 @@
 
 #define CELL_HEIGHT 65
 #define HEADER_HEIGHT 50.0
+#define MIN_CELLS 7
 #define NAME_OFFSET_X 80.0
 #define NAME_OFFSET_Y 20.0
 #define PANEL_WIDTH 60
 #define PADDING 10
 #define PROFILE_PICTURE_BORDER_WIDTH 4.0
 #define PROFILE_PICTURE_OFFSET_X 10.0
-#define SEARCH_BAR_HEIGHT 60.0
+#define SEARCH_BAR_HEIGHT 65.0
 #define SECOND_TABLE_OFFSET_Y 350.0
+#define STATUS_BAR_HEIGHT 20.0
 #define TABLE_HEIGHT 400.0
 
 @interface LeftPanelViewController ()<UITableViewDelegate, UITableViewDataSource, FriendCellDelegate, UIScrollViewDelegate, UISearchBarDelegate>
 
 @property (nonatomic, strong) UITableView *friendsGoingOutTableView;
 @property (nonatomic, strong) UITableViewController *friendsGoingOutTableViewController;
-@property (nonatomic, strong) UITableView *friendsNotGoingOutTableView;
-@property (nonatomic, strong) UITableViewController *friendsNotGoingOutTableViewController;
-@property (nonatomic, strong) UITableView *friendsUndecidedTableView;
-@property (nonatomic, strong) UITableViewController *friendsUndecidedTableViewController;
-@property (retain, nonatomic) UIScrollView * scrollView;
 @property (retain, nonatomic) UIRefreshControl * refreshControl;
 @property (retain, nonatomic) UISearchBar * searchBar;
 @property (retain, nonatomic) NSMutableArray *searchResultsArray;
@@ -56,47 +53,35 @@
 {
     [super viewDidLoad];
     
-    self.scrollView=[[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width - 60.0, self.view.frame.size.height)];
-    self.scrollView.delegate = self;
-    [self.scrollView setBackgroundColor:[UIColor whiteColor]];
-    self.scrollView.scrollEnabled = YES;
-    self.scrollView.showsVerticalScrollIndicator = NO;
+    [self.view setBackgroundColor:[UIColor whiteColor]];
     
-    [self.view addSubview:self.scrollView];
-    
-    self.refreshControl = [[UIRefreshControl alloc] init];
-    [self.scrollView addSubview:self.refreshControl];
-    
-    UIView *searchBarBackground = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.scrollView.frame.size.width, SEARCH_BAR_HEIGHT)];
-    [searchBarBackground setBackgroundColor:UIColorFromRGB(0x8e0528)];
-    [self.scrollView addSubview:searchBarBackground];
-    
-    self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, self.scrollView.frame.size.width, SEARCH_BAR_HEIGHT)];
+    self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width - PANEL_WIDTH, SEARCH_BAR_HEIGHT)];
     self.searchBar.delegate = self;
     [self.searchBar setBackgroundImage:[UIImage new]];
     [self.searchBar setTranslucent:YES];
     self.searchBar.layer.cornerRadius = 5.0;
-    
-    [self.scrollView addSubview:self.searchBar];
+    self.searchBar.barTintColor = [UIColor whiteColor];
     
     //set up friends going out table view
     self.friendsGoingOutTableView = [[UITableView alloc] init];
-    self.friendsGoingOutTableView.frame = CGRectMake(0.0, self.searchBar.frame.origin.y + self.searchBar.frame.size.height, self.scrollView.frame.size.width, self.view.frame.size.height);
+    self.friendsGoingOutTableView.frame = CGRectMake(0.0, 0.0, self.view.frame.size.width - PANEL_WIDTH, self.view.frame.size.height);
     [self.friendsGoingOutTableView setSeparatorColor:UIColorFromRGB(0xc8c8c8)];
     [self.friendsGoingOutTableView setDataSource:self];
     [self.friendsGoingOutTableView setDelegate:self];
     self.friendsGoingOutTableView.showsVerticalScrollIndicator = NO;
 
-    [self.scrollView addSubview:self.friendsGoingOutTableView];
+    [self.view addSubview:self.friendsGoingOutTableView];
     
     self.friendsGoingOutTableViewController = [[UITableViewController alloc] init];
     self.friendsGoingOutTableViewController.tableView = self.friendsGoingOutTableView;
     [self.friendsGoingOutTableView reloadData];
-    self.scrollView.contentSize = CGSizeMake(self.scrollView.frame.size.width, self.searchBar.frame.size.height + self.friendsGoingOutTableView.frame.size.height);
     
-    [self.scrollView setContentOffset:CGPointMake(0.0, SEARCH_BAR_HEIGHT) animated:YES];
+    self.refreshControl = [[UIRefreshControl alloc] init];
+    self.refreshControl.tintColor = UIColorFromRGB(0x8e0528);
+    [self.refreshControl addTarget:self action:@selector(refresh) forControlEvents:UIControlEventValueChanged];
+    self.friendsGoingOutTableViewController.refreshControl = self.refreshControl;
     
-    self.searchResultsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, self.searchBar.frame.size.height, self.view.frame.size.width, self.view.frame.size.height - self.searchBar.frame.size.height)];
+    self.searchResultsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, self.searchBar.frame.size.height, self.view.frame.size.width - PANEL_WIDTH, self.view.frame.size.height - self.searchBar.frame.size.height)];
     [self.searchResultsTableView setDataSource:self];
     [self.searchResultsTableView setDelegate:self];
     [self.searchResultsTableView setHidden:YES];
@@ -105,6 +90,8 @@
     self.searchResultsTableViewController = [[UITableViewController alloc] init];
     self.searchResultsTableViewController.tableView = self.searchResultsTableView;
     [self.searchResultsTableView reloadData];
+    
+    [self hideSearchBar];
 }
 
 -(void)updateFriendsList {
@@ -115,8 +102,11 @@
     [sharedDataManager.tetherFriendsUndecided sortUsingDescriptors:[NSArray arrayWithObjects:nameDescriptor, nil]];
     
     [self.friendsGoingOutTableView reloadData];
-    [self.friendsNotGoingOutTableView reloadData];
-    [self.friendsUndecidedTableView reloadData];
+    
+//    CGRect frame = self.friendsGoingOutTableView.frame;
+//    frame.size.height = MIN((([sharedDataManager.tetherFriendsGoingOut count] + [sharedDataManager.tetherFriendsNotGoingOut count] + [sharedDataManager.tetherFriendsUndecided count]) * CELL_HEIGHT + HEADER_HEIGHT * 3), self.view.frame.size.height);
+//    self.friendsGoingOutTableView.frame = frame;
+//    [self hideSearchBar];
 }
 
 - (void)searchFriends:(NSString*)search {
@@ -124,7 +114,7 @@
     self.searchResultsArray = [[NSMutableArray alloc] init];
     for (Friend *friend in sharedDataManager.tetherFriendsGoingOut) {
         if (friend.name ) {
-            if ([friend.name rangeOfString:search].location != NSNotFound) {
+            if ([[friend.name lowercaseString] rangeOfString:[search lowercaseString]].location != NSNotFound) {
                 [self.searchResultsArray addObject:friend];
             }
         }
@@ -132,7 +122,7 @@
     
     for (Friend *friend in sharedDataManager.tetherFriendsNotGoingOut) {
         if (friend.name ) {
-            if ([friend.name rangeOfString:search].location != NSNotFound) {
+            if ([[friend.name lowercaseString] rangeOfString:[search lowercaseString]].location != NSNotFound) {
                 [self.searchResultsArray addObject:friend];
             }
         }
@@ -140,7 +130,7 @@
     
     for (Friend *friend in sharedDataManager.tetherFriendsUndecided) {
         if (friend.name ) {
-            if ([friend.name rangeOfString:search].location != NSNotFound) {
+            if ([[friend.name lowercaseString] rangeOfString:[search lowercaseString]].location != NSNotFound) {
                 [self.searchResultsArray addObject:friend];
             }
         }
@@ -149,17 +139,27 @@
 }
 
 -(void)hideSearchBar {
-   [self.scrollView setContentOffset:CGPointMake(0.0, SEARCH_BAR_HEIGHT) animated:YES];
-    CGRect frame = self.friendsGoingOutTableView.frame;
-    frame.size.height = self.view.frame.size.height;
-    self.friendsGoingOutTableView.frame = frame;
+    if ([self.searchBar.text isEqualToString:@""]) {
+       [self.friendsGoingOutTableView setContentOffset:CGPointMake(0.0, SEARCH_BAR_HEIGHT - 15.0) animated:YES];
+    }
 }
 
 -(void)showSearchBar {
-   [self.scrollView setContentOffset:CGPointMake(0.0, 0.0) animated:YES];
-    CGRect frame = self.friendsGoingOutTableView.frame;
-    frame.size.height = self.view.frame.size.height - SEARCH_BAR_HEIGHT;
-    self.friendsGoingOutTableView.frame = frame;
+   [self.friendsGoingOutTableView setContentOffset:CGPointMake(0.0, 0.0) animated:YES];
+}
+
+-(void)refresh {
+    [self.refreshControl beginRefreshing];
+    [self performSelector:@selector(endRefresh:) withObject:self.refreshControl afterDelay:1.0f];
+    if ([self.delegate respondsToSelector:@selector(pollDatabase)]) {
+        [self.delegate pollDatabase];
+    }
+}
+
+- (void)endRefresh:(UIRefreshControl *)refresh
+{
+    [refresh performSelectorOnMainThread:@selector(endRefreshing) withObject:nil waitUntilDone:NO];
+    [self showSearchBar];
 }
 
 #pragma mark UITableViewDataSource Methods
@@ -167,31 +167,45 @@
 -(UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
 {
     if (tableView == self.friendsGoingOutTableView) {
-        Datastore *sharedDataManager = [Datastore sharedDataManager];
-        UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, HEADER_HEIGHT)];
-        [header setBackgroundColor:UIColorFromRGB(0x8e0528)];
-        UILabel *goingOutLabel = [[UILabel alloc] initWithFrame:header.frame];
-        [goingOutLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
-        UILabel *countLabel = [[UILabel alloc] initWithFrame:CGRectMake(100.0, 0, 50.0, 30.0)];
-        [countLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
-        UIFont *champagneBold = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:16.0f];
-        goingOutLabel.font = champagneBold;
         if (section == 0) {
-            goingOutLabel.text = @"Tethrd";
-            countLabel.text = [NSString stringWithFormat:@"(%lu)",(unsigned long)[sharedDataManager.tetherFriendsGoingOut count]];
-        } else if (section == 1) {
-            goingOutLabel.text = @"Going Out";
-            countLabel.text = [NSString stringWithFormat:@"(%lu)",(unsigned long)[sharedDataManager.tetherFriendsNotGoingOut count]];
+            UIView *searchBarBackground = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width - PANEL_WIDTH, HEADER_HEIGHT)];
+            [searchBarBackground setBackgroundColor:UIColorFromRGB(0x8e0528)];
+            self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width - PANEL_WIDTH, SEARCH_BAR_HEIGHT)];
+            self.searchBar.delegate = self;
+            [self.searchBar setBackgroundImage:[UIImage new]];
+            [self.searchBar setTranslucent:YES];
+            self.searchBar.layer.cornerRadius = 5.0;
+            self.searchBar.barTintColor = [UIColor whiteColor];
+            [searchBarBackground addSubview:self.searchBar];
+            
+            return searchBarBackground;
         } else {
-            goingOutLabel.text = @"Undecided";
+            Datastore *sharedDataManager = [Datastore sharedDataManager];
+            UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, HEADER_HEIGHT)];
+            [header setBackgroundColor:UIColorFromRGB(0x8e0528)];
+            UILabel *goingOutLabel = [[UILabel alloc] initWithFrame:header.frame];
+            [goingOutLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
+            UILabel *countLabel = [[UILabel alloc] initWithFrame:CGRectMake(100.0, 0, 50.0, 30.0)];
+            [countLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
+            UIFont *champagneBold = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:16.0f];
+            goingOutLabel.font = champagneBold;
+            if (section == 1) {
+                goingOutLabel.text = @"Tethrd";
+                countLabel.text = [NSString stringWithFormat:@"(%lu)",(unsigned long)[sharedDataManager.tetherFriendsGoingOut count]];
+            } else if (section == 2) {
+                goingOutLabel.text = @"Going Out";
+                countLabel.text = [NSString stringWithFormat:@"(%lu)",(unsigned long)[sharedDataManager.tetherFriendsNotGoingOut count]];
+            } else {
+                goingOutLabel.text = @"Not Going Out";
+            }
+            CGSize textLabelSize = [goingOutLabel.text sizeWithAttributes:@{NSFontAttributeName: champagneBold}];
+            CGSize numberLabelSize = [countLabel.text sizeWithAttributes:@{NSFontAttributeName: champagneBold}];
+            goingOutLabel.frame = CGRectMake(10.0, (header.frame.size.height - textLabelSize.height) / 2.0 , textLabelSize.width, textLabelSize.height);
+            countLabel.frame = CGRectMake(goingOutLabel.frame.origin.x + goingOutLabel.frame.size.width + PADDING, goingOutLabel.frame.origin.y, numberLabelSize.width, numberLabelSize.height);
+            [header addSubview:goingOutLabel];
+            [header addSubview:countLabel];
+            return header;
         }
-        CGSize textLabelSize = [goingOutLabel.text sizeWithAttributes:@{NSFontAttributeName: champagneBold}];
-        CGSize numberLabelSize = [countLabel.text sizeWithAttributes:@{NSFontAttributeName: champagneBold}];
-        goingOutLabel.frame = CGRectMake(10.0, (header.frame.size.height - textLabelSize.height) / 2.0 , textLabelSize.width, textLabelSize.height);
-        countLabel.frame = CGRectMake(goingOutLabel.frame.origin.x + goingOutLabel.frame.size.width + PADDING, goingOutLabel.frame.origin.y, numberLabelSize.width, numberLabelSize.height);
-        [header addSubview:goingOutLabel];
-        [header addSubview:countLabel];
-        return header;
     }
     return nil;
 }
@@ -212,10 +226,17 @@
     if (tableView == self.friendsGoingOutTableView) {
         Datastore *sharedDataManager = [Datastore sharedDataManager];
         if (section == 0) {
-            return [sharedDataManager.tetherFriendsGoingOut count];
+            return 0;
         } else if (section == 1) {
+            return [sharedDataManager.tetherFriendsGoingOut count];
+        } else if (section == 2) {
             return [sharedDataManager.tetherFriendsNotGoingOut count];
         } else {
+            NSInteger count = [sharedDataManager.tetherFriendsNearbyDictionary count];
+            if (count < MIN_CELLS) {
+                NSInteger difference = MIN_CELLS - [sharedDataManager.tetherFriendsGoingOut count] - [sharedDataManager.tetherFriendsNotGoingOut count];
+                return difference;
+            }
             return [sharedDataManager.tetherFriendsUndecided count];
         }
     } else {
@@ -232,11 +253,16 @@
             cell.delegate = self;
         }
         
-        if (indexPath.section == 0) {
+        if (indexPath.section == 1) {
             [cell setFriend:[sharedDataManager.tetherFriendsGoingOut objectAtIndex:indexPath.row]];
-        } else if (indexPath.section == 1) {
+        } else if (indexPath.section == 2) {
             [cell setFriend:[sharedDataManager.tetherFriendsNotGoingOut objectAtIndex:indexPath.row]];
-        } else {
+        } else if (indexPath.section == 3) {
+            if (indexPath.row >= [sharedDataManager.tetherFriendsUndecided count]) {
+                [cell setFriend:NULL];
+                [cell layoutSubviews];
+                return  cell;
+            }
             [cell setFriend:[sharedDataManager.tetherFriendsUndecided objectAtIndex:indexPath.row]];
         }
         
@@ -255,38 +281,35 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     if (tableView == self.friendsGoingOutTableView) {
-        return 3;
+        return 4;
     } else {
         return 1;
     }
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    [self.searchBar endEditing:YES];
     if (tableView == self.searchResultsTableView) {
+        self.searchBar.delegate = nil;
         [self.searchResultsTableView setHidden:YES];
         Friend *friend = [self.searchResultsArray objectAtIndex:indexPath.row];
-        
+        self.friendsGoingOutTableView.scrollEnabled = YES;
 
-        [self.searchBar setShowsCancelButton:NO animated:YES];
-        self.searchBar.text = @"";
-        self.searchResultsArray = nil;
+        [self hideSearchBar];
+        [self.friendsGoingOutTableView scrollsToTop];
+        
         Datastore *sharedDataManager = [Datastore sharedDataManager];
         
-        [self hideSearchBar];
-        [self.friendsGoingOutTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]
-                                             atScrollPosition:UITableViewScrollPositionTop animated:NO];
-        
         if ([sharedDataManager.tetherFriendsGoingOut containsObject:friend]) {
-            [self.friendsGoingOutTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:[sharedDataManager.tetherFriendsGoingOut indexOfObject:friend] inSection:0]
+            [self.friendsGoingOutTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:[sharedDataManager.tetherFriendsGoingOut indexOfObject:friend] inSection:1]
                                                  atScrollPosition:UITableViewScrollPositionTop animated:YES];
         } else if ([sharedDataManager.tetherFriendsNotGoingOut containsObject:friend]) {
-            [self.friendsGoingOutTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:[sharedDataManager.tetherFriendsNotGoingOut indexOfObject:friend] inSection:1]
+            [self.friendsGoingOutTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:[sharedDataManager.tetherFriendsNotGoingOut indexOfObject:friend] inSection:2]
                                                  atScrollPosition:UITableViewScrollPositionTop animated:YES];
         } else if ([sharedDataManager.tetherFriendsUndecided containsObject:friend]) {
-            [self.friendsGoingOutTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:[sharedDataManager.tetherFriendsUndecided indexOfObject:friend] inSection:2]
+            [self.friendsGoingOutTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:[sharedDataManager.tetherFriendsUndecided indexOfObject:friend] inSection:3]
                                                  atScrollPosition:UITableViewScrollPositionTop animated:YES];
         }
+        [self searchBarCancelButtonClicked:self.searchBar];
 
     }
 }
@@ -308,52 +331,24 @@
 #pragma mark UIScrollView Delegate methods
 
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {
-    if (scrollView == self.scrollView) {
-        if (scrollView.contentOffset.y < SEARCH_BAR_HEIGHT / 4 && scrollView.contentOffset.y > 0) {
+        if (scrollView.contentOffset.y < SEARCH_BAR_HEIGHT / 8 && scrollView.contentOffset.y > 0) {
             [self showSearchBar];
-        } else if (scrollView.contentOffset.y > SEARCH_BAR_HEIGHT / 4 && scrollView.contentOffset.y < SEARCH_BAR_HEIGHT) {
+        } else if (scrollView.contentOffset.y > SEARCH_BAR_HEIGHT / 8 && scrollView.contentOffset.y < SEARCH_BAR_HEIGHT) {
             [self hideSearchBar];
         }
-        
-        if (scrollView.contentOffset.y < - 100.0) {
-            [self refresh];
-        }
-    }
-}
-
-- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-    if (scrollView == self.friendsGoingOutTableView) {
-        if (scrollView.contentOffset.y <= 0) {
-            scrollView.contentOffset = CGPointMake(0, 0);
-        }
-    }
-}
-
--(void)refresh {
-    [self.refreshControl beginRefreshing];
-    [self performSelector:@selector(endRefresh:) withObject:self.refreshControl afterDelay:2.0f];
-    if ([self.delegate respondsToSelector:@selector(pollDatabase)]) {
-        [self.delegate pollDatabase];
-    }
-}
-
-- (void)endRefresh:(UIRefreshControl *)refresh
-{
-    [refresh performSelectorOnMainThread:@selector(endRefreshing) withObject:nil waitUntilDone:NO];
-    [self showSearchBar];
 }
 
 #pragma mark SearchBarDelegate methods
 
 - (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
     [self.searchBar setShowsCancelButton:YES animated:YES];
+    [self showSearchBar];
 }
 
 - (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
     searchBar.text=@"";
-    
     [searchBar setShowsCancelButton:NO animated:YES];
-    [searchBar resignFirstResponder];
+    [searchBar endEditing:YES];
     
     self.searchResultsArray = nil;
     [self.searchResultsTableView reloadData];
@@ -361,6 +356,7 @@
 }
 
 -(void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {
+    self.friendsGoingOutTableView.scrollEnabled = NO;
     self.searchResultsTableView.hidden = NO;
     [self searchFriends:searchBar.text];
 }

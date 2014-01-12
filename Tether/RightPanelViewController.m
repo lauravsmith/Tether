@@ -20,6 +20,7 @@
 @interface RightPanelViewController () <UITableViewDataSource, UITableViewDelegate>
 @property (nonatomic, strong) UITableView *notificationsTableView;
 @property (nonatomic, strong) UITableViewController *notificationsTableViewController;
+@property (retain, nonatomic) UIRefreshControl * refreshControl;
 @end
 
 @implementation RightPanelViewController
@@ -29,7 +30,6 @@
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
         self.notificationsArray = [[NSMutableArray alloc] init];
-        [self.view setBackgroundColor:[UIColor blackColor]];
         [self.view setAlpha:0.8];
     }
     return self;
@@ -39,14 +39,37 @@
 {
     [super viewDidLoad];
     
-    self.notificationsTableView = [[UITableView alloc] initWithFrame:CGRectMake(PANEL_WIDTH, STATUS_BAR_HEIGHT, self.view.frame.size.width - PANEL_WIDTH, self.view.frame.size.height)];
+    UIImage *backgroundImage = [UIImage imageNamed:@"BlackTexture"];
+    UIImageView *backgroundImageView = [[UIImageView alloc] initWithImage:backgroundImage];
+    backgroundImageView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
+    [self.view addSubview:backgroundImageView];
+    
+    self.notificationsTableView = [[UITableView alloc] initWithFrame:CGRectMake(PANEL_WIDTH, 0, self.view.frame.size.width - PANEL_WIDTH, self.view.frame.size.height)];
     [self.notificationsTableView setDataSource:self];
     [self.notificationsTableView setDelegate:self];
-    [self.notificationsTableView setBackgroundColor:[UIColor blackColor]];
+    [self.notificationsTableView setBackgroundColor:[UIColor clearColor]];
     [self.view addSubview:self.notificationsTableView];
+    self.notificationsTableView.contentOffset = CGPointMake(0.0, -20.0);
+    self.notificationsTableView.showsVerticalScrollIndicator = NO;
     
     self.notificationsTableViewController = [[UITableViewController alloc] init];
     self.notificationsTableViewController.tableView = self.notificationsTableView;
+    
+    self.refreshControl = [[UIRefreshControl alloc] init];
+    [self.refreshControl addTarget:self action:@selector(refresh) forControlEvents:UIControlEventValueChanged];
+    [self.notificationsTableView addSubview:self.refreshControl];
+    self.notificationsTableViewController.refreshControl = self.refreshControl;
+}
+
+-(void)refresh {
+    [self.refreshControl beginRefreshing];
+    [self performSelector:@selector(endRefresh:) withObject:self.refreshControl afterDelay:1.0f];
+    [self loadNotifications];
+}
+
+- (void)endRefresh:(UIRefreshControl *)refresh
+{
+    [refresh performSelectorOnMainThread:@selector(endRefreshing) withObject:nil waitUntilDone:NO];
 }
 
 -(void)loadNotifications {
@@ -58,7 +81,7 @@
     
     if (sharedDataManager.facebookId) {
         [query whereKey:@"recipientID" equalTo:sharedDataManager.facebookId];
-        
+        query.cachePolicy = kPFCachePolicyNetworkElseCache;
         [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
             if (!error) {
                 for (PFObject *invitation in objects) {
@@ -90,6 +113,7 @@
                         if ([sharedDataManager.placesDictionary objectForKey:notification.placeId]) {
                             place = [sharedDataManager.placesDictionary objectForKey:notification.placeId];
                             notification.place = place;
+                            notification.placeName = place.name;
                         } else if ([invitation objectForKey:@"placeName"]) {
                             notification.placeName = [invitation objectForKey:@"placeName"];
                         }
@@ -119,6 +143,10 @@
 
 #pragma mark UITableViewDataSource Methods
 
+-(CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+    return 20.0;
+}
+
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     return CELL_HEIGHT;
 }
@@ -137,6 +165,15 @@
     }
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
     return cell;
+}
+
+-(UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
+{
+    UIImage *backgroundImage = [UIImage imageNamed:@"BlackTexture"];
+    UIImageView *backgroundImageView = [[UIImageView alloc] initWithImage:backgroundImage];
+    backgroundImageView.frame = CGRectMake(0, 0, self.view.frame.size.width, STATUS_BAR_HEIGHT);
+    [self.view addSubview:backgroundImageView];
+    return backgroundImageView;
 }
 
 - (void)didReceiveMemoryWarning

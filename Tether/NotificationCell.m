@@ -19,12 +19,16 @@
 {
     self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
     if (self) {
-        [self setBackgroundColor:[UIColor blackColor]];
     }
     return self;
 }
 
 -(void)loadNotification {
+        UIImage *backgroundImage = [UIImage imageNamed:@"BlackTexture"];
+        UIImageView *backgroundImageView = [[UIImageView alloc] initWithImage:backgroundImage];
+        backgroundImageView.frame = CGRectMake(0, 0, self.frame.size.width, 100.0);
+        [self addSubview:backgroundImageView];
+    
         if (self.notification.sender) {
             FBProfilePictureView *profileView = [[FBProfilePictureView alloc] initWithProfileID:self.notification.sender.friendID
                                                                                 pictureCropping:FBProfilePictureCroppingSquare];

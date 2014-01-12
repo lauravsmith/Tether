@@ -74,8 +74,6 @@
         Datastore *sharedDataManager= [Datastore sharedDataManager];
         sharedDataManager.tetherFriendsDictionary = [[NSMutableDictionary alloc] init];
         sharedDataManager.tetherFriendsNearbyDictionary = [[NSMutableDictionary alloc] init];
-        
-        [self refreshNotificationsNumber];
     }
     return self;
 }
@@ -98,6 +96,7 @@
                                    selector:@selector(timerFired)
                                    userInfo:nil
                                     repeats:YES];
+    [self refreshNotificationsNumber];
 }
 
 -(void)viewWillAppear:(BOOL)animated{
@@ -137,7 +136,6 @@
     PFInstallation *currentInstallation = [PFInstallation currentInstallation];
     sharedDataManager.notifications = (int)currentInstallation.badge;
     [self.centerViewController refreshNotificationsNumber];
-    [self.placesViewController refreshNotificationsNumber];
 }
 
 #pragma mark load user facebook information
@@ -217,6 +215,13 @@
                 [self.currentUser setObject:facebookId forKey:kUserFacebookIDKey];
                 sharedDataManager.facebookId = facebookId;
                 self.facebookId = facebookId;
+                self.centerViewController.userProfilePictureView = [[FBProfilePictureView alloc] initWithProfileID:(NSString *)sharedDataManager.facebookId pictureCropping:FBProfilePictureCroppingSquare];
+                self.centerViewController.userProfilePictureView.layer.cornerRadius = 12.0;
+                self.centerViewController.userProfilePictureView.clipsToBounds = YES;
+                [self.centerViewController.userProfilePictureView.layer setBorderColor:[[UIColor whiteColor] CGColor]];
+                self.centerViewController.userProfilePictureView.frame = CGRectMake(7.0, 7.0, 25.0, 25.0);
+                [self.centerViewController.bottomBar addSubview:self.centerViewController.userProfilePictureView];
+                [self.centerViewController.bottomBar addSubview:self.centerViewController.settingsButtonLarge];
             }
             
             NSString *gender = result[@"gender"];
@@ -487,15 +492,19 @@
     if (_leftPanelViewController != nil) {
         _centerViewController.triangleButton.tag = 1;
         _centerViewController.numberButton.tag = 1;
+        _centerViewController.leftPanelButtonLarge.tag = 1;
         self.showingLeftPanel = NO;
     }
     
     if (_rightPanelViewController != nil) {
         _centerViewController.notificationsButton.tag = 1;
-        _placesViewController.notificationsButton.tag = 1;
+        _centerViewController.notificationsButtonLarge.tag = 1;
+        _centerViewController.listViewButton.userInteractionEnabled = YES;
+        _centerViewController.listViewButtonLarge.userInteractionEnabled = YES;
         self.showingRightPanel = NO;
     }
     
+     _centerViewController.mv.userInteractionEnabled = YES;
     [self.leftPanelViewController.view removeFromSuperview];
     [self.rightPanelViewController.view removeFromSuperview];
     
@@ -684,18 +693,11 @@
           initialSpringVelocity:5.0
                         options:UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
-                         [self.centerViewController.bottomBar setAlpha:1.0];
                         [self.placesViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
                      }
                      completion:^(BOOL finished) {
                          [self resetMainView];
                          [self canUpdatePlaces:NO];
-                         [UIView animateWithDuration:0.3
-                                          animations:^{
-                                               [self.placesViewController.bottomBar setAlpha:1.0];
-                                          } completion:^(BOOL finished) {
-                                              
-                                          }];
                      }];
 }
 
@@ -715,6 +717,8 @@
                      completion:^(BOOL finished) {
                          _centerViewController.numberButton.tag = 0;
                           _centerViewController.triangleButton.tag = 0;
+                          _centerViewController.leftPanelButtonLarge.tag = 0;
+                         _centerViewController.mv.userInteractionEnabled = NO;
                      }];
 }
 
@@ -722,6 +726,8 @@
 {
     UIView *childView = [self getRightView];
     [self.view sendSubviewToBack:childView];
+    self.centerViewController.listViewButton.userInteractionEnabled = NO;
+    self.centerViewController.listViewButtonLarge.userInteractionEnabled = NO;
     
     [UIView animateWithDuration:0.5
                           delay:0.0
@@ -733,14 +739,16 @@
                      }
                      completion:^(BOOL finished) {
                          _centerViewController.notificationsButton.tag = 0;
-                          _placesViewController.notificationsButton.tag = 0;
+                         _centerViewController.notificationsButtonLarge.tag = 0;
+                         _centerViewController.mv.userInteractionEnabled = NO;
                      }];
     
     PFInstallation *currentInstallation = [PFInstallation currentInstallation];
     if (currentInstallation.badge != 0) {
         currentInstallation.badge = 0;
         [currentInstallation saveEventually];
-        [self.centerViewController refreshNotificationsNumber];
+        [self refreshNotificationsNumber];
+        [self loadNotifications];
     }
 }
 
@@ -769,8 +777,7 @@
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     [self.settingsViewController resettingNewLocationHasFinished];
     [self saveCity:[userDetails objectForKey:@"city"] state:[userDetails objectForKey:@"state"]];
-    [self.centerViewController layoutCurrentCommitment];
-    [self.placesViewController layoutCurrentCommitment];
+    [self refreshCommitmentName];
     NSLog(@"FINISHED RESETTING, NOW POLLING DATABASE");
 }
 
@@ -779,6 +786,10 @@
     [self.currentUser setObject:state forKey:kUserStateKey];
     [self.currentUser saveInBackground];
     NSLog(@"PARSE SAVE: saving your location %@ %@",city, state);
+}
+
+-(void)openPageForPlaceWithId:(id)placeId {
+    [self.placesViewController openPageForPlaceWithId:placeId];
 }
 
 #pragma mark QuestionViewControllerDelegate
@@ -900,14 +911,6 @@
                         options:UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
                         [self.placesViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
-                         
-                         [UIView animateWithDuration:0.1 animations:^{
-                             [self.centerViewController.placeNumberLabel setAlpha:1.0];
-                             [self.centerViewController.placeLabel setAlpha:1.0];
-                             [self.centerViewController.bottomLeftButton setAlpha:1.0];
-                         } completion:^(BOOL finished) {
-                              [self.placesViewController.bottomBar setAlpha:0.0];
-                         }];
                      }
                      completion:^(BOOL finished) {
                          [self.placesViewController.view removeFromSuperview];
@@ -923,7 +926,7 @@
     currentFriend.placeId = placeId;
     if (currentFriend && ![[sharedDataManager.friendsToPlacesMap objectForKey:friendId] isEqualToString:placeId]) {
         [sharedDataManager.friendsToPlacesMap setObject:placeId forKey:friendId];
-        [sharedDataManager.tetherFriendsNearbyDictionary setObject:currentFriend forKey:placeId];
+        [sharedDataManager.tetherFriendsNearbyDictionary setObject:currentFriend forKey:friendId];
         self.shouldSortFriendsList = YES;
     }
 }
@@ -1012,8 +1015,7 @@
         }
         sharedDataManager.currentCommitmentPlace = nil;
     }
-    [self.centerViewController layoutCurrentCommitment];
-    [self.placesViewController layoutCurrentCommitment];
+    [self refreshCommitmentName];
 }
 
 -(void)removeCommitmentFromDatabase {
@@ -1038,7 +1040,6 @@
 
 -(void)refreshCommitmentName {
     [self.centerViewController layoutCurrentCommitment];
-    [self.placesViewController layoutCurrentCommitment];
 }
 
 - (void)didReceiveMemoryWarning

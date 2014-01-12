@@ -71,6 +71,12 @@
 		472392A718649298000D0C7E /* Notification.m in Sources */ = {isa = PBXBuildFile; fileRef = 472392A618649298000D0C7E /* Notification.m */; };
 		472392AA1864D304000D0C7E /* NotificationCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 472392A91864D304000D0C7E /* NotificationCell.m */; };
 		472392B51867D08C000D0C7E /* Constants.m in Sources */ = {isa = PBXBuildFile; fileRef = 472392B41867D08C000D0C7E /* Constants.m */; };
+		47460FF9188079BE0067545B /* Montserrat.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 47460FF6188079BE0067545B /* Montserrat.ttf */; };
+		47460FFA188079BE0067545B /* OFL.txt in Resources */ = {isa = PBXBuildFile; fileRef = 47460FF7188079BE0067545B /* OFL.txt */; };
+		47460FFC188216A20067545B /* BlackTexture.png in Resources */ = {isa = PBXBuildFile; fileRef = 47460FFB188216A20067545B /* BlackTexture.png */; };
+		47460FFE18821C5B0067545B /* MontserratBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 47460FFD18821C5B0067545B /* MontserratBold.ttf */; };
+		4746100018822E9F0067545B /* FriendsThing.png in Resources */ = {isa = PBXBuildFile; fileRef = 47460FFF18822E9F0067545B /* FriendsThing.png */; };
+		47461002188237B70067545B /* FriendIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 47461001188237B70067545B /* FriendIcon.png */; };
 		478C4BFF18482B78004C6BD0 /* SettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 478C4BFE18482B78004C6BD0 /* SettingsViewController.m */; };
 		47BB2C57187E074100BB40F5 /* FriendLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 47BB2C56187E074100BB40F5 /* FriendLabel.m */; };
 		47BB2C59187E0A6E00BB40F5 /* WhiteTriangle.png in Resources */ = {isa = PBXBuildFile; fileRef = 47BB2C58187E0A6E00BB40F5 /* WhiteTriangle.png */; };
@@ -172,6 +178,12 @@
 		472392A91864D304000D0C7E /* NotificationCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NotificationCell.m; sourceTree = "<group>"; };
 		472392B31867D08C000D0C7E /* Constants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Constants.h; sourceTree = "<group>"; };
 		472392B41867D08C000D0C7E /* Constants.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Constants.m; sourceTree = "<group>"; };
+		47460FF6188079BE0067545B /* Montserrat.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Montserrat.ttf; sourceTree = "<group>"; };
+		47460FF7188079BE0067545B /* OFL.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = OFL.txt; sourceTree = "<group>"; };
+		47460FFB188216A20067545B /* BlackTexture.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = BlackTexture.png; sourceTree = "<group>"; };
+		47460FFD18821C5B0067545B /* MontserratBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = MontserratBold.ttf; sourceTree = "<group>"; };
+		47460FFF18822E9F0067545B /* FriendsThing.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = FriendsThing.png; sourceTree = "<group>"; };
+		47461001188237B70067545B /* FriendIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = FriendIcon.png; sourceTree = "<group>"; };
 		478C4BFD18482B78004C6BD0 /* SettingsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SettingsViewController.h; sourceTree = "<group>"; };
 		478C4BFE18482B78004C6BD0 /* SettingsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SettingsViewController.m; sourceTree = "<group>"; };
 		47BB2C55187E074100BB40F5 /* FriendLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FriendLabel.h; sourceTree = "<group>"; };
@@ -354,6 +366,7 @@
 		47064C8C183D9E3800E9228A /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				47460FF4188079BE0067545B /* Montserrat */,
 				47064CD3183DBAE300E9228A /* champagne_limousines */,
 				47064C8D183D9E3800E9228A /* Tether-Info.plist */,
 				47064C8E183D9E3800E9228A /* InfoPlist.strings */,
@@ -384,6 +397,9 @@
 		47064CC6183DB11D00E9228A /* Images */ = {
 			isa = PBXGroup;
 			children = (
+				47461001188237B70067545B /* FriendIcon.png */,
+				47460FFF18822E9F0067545B /* FriendsThing.png */,
+				47460FFB188216A20067545B /* BlackTexture.png */,
 				47BB2C5E187E27B100BB40F5 /* LocationIcon.png */,
 				47BB2C5C187E208C00BB40F5 /* LineNavigator.png */,
 				47BB2C5A187E0E1900BB40F5 /* RedTriangle.png */,
@@ -430,6 +446,16 @@
 				47FB08D8184970CA00A07908 /* PlacesViewController.m */,
 			);
 			name = Controller;
+			sourceTree = "<group>";
+		};
+		47460FF4188079BE0067545B /* Montserrat */ = {
+			isa = PBXGroup;
+			children = (
+				47460FFD18821C5B0067545B /* MontserratBold.ttf */,
+				47460FF6188079BE0067545B /* Montserrat.ttf */,
+				47460FF7188079BE0067545B /* OFL.txt */,
+			);
+			path = Montserrat;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -511,6 +537,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4746100018822E9F0067545B /* FriendsThing.png in Resources */,
+				47460FFA188079BE0067545B /* OFL.txt in Resources */,
 				47064CCE183DB14C00E9228A /* Gear.png in Resources */,
 				47BB2C59187E0A6E00BB40F5 /* WhiteTriangle.png in Resources */,
 				47064CCC183DB14C00E9228A /* Arrow.png in Resources */,
@@ -519,15 +547,19 @@
 				470A33AD18402A37006E48F9 /* facebook.png in Resources */,
 				47064C9E183D9E3800E9228A /* Images.xcassets in Resources */,
 				47064CDD183DBAE300E9228A /* Champagne&LimousinesItalic.ttf in Resources */,
+				47460FF9188079BE0067545B /* Montserrat.ttf in Resources */,
 				47064CD9183DBAE300E9228A /* Champagne&LimousinesBoldItalic.ttf in Resources */,
 				47064C90183D9E3800E9228A /* InfoPlist.strings in Resources */,
 				47064CE1183DBAE300E9228A /* readme.txt in Resources */,
 				4702442318576BFD001C19AC /* README.md in Resources */,
 				47064CDF183DBAE300E9228A /* Champagne&Limousines.ttf in Resources */,
+				47460FFC188216A20067545B /* BlackTexture.png in Resources */,
 				47BB2C5D187E208C00BB40F5 /* LineNavigator.png in Resources */,
 				47064CD1183DB16200E9228A /* Whiteline.png in Resources */,
+				47461002188237B70067545B /* FriendIcon.png in Resources */,
 				47BB2C5F187E27B100BB40F5 /* LocationIcon.png in Resources */,
 				47064CDB183DBAE300E9228A /* Champagne&LimousinesBold.ttf in Resources */,
+				47460FFE18821C5B0067545B /* MontserratBold.ttf in Resources */,
 				47064C99183D9E3800E9228A /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

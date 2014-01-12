@@ -22,11 +22,9 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 
 @protocol CenterViewControllerDelegate <NSObject>
 
-@optional
+@required
 - (void)movePanelRight;
 - (void)movePanelLeft;
-
-@required
 - (void)movePanelToOriginalPosition;
 - (void)showSettingsView;
 -(void)showListView;
@@ -35,20 +33,29 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 -(void)goToPlaceInListView:(id)placeId;
 -(void)commitToPlace:(Place *)place;
 -(void)pollDatabase;
+-(void)openPageForPlaceWithId:(id)placeId;
 @end
 
 @interface CenterViewController : ViewController <MKMapViewDelegate>
 
 @property (nonatomic, assign) id<CenterViewControllerDelegate> delegate;
 
-@property (retain, nonatomic) UIButton *bottomLeftButton;
+@property (strong, nonatomic) UILabel *tethrLabel;
+@property (strong, nonatomic) UIActivityIndicatorView * spinner;
 @property (retain, nonatomic) UIButton * numberButton;
+@property (strong, nonatomic) UIButton *leftPanelButtonLarge;
 @property (retain, nonatomic) UIButton * triangleButton;
+@property (strong, nonatomic) UIButton *listViewButton;
+@property (strong, nonatomic) UIButton *listViewButtonLarge;
+@property (nonatomic, strong) FBProfilePictureView *userProfilePictureView;
+@property (retain, nonatomic) UIButton *settingsButtonLarge;
 @property (retain, nonatomic) UILabel * cityLabel;
 @property (retain, nonatomic) MKMapView * mv;
 @property (retain, nonatomic) NSMutableDictionary * placeToAnnotationDictionary;
 @property (assign, nonatomic) bool resettingLocation;
+@property (strong, nonatomic) UILabel *notificationsLabel;
 @property (strong, nonatomic) UIButton *notificationsButton;
+@property (strong, nonatomic) UIButton *notificationsButtonLarge;
 @property (retain, nonatomic) UILabel * placeLabel;
 @property (retain, nonatomic) UILabel * placeNumberLabel;
 @property (retain, nonatomic) UIView * bottomBar;
