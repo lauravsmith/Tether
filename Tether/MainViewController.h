@@ -14,4 +14,6 @@
 -(void)movePanelLeft;
 -(void)loadNotifications;
 -(void)showDecisionView;
+-(void)refreshNotificationsNumber;
+-(void)updateNotificationsNumber;
 @end

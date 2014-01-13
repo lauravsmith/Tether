@@ -217,7 +217,6 @@
 
             NSLog(@"Updated your friends commitments");
             sharedDataManager.popularPlacesDictionary = tempDictionary;
-            [self addPinsToMap];
             
             if (self.foursquarePlacesDataHasLoaded) {
                     [self addDictionaries];
@@ -259,6 +258,16 @@
         if (![sharedDataManager.placesDictionary objectForKey:key]) {
             Place *place = [sharedDataManager.foursquarePlacesDictionary objectForKey:key];
             [sharedDataManager.placesDictionary setObject:place forKey:place.placeId];
+        }
+    }
+    
+    [self addPinsToMap];
+    
+    // update current commitment
+    if ([sharedDataManager.placesDictionary objectForKey:sharedDataManager.currentCommitmentPlace.placeId]) {
+        sharedDataManager.currentCommitmentPlace = [sharedDataManager.placesDictionary objectForKey:sharedDataManager.currentCommitmentPlace.placeId];
+        if ([self.delegate respondsToSelector:@selector(refreshCommitmentName)]) {
+            [self.delegate refreshCommitmentName];
         }
     }
 }
@@ -474,6 +483,7 @@
         }
         friendsListViewController.friendsArray = [[friends allObjects] mutableCopy];
         friendsListViewController.place = placeCell.place;
+        [friendsListViewController loadFriendsOfFriends];
         [friendsListViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
         [self.view addSubview:friendsListViewController.view];
         [self addChildViewController:friendsListViewController];

@@ -80,7 +80,6 @@
     self.friendsTableViewController.tableView = self.friendsTableView;
     
     self.friendsOfFriendsArray = [[NSMutableArray alloc] init];
-    [self loadFriendsOfFriends];
 }
 
 -(void)closeFriendsView {

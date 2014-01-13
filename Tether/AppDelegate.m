@@ -8,6 +8,7 @@
 
 #import "AppDelegate.h"
 #import "CenterViewController.h"
+#import "Datastore.h"
 #import "LoginViewController.h"
 #import "MainViewController.h"
 
@@ -67,16 +68,12 @@ NSString *const SessionStateChangedNotification =
     NSLog(@"Failed to register push with error, %@", error);
 }
 
--(void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo {
-    [PFPush handlePush:userInfo];
-    NSLog(@"Remote notification received");
-}
-
 - (void)application:(UIApplication *)application
 didReceiveRemoteNotification:(NSDictionary *)userInfo
 fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
-    NSLog(@"user info");
-    [self.mainViewController loadNotifications];
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    sharedDataManager.notifications += 1;
+    [self.mainViewController updateNotificationsNumber];
 }
 
 - (void)showLoginView
@@ -175,6 +172,7 @@ fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
 - (void)applicationWillEnterForeground:(UIApplication *)application
 {
     [self.mainViewController pollDatabase];
+    [self.mainViewController refreshNotificationsNumber];
     [self.mainViewController showDecisionView];
     // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
 }

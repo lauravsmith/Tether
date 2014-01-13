@@ -37,5 +37,6 @@
 -(void)movePanelLeft;
 -(void)removePlaceMarkFromMapView:(Place*)place;
 -(void)sortFriendsList;
+-(void)pollDatabase;
 
 @end

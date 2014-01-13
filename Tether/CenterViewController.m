@@ -56,6 +56,7 @@
     // mapview setup
     self.mv = [[MKMapView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)];
     self.mv.delegate = self;
+    self.mv.showsUserLocation = YES;
     [self.view addSubview:self.mv];
     
     // top bar setup
@@ -237,6 +238,11 @@
 -(void)refreshNotificationsNumber {
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     self.notificationsLabel.text = [NSString stringWithFormat:@"%d", sharedDataManager.notifications];
+    if (sharedDataManager.notifications == 0) {
+        [self.notificationsLabel setHidden:YES];
+    } else {
+        [self.notificationsLabel setHidden:NO];
+    }
 }
 
 -(void)locationSetup {
@@ -428,16 +434,9 @@
 
 - (IBAction)showListViewForPlace:(UIButton*)sender
 {
-    if ([self.delegate respondsToSelector:@selector(showListView)]) {
-        [self.delegate showListView];
-    }
-    
-    if ([self.delegate respondsToSelector:@selector(goToPlaceInListView:)]) {
-        Place *p = [self.annotationsArray objectAtIndex:sender.tag];
-        [self.delegate goToPlaceInListView:p.placeId];
-        if ([self.delegate respondsToSelector:@selector(openPageForPlaceWithId:)]) {
-            [self.delegate openPageForPlaceWithId:p.placeId];
-        }
+    Place *p = [self.annotationsArray objectAtIndex:sender.tag];
+    if ([self.delegate respondsToSelector:@selector(openPageForPlaceWithId:)]) {
+        [self.delegate openPageForPlaceWithId:p.placeId];
     }
 }
 
@@ -453,6 +452,7 @@
         }
     }
 }
+
 
 #pragma mark MapView delegate
 
@@ -556,39 +556,56 @@
     return nil;
 }
 
+-(void) annotationClick:(UIGestureRecognizer *) sender {
+    MKAnnotationView *view = (MKAnnotationView*)sender.view;
+    [self.mv deselectAnnotation:view.annotation animated:YES];
+    view.tag = 0;
+}
+
 - (void)mapView:(MKMapView *)mapView didSelectAnnotationView:(MKAnnotationView *)view {
-    for (UIView *subView in view.subviews) {
-        if (subView.tag == 2) {
-            CGRect frame = subView.frame;
-            frame.size.width = 0;
-            frame.size.height = 0;
-            subView.frame = frame;
-            subView.alpha = 1.0;
-        }
-    }
+    UITapGestureRecognizer *singleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(annotationClick:)];
+    [view addGestureRecognizer:singleTap];
     
-    //show faces
-     [UIView animateWithDuration:0.3f
-                           delay:0.0
-          usingSpringWithDamping:0.8
-           initialSpringVelocity:5.0
-                         options:0
-                      animations:^{
-                          for (UIView *subView in view.subviews) {
-                              if (subView.tag == 2) {
-                                  CGRect frame = subView.frame;
-                                  frame.size.width = FACE_SIZE;
-                                  frame.size.height = FACE_SIZE;
-                                  subView.frame = frame;
-                              }
-                          }
-                      }
-                      completion:^(BOOL finished) {
-                      }];
+    if (view.tag == 1) {
+        for (UIView *subView in view.subviews) {
+            if (subView.tag == 2) {
+                CGRect frame = subView.frame;
+                frame.size.width = 0;
+                frame.size.height = 0;
+                subView.frame = frame;
+                subView.alpha = 1.0;
+            }
+        }
+        
+        //show faces
+        [UIView animateWithDuration:0.3f
+                              delay:0.0
+             usingSpringWithDamping:0.8
+              initialSpringVelocity:5.0
+                            options:0
+                         animations:^{
+                             for (UIView *subView in view.subviews) {
+                                 if (subView.tag == 2) {
+                                     CGRect frame = subView.frame;
+                                     frame.size.width = FACE_SIZE;
+                                     frame.size.height = FACE_SIZE;
+                                     subView.frame = frame;
+                                 }
+                             }
+                         }
+                         completion:^(BOOL finished) {
+                         }];
         view.tag = 0;
+    } else {
+        [self.mv deselectAnnotation:view.annotation animated:YES];
+        view.tag = 1;
+    }
 }
 
 - (void)mapView:(MKMapView *)mapView didDeselectAnnotationView:(MKAnnotationView *)view {
+    for (UIGestureRecognizer *recognizer in view.gestureRecognizers) {
+        [view removeGestureRecognizer:recognizer];
+    }
     
     [UIView animateWithDuration:0.2
                           delay:0.0
@@ -602,6 +619,7 @@
                      completion:^(BOOL finished){
                          
                      }];
+    view.tag = 1;
 }
 
 - (void)mapView:(MKMapView *)mapView didAddAnnotationViews:(NSArray *)views {

@@ -14,6 +14,7 @@
 @property (nonatomic, weak) id<FriendsListViewControllerDelegate> delegate;
 @property (nonatomic, retain) NSMutableArray *friendsArray;
 @property (nonatomic, retain) Place *place;
+-(void)loadFriendsOfFriends;
 @end
 
 @protocol FriendsListViewControllerDelegate <NSObject>
