@@ -15,8 +15,8 @@
 
 #define CELL_HEIGHT 60.0
 #define LABEL_HEIGHT 30.0
-#define MAX_MESSAGE_FIELD_HEIGHT 260.0
-#define SEARCH_BAR_HEIGHT 50.0
+#define MAX_MESSAGE_FIELD_HEIGHT 210.0
+#define SEARCH_BAR_HEIGHT 40.0
 #define SEARCH_BAR_WIDTH 280.0
 #define STATUS_BAR_HEIGHT 20.0
 #define PADDING 10.0
@@ -27,15 +27,18 @@
 @property (nonatomic, strong) UITableView *friendSearchResultsTableView;
 @property (nonatomic, strong) UITableViewController *friendSearchResultsTableViewController;
 @property (retain, nonatomic) UIScrollView *friendsInvitedScrollView;
-@property (retain, nonatomic) UIView *topBarView;
+@property (retain, nonatomic) UIView * topBarView;
+@property (retain, nonatomic) UIView *searchBarBackgroundView;
 @property (retain, nonatomic) NSMutableDictionary *friendsInvitedDictionary;
 @property (retain, nonatomic) NSMutableDictionary *friendsLabelsDictionary;
 @property (retain, nonatomic) NSMutableDictionary *removeLabelButtonsDictionary;
 @property (retain, nonatomic) UITextView *messageTextView;
 @property (retain, nonatomic) UIButton *backButton;
+@property (retain, nonatomic) UIButton *backButtonLarge;
 @property (assign, nonatomic) NSInteger friendsInvitedViewHeight;
 @property (assign, nonatomic) NSInteger friendsInvitedViewWidth;
 @property (retain, nonatomic) UIButton *sendButton;
+@property (retain, nonatomic) UITextField *placeTextField;
 @end
 
 @implementation InviteViewController
@@ -59,18 +62,31 @@
     
     [self.view setBackgroundColor:[UIColor blackColor]];
     
-    self.topBarView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, STATUS_BAR_HEIGHT + SEARCH_BAR_HEIGHT)];
+    self.topBarView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 50.0)];
     [self.topBarView setBackgroundColor:UIColorFromRGB(0x8e0528)];
+    
+    self.placeTextField = [[UITextField alloc] initWithFrame:CGRectMake(30.0, 10.0, self.view.frame.size.width - 40.0, 40.0)];
+    self.placeTextField.text = self.place.name;
+    [self.placeTextField setTextColor:[UIColor whiteColor]];
+    UIFont *montserratLarge = [UIFont fontWithName:@"Montserrat" size:22];
+    self.placeTextField.font = montserratLarge;
+    self.placeTextField.adjustsFontSizeToFitWidth = YES;
+    self.placeTextField.userInteractionEnabled = NO;
+    [self.topBarView addSubview:self.placeTextField];
     [self.view addSubview:self.topBarView];
     
-    self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake((self.view.frame.size.width - SEARCH_BAR_WIDTH) / 2, STATUS_BAR_HEIGHT, SEARCH_BAR_WIDTH, SEARCH_BAR_HEIGHT)];
+    self.searchBarBackgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, self.topBarView.frame.size.height, self.view.frame.size.width, SEARCH_BAR_HEIGHT)];
+    [self.searchBarBackgroundView setBackgroundColor:UIColorFromRGB(0x8e0528)];
+    [self.view addSubview:self.searchBarBackgroundView];
+    
+    self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake((self.view.frame.size.width - SEARCH_BAR_WIDTH) / 2, self.topBarView.frame.size.height, SEARCH_BAR_WIDTH, SEARCH_BAR_HEIGHT)];
     self.searchBar.delegate = self;
-    self.searchBar.placeholder = @"Type a friends name to search...";
+    self.searchBar.placeholder = @"Invite friends...";
     [self.searchBar setBackgroundImage:[UIImage new]];
     [self.searchBar setTranslucent:YES];
     [self.view addSubview:self.searchBar];
     
-    self.friendsInvitedScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, self.topBarView.frame.size.height, self.view.frame.size.width, PADDING)];
+    self.friendsInvitedScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, self.searchBarBackgroundView.frame.origin.y + self.searchBarBackgroundView.frame.size.height, self.view.frame.size.width, PADDING)];
     [self.friendsInvitedScrollView setBackgroundColor:[UIColor blackColor]];
     self.friendsInvitedScrollView.showsVerticalScrollIndicator = YES;
     self.friendsInvitedScrollView.indicatorStyle = UIScrollViewIndicatorStyleWhite;
@@ -79,14 +95,16 @@
     self.messageTextView = [[UITextView alloc] initWithFrame:CGRectMake(PADDING, self.friendsInvitedScrollView.frame.origin.y + self.friendsInvitedScrollView.frame.size.height, self.view.frame.size.width - PADDING*2, MAX_MESSAGE_FIELD_HEIGHT)];
     [self.messageTextView setBackgroundColor:[UIColor grayColor]];
     [self.messageTextView setTextColor:[UIColor whiteColor]];
-    UIFont *champagne = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:20];
-    [self.messageTextView setFont:champagne];
+    UIFont *montserratBold = [UIFont fontWithName:@"Montserrat-Bold" size:20];
+    [self.messageTextView setFont:montserratBold];
     [self.messageTextView setEditable:YES];
     [self.view addSubview:self.messageTextView];
     
-    self.sendButton = [[UIButton alloc] initWithFrame:CGRectMake(220, 280, 80, 40)];
+    self.sendButton = [[UIButton alloc] initWithFrame:CGRectMake(220.0, self.messageTextView.frame.origin.y + self.messageTextView.frame.size.height - 50.0, 80.0, 40.0)];
     [self.sendButton addTarget:self action:@selector(sendButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
     [self.sendButton setTitle:@"Send" forState:UIControlStateNormal];
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:18.0];
+    self.sendButton.titleLabel.font = montserrat;
     [self.sendButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     [self.sendButton setBackgroundColor:[UIColor whiteColor]];
     [self.sendButton setEnabled:NO];
@@ -94,7 +112,7 @@
     
     self.friendSearchResultsArray = [[NSMutableArray alloc] init];
     
-    self.friendSearchResultsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, self.topBarView.frame.size.height, self.view.frame.size.width, self.view.frame.size.height - self.topBarView.frame.size.height)];
+    self.friendSearchResultsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, self.searchBarBackgroundView.frame.origin.y + self.searchBarBackgroundView.frame.size.height, self.view.frame.size.width, self.view.frame.size.height - self.searchBarBackgroundView.frame.size.height)];
     [self.friendSearchResultsTableView setDataSource:self];
     [self.friendSearchResultsTableView setDelegate:self];
     [self.friendSearchResultsTableView setHidden:YES];
@@ -106,11 +124,15 @@
     
     // left panel view button setup
     UIImage *triangleImage = [UIImage imageNamed:@"WhiteTriangle"];
-    self.backButton = [[UIButton alloc] initWithFrame:CGRectMake(0, STATUS_BAR_HEIGHT + 9.0, 30.0, 30.0)];
+    self.backButton = [[UIButton alloc] initWithFrame:CGRectMake(10.0,  (self.topBarView.frame.size.height) / 2.0, 10.0, 10.0)];
     [self.backButton setImage:triangleImage forState:UIControlStateNormal];
     [self.view addSubview:self.backButton];
     self.backButton.tag = 1;
     [self.backButton addTarget:self action:@selector(closeView) forControlEvents:UIControlEventTouchDown];
+    
+    self.backButtonLarge = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, (self.view.frame.size.width) / 4.0, 50.0)];
+    [self.backButtonLarge addTarget:self action:@selector(closeView) forControlEvents:UIControlEventTouchDown];
+    [self.view addSubview:self.backButtonLarge];
 }
 
 -(void)closeView {
@@ -120,12 +142,12 @@
 }
 
 -(void)layoutFriendsInvitedView {
-    self.friendsInvitedScrollView.frame = CGRectMake(0, self.topBarView.frame.size.height, self.view.frame.size.width, MIN(MAX(PADDING,self.friendsInvitedViewHeight), 100));
+    self.friendsInvitedScrollView.frame = CGRectMake(0, self.searchBarBackgroundView.frame.origin.y + self.searchBarBackgroundView.frame.size.height, self.view.frame.size.width, MIN(MAX(PADDING,self.friendsInvitedViewHeight), 100));
     self.friendsInvitedScrollView.contentSize = CGSizeMake(self.view.frame.size.width, self.friendsInvitedViewHeight);
     self.friendsInvitedScrollView.contentOffset = CGPointMake(0, self.friendsInvitedViewHeight - self.friendsInvitedScrollView.frame.size.height);
     CGRect frame = self.messageTextView.frame;
     frame.origin.y = self.friendsInvitedScrollView.frame.origin.y + self.friendsInvitedScrollView.frame.size.height;
-    frame.size.height = MAX_MESSAGE_FIELD_HEIGHT - self.friendsInvitedScrollView.frame.size.height;
+    frame.size.height = MAX_MESSAGE_FIELD_HEIGHT - self.friendsInvitedScrollView.frame.size.height + 10.0;
     self.messageTextView.frame = frame;
 }
 
@@ -148,9 +170,9 @@
     FriendLabel *friendLabel = [[FriendLabel alloc] init];
     friendLabel.friend = friend;
     [friendLabel setTextColor:[UIColor whiteColor]];
-    UIFont *champagneBold = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:16];
-    friendLabel.font = champagneBold;
-    CGSize friendLabelSize = [friend.name sizeWithAttributes:@{NSFontAttributeName: champagneBold}];
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14];
+    friendLabel.font = montserrat;
+    CGSize friendLabelSize = [friend.name sizeWithAttributes:@{NSFontAttributeName: montserrat}];
     friendLabel.text = [NSString stringWithFormat:@"  %@", friend.name];
     [friendLabel setBackgroundColor:[UIColor grayColor]];
     friendLabel.layer.cornerRadius = 2.0;

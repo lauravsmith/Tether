@@ -13,5 +13,6 @@
 @interface NotificationCell : UITableViewCell
 
 @property (nonatomic, strong) Notification *notification;
+@property (nonatomic, strong) UILabel *messageHeaderLabel;
 -(void)loadNotification;
 @end

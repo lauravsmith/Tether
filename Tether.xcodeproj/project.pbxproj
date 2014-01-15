@@ -89,6 +89,7 @@
 		47FB08D61849701400A07908 /* Place.m in Sources */ = {isa = PBXBuildFile; fileRef = 47FB08D51849701400A07908 /* Place.m */; };
 		47FB08D9184970CA00A07908 /* PlacesViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 47FB08D8184970CA00A07908 /* PlacesViewController.m */; };
 		47FCE5271853E7A20030B1E1 /* Datastore.m in Sources */ = {isa = PBXBuildFile; fileRef = 47FCE5261853E7A20030B1E1 /* Datastore.m */; };
+		47FDB6041884B62100841FAD /* poweredByFoursquare.png in Resources */ = {isa = PBXBuildFile; fileRef = 47FDB6031884B62100841FAD /* poweredByFoursquare.png */; };
 		E19F0A10C9BA4ED1A2C30530 /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 47E935DA22E34ED294148A9A /* libPods.a */; };
 /* End PBXBuildFile section */
 
@@ -205,6 +206,7 @@
 		47FB08D8184970CA00A07908 /* PlacesViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PlacesViewController.m; sourceTree = "<group>"; };
 		47FCE5251853E7A20030B1E1 /* Datastore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Datastore.h; sourceTree = "<group>"; };
 		47FCE5261853E7A20030B1E1 /* Datastore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Datastore.m; sourceTree = "<group>"; };
+		47FDB6031884B62100841FAD /* poweredByFoursquare.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = poweredByFoursquare.png; sourceTree = "<group>"; };
 		D94D00F61A81410EAFC8A311 /* Pods.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.xcconfig; path = Pods/Pods.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -397,6 +399,7 @@
 		47064CC6183DB11D00E9228A /* Images */ = {
 			isa = PBXGroup;
 			children = (
+				47FDB6031884B62100841FAD /* poweredByFoursquare.png */,
 				47461001188237B70067545B /* FriendIcon.png */,
 				47460FFF18822E9F0067545B /* FriendsThing.png */,
 				47460FFB188216A20067545B /* BlackTexture.png */,
@@ -560,6 +563,7 @@
 				47BB2C5F187E27B100BB40F5 /* LocationIcon.png in Resources */,
 				47064CDB183DBAE300E9228A /* Champagne&LimousinesBold.ttf in Resources */,
 				47460FFE18821C5B0067545B /* MontserratBold.ttf in Resources */,
+				47FDB6041884B62100841FAD /* poweredByFoursquare.png in Resources */,
 				47064C99183D9E3800E9228A /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

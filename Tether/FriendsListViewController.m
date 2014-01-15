@@ -11,6 +11,7 @@
 #import "Friend.h"
 #import "FriendAtPlaceCell.h"
 #import "FriendsListViewController.h"
+#import "InviteViewController.h"
 
 #import <FacebookSDK/FacebookSDK.h>
 
@@ -23,11 +24,15 @@
 #define PROFILE_PICTURE_SIZE 50.0
 #define STATUS_BAR_HEIGHT 20.0
 
-@interface FriendsListViewController () <UITableViewDataSource, UITableViewDelegate>
+@interface FriendsListViewController () <InviteViewControllerDelegate, UITableViewDataSource, UITableViewDelegate>
 @property (retain, nonatomic) UITableView * friendsTableView;
 @property (retain, nonatomic) UITableViewController * friendsTableViewController;
 @property (retain, nonatomic) NSMutableArray * friendsOfFriendsArray;
 @property (retain, nonatomic) UIView * topBar;
+@property (retain, nonatomic) UIView * tetherBar;
+@property (retain, nonatomic) UIButton * commitButton;
+@property (nonatomic, strong) UIButton *inviteButton;
+@property (nonatomic, strong) UILabel *plusIconLabel;
 @property (retain, nonatomic) UIButton * backButton;
 @property (retain, nonatomic) UIButton *backButtonLarge;
 @end
@@ -48,11 +53,13 @@
     [super viewDidLoad];
     self.topBar = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 50.0)];
     [self.topBar setBackgroundColor:UIColorFromRGB(0x8e0528)];
-    UILabel *placeLabel = [[UILabel alloc] initWithFrame:CGRectMake(30.0, 10.0, self.view.frame.size.width, 40.0)];
+    
+    UILabel *placeLabel = [[UILabel alloc] initWithFrame:CGRectMake(30.0, 10.0, self.view.frame.size.width - 40.0, 40.0)];
     placeLabel.text = self.place.name;
     [placeLabel setTextColor:[UIColor whiteColor]];
-    UIFont *champagneBold = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:24];
-    placeLabel.font = champagneBold;
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:22];
+    placeLabel.font = montserrat;
+    placeLabel.adjustsFontSizeToFitWidth = YES;
     [self.topBar addSubview:placeLabel];
     [self.view addSubview:self.topBar];
     
@@ -67,13 +74,66 @@
     [self.backButtonLarge addTarget:self action:@selector(closeFriendsView) forControlEvents:UIControlEventTouchDown];
     [self.view addSubview:self.backButtonLarge];
     
+    self.tetherBar = [[UIView alloc] initWithFrame:CGRectMake(0, self.topBar.frame.size.height, self.view.frame.size.width, 30.0)];
+    [self.tetherBar setBackgroundColor:[UIColor whiteColor]];
+    
+    UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:16.0f];
+    self.commitButton = [[UIButton alloc] init];
+    [self.commitButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
+    self.commitButton.titleLabel.font = montserratSmall;
+    [self.commitButton addTarget:self
+                          action:@selector(commitClicked:)
+                forControlEvents:UIControlEventTouchUpInside];
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    if (sharedDataManager.currentCommitmentPlace) {
+        if ([self.place.placeId isEqualToString:sharedDataManager.currentCommitmentPlace.placeId]) {
+            [self.commitButton setTitle:@"Tethred" forState:UIControlStateNormal];
+            [self.commitButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+            self.commitButton.tag = 2;
+        } else {
+            [self.commitButton setTitle:@"Tethr" forState:UIControlStateNormal];
+            [self.commitButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
+            self.commitButton.tag = 1;
+        }
+    } else {
+        [self.commitButton setTitle:@"Tethr" forState:UIControlStateNormal];
+        [self.commitButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
+        self.commitButton.tag = 1;
+    }
+
+    CGSize size = [self.commitButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratSmall}];
+    self.commitButton.frame = CGRectMake(100.0, (self.tetherBar.frame.size.height - size.height) / 2.0, size.width, size.height);
+    [self.tetherBar addSubview:self.commitButton];
+    
+    self.inviteButton = [[UIButton alloc] init];
+    self.inviteButton.frame = CGRectMake(self.commitButton.frame.origin.x + self.commitButton.frame.size.width + 40.0, (self.tetherBar.frame.size.height - 30.0) / 2.0, 20.0, 30.0);
+    [self.inviteButton setImage:[UIImage imageNamed:@"FriendIcon"] forState:UIControlStateNormal];
+    [self.inviteButton addTarget:self
+                          action:@selector(inviteClicked:)
+                forControlEvents:UIControlEventTouchUpInside];
+    [self.tetherBar addSubview:self.inviteButton];
+    
+    self.plusIconLabel = [[UILabel alloc] init];
+    self.plusIconLabel.frame = CGRectMake(self.inviteButton.frame.origin.x + 3.0, self.inviteButton.frame.origin.y + 7.0, 8.0, 8.0);
+    [self.plusIconLabel setBackgroundColor:UIColorFromRGB(0x8e0528)];
+    [self.plusIconLabel setTextColor:[UIColor whiteColor]];
+    self.plusIconLabel.layer.borderWidth = 0.5;
+    self.plusIconLabel.layer.borderColor = [UIColor whiteColor].CGColor;
+    UIFont *montserratExtraSmall = [UIFont fontWithName:@"Montserrat" size:8];
+    self.plusIconLabel.font = montserratExtraSmall;
+    self.plusIconLabel.text = @"+";
+    self.plusIconLabel.textAlignment = NSTextAlignmentCenter;
+    self.plusIconLabel.layer.cornerRadius = 5.0;
+    [self.tetherBar addSubview:self.plusIconLabel];
+    
+    [self.view addSubview:self.tetherBar];
+    
     //set up friends going out table view
-    self.friendsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, self.topBar.frame.size.height, self.view.frame.size.width, self.view.frame.size.height)];
+    self.friendsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, self.tetherBar.frame.origin.y + self.tetherBar.frame.size.height, self.view.frame.size.width, self.view.frame.size.height)];
     [self.friendsTableView setSeparatorColor:UIColorFromRGB(0xD6D6D6)];
     [self.friendsTableView setDataSource:self];
     [self.friendsTableView setDelegate:self];
     self.friendsTableView.showsVerticalScrollIndicator = NO;
-    
     [self.view addSubview:self.friendsTableView];
     
     self.friendsTableViewController = [[UITableViewController alloc] init];
@@ -169,6 +229,89 @@
     }
 }
 
+-(void) layoutCommitButton {
+    if (self.commitButton.tag == 1) {
+        [self.commitButton setTitle:@"Tethr" forState:UIControlStateNormal];
+        [self.commitButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
+    } else {
+        [self.commitButton setTitle:@"Tethred" forState:UIControlStateNormal];
+        [self.commitButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+    }
+    
+    UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:16.0f];
+    CGSize size = [self.commitButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratSmall}];
+    self.commitButton.frame = CGRectMake(100.0, (self.tetherBar.frame.size.height - size.height) / 2.0, size.width, size.height);
+}
+
+-(void)inviteToPlace:(Place *)place {
+    InviteViewController *inviteViewController = [[InviteViewController alloc] init];
+    inviteViewController.delegate = self;
+    inviteViewController.place = place;
+    [inviteViewController.view setBackgroundColor:[UIColor blackColor]];
+    [inviteViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+    [self.view addSubview:inviteViewController.view];
+    [self addChildViewController:inviteViewController];
+    [inviteViewController didMoveToParentViewController:self];
+    
+    [UIView animateWithDuration:0.5
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:5.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [inviteViewController.view setFrame:CGRectMake( 0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                     }];
+}
+
+#pragma mark UIButton action methods
+
+-(IBAction)commitClicked:(id)sender {
+    if (self.commitButton.tag == 1) {
+        if([self.delegate respondsToSelector:@selector(commitToPlace:)]) {
+            NSLog(@"CONTENT VIEW: commiting to %@", self.place.name);
+            [self.delegate commitToPlace:self.place];
+            self.commitButton.tag = 2;
+            [self layoutCommitButton];
+        }
+    } else {
+        if([self.delegate respondsToSelector:@selector(removePreviousCommitment)]) {
+            [self.delegate removePreviousCommitment];
+        }
+        if ([self.delegate respondsToSelector:@selector(removeCommitmentFromDatabase)]) {
+            [self.delegate removeCommitmentFromDatabase];
+        }
+        
+        self.commitButton.tag = 1;
+        [self layoutCommitButton];
+    }
+}
+
+-(IBAction)inviteClicked:(id)sender {
+    [self inviteToPlace:self.place];
+}
+
+#pragma mark InviteViewControllerDelegate
+
+-(void)closeInviteView {
+    for (UIViewController *childViewController in self.childViewControllers) {
+        [UIView animateWithDuration:0.5
+                              delay:0.0
+             usingSpringWithDamping:1.0
+              initialSpringVelocity:5.0
+                            options:UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                             [childViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                         }
+                         completion:^(BOOL finished) {
+                             [childViewController.view removeFromSuperview];
+                             [childViewController removeFromParentViewController];
+                         }];
+    }
+}
+
+
 #pragma mark UITableViewDataSource Methods
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -186,8 +329,8 @@
     
     UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(10.0, 5.0, tableView.frame.size.width, HEADER_HEIGHT - 5.0)];
     [label setTextColor:UIColorFromRGB(0xD6D6D6)];
-    UIFont *champagne = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:16.0];
-    [label setFont:champagne];
+    UIFont *montserratBold = [UIFont fontWithName:@"Montserrat-Bold" size:14.0];
+    [label setFont:montserratBold];
     if(section == 0) {
         NSString *headerString = [NSString stringWithFormat:@"Friends Going Here (%lu)", (unsigned long)[self.friendsArray count]];
         [label setText:headerString];

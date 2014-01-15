@@ -37,43 +37,46 @@
             [self addSubview:profileView];
         }
     
-        UIFont *champagneSmall = [UIFont fontWithName:@"Champagne&Limousines" size:16.0f];
-        UILabel *messageHeaderLabel = [[UILabel alloc] init];
+        UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:12.0f];
+        self.messageHeaderLabel = [[UILabel alloc] init];
         if (self.notification.messageHeader) {
-            [messageHeaderLabel setFont:champagneSmall];
+            [self.messageHeaderLabel setFont:montserrat];
             NSString *content;
-            if (![self.notification.message isEqualToString:@""]) {
-                NSString *friendListString = [[NSString alloc] init];
-                if ([self.notification.allRecipients count] > 5) {
-                    friendListString = [NSString stringWithFormat:@" and %d other friends", [self.notification.allRecipients count]];
-                } else {
-                    for (Friend *friend in self.notification.allRecipients) {
-                        if ([self.notification.allRecipients indexOfObject:friend] == [self.notification.allRecipients count] - 1) {
-                            friendListString = [NSString stringWithFormat:@"%@ and %@", friendListString, friend.name];
-                        } else {
-                            friendListString = [NSString stringWithFormat:@"%@, %@", friendListString, friend.name];
-                        }
+            
+            NSString *friendListString = [[NSString alloc] init];
+            if ([self.notification.allRecipients count] > 10.0) {
+                friendListString = [NSString stringWithFormat:@" and %d other friends", [self.notification.allRecipients count]];
+            } else {
+                for (Friend *friend in self.notification.allRecipients) {
+                    if ([self.notification.allRecipients indexOfObject:friend] == [self.notification.allRecipients count] - 1) {
+                        friendListString = [NSString stringWithFormat:@"%@ and %@", friendListString, friend.name];
+                    } else {
+                        friendListString = [NSString stringWithFormat:@"%@, %@", friendListString, friend.name];
                     }
                 }
-                NSString *messageHeader = [NSString stringWithFormat:@"%@ invited you%@ to %@", self.notification.sender.name, friendListString, self.notification.placeName];
-                content = [NSString stringWithFormat:@"%@ : \n\n%@", messageHeader, self.notification.message];
-            } else {
-                content = self.notification.messageHeader;
             }
+            
+            NSString *messageHeader = [NSString stringWithFormat:@"%@ invited you%@ to %@", self.notification.sender.name, friendListString, self.notification.placeName];
+            if (!self.notification.message || [self.notification.message isEqualToString:@""]) {
+                content = messageHeader;
+            } else {
+                content = [NSString stringWithFormat:@"%@ : \n%@", messageHeader, self.notification.message];
+            }
+
             CGRect contentRect = [content boundingRectWithSize:CGSizeMake(200.0, 100.0)
                                                        options:NSStringDrawingUsesLineFragmentOrigin
-                                                    attributes:@{NSFontAttributeName:champagneSmall}
+                                                    attributes:@{NSFontAttributeName:montserrat}
                                                        context:nil];
-            messageHeaderLabel.frame = CGRectMake(60.0, 0, contentRect.size.width, contentRect.size.height);
-            messageHeaderLabel.text = content;
-            messageHeaderLabel.lineBreakMode = NSLineBreakByWordWrapping;
-            messageHeaderLabel.numberOfLines = 0;
-            [messageHeaderLabel setTextColor:[UIColor whiteColor]];
-            [self addSubview:messageHeaderLabel];
+            self.messageHeaderLabel.frame = CGRectMake(60.0, 0, contentRect.size.width, contentRect.size.height);
+            self.messageHeaderLabel.text = content;
+            self.messageHeaderLabel.lineBreakMode = NSLineBreakByWordWrapping;
+            self.messageHeaderLabel.numberOfLines = 0;
+            [self.messageHeaderLabel setTextColor:[UIColor whiteColor]];
+            [self addSubview:self.messageHeaderLabel];
         }
         
         UILabel *timeLabel = [[UILabel alloc] init];
-        [timeLabel setFont:champagneSmall];
+        [timeLabel setFont:montserrat];
         NSTimeInterval timeInterval = [self.notification.time timeIntervalSinceNow];
         
         NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
@@ -108,8 +111,8 @@
             timeLabel.text = [NSString stringWithFormat:@"%ld second%@ ago", (long)seconds, plural];
         }
     
-        CGSize size = [timeLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneSmall}];
-        timeLabel.frame = CGRectMake(self.frame.size.width - 60.0 - size.width, 100.0 - size.height, size.width, size.height);
+        CGSize size = [timeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
+        timeLabel.frame = CGRectMake(self.frame.size.width - 60.0 - size.width, MAX(80.0, self.frame.size.height) - size.height, size.width, size.height);
         [timeLabel setTextColor:[UIColor whiteColor]];
         [self addSubview:timeLabel];
 }

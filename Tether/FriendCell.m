@@ -11,6 +11,7 @@
 #import "Friend.h"
 #import "FriendCell.h"
 
+#define MAX_LABEL_WIDTH 150.0
 #define NAME_LABEL_OFFSET_X 70.0
 #define PROFILE_PICTURE_CORNER_RADIUS 22.0
 #define PROFILE_PICTURE_OFFSET_X 10.0
@@ -58,24 +59,19 @@
 - (void)layoutSubviews {
     [super layoutSubviews];
     
+    [self setBackgroundColor:[UIColor whiteColor]];
+    
     self.friendProfilePictureView.frame = CGRectMake(PROFILE_PICTURE_OFFSET_X, (self.frame.size.height - PROFILE_PICTURE_SIZE) / 2, PROFILE_PICTURE_SIZE, PROFILE_PICTURE_SIZE);
     self.friendProfilePictureView.layer.cornerRadius = 22.0;
     self.friendProfilePictureView.clipsToBounds = YES;
     self.friendProfilePictureView.tag = 0;
 
-    UIFont *champagneBold = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:18.0f];
-    CGSize size = [self.friendNameLabel.text sizeWithAttributes:@{NSFontAttributeName: champagneBold}];
-    self.friendNameLabel.frame = CGRectMake(NAME_LABEL_OFFSET_X, self.friendProfilePictureView.frame.origin.y, size.width, size.height);
+    UIFont *montserratBold = [UIFont fontWithName:@"Montserrat" size:16.0f];
+    CGSize size = [self.friendNameLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];
+    self.friendNameLabel.frame = CGRectMake(NAME_LABEL_OFFSET_X, self.friendProfilePictureView.frame.origin.y, MIN(size.width, MAX_LABEL_WIDTH), size.height);
+    self.friendNameLabel.adjustsFontSizeToFitWidth = YES;
     [self.friendNameLabel setTextColor:UIColorFromRGB(0x8e0528)];
-    [self.friendNameLabel setFont:champagneBold];
-    
-    UIFont *champagne = [UIFont fontWithName:@"Champagne&Limousines" size:16.0f];
-    [self.placeButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    size = [self.placeButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName: champagne}];
-    self.placeButton.frame = CGRectMake(NAME_LABEL_OFFSET_X, self.friendNameLabel.frame.origin.y + self.friendNameLabel.frame.size.height,  size.width, size.height);
-    self.placeButton.titleLabel.font = champagne;
-    [self.placeButton setTitleEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 0)];
-    [self.placeButton addTarget:self action:@selector(friendsCommitmentPressed) forControlEvents:UIControlEventTouchUpInside];
+    [self.friendNameLabel setFont:montserratBold];
     
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     if (self.friend.placeId != NULL) {
@@ -87,6 +83,14 @@
         [self.placeButton setTitle:@"" forState:UIControlStateNormal];
     }
     
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:12.0f];
+    [self.placeButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    size = [self.placeButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName: montserrat}];
+    self.placeButton.frame = CGRectMake(NAME_LABEL_OFFSET_X, self.friendNameLabel.frame.origin.y + self.friendNameLabel.frame.size.height, MIN(size.width, MAX_LABEL_WIDTH), size.height);
+    self.placeButton.titleLabel.font = montserrat;
+    self.placeButton.titleLabel.adjustsFontSizeToFitWidth = YES;
+    [self.placeButton addTarget:self action:@selector(friendsCommitmentPressed) forControlEvents:UIControlEventTouchUpInside];
+    
     self.statusLabel = [[UILabel alloc] init];
     [self.statusLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
     if (self.friend.statusMessage.length > 0) {
@@ -94,10 +98,11 @@
     } else {
         self.statusLabel.text = @"";
     }
-    UIFont *champagneSmall = [UIFont fontWithName:@"Champagne&Limousines" size:14.0f];
-    size = [self.statusLabel.text sizeWithAttributes:@{NSFontAttributeName: champagneSmall}];
-    self.statusLabel.frame = CGRectMake(NAME_LABEL_OFFSET_X, self.friendNameLabel.frame.origin.y + self.friendNameLabel.frame.size.height + self.placeButton.frame.size.height, size.width, size.height);
-    [self.statusLabel setFont:champagneSmall];
+    UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:10.0f];
+    size = [self.statusLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratSmall}];
+    self.statusLabel.frame = CGRectMake(NAME_LABEL_OFFSET_X, self.friendNameLabel.frame.origin.y + self.friendNameLabel.frame.size.height + self.placeButton.frame.size.height, MIN(size.width, MAX_LABEL_WIDTH), size.height);
+    [self.statusLabel setFont:montserratSmall];
+    self.statusLabel.adjustsFontSizeToFitWidth = YES;
     [self addSubview:self.statusLabel];
 }
 
@@ -119,16 +124,6 @@
     
     self.friendProfilePictureView.clipsToBounds = YES;
     [self addSubview:self.friendProfilePictureView];
-    
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
-    if (self.friend.placeId != NULL) {
-        if ([sharedDataManager.placesDictionary objectForKey:self.friend.placeId]) {
-            Place *place = [sharedDataManager.placesDictionary objectForKey:friend.placeId];
-            [self.placeButton setTitle:place.name forState:UIControlStateNormal];
-        }
-    } else {
-        [self.placeButton setTitle:@"" forState:UIControlStateNormal];
-    }
     
     [self setNeedsLayout];
     [self setNeedsDisplay];

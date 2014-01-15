@@ -24,6 +24,7 @@
 @property (nonatomic, strong) UIButton *arrowButton;
 @property (nonatomic, strong) UILabel *addressLabel;
 @property (nonatomic, strong) UIButton *inviteButton;
+@property (nonatomic, strong) UIButton *inviteButtonLarge;
 @property (nonatomic, strong) UIButton *moreInfoButton;
 @property (nonatomic, strong) UILabel *plusIconLabel;
 - (void)prepareForReuse;
@@ -59,6 +60,8 @@
         [self addSubview:self.arrowButton];
         self.inviteButton = [[UIButton alloc] init];
         [self addSubview:self.inviteButton];
+        self.inviteButtonLarge = [[UIButton alloc] init];
+        [self addSubview:self.inviteButtonLarge];
         self.moreInfoButton = [[UIButton alloc] init];
         [self addSubview:self.moreInfoButton];
         self.plusIconLabel = [[UILabel alloc] init];
@@ -75,31 +78,31 @@
     [super layoutSubviews];
     
     [self.placeNameLabel setTextColor:UIColorFromRGB(0x8e0528)];
-    UIFont *champagneBold = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:18.0f];
-    CGSize size = [self.placeNameLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneBold}];
-    self.placeNameLabel.frame = CGRectMake(10.0, 10.0, size.width, size.height);
-    [self.placeNameLabel setFont:champagneBold];
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:16.0f];
+    CGSize size = [self.placeNameLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
+    self.placeNameLabel.frame = CGRectMake(10.0, 10.0, MIN(self.frame.size.width - 100.0, size.width), size.height);
+    self.placeNameLabel.adjustsFontSizeToFitWidth = YES;
+    [self.placeNameLabel setFont:montserrat];
     
-    UIFont *champagneSmall = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:12.0f];
+    UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:10.0f];
     [self.addressLabel setText:self.place.address];
-    size = [self.addressLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneSmall}];
+    size = [self.addressLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratSmall}];
     self.addressLabel.frame = CGRectMake(self.placeNameLabel.frame.origin.x, self.placeNameLabel.frame.origin.y + self.placeNameLabel.frame.size.height, size.width, size.height);
-    [self.addressLabel setFont:champagneSmall];
+    [self.addressLabel setFont:montserratSmall];
     [self.addressLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
     
-    UIFont *champagneExtraSmall = [UIFont fontWithName:@"Champagne&Limousines" size:10.0f];
+    UIFont *montserratExtraSmall = [UIFont fontWithName:@"Montserrat" size:8.0f];
     [self.moreInfoButton setTitle:@"(more info)" forState:UIControlStateNormal];
     [self.moreInfoButton setTitleColor:UIColorFromRGB(0x05528e)  forState:UIControlStateNormal];
-    self.moreInfoButton.titleLabel.font = champagneExtraSmall;
-    size = [self.moreInfoButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneExtraSmall}];
+    self.moreInfoButton.titleLabel.font = montserratExtraSmall;
+    size = [self.moreInfoButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratExtraSmall}];
     self.moreInfoButton.frame = CGRectMake(self.placeNameLabel.frame.origin.x + self.placeNameLabel.frame.size.width + 5.0, self.placeNameLabel.frame.origin.y + self.placeNameLabel.frame.size.height - size.height, size.width, size.height);
     [self.moreInfoButton addTarget:self
                           action:@selector(moreInfoClicked:)
                 forControlEvents:UIControlEventTouchUpInside];
-    [self layoutCommitButton];
     
     [self.commitButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
-    self.commitButton.titleLabel.font = champagneBold;
+    self.commitButton.titleLabel.font = montserrat;
     [self.commitButton addTarget:self
                           action:@selector(commitClicked:)
                 forControlEvents:UIControlEventTouchUpInside];
@@ -113,13 +116,13 @@
                                 action:@selector(friendsGoingClicked:)
                       forControlEvents:UIControlEventTouchUpInside];
     
-    UIFont *champagneBoldLarge = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:30.0f];
+    UIFont *helveticaNeue = [UIFont fontWithName:@"HelveticaNeue" size:30.0f];
     if (self.place.numberCommitments > 0) {
         [self.friendsGoingButton setTitle:[NSString stringWithFormat:@"%d", self.place.numberCommitments] forState:UIControlStateNormal];
-        size = [self.friendsGoingButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneBoldLarge}];
+        size = [self.friendsGoingButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:helveticaNeue}];
         self.friendsGoingButton.frame = CGRectMake(self.frame.size.width - size.width - 20.0, (self.frame.size.height - size.height) / 2, size.width, size.height);
         [self.friendsGoingButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
-        self.friendsGoingButton.titleLabel.font = champagneBoldLarge;
+        self.friendsGoingButton.titleLabel.font = helveticaNeue;
         [self.friendsGoingButton addTarget:self
                                     action:@selector(friendsGoingClicked:)
                           forControlEvents:UIControlEventTouchUpInside];
@@ -136,9 +139,14 @@
         [self.arrowButton setHidden:YES];
     }
     
-    self.inviteButton.frame = CGRectMake(self.commitButton.frame.origin.x + self.commitButton.frame.size.width + 10.0, self.addressLabel.frame.origin.y + self.addressLabel.frame.size.height, 20, 30);
+    self.inviteButton.frame = CGRectMake(self.commitButton.frame.origin.x + self.commitButton.frame.size.width + 40.0, self.addressLabel.frame.origin.y + self.addressLabel.frame.size.height, 20, 30);
     [self.inviteButton setImage:[UIImage imageNamed:@"FriendIcon"] forState:UIControlStateNormal];
     [self.inviteButton addTarget:self
+                          action:@selector(inviteClicked:)
+                forControlEvents:UIControlEventTouchUpInside];
+    
+    self.inviteButtonLarge.frame = CGRectMake(self.inviteButton.frame.origin.x, self.inviteButton.frame.origin.y, 60.0, 60.0);
+    [self.inviteButtonLarge addTarget:self
                           action:@selector(inviteClicked:)
                 forControlEvents:UIControlEventTouchUpInside];
     
@@ -147,8 +155,8 @@
     [self.plusIconLabel setTextColor:[UIColor whiteColor]];
     self.plusIconLabel.layer.borderWidth = 0.5;
     self.plusIconLabel.layer.borderColor = [UIColor whiteColor].CGColor;
-    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:8];
-    self.plusIconLabel.font = montserrat;
+    UIFont *montserratExtraExtraSmall = [UIFont fontWithName:@"Montserrat" size:8];
+    self.plusIconLabel.font = montserratExtraExtraSmall;
     self.plusIconLabel.text = @"+";
     self.plusIconLabel.textAlignment = NSTextAlignmentCenter;
     self.plusIconLabel.layer.cornerRadius = 5.0;
@@ -169,8 +177,8 @@
         [self.commitButton setTitle:@"Tethred" forState:UIControlStateNormal];
         [self.commitButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
     }
-    UIFont *champagne = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:18.0f];
-    CGSize size = [self.commitButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:champagne}];
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:16.0f];
+    CGSize size = [self.commitButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
     self.commitButton.frame = CGRectMake(self.placeNameLabel.frame.origin.x, self.addressLabel.frame.origin.y + self.addressLabel.frame.size.height + 4.0, size.width, size.height);
 }
 

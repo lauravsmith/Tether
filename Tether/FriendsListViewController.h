@@ -20,5 +20,8 @@
 @protocol FriendsListViewControllerDelegate <NSObject>
 
 -(void)closeFriendsView;
+-(void)commitToPlace:(Place *)place;
+-(void)removePreviousCommitment;
+-(void)removeCommitmentFromDatabase;
 
 @end

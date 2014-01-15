@@ -12,7 +12,7 @@
 #import "SettingsViewController.h"
 
 #define PADDING 15.0
-#define STATUS_MESSAGE_LENGTH 25.0
+#define STATUS_MESSAGE_LENGTH 30.0
 #define TABLE_VIEW_HEIGHT 250.0
 
 #define degreesToRadian(x) (M_PI * (x) / 180.0)
@@ -96,11 +96,14 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.userProfilePictureView.frame = CGRectMake(PADDING, self.topBarView.frame.size.height + 25.0, 45.0, 45.0);
     [self.view addSubview:self.userProfilePictureView];
     
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:16];
+    
     self.statusMessageTextField = [[UITextField alloc] initWithFrame:CGRectMake(self.userProfilePictureView.frame.origin.x + self.userProfilePictureView.frame.size.width + 18.0, self.topBarView.frame.size.height + 34.0, 220.0, 25.0)];
     self.statusMessageTextField.delegate = self;
     self.statusMessageTextField.layer.cornerRadius = 2.0;
     self.statusMessageTextField.placeholder = @"Enter status message";
     [self.statusMessageTextField setBackgroundColor:[UIColor whiteColor]];
+    [self.statusMessageTextField setFont:montserrat];
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     if (sharedDataManager.statusMessage) {
         self.statusMessageTextField.text = sharedDataManager.statusMessage;
@@ -112,7 +115,6 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [self.whiteLineView setBackgroundColor:[UIColor whiteColor]];
     [self.view addSubview:self.whiteLineView];
     
-    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:16];
     self.defaultCityLabel = [[UILabel alloc] init];
     self.defaultCityLabel.text = @"Default City";
     self.defaultCityLabel.font = montserrat;
@@ -163,9 +165,9 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     NSString *location = [NSString stringWithFormat:@"%@, %@",[userDetails objectForKey:@"city"], [userDetails objectForKey:@"state"]];
     self.cityTextField.text = [location uppercaseString];
     self.cityTextField.placeholder = @"Search by city name";
-    UIFont *textViewFont = [UIFont fontWithName:@"Champagne&Limousines-Italic" size:18];
+    UIFont *textViewFont = [UIFont fontWithName:@"Montserrat" size:16];
     self.cityTextField.font = textViewFont;
-    self.cityTextField.textColor = UIColorFromRGB(0x770051);
+    self.cityTextField.textColor = UIColorFromRGB(0x8e0528);
     self.cityTextField.layer.cornerRadius = 2.0;
     [self.cityTextField setBackgroundColor:[UIColor whiteColor]];
     [self.view addSubview:self.cityTextField];
@@ -196,11 +198,12 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.cancelSearchButton = [[UIButton alloc] init];
     [self.cancelSearchButton addTarget:self action:@selector(cancelSearchButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
     [self.cancelSearchButton setBackgroundColor:[UIColor clearColor]];
-    [self.cancelSearchButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+    [self.cancelSearchButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [self.cancelSearchButton setTitle:@"Cancel" forState:UIControlStateNormal];
-    CGSize size = [self.cancelSearchButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName: subheadingFont}];
-    self.cancelSearchButton.frame = CGRectMake(self.view.frame.size.width - size.width - PADDING, self.topBarView.frame.origin.y + self.topBarView.frame.size.height + PADDING, size.width, size.height);
-    self.cancelSearchButton.titleLabel.font = subheadingFont;
+    UIFont *cancelButtonFont = [UIFont fontWithName:@"Montserrat" size:12];
+    CGSize size = [self.cancelSearchButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName: cancelButtonFont}];
+    self.cancelSearchButton.frame = CGRectMake(self.view.frame.size.width - size.width - PADDING*2, self.topBarView.frame.origin.y + self.topBarView.frame.size.height + PADDING + 5.0, size.width, size.height);
+    self.cancelSearchButton.titleLabel.font = cancelButtonFont;
     self.cancelSearchButton.hidden = YES;
     [self.view addSubview:self.cancelSearchButton];
     

@@ -13,7 +13,7 @@
 
 #import <Parse/Parse.h>
 
-#define CELL_HEIGHT 100.0
+#define CELL_HEIGHT 80.0
 #define PANEL_WIDTH 60.0
 #define STATUS_BAR_HEIGHT 20.0
 
@@ -148,7 +148,10 @@
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return CELL_HEIGHT;
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:12.0f];
+    NotificationCell *cell = (NotificationCell*)[self tableView:tableView cellForRowAtIndexPath:indexPath];
+    CGSize size = [cell.messageHeaderLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
+    return MAX(CELL_HEIGHT, size.height + 10.0);
 }
 
 

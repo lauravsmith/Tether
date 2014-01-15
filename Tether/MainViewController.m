@@ -183,10 +183,7 @@
     [self.currentUser saveEventually];
     
     NSLog(@"PARSE SAVE: saving your facebook friends");
-    
-    if(sharedDataManager.city && sharedDataManager.state) {
-        [self saveCity:sharedDataManager.city state:sharedDataManager.state];
-    }
+
     [self queryFriendsStatus];
 }
 
@@ -217,16 +214,22 @@
                 [self.currentUser setObject:firstName forKey:@"firstName"];
             }
             
+            NSDate *birthday = result[@"birthday"];
+            if (birthday) {
+                [self.currentUser setObject:birthday forKey:@"birthday"];
+            }
+            
             NSString *facebookId = result[@"id"];
             if (facebookId && [facebookId length] != 0) {
                 [self.currentUser setObject:facebookId forKey:kUserFacebookIDKey];
                 sharedDataManager.facebookId = facebookId;
+                [self.decisionViewController addProfileImageView];
                 self.facebookId = facebookId;
                 self.centerViewController.userProfilePictureView = [[FBProfilePictureView alloc] initWithProfileID:(NSString *)sharedDataManager.facebookId pictureCropping:FBProfilePictureCroppingSquare];
                 self.centerViewController.userProfilePictureView.layer.cornerRadius = 12.0;
                 self.centerViewController.userProfilePictureView.clipsToBounds = YES;
                 [self.centerViewController.userProfilePictureView.layer setBorderColor:[[UIColor whiteColor] CGColor]];
-                self.centerViewController.userProfilePictureView.frame = CGRectMake(7.0, 7.0, 25.0, 25.0);
+               self.centerViewController.userProfilePictureView.frame = CGRectMake(7.0, 7.0, 25.0, 25.0);
                 [self.centerViewController.bottomBar addSubview:self.centerViewController.userProfilePictureView];
                 [self.centerViewController.bottomBar addSubview:self.centerViewController.settingsButtonLarge];
             }
@@ -338,7 +341,7 @@
             if ([startTime compare:friend.timeLastUpdated] == NSOrderedDescending || !friend.status) {
                 [tempFriendsUndecidedSet addObject:friend];
             } else {
-                if (![friend.placeId isEqualToString:@""]) {
+                if (friend.placeId && ![friend.placeId isEqualToString:@""]) {
                     [tempFriendsGoingOutSet addObject:friend];
                 } else {
                     [tempFriendsNotGoingOutSet addObject:friend];
@@ -444,15 +447,7 @@
     self.rightPanelViewController.view.tag = RIGHT_PANEL_TAG;
     
     // check if user has input status today
-    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-    if ([self shouldShowDecisionView] || ![userDetails boolForKey:kUserDefaultsStatusKey]) {
-        self.decisionViewController = [[DecisionViewController alloc] init];
-        self.decisionViewController.delegate = self;
-        [self.view addSubview:self.decisionViewController.view];
-        [self addChildViewController:_decisionViewController];
-        [_decisionViewController didMoveToParentViewController:self];
-        self.showingDecisionView = YES;
-    } 
+    [self showDecisionView];
 }
 
 -(BOOL)shouldShowDecisionView {
@@ -471,6 +466,7 @@
     if ([self shouldShowDecisionView] || ![userDetails boolForKey:kUserDefaultsStatusKey]) {
         self.decisionViewController = [[DecisionViewController alloc] init];
         self.decisionViewController.delegate = self;
+        [self.decisionViewController addProfileImageView];
         [self.view addSubview:self.decisionViewController.view];
         [self addChildViewController:_decisionViewController];
         [_decisionViewController didMoveToParentViewController:self];
@@ -691,9 +687,9 @@
         self.placesViewController.delegate = self;
     } 
 
-    [self.placesViewController didMoveToParentViewController:self.centerViewController];
+    [self.placesViewController didMoveToParentViewController:self];
     [self.placesViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
-    [self.centerViewController.view addSubview:self.placesViewController.view];
+    [self.view addSubview:self.placesViewController.view];
     
     [UIView animateWithDuration:0.5
                           delay:0.0
@@ -842,10 +838,17 @@
 #pragma mark QuestionViewControllerDelegate
 
 -(void)handleChoice:(BOOL)choice {
-    [self.decisionViewController.view removeFromSuperview];
-    [self.decisionViewController removeFromParentViewController];
-    self.decisionViewController = nil;
-    self.showingDecisionView = NO;
+    
+    [UIView animateWithDuration:1.0
+        animations:^{
+            self.decisionViewController.view.alpha = 0.0;
+        } completion:^(BOOL finished) {
+            [self.decisionViewController.view removeFromSuperview];
+            [self.decisionViewController removeFromParentViewController];
+            self.decisionViewController = nil;
+            self.showingDecisionView = NO;
+            self.decisionViewController.view.alpha = 1.0;
+        }];
 
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     [userDetails setBool:choice forKey:kUserDefaultsStatusKey];

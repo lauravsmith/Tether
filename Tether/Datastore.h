@@ -13,8 +13,6 @@
 @interface Datastore : NSObject {
     NSString *facebookId;
     NSString *name;
-    NSString *city;
-    NSString *state;
     NSString *statusMessage;
     NSArray *facebookFriends;
     NSMutableDictionary *tetherFriendsNearbyDictionary;
@@ -33,8 +31,6 @@
 
 @property (nonatomic, retain) NSString *facebookId;
 @property (nonatomic, retain) NSString *name;
-@property (nonatomic, retain) NSString *city;
-@property (nonatomic, retain) NSString *state;
 @property (nonatomic, retain) NSArray *facebookFriends;
 @property (nonatomic, retain) NSMutableDictionary *tetherFriendsNearbyDictionary;
 @property (nonatomic, retain) NSMutableDictionary *tetherFriendsDictionary;

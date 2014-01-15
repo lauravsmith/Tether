@@ -74,6 +74,7 @@
     [self.searchBar setBackgroundImage:[UIImage new]];
     [self.searchBar setTranslucent:YES];
     self.searchBar.layer.cornerRadius = 5.0;
+    self.searchBar.placeholder = @"Search places...";
     [self.view addSubview:self.searchBar];
     
     self.searchResultsArray = [[NSMutableArray alloc] init];
@@ -524,23 +525,6 @@
                      }];
 }
 
--(void)closeInviteView {
-    for (UIViewController *childViewController in self.childViewControllers) {
-        [UIView animateWithDuration:0.5
-                              delay:0.0
-             usingSpringWithDamping:1.0
-              initialSpringVelocity:5.0
-                            options:UIViewAnimationOptionBeginFromCurrentState
-                         animations:^{
-                             [childViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
-                         }
-                         completion:^(BOOL finished) {
-                             [childViewController.view removeFromSuperview];
-                             [childViewController removeFromParentViewController];
-                         }];
-    }
-}
-
 -(void)closeFriendsView {
     for (UIViewController *childViewController in self.childViewControllers) {
         [UIView animateWithDuration:0.5
@@ -563,6 +547,33 @@
     PlaceCell *cell = (PlaceCell*)[self.placesTableView cellForRowAtIndexPath:cellIndex];
     [cell setTethered:NO];
 }
+
+#pragma mark FriendsListViewControllerDelegate
+
+-(void)commitToPlace:(Place *)place {
+    if ([self.delegate respondsToSelector:@selector(commitToPlace:)]) {
+        [self.delegate commitToPlace:place];
+    }
+}
+
+#pragma mark InviteViewControllerDelegate
+-(void)closeInviteView {
+    for (UIViewController *childViewController in self.childViewControllers) {
+        [UIView animateWithDuration:0.5
+                              delay:0.0
+             usingSpringWithDamping:1.0
+              initialSpringVelocity:5.0
+                            options:UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                             [childViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                         }
+                         completion:^(BOOL finished) {
+                             [childViewController.view removeFromSuperview];
+                             [childViewController removeFromParentViewController];
+                         }];
+    }
+}
+
 
 #pragma mark SearchBarDelegate methods
 
@@ -697,7 +708,7 @@
     if (tableView == self.placesTableView) {
         return [self.placesArray count];
     } else {
-        return [self.searchResultsArray count];
+        return [self.searchResultsArray count] + 1;
     }
 }
 
@@ -721,6 +732,14 @@
         
         return cell;
     } else {
+        if (indexPath.row == [self.searchResultsArray count]) {
+             UIImageView *foursquareImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"poweredByFoursquare"]];
+            foursquareImageView.frame = CGRectMake(0, 0, self.view.frame.size.width, CELL_HEIGHT);
+            foursquareImageView.contentMode = UIViewContentModeScaleAspectFit;
+            UITableViewCell *cell = [[UITableViewCell alloc] init];
+            [cell addSubview:foursquareImageView];
+            return cell;
+        }
         SearchResultCell *cell = [[SearchResultCell alloc] init];
         Place *p = [self.searchResultsArray objectAtIndex:indexPath.row];
         cell.place = p;

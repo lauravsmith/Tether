@@ -12,8 +12,6 @@
 
 @synthesize facebookId;
 @synthesize name;
-@synthesize city;
-@synthesize state;
 @synthesize facebookFriends;
 @synthesize statusMessage;
 @synthesize tetherFriendsNearbyDictionary;

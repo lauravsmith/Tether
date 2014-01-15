@@ -56,7 +56,6 @@
     // mapview setup
     self.mv = [[MKMapView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)];
     self.mv.delegate = self;
-    self.mv.showsUserLocation = YES;
     [self.view addSubview:self.mv];
     
     // top bar setup
@@ -79,8 +78,8 @@
     self.numberButton = [[UIButton alloc] initWithFrame:CGRectMake(PADDING, PADDING, 40.0, 40.0)];
     [self.numberButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [self.numberButton setTitleColor:[UIColor grayColor] forState:UIControlStateHighlighted];
-    UIFont *champagneBold = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:30];
-    self.numberButton.titleLabel.font = champagneBold;
+    UIFont *helveticaNeueLarge = [UIFont fontWithName:@"HelveticaNeue" size:30];
+    self.numberButton.titleLabel.font = helveticaNeueLarge;
     [self.numberButton addTarget:self action:@selector(btnMovePanelRight:) forControlEvents:UIControlEventTouchUpInside];
     self.numberButton.tag = 1;
     [self.topBar addSubview:self.numberButton];
@@ -88,7 +87,7 @@
     self.tethrLabel = [[UILabel alloc] init];
     UIFont *champagneTall = [UIFont fontWithName:@"Champagne&Limousines" size:30];
     self.tethrLabel.font = champagneTall;
-    self.tethrLabel.text = @"tethr.";
+    self.tethrLabel.text = @"tethr";
     [self.tethrLabel setTextColor:[UIColor whiteColor]];
     CGSize size = [self.tethrLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneTall}];
     self.tethrLabel.frame = CGRectMake((self.topBar.frame.size.width - size.width) / 2, (self.topBar.frame.size.height - size.height +STATUS_BAR_HEIGHT) / 2, size.width, size.height);
@@ -106,17 +105,6 @@
     self.triangleButton.tag = 1;
     [self.triangleButton addTarget:self action:@selector(btnMovePanelRight:) forControlEvents:UIControlEventTouchDown];
     [self.topBar addSubview:self.triangleButton];
-
-    // city location label setup
-    self.cityLabel = [[UILabel alloc] initWithFrame:CGRectMake(PADDING, self.topBar.frame.size.height - 20.0, 110.0, 20.0)];
-    [self.cityLabel setBackgroundColor:[UIColor clearColor]];
-    [self.cityLabel setTextColor:[UIColor whiteColor]];
-    UIFont *champagneItalic = [UIFont fontWithName:@"Champagne&Limousines-Italic" size:18.0f];
-    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-    self.cityLabel.text = [userDetails objectForKey:@"city"];
-    [self.cityLabel setFont:champagneItalic];
-    
-    [self.topBar addSubview:self.cityLabel];
     
     self.spinner = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake((self.topBar.frame.size.width - SPINNER_SIZE) / 2.0, STATUS_BAR_HEIGHT, SPINNER_SIZE, SPINNER_SIZE)];
     self.spinner.hidesWhenStopped = YES;
@@ -163,21 +151,22 @@
     [self.notificationsLabel setBackgroundColor:UIColorFromRGB(0x8e0528)];
     [self.notificationsLabel setTextColor:[UIColor whiteColor]];
     [self.notificationsLabel setTextAlignment:NSTextAlignmentCenter];
-    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:8];
-    self.notificationsLabel.font = montserrat;
+    UIFont *montserratVerySmall = [UIFont fontWithName:@"Montserrat" size:8];
+    self.notificationsLabel.font = montserratVerySmall;
     [self.notificationsLabel sizeThatFits:CGSizeMake(10.0, 10.0)];
     self.notificationsLabel.adjustsFontSizeToFitWidth = YES;
     [self.bottomBar addSubview:self.notificationsLabel];
     
-    UIFont *champagneSmall = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:18];
-    UIFont *champagneExtraSmall = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:14];
+    UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:18];
+    UIFont *montserratExtraSmall = [UIFont fontWithName:@"Montserrat" size:14];
     self.placeLabel = [[UILabel alloc] init];
-    [self.placeLabel setFont:champagneExtraSmall];
+    [self.placeLabel setFont:montserratExtraSmall];
     [self.placeLabel setTextColor:UIColorFromRGB(0x8e0528)];
+    self.placeLabel.adjustsFontSizeToFitWidth = YES;
     [self.bottomBar addSubview:self.placeLabel];
     
     self.placeNumberLabel = [[UILabel alloc] init];
-    [self.placeNumberLabel setFont:champagneSmall];
+    [self.placeNumberLabel setFont:montserratSmall];
     [self.placeNumberLabel setTextColor:UIColorFromRGB(0x8e0528)];
     [self.bottomBar addSubview:self.placeNumberLabel];
     [self layoutCurrentCommitment];
@@ -189,8 +178,8 @@
 
 
 -(void)layoutNumberButton {
-    UIFont *champagne = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:30];
-    CGSize size = [self.numberButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:champagne}];
+    UIFont *helveticaNeue = [UIFont fontWithName:@"HelveticaNeue" size:30];
+    CGSize size = [self.numberButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:helveticaNeue}];
     self.numberButton.frame = CGRectMake(PADDING, PADDING, size.width, size.height);
     self.numberButton.tag = 1;
     [self.topBar addSubview:self.numberButton];
@@ -198,26 +187,34 @@
 }
 
 -(void)layoutCurrentCommitment {
+    UIFont *champagneTall = [UIFont fontWithName:@"Helvetica" size:30];
+    UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:18];
+    UIFont *montserratExtraSmall = [UIFont fontWithName:@"Montserrat" size:14];
+    
     Datastore *sharedDataManager = [Datastore sharedDataManager];
+    
     if (sharedDataManager.currentCommitmentPlace) {
         self.placeLabel.text = sharedDataManager.currentCommitmentPlace.name;
         self.placeNumberLabel.text = [NSString stringWithFormat:@"%d", sharedDataManager.currentCommitmentPlace.numberCommitments];
-        self.tethrLabel.text = @"tethrd.";
+        self.tethrLabel.text = @"tethrd";
+        CGSize size = [self.placeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratExtraSmall}];
+        self.placeLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2, self.bottomBar.frame.size.height - size.height, MIN(300.0, size.width), size.height);
     } else {
-        self.placeLabel.text = @"";
+        NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+        if ([userDetails objectForKey:@"city"]) {
+            self.placeLabel.text = [NSString stringWithFormat:@"%@",[userDetails objectForKey:@"city"]];   
+        }
         self.placeNumberLabel.text = @"";
-        self.tethrLabel.text = @"tethr.";
+        self.tethrLabel.text = @"tethr";
+
+        CGSize size = [self.placeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratExtraSmall}];
+        self.placeLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2, (self.bottomBar.frame.size.height - size.height) / 2.0, MIN(300.0, size.width), size.height);
     }
-    UIFont *champagneTall = [UIFont fontWithName:@"Champagne&Limousines" size:30];
-    UIFont *champagneSmall = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:18];
-    UIFont *champagneExtraSmall = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:14];
-    CGSize size = [self.placeLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneExtraSmall}];
-    self.placeLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2, self.bottomBar.frame.size.height - size.height, size.width, size.height);
-    size = [self.placeNumberLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneSmall}];
+
+    CGSize size = [self.placeNumberLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratSmall}];
     self.placeNumberLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2, 0, size.width, size.height);
     size = [self.tethrLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneTall}];
     self.tethrLabel.frame = CGRectMake((self.topBar.frame.size.width - size.width) / 2, (self.topBar.frame.size.height - size.height  + STATUS_BAR_HEIGHT) / 2, size.width, size.height);
-
 }
 
 - (void)refreshTapped:(UIGestureRecognizer*)recognizer {
@@ -284,7 +281,7 @@
     NSLog(@"Adjusting Map: %f, %f", self.userCoordinates.coordinate.latitude,
           self.userCoordinates.coordinate.longitude);
     
-    MKCoordinateRegion adjustedRegion = [self.mv regionThatFits:MKCoordinateRegionMakeWithDistance(userCoord, 10000, 10000)];
+    MKCoordinateRegion adjustedRegion = [self.mv regionThatFits:MKCoordinateRegionMakeWithDistance(userCoord, 5000, 5000)];
     [self.mv setRegion:adjustedRegion animated:NO];
 }
 
@@ -322,11 +319,7 @@
                  [userDetails setObject:city forKey:@"city"];
                  [userDetails setObject:state forKey:@"state"];
                  [userDetails synchronize];
-                 self.cityLabel.text = city;
                  NSLog(@"Current City, State: %@,%@", city, state);
-                 Datastore *sharedDataManager = [Datastore sharedDataManager];
-                 sharedDataManager.city = city;
-                 sharedDataManager.state = state;
                  
                  if ([self.delegate respondsToSelector:@selector(saveCity:state:)]) {
                      [self.delegate saveCity:city state:state];
@@ -357,6 +350,7 @@
                 NSLog(@"setting user coordinates from city name to %f %f", location.coordinate.latitude, location.coordinate.longitude);
                 self.userCoordinates = location;
                 [self updateLocation];
+                 self.mv.showsUserLocation = YES;
             }
         } else {
             
@@ -440,20 +434,6 @@
     }
 }
 
-- (void) handlePinButtonTap:(UITapGestureRecognizer *)gestureRecognizer {
-    if ([self.delegate respondsToSelector:@selector(commitToPlace:)]) {
-        NSInteger index = ((UILabel*)gestureRecognizer.view).tag;
-        if (index) {
-            Place *p = [self.annotationsArray objectAtIndex:index];
-            [self.delegate commitToPlace:p];
-            if ([self.delegate respondsToSelector:@selector(pollDatabase)]) {
-                [self.delegate pollDatabase];
-            }
-        }
-    }
-}
-
-
 #pragma mark MapView delegate
 
 - (MKAnnotationView *)mapView:(MKMapView *)mapView viewForAnnotation:(id <MKAnnotation>)annotation
@@ -468,10 +448,13 @@
         // Try to dequeue an existing pin view first.
         TetherAnnotationView *pinView = [[TetherAnnotationView alloc] init];
         
+        TetherAnnotation *annotationPoint = (TetherAnnotation*)annotation;
+        Place *p = annotationPoint.place;
+        
         // If an existing pin view was not available, create one.
         UILabel *numberLabel = [[UILabel alloc] initWithFrame:CGRectMake(16.0, 7.0, 10.0, 15.0)];
-        UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:15];
-        numberLabel.font = montserrat;
+        UIFont *helveticaNeueSmall = [UIFont fontWithName:@"HelveticaNeue" size:15];
+        numberLabel.font = helveticaNeueSmall;
         numberLabel.adjustsFontSizeToFitWidth = YES;
         numberLabel.text = [NSString stringWithFormat:@"%d", ((TetherAnnotation*)annotation).place.numberCommitments];
         numberLabel.textColor = [UIColor whiteColor];
@@ -479,12 +462,12 @@
         pinView = [[TetherAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:@"CustomPinAnnotationView"];
         pinView.canShowCallout = YES;
         UIImage *pinImage = [UIImage imageNamed:@"LocationIcon"];
-    
         pinView.tag = 1;
         pinView.image = NULL;
         pinView.frame = CGRectMake(0, 0, 40.0, 40.0);
         UIImageView *imageView = [[UIImageView alloc] initWithImage:pinImage];
         imageView.frame = CGRectMake(0, 0, 40.0, 40.0);
+        
         [pinView addSubview:imageView];
         [pinView addSubview:numberLabel];
     
@@ -496,25 +479,18 @@
         UILabel* leftLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 30.0, 50.0)];
         leftLabel.userInteractionEnabled = YES;
         [leftLabel setTextColor:[UIColor whiteColor]];
-        UIFont *champagne = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:20];
-        [leftLabel setFont:champagne];
+        UIFont *helveticaNeue = [UIFont fontWithName:@"HelveticaNeue" size:20];
+        [leftLabel setFont:helveticaNeue];
         [leftLabel setText:[NSString stringWithFormat:@"  %d",((TetherAnnotation*)annotation).place.numberCommitments]];
         [leftLabel setBackgroundColor:UIColorFromRGB(0x8e0528)];
-        CGSize size = [leftLabel.text sizeWithAttributes:@{NSFontAttributeName:champagne}];
+        CGSize size = [leftLabel.text sizeWithAttributes:@{NSFontAttributeName:helveticaNeue}];
         pinView.leftCalloutAccessoryView = leftLabel;
         [pinView.leftCalloutAccessoryView setFrame:CGRectMake(0, 0, size.width + 10.0, 45.0)];
-    
-        TetherAnnotation *annotationPoint = (TetherAnnotation*)annotation;
-        Place *p = annotationPoint.place;
     
         [self.annotationsArray addObject:p];
         rightButton.tag = [self.annotationsArray indexOfObject:p];
         leftLabel.tag = rightButton.tag;
         NSLog(@"INDEX: %d", leftLabel.tag);
-        
-        UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc]
-                                       initWithTarget:self action:@selector(handlePinButtonTap:)];
-        [leftLabel addGestureRecognizer:tap];
     
         int i = 0;
         for (id friendId in p.friendsCommitted) {
@@ -547,7 +523,7 @@
                     [pinView sendSubviewToBack:profileView];
                     break;
                 default:
-                    break;
+                     break;
             }
             i++;
         }

@@ -13,7 +13,7 @@
 @interface DecisionViewController : UIViewController
 
 @property (nonatomic, weak) id<DecisionViewControllerDelegate> delegate;
-
+-(void)addProfileImageView;
 -(IBAction)handleYesButton:(id)sender;
 -(IBAction)handleNoButton:(id)sender;
 

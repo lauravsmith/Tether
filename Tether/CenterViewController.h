@@ -49,7 +49,6 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 @property (strong, nonatomic) UIButton *listViewButtonLarge;
 @property (nonatomic, strong) FBProfilePictureView *userProfilePictureView;
 @property (retain, nonatomic) UIButton *settingsButtonLarge;
-@property (retain, nonatomic) UILabel * cityLabel;
 @property (retain, nonatomic) MKMapView * mv;
 @property (retain, nonatomic) NSMutableDictionary * placeToAnnotationDictionary;
 @property (assign, nonatomic) bool resettingLocation;

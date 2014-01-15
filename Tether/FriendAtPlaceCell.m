@@ -49,11 +49,11 @@
     self.friendProfilePictureView.clipsToBounds = YES;
     self.friendProfilePictureView.tag = 0;
     
-    UIFont *champagneBold = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:18.0f];
-    CGSize size = [self.friendNameLabel.text sizeWithAttributes:@{NSFontAttributeName: champagneBold}];
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:16.0f];
+    CGSize size = [self.friendNameLabel.text sizeWithAttributes:@{NSFontAttributeName: montserrat}];
     self.friendNameLabel.frame = CGRectMake(NAME_LABEL_OFFSET_X, self.friendProfilePictureView.frame.origin.y, size.width, size.height);
     [self.friendNameLabel setTextColor:UIColorFromRGB(0x8e0528)];
-    [self.friendNameLabel setFont:champagneBold];
+    [self.friendNameLabel setFont:montserrat];
 }
 
 - (void)setFriend:(Friend *)friend {
