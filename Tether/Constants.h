@@ -33,3 +33,14 @@ extern NSString *const kCommitmentAddressKey;
 extern NSString *const kCommitmentPlaceIDKey;
 extern NSString *const kCommitmentCityKey;
 extern NSString *const kCommitmentStateKey;
+
+#pragma mark - Notification Class
+extern NSString *const kNotificationClassKey;
+extern NSString *const kNotificationSenderKey;
+extern NSString *const kNotificationPlaceNameKey;
+extern NSString *const kNotificationPlaceIdKey;
+extern NSString *const kNotificationMessageHeaderKey;
+extern NSString *const kNotificationMessageContentKey;
+extern NSString *const kNotificationRecipientKey;
+extern NSString *const kNotificationAllRecipientsKey;
+extern NSString *const kNotificationTypeKey;

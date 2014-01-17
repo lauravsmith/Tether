@@ -365,6 +365,7 @@
     } else {
         [cell setFriend:[self.friendsOfFriendsArray objectAtIndex:indexPath.row]];
     }
+    cell.selectionStyle = UITableViewCellSelectionStyleNone;
 
     return cell;
 }

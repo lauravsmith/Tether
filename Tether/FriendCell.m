@@ -28,11 +28,15 @@
 @property (nonatomic, strong) FBProfilePictureView *friendProfilePictureView;
 @property (nonatomic, strong) UILabel *statusLabel;
 @property (nonatomic, assign) BOOL showingStatusMessage;
+@property (nonatomic, strong) UIButton *inviteButton;
+@property (nonatomic, strong) UIButton *inviteButtonLarge;
+@property (nonatomic, strong) UILabel *plusIconLabel;
 - (void)prepareForReuse;
 @end
 
 @protocol FriendCellContentViewDelegate <NSObject>
 -(void)goToPlaceInListView:(id)placeId;
+-(void)inviteFriend:(Friend*)friend;
 @end
 
 @implementation FriendCellContentView
@@ -48,6 +52,12 @@
         [self addSubview:self.placeButton];
         self.layer.delegate = self;
         self.showingStatusMessage = NO;
+        self.inviteButton = [[UIButton alloc] init];
+        [self addSubview:self.inviteButton];
+        self.inviteButtonLarge = [[UIButton alloc] init];
+        [self addSubview:self.inviteButtonLarge];
+        self.plusIconLabel = [[UILabel alloc] init];
+        [self addSubview:self.plusIconLabel];
     }
     return self;
 }
@@ -74,13 +84,15 @@
     [self.friendNameLabel setFont:montserratBold];
     
     Datastore *sharedDataManager = [Datastore sharedDataManager];
-    if (self.friend.placeId != NULL) {
-        if ([sharedDataManager.placesDictionary objectForKey:self.friend.placeId]) {
-            Place *place = [sharedDataManager.placesDictionary objectForKey:self.friend.placeId];
-            [self.placeButton setTitle:place.name forState:UIControlStateNormal];
+    if (self.friend) {
+        if (self.friend.placeId != NULL) {
+            if ([sharedDataManager.placesDictionary objectForKey:self.friend.placeId]) {
+                Place *place = [sharedDataManager.placesDictionary objectForKey:self.friend.placeId];
+                [self.placeButton setTitle:place.name forState:UIControlStateNormal];
+            }
+        } else {
+            [self.placeButton setTitle:@"" forState:UIControlStateNormal];
         }
-    } else {
-        [self.placeButton setTitle:@"" forState:UIControlStateNormal];
     }
     
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:12.0f];
@@ -93,17 +105,42 @@
     
     self.statusLabel = [[UILabel alloc] init];
     [self.statusLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
-    if (self.friend.statusMessage.length > 0) {
-        self.statusLabel.text = [NSString stringWithFormat:@"\"%@\"", self.friend.statusMessage];
-    } else {
-        self.statusLabel.text = @"";
+    if (self.friend) {
+        if (self.friend.statusMessage.length > 0) {
+            self.statusLabel.text = [NSString stringWithFormat:@"\"%@\"", self.friend.statusMessage];
+        } else {
+            self.statusLabel.text = @"";
+        }
     }
+    
     UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:10.0f];
     size = [self.statusLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratSmall}];
     self.statusLabel.frame = CGRectMake(NAME_LABEL_OFFSET_X, self.friendNameLabel.frame.origin.y + self.friendNameLabel.frame.size.height + self.placeButton.frame.size.height, MIN(size.width, MAX_LABEL_WIDTH), size.height);
     [self.statusLabel setFont:montserratSmall];
     self.statusLabel.adjustsFontSizeToFitWidth = YES;
     [self addSubview:self.statusLabel];
+    
+    self.inviteButton.frame = CGRectMake(self.frame.size.width - 30.0, self.friendNameLabel.frame.origin.y, 20, 30);
+    [self.inviteButton setImage:[UIImage imageNamed:@"FriendIcon"] forState:UIControlStateNormal];
+    [self.inviteButton addTarget:self
+                          action:@selector(inviteClicked:)
+                forControlEvents:UIControlEventTouchUpInside];
+    
+    self.inviteButtonLarge.frame = CGRectMake(self.inviteButton.frame.origin.x, self.inviteButton.frame.origin.y, 60.0, 60.0);
+    [self.inviteButtonLarge addTarget:self
+                               action:@selector(inviteClicked:)
+                     forControlEvents:UIControlEventTouchUpInside];
+    
+    self.plusIconLabel.frame = CGRectMake(self.inviteButton.frame.origin.x + 3.0, self.inviteButton.frame.origin.y + 7.0, 8.0, 8.0);
+    [self.plusIconLabel setBackgroundColor:UIColorFromRGB(0x8e0528)];
+    [self.plusIconLabel setTextColor:[UIColor whiteColor]];
+    self.plusIconLabel.layer.borderWidth = 0.5;
+    self.plusIconLabel.layer.borderColor = [UIColor whiteColor].CGColor;
+    UIFont *montserratExtraExtraSmall = [UIFont fontWithName:@"Montserrat" size:8];
+    self.plusIconLabel.font = montserratExtraExtraSmall;
+    self.plusIconLabel.text = @"+";
+    self.plusIconLabel.textAlignment = NSTextAlignmentCenter;
+    self.plusIconLabel.layer.cornerRadius = 5.0;
 }
 
 -(void)friendsCommitmentPressed {
@@ -127,6 +164,12 @@
     
     [self setNeedsLayout];
     [self setNeedsDisplay];
+}
+
+-(IBAction)inviteClicked:(id)sender {
+    if ([self.delegate respondsToSelector:@selector(inviteFriend:)]) {
+        [self.delegate inviteFriend:self.friend];
+    }
 }
 
 @end
@@ -177,6 +220,12 @@
 -(void)goToPlaceInListView:(id)placeId {
     if ([self.delegate respondsToSelector:@selector(goToPlaceInListView:)]) {
         [self.delegate goToPlaceInListView:placeId];
+    }
+}
+
+-(void)inviteFriend:(Friend *)friend {
+    if ([self.delegate respondsToSelector:@selector(inviteFriend:)]) {
+        [self.delegate inviteFriend:friend];
     }
 }
 

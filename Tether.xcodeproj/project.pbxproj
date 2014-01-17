@@ -78,6 +78,7 @@
 		4746100018822E9F0067545B /* FriendsThing.png in Resources */ = {isa = PBXBuildFile; fileRef = 47460FFF18822E9F0067545B /* FriendsThing.png */; };
 		47461002188237B70067545B /* FriendIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 47461001188237B70067545B /* FriendIcon.png */; };
 		478C4BFF18482B78004C6BD0 /* SettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 478C4BFE18482B78004C6BD0 /* SettingsViewController.m */; };
+		4790C3EF1888874700DB9759 /* FriendInviteViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4790C3EE1888874700DB9759 /* FriendInviteViewController.m */; };
 		47BB2C57187E074100BB40F5 /* FriendLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 47BB2C56187E074100BB40F5 /* FriendLabel.m */; };
 		47BB2C59187E0A6E00BB40F5 /* WhiteTriangle.png in Resources */ = {isa = PBXBuildFile; fileRef = 47BB2C58187E0A6E00BB40F5 /* WhiteTriangle.png */; };
 		47BB2C5B187E0E1900BB40F5 /* RedTriangle.png in Resources */ = {isa = PBXBuildFile; fileRef = 47BB2C5A187E0E1900BB40F5 /* RedTriangle.png */; };
@@ -187,6 +188,8 @@
 		47461001188237B70067545B /* FriendIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = FriendIcon.png; sourceTree = "<group>"; };
 		478C4BFD18482B78004C6BD0 /* SettingsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SettingsViewController.h; sourceTree = "<group>"; };
 		478C4BFE18482B78004C6BD0 /* SettingsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SettingsViewController.m; sourceTree = "<group>"; };
+		4790C3ED1888874700DB9759 /* FriendInviteViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FriendInviteViewController.h; sourceTree = "<group>"; };
+		4790C3EE1888874700DB9759 /* FriendInviteViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FriendInviteViewController.m; sourceTree = "<group>"; };
 		47BB2C55187E074100BB40F5 /* FriendLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FriendLabel.h; sourceTree = "<group>"; };
 		47BB2C56187E074100BB40F5 /* FriendLabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FriendLabel.m; sourceTree = "<group>"; };
 		47BB2C58187E0A6E00BB40F5 /* WhiteTriangle.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = WhiteTriangle.png; sourceTree = "<group>"; };
@@ -447,6 +450,8 @@
 				478C4BFE18482B78004C6BD0 /* SettingsViewController.m */,
 				47FB08D7184970CA00A07908 /* PlacesViewController.h */,
 				47FB08D8184970CA00A07908 /* PlacesViewController.m */,
+				4790C3ED1888874700DB9759 /* FriendInviteViewController.h */,
+				4790C3EE1888874700DB9759 /* FriendInviteViewController.m */,
 			);
 			name = Controller;
 			sourceTree = "<group>";
@@ -647,6 +652,7 @@
 				470A33AA184029CE006E48F9 /* LoginViewController.m in Sources */,
 				47059D8A1842E17E00CEC50E /* FriendCell.m in Sources */,
 				47E73EBF187C499A009CA44A /* FriendAtPlaceCell.m in Sources */,
+				4790C3EF1888874700DB9759 /* FriendInviteViewController.m in Sources */,
 				47064CBC183D9FD800E9228A /* MainViewController.m in Sources */,
 				4702442218576BFD001C19AC /* JSONKit.m in Sources */,
 				4705F12D185940B60095F8B1 /* FriendsListViewController.m in Sources */,

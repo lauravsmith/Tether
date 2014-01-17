@@ -303,6 +303,7 @@
 }
 
 -(void)closeListView {
+    [self searchBarCancelButtonClicked:self.searchBar];
     if ([self.delegate respondsToSelector:@selector(closeListView)]) {
         [self.delegate closeListView];
     }
@@ -499,6 +500,7 @@
                              [friendsListViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
                          }
                          completion:^(BOOL finished) {
+                             [self searchBarCancelButtonClicked:self.searchBar];
                          }];
     }
 }
@@ -522,6 +524,7 @@
                          [inviteViewController.view setFrame:CGRectMake( 0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
                      }
                      completion:^(BOOL finished) {
+                          [self searchBarCancelButtonClicked:self.searchBar];
                      }];
 }
 
@@ -734,7 +737,7 @@
     } else {
         if (indexPath.row == [self.searchResultsArray count]) {
              UIImageView *foursquareImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"poweredByFoursquare"]];
-            foursquareImageView.frame = CGRectMake(0, 0, self.view.frame.size.width, CELL_HEIGHT);
+            foursquareImageView.frame = CGRectMake(0, 0, self.view.frame.size.width, SEARCH_RESULTS_CELL_HEIGHT);
             foursquareImageView.contentMode = UIViewContentModeScaleAspectFit;
             UITableViewCell *cell = [[UITableViewCell alloc] init];
             [cell addSubview:foursquareImageView];

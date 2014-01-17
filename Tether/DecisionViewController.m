@@ -41,10 +41,10 @@
 {
     [super viewDidLoad];
     
-    UIView *backgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - BOTTOM_BAR_HEIGHT)];
-    [backgroundView setBackgroundColor:[UIColor blackColor]];
-    backgroundView.alpha = 0.85;
-    [self.view addSubview:backgroundView];
+    UIImageView *backgroundImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"BlackTexture"]];
+    backgroundImageView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - BOTTOM_BAR_HEIGHT);
+    backgroundImageView.alpha = 0.80;
+    [self.view addSubview:backgroundImageView];
     
     // top bar setup
     self.topBar = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width,TOP_BAR_HEIGHT)];
@@ -52,9 +52,9 @@
     [self.view addSubview:self.topBar];
     
     self.tethrLabel = [[UILabel alloc] init];
-    UIFont *champagneTall = [UIFont fontWithName:@"Champagne&Limousines" size:30];
+    UIFont *champagneTall = [UIFont fontWithName:@"Helvetica" size:30];
     self.tethrLabel.font = champagneTall;
-    self.tethrLabel.text = @"tethr.";
+    self.tethrLabel.text = @"tethr";
     [self.tethrLabel setTextColor:[UIColor whiteColor]];
     CGSize size = [self.tethrLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneTall}];
     self.tethrLabel.frame = CGRectMake((self.topBar.frame.size.width - size.width) / 2, (self.topBar.frame.size.height - size.height +STATUS_BAR_HEIGHT) / 2, size.width, size.height);

@@ -19,4 +19,5 @@
 
 @protocol FriendCellDelegate <NSObject>
 -(void)goToPlaceInListView:(id)placeId;
+-(void)inviteFriend:(Friend*)friend;
 @end

@@ -20,4 +20,5 @@
 @property (retain, nonatomic) Place *place;
 @property (retain, nonatomic) NSString *placeId;
 @property (retain, nonatomic) NSString *placeName;
+@property (retain, nonatomic) NSString *type;
 @end

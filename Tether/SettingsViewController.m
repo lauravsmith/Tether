@@ -13,7 +13,7 @@
 
 #define PADDING 15.0
 #define STATUS_MESSAGE_LENGTH 30.0
-#define TABLE_VIEW_HEIGHT 250.0
+#define TABLE_VIEW_HEIGHT 235.0
 
 #define degreesToRadian(x) (M_PI * (x) / 180.0)
 
@@ -32,7 +32,6 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 @property (retain, nonatomic) UIView * whiteLineView2;
 @property (retain, nonatomic) UILabel * defaultCityLabel;
 @property (retain, nonatomic) UILabel * locationSwitchLabel;
-@property (retain, nonatomic) UISwitch * goingOutSwitch;
 @property (retain, nonatomic) UILabel * goingOutLabel;
 @property (retain, nonatomic) UILabel * yesLabel;
 @property (retain, nonatomic) UILabel * noLabel;
@@ -183,18 +182,6 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.geocoder = [[ILGeoNamesLookup alloc] initWithUserID:kGeoNamesAccountName];
     self.geocoder.delegate = self;
     
-    self.searchResultsTableView = [[UITableView alloc] initWithFrame:CGRectMake(PADDING, self.topBarView.frame.origin.y + self.topBarView.frame.size.height + 50, self.cityTextField.frame.size.width, 0)];
-    [self.searchResultsTableView setBackgroundColor:[UIColor whiteColor]];
-    [self.searchResultsTableView setDataSource:self];
-    [self.searchResultsTableView setDelegate:self];
-    self.searchResultsTableView.hidden = YES;
-    
-    [self.view addSubview:self.searchResultsTableView];
-    
-    self.searchResultsTableViewController = [[UITableViewController alloc] init];
-    self.searchResultsTableViewController.tableView = self.searchResultsTableView;
-    [self.searchResultsTableView reloadData];
-    
     self.cancelSearchButton = [[UIButton alloc] init];
     [self.cancelSearchButton addTarget:self action:@selector(cancelSearchButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
     [self.cancelSearchButton setBackgroundColor:[UIColor clearColor]];
@@ -254,6 +241,18 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.logoutButton.frame = CGRectMake((self.view.frame.size.width - size.width) / 2.0, 500.0, size.width, size.height);
     [self.logoutButton addTarget:self action:@selector(logoutButtonWasPressed:) forControlEvents:UIControlEventTouchDown];
     [self.view addSubview:self.logoutButton];
+    
+    self.searchResultsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, self.topBarView.frame.origin.y + self.topBarView.frame.size.height + 50, self.view.frame.size.width, 0)];
+    [self.searchResultsTableView setBackgroundColor:[UIColor whiteColor]];
+    [self.searchResultsTableView setDataSource:self];
+    [self.searchResultsTableView setDelegate:self];
+    self.searchResultsTableView.hidden = YES;
+    
+    [self.view addSubview:self.searchResultsTableView];
+    
+    self.searchResultsTableViewController = [[UITableViewController alloc] init];
+    self.searchResultsTableViewController.tableView = self.searchResultsTableView;
+    [self.searchResultsTableView reloadData];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -302,9 +301,11 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 }
 
 -(void)resettingNewLocationHasFinished {
+    [self closeSearchResultsTableView];
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     NSString *location = [NSString stringWithFormat:@"%@, %@",[userDetails objectForKey:@"city"], [userDetails objectForKey:@"state"]];
     self.cityTextField.text = [location uppercaseString];
+    self.view.userInteractionEnabled = YES;
 }
 
 #pragma mark UITextField delegate methods
@@ -453,6 +454,9 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 }
 
 -(IBAction)logoutButtonWasPressed:(id)sender {
+    if ([self.delegate respondsToSelector:@selector(closeSettings)]) {
+        [self.delegate closeSettings];
+    }
     AppDelegate* appDelegate = [UIApplication sharedApplication].delegate;
     [appDelegate logoutPressed];
 }
@@ -535,10 +539,11 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 		double longitude = [[result objectForKey:kILGeoNamesLongitudeKey] doubleValue];
         self.cityTextField.textColor = UIColorFromRGB(0x8e0528);
         self.cityTextField.text =[[result objectForKey:kILGeoNamesAlternateNameKey] uppercaseString];
-        [self closeSearchResultsTableView];
+//        [self closeSearchResultsTableView];
         CLLocation *location = [[CLLocation alloc] initWithLatitude:latitude longitude:longitude];
         if ([self.delegate respondsToSelector:@selector(userChangedLocationInSettings:)]) {
             [self.delegate userChangedLocationInSettings:location];
+            self.view.userInteractionEnabled = NO;
         }
 	}
 }

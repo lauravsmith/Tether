@@ -20,6 +20,7 @@
 @property (nonatomic, strong) FBProfilePictureView *userProfilePictureView;
 @property (retain, nonatomic) NSString * city;
 @property (nonatomic, retain) ILGeoNamesLookup *geocoder;
+@property (retain, nonatomic) UISwitch * goingOutSwitch;
 -(void)resettingNewLocationHasFinished;
 
 @end

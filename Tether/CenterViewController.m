@@ -31,8 +31,9 @@
 @property (retain, nonatomic) UIView * topBar;
 @property (assign, nonatomic) bool mapHasAdjusted;
 @property (strong, nonatomic) CLLocationManager * locationManager;
-@property (strong, nonatomic) CLLocation *userCoordinates;
 @property (strong, nonatomic) NSTimer * finishLoadingTimer;
+@property (retain, nonatomic) UITapGestureRecognizer * cityTap;
+@property (strong, nonatomic) UIButton *commitmentButton;
 
 @end
 
@@ -85,11 +86,11 @@
     [self.topBar addSubview:self.numberButton];
     
     self.tethrLabel = [[UILabel alloc] init];
-    UIFont *champagneTall = [UIFont fontWithName:@"Champagne&Limousines" size:30];
-    self.tethrLabel.font = champagneTall;
+    UIFont *helvetica = [UIFont fontWithName:@"Helvetica" size:30];
+    self.tethrLabel.font = helvetica;
     self.tethrLabel.text = @"tethr";
     [self.tethrLabel setTextColor:[UIColor whiteColor]];
-    CGSize size = [self.tethrLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneTall}];
+    CGSize size = [self.tethrLabel.text sizeWithAttributes:@{NSFontAttributeName:helvetica}];
     self.tethrLabel.frame = CGRectMake((self.topBar.frame.size.width - size.width) / 2, (self.topBar.frame.size.height - size.height +STATUS_BAR_HEIGHT) / 2, size.width, size.height);
     self.tethrLabel.userInteractionEnabled = YES;
     UITapGestureRecognizer *refreshTapGesture =
@@ -173,6 +174,10 @@
     
     [self.view addSubview:self.bottomBar];
     
+    self.commitmentButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width / 4.0, 0.0, self.view.frame.size.width / 2.0, self.bottomBar.frame.size.height)];
+    self.commitmentButton.tag = 0;
+    [self.commitmentButton addTarget:self action:@selector(commitmentClicked:) forControlEvents:UIControlEventTouchUpInside];
+    
     [self restartTimer];
 }
 
@@ -187,7 +192,7 @@
 }
 
 -(void)layoutCurrentCommitment {
-    UIFont *champagneTall = [UIFont fontWithName:@"Helvetica" size:30];
+    UIFont *helvetica = [UIFont fontWithName:@"Helvetica" size:30];
     UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:18];
     UIFont *montserratExtraSmall = [UIFont fontWithName:@"Montserrat" size:14];
     
@@ -198,7 +203,13 @@
         self.placeNumberLabel.text = [NSString stringWithFormat:@"%d", sharedDataManager.currentCommitmentPlace.numberCommitments];
         self.tethrLabel.text = @"tethrd";
         CGSize size = [self.placeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratExtraSmall}];
-        self.placeLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2, self.bottomBar.frame.size.height - size.height, MIN(300.0, size.width), size.height);
+        self.placeLabel.frame = CGRectMake(MAX(self.userProfilePictureView.frame.origin.x + self.userProfilePictureView.frame.size.width, (self.view.frame.size.width - size.width) / 2), self.bottomBar.frame.size.height - size.height, MIN(267.0, size.width), size.height);
+        for (UIGestureRecognizer *gestureRecognizer in self.placeLabel.gestureRecognizers) {
+            [self.placeLabel removeGestureRecognizer:gestureRecognizer];
+        }
+
+        [self.bottomBar addSubview:self.commitmentButton];
+        self.commitmentButton.tag = 1;
     } else {
         NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
         if ([userDetails objectForKey:@"city"]) {
@@ -209,12 +220,37 @@
 
         CGSize size = [self.placeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratExtraSmall}];
         self.placeLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2, (self.bottomBar.frame.size.height - size.height) / 2.0, MIN(300.0, size.width), size.height);
+        self.cityTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(cityNameTap:)];
+        [self.placeLabel addGestureRecognizer:self.cityTap];
+        self.placeLabel.userInteractionEnabled = YES;
+        
+        if (self.commitmentButton.tag == 1) {
+            [self.commitmentButton removeFromSuperview];
+        }
+        self.commitmentButton.tag = 0;
     }
 
     CGSize size = [self.placeNumberLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratSmall}];
     self.placeNumberLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2, 0, size.width, size.height);
-    size = [self.tethrLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneTall}];
+    size = [self.tethrLabel.text sizeWithAttributes:@{NSFontAttributeName:helvetica}];
     self.tethrLabel.frame = CGRectMake((self.topBar.frame.size.width - size.width) / 2, (self.topBar.frame.size.height - size.height  + STATUS_BAR_HEIGHT) / 2, size.width, size.height);
+}
+
+-(void)cityNameTap:(UIGestureRecognizer*)recognizer {
+    if ([self.delegate respondsToSelector:@selector(showSettingsView)]) {
+        [self.delegate showSettingsView];
+    }
+}
+
+-(IBAction)commitmentClicked:(id)sender {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    TetherAnnotationView * annotationView = [self.placeToAnnotationViewDictionary objectForKey:sharedDataManager.currentCommitmentPlace.placeId];
+    
+    if (annotationView.tag == 1) {
+        [self.mv selectAnnotation:((MKAnnotationView*)annotationView).annotation animated:YES];
+    } else {
+        [self.mv deselectAnnotation:((MKAnnotationView*)annotationView).annotation animated:YES];
+    }
 }
 
 - (void)refreshTapped:(UIGestureRecognizer*)recognizer {
@@ -281,7 +317,7 @@
     NSLog(@"Adjusting Map: %f, %f", self.userCoordinates.coordinate.latitude,
           self.userCoordinates.coordinate.longitude);
     
-    MKCoordinateRegion adjustedRegion = [self.mv regionThatFits:MKCoordinateRegionMakeWithDistance(userCoord, 5000, 5000)];
+    MKCoordinateRegion adjustedRegion = [self.mv regionThatFits:MKCoordinateRegionMakeWithDistance(userCoord, 8000, 8000)];
     [self.mv setRegion:adjustedRegion animated:NO];
 }
 
@@ -353,7 +389,7 @@
                  self.mv.showsUserLocation = YES;
             }
         } else {
-            
+            NSLog(error);
         }
     }];
 }
@@ -493,6 +529,10 @@
         NSLog(@"INDEX: %d", leftLabel.tag);
     
         int i = 0;
+        BOOL evenNumberFriends = NO;
+        if (p.numberCommitments % 2 == 0) {
+            evenNumberFriends = YES;
+        }
         for (id friendId in p.friendsCommitted) {
             FBProfilePictureView *profileView = [[FBProfilePictureView alloc] initWithFrame:CGRectMake(-15.0, 0, 40.0, 40.0)];
             profileView.profileID = friendId;
@@ -514,19 +554,35 @@
                     [pinView sendSubviewToBack:profileView];
                     break;
                 case 2:
-                    frame = CGRectMake(0, DISTANCE_FACE_TO_PIN + 5.0, FACE_SIZE, FACE_SIZE);
+                    if (evenNumberFriends) {
+                        frame = CGRectMake(DISTANCE_FACE_TO_PIN - 5.0, DISTANCE_FACE_TO_PIN +5.0, FACE_SIZE, FACE_SIZE);
+                    } else {
+                        frame = CGRectMake(0, DISTANCE_FACE_TO_PIN + 5.0, FACE_SIZE, FACE_SIZE);
+                    }
                     profileView.frame = frame;
                     break;
                 case 3:
-                    frame = CGRectMake(0, -DISTANCE_FACE_TO_PIN, FACE_SIZE, FACE_SIZE);
+                    if (evenNumberFriends) {
+                         frame = CGRectMake(-DISTANCE_FACE_TO_PIN + 5.0, DISTANCE_FACE_TO_PIN + 5.0, FACE_SIZE, FACE_SIZE);
+                    } else {
+                         frame = CGRectMake(DISTANCE_FACE_TO_PIN + 5.0, DISTANCE_FACE_TO_PIN +5.0, FACE_SIZE, FACE_SIZE);
+                    }
                     profileView.frame = frame;
-                    [pinView sendSubviewToBack:profileView];
                     break;
+                case 4:
+                    if (evenNumberFriends) {
+                        
+                    } else {
+                        frame = CGRectMake(-DISTANCE_FACE_TO_PIN + 5.0, DISTANCE_FACE_TO_PIN +5.0, FACE_SIZE, FACE_SIZE);
+                    }
+                    profileView.frame = frame;
+                break;
                 default:
                      break;
             }
             i++;
         }
+        [self.placeToAnnotationViewDictionary setObject:pinView forKey:p.placeId];
         return pinView;
     }
     return nil;

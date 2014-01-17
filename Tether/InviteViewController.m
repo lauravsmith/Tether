@@ -7,6 +7,7 @@
 //
 
 #import "CenterViewController.h"
+#import "Constants.h"
 #import "Datastore.h"
 #import "Friend.h"
 #import "FriendAtPlaceCell.h"
@@ -22,13 +23,10 @@
 #define PADDING 10.0
 
 @interface InviteViewController () <UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate>
-@property (retain, nonatomic) UISearchBar *searchBar;
 @property (retain, nonatomic) NSMutableArray *friendSearchResultsArray;
 @property (nonatomic, strong) UITableView *friendSearchResultsTableView;
 @property (nonatomic, strong) UITableViewController *friendSearchResultsTableViewController;
 @property (retain, nonatomic) UIScrollView *friendsInvitedScrollView;
-@property (retain, nonatomic) UIView * topBarView;
-@property (retain, nonatomic) UIView *searchBarBackgroundView;
 @property (retain, nonatomic) NSMutableDictionary *friendsInvitedDictionary;
 @property (retain, nonatomic) NSMutableDictionary *friendsLabelsDictionary;
 @property (retain, nonatomic) NSMutableDictionary *removeLabelButtonsDictionary;
@@ -38,7 +36,6 @@
 @property (assign, nonatomic) NSInteger friendsInvitedViewHeight;
 @property (assign, nonatomic) NSInteger friendsInvitedViewWidth;
 @property (retain, nonatomic) UIButton *sendButton;
-@property (retain, nonatomic) UITextField *placeTextField;
 @end
 
 @implementation InviteViewController
@@ -149,6 +146,8 @@
     frame.origin.y = self.friendsInvitedScrollView.frame.origin.y + self.friendsInvitedScrollView.frame.size.height;
     frame.size.height = MAX_MESSAGE_FIELD_HEIGHT - self.friendsInvitedScrollView.frame.size.height + 10.0;
     self.messageTextView.frame = frame;
+    
+    self.sendButton.frame = CGRectMake(220.0, self.messageTextView.frame.origin.y + self.messageTextView.frame.size.height - 50.0, 80.0, 40.0);
 }
 
 -(void)layoutFriendLabels {
@@ -195,6 +194,8 @@
     self.friendSearchResultsArray = nil;
     [self.friendSearchResultsTableView reloadData];
     [self.friendSearchResultsTableView setHidden:YES];
+    
+    [self layoutFriendsInvitedView];
 }
 
 -(void)addLabel:(FriendLabel*)friendLabel {
@@ -239,9 +240,9 @@
             PFUser * user = [objects objectAtIndex:0];
             PFQuery *pushQuery = [PFInstallation query];
             [pushQuery whereKey:@"owner" equalTo:user]; //change this to use friends installation
-            NSString *messageContent = [NSString stringWithFormat:@"%@ invited you to %@", sharedDataManager.name, self.place.name];
+            NSString *messageHeader = [NSString stringWithFormat:@"%@ invited you to %@", sharedDataManager.name, self.place.name];
             NSDictionary *data = [NSDictionary dictionaryWithObjectsAndKeys:
-                                  messageContent, @"alert",
+                                  messageHeader, @"alert",
                                   @"Increment", @"badge",
                                   nil];
             
@@ -251,14 +252,15 @@
             [push setData:data];
             [push sendPushInBackground];
             
-            PFObject *invitation = [PFObject objectWithClassName:@"Invitation"];
-            [invitation setObject:sharedDataManager.facebookId forKey:@"sender"];
-            [invitation setObject:self.place.name forKey:@"placeName"];
-            [invitation setObject:self.place.placeId forKey:@"placeId"];
-            [invitation setObject:messageContent forKey:@"messageHeader"];
-            [invitation setObject:self.messageTextView.text forKey:@"message"];
-            [invitation setObject:friend.friendID forKey:@"recipientID"];
-            [invitation setObject:friendsInvited forKey:@"allRecipients"];
+            PFObject *invitation = [PFObject objectWithClassName:kNotificationClassKey];
+            [invitation setObject:sharedDataManager.facebookId forKey:kNotificationSenderKey];
+            [invitation setObject:self.place.name forKey:kNotificationPlaceNameKey];
+            [invitation setObject:self.place.placeId forKey:kNotificationPlaceIdKey];
+            [invitation setObject:messageHeader forKey:kNotificationMessageHeaderKey];
+            [invitation setObject:self.messageTextView.text forKey:kNotificationMessageContentKey];
+            [invitation setObject:friend.friendID forKey:kNotificationRecipientKey];
+            [invitation setObject:friendsInvited forKey:kNotificationAllRecipientsKey];
+            [invitation setObject:@"invitation" forKey:kNotificationTypeKey];
             [invitation saveInBackground];
             }
         }];
@@ -287,7 +289,9 @@
 #pragma mark SearchBarDelegate methods
 
 - (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
-    [self.searchBar setShowsCancelButton:YES animated:YES];
+    if (searchBar == self.searchBar) {
+        [self.searchBar setShowsCancelButton:YES animated:YES];
+    }
 }
 
 - (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
@@ -296,14 +300,18 @@
     [searchBar setShowsCancelButton:NO animated:YES];
     [searchBar resignFirstResponder];
     
-    self.friendSearchResultsArray = nil;
-    [self.friendSearchResultsTableView reloadData];
-    self.friendSearchResultsTableView.hidden = YES;
+    if (searchBar == self.searchBar) {
+        self.friendSearchResultsArray = nil;
+        [self.friendSearchResultsTableView reloadData];
+        self.friendSearchResultsTableView.hidden = YES;
+    }
 }
 
 -(void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {
-    self.friendSearchResultsTableView.hidden = NO;
-    [self searchFriends:searchBar.text];
+    if (searchBar == self.searchBar) {
+        self.friendSearchResultsTableView.hidden = NO;
+        [self searchFriends:searchBar.text];
+    }
 }
 
 -(void)searchFriends:(NSString*)searchText {
@@ -336,7 +344,9 @@
     if (!cell) {
         cell = [[FriendAtPlaceCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Cell"];
     }
-    [cell setFriend:[self.friendSearchResultsArray objectAtIndex:indexPath.row]];
+//    if ([self.friendSearchResultsArray count] < indexPath.row) {
+        [cell setFriend:[self.friendSearchResultsArray objectAtIndex:indexPath.row]];
+//    }
     
     return cell;
 }
@@ -344,7 +354,6 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     Friend *friend = [self.friendSearchResultsArray objectAtIndex:indexPath.row];
     [self addFriend:friend];
-    [self layoutFriendsInvitedView];
     [self searchBarCancelButtonClicked:self.searchBar];
 }
 

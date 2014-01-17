@@ -26,6 +26,7 @@
 @synthesize currentCommitmentParseObject;
 @synthesize currentCommitmentPlace;
 @synthesize notifications;
+@synthesize todaysNotificationsArray;
 
 #pragma mark Singleton Methods
 

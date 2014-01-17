@@ -6,6 +6,7 @@
 //  Copyright (c) 2013 Laura Smith. All rights reserved.
 //
 
+#import "Friend.h"
 #import "ViewController.h"
 
 #import <Parse/Parse.h>
@@ -21,4 +22,5 @@
 @protocol LeftPanelViewControllerDelegate <NSObject>
 -(void)goToPlaceInListView:(id)placeId;
 -(void)pollDatabase;
+-(void)inviteFriend:(Friend*)friend;
 @end

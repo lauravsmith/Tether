@@ -35,3 +35,14 @@ NSString *const kCommitmentAddressKey   = @"address";
 NSString *const kCommitmentPlaceIDKey   = @"placeId";
 NSString *const kCommitmentCityKey      = @"placeCityName";
 NSString *const kCommitmentStateKey     = @"state";
+
+#pragma mark - Notification Class
+NSString *const kNotificationClassKey         = @"Notification";
+NSString *const kNotificationSenderKey        = @"sender";
+NSString *const kNotificationPlaceNameKey     = @"placeName";
+NSString *const kNotificationPlaceIdKey       = @"placeId";
+NSString *const kNotificationMessageHeaderKey = @"messageHeader";
+NSString *const kNotificationMessageContentKey = @"message";
+NSString *const kNotificationRecipientKey = @"recipientID";
+NSString *const kNotificationAllRecipientsKey = @"allRecipients";
+NSString *const kNotificationTypeKey = @"type";

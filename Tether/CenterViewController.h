@@ -51,6 +51,7 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 @property (retain, nonatomic) UIButton *settingsButtonLarge;
 @property (retain, nonatomic) MKMapView * mv;
 @property (retain, nonatomic) NSMutableDictionary * placeToAnnotationDictionary;
+@property (retain, nonatomic) NSMutableDictionary * placeToAnnotationViewDictionary;
 @property (assign, nonatomic) bool resettingLocation;
 @property (strong, nonatomic) UILabel *notificationsLabel;
 @property (strong, nonatomic) UIButton *notificationsButton;
@@ -59,6 +60,7 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 @property (retain, nonatomic) UILabel * placeNumberLabel;
 @property (retain, nonatomic) UIView * bottomBar;
 @property (strong, nonatomic) NSMutableArray * annotationsArray;
+@property (strong, nonatomic) CLLocation *userCoordinates;
 -(void)updateLocation;
 -(void)setCityFromCLLocation:(CLLocation*)location;
 -(void)layoutNumberButton;

@@ -6,6 +6,7 @@
 //  Copyright (c) 2013 Laura Smith. All rights reserved.
 //
 
+#import "Constants.h"
 #import "Datastore.h"
 #import "Notification.h"
 #import "NotificationCell.h"
@@ -74,18 +75,23 @@
 
 -(void)loadNotifications {
     Datastore *sharedDataManager = [Datastore sharedDataManager];
-    self.notificationsArray = [[NSMutableArray alloc] init];
     NSLog(@"PARSE QUERY: POLLING NOTIFICATIONS");
     
-    PFQuery *query = [PFQuery queryWithClassName:@"Invitation"];
+    PFQuery *query = [PFQuery queryWithClassName:kNotificationClassKey];
     
     if (sharedDataManager.facebookId) {
+        NSDate *today = [self getStartTime];
         [query whereKey:@"recipientID" equalTo:sharedDataManager.facebookId];
         query.cachePolicy = kPFCachePolicyNetworkElseCache;
         [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
             if (!error) {
+                self.notificationsArray = [[NSMutableArray alloc] init];
                 for (PFObject *invitation in objects) {
                     Notification *notification = [[Notification alloc] init];
+                    if ([invitation objectForKey:kNotificationTypeKey]) {
+                        notification.type = [invitation objectForKey:kNotificationTypeKey];
+                    }
+                    
                     if ([invitation objectForKey:@"messageHeader"]) {
                         notification.messageHeader = [invitation objectForKey:@"messageHeader"];
                     }
@@ -132,6 +138,10 @@
                         }
                     }
                     [self.notificationsArray addObject:notification];
+
+                    if (![notification.type isEqualToString:@"acceptance"] && [today compare:notification.time] == NSOrderedAscending) {
+                        [sharedDataManager.todaysNotificationsArray addObject:notification];
+                    }
                 }
             }
             NSSortDescriptor *timeDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"time" ascending:NO];
@@ -140,6 +150,28 @@
         }];
     }
 }
+
+-(NSDate*)getStartTime{
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    [formatter setDateFormat:@"HH"];
+    NSDate *now = [NSDate date];
+    NSString *hour = [formatter stringFromDate:[NSDate date]];
+    NSCalendar *calendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
+    
+    NSDateComponents *components = [calendar components:NSYearCalendarUnit|NSMonthCalendarUnit|NSDayCalendarUnit fromDate:now];
+    
+    // if after 6am, start from today's date
+    if ([hour intValue] > 6) {
+        [components setHour:6.0];
+        return [calendar dateFromComponents:components];
+    } else { // if before 6am, start from yesterday's date
+        NSDateComponents* deltaComps = [[NSDateComponents alloc] init];
+        [deltaComps setDay:-1.0];
+        [components setHour:6.0];
+        return [calendar dateByAddingComponents:deltaComps toDate:[calendar dateFromComponents:components] options:0];
+    }
+}
+
 
 #pragma mark UITableViewDataSource Methods
 
@@ -151,7 +183,8 @@
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:12.0f];
     NotificationCell *cell = (NotificationCell*)[self tableView:tableView cellForRowAtIndexPath:indexPath];
     CGSize size = [cell.messageHeaderLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
-    return MAX(CELL_HEIGHT, size.height + 10.0);
+    CGSize sizeTime = [cell.timeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
+    return MAX(CELL_HEIGHT, size.height + sizeTime.height);
 }
 
 

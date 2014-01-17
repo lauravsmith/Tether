@@ -27,6 +27,7 @@
     PFObject *currentCommitmentParseObject;
     Place *currentCommitmentPlace;
     NSInteger notifications;
+    NSMutableArray *todaysNotificationsArray;
 }
 
 @property (nonatomic, retain) NSString *facebookId;
@@ -45,6 +46,7 @@
 @property (retain, nonatomic) PFObject *currentCommitmentParseObject;
 @property (retain, nonatomic) Place *currentCommitmentPlace;
 @property (nonatomic, assign) NSInteger notifications;
+@property (nonatomic, strong) NSMutableArray *todaysNotificationsArray;
 
 + (id)sharedDataManager;
 

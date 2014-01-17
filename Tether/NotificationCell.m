@@ -39,10 +39,15 @@
     
         UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:12.0f];
         self.messageHeaderLabel = [[UILabel alloc] init];
-        if (self.notification.messageHeader) {
-            [self.messageHeaderLabel setFont:montserrat];
-            NSString *content;
-            
+        [self.messageHeaderLabel setFont:montserrat];
+        CGRect contentRect;
+        if ([self.notification.type isEqualToString:@"acceptance"]) {
+            self.messageHeaderLabel.text = self.notification.messageHeader;
+            contentRect = [self.messageHeaderLabel.text boundingRectWithSize:CGSizeMake(200.0, 100.0)
+                                                       options:NSStringDrawingUsesLineFragmentOrigin
+                                                    attributes:@{NSFontAttributeName:montserrat}
+                                                       context:nil];
+        } else {
             NSString *friendListString = [[NSString alloc] init];
             if ([self.notification.allRecipients count] > 10.0) {
                 friendListString = [NSString stringWithFormat:@" and %d other friends", [self.notification.allRecipients count]];
@@ -57,26 +62,28 @@
             }
             
             NSString *messageHeader = [NSString stringWithFormat:@"%@ invited you%@ to %@", self.notification.sender.name, friendListString, self.notification.placeName];
+            NSString *content;
             if (!self.notification.message || [self.notification.message isEqualToString:@""]) {
                 content = messageHeader;
             } else {
                 content = [NSString stringWithFormat:@"%@ : \n%@", messageHeader, self.notification.message];
             }
 
-            CGRect contentRect = [content boundingRectWithSize:CGSizeMake(200.0, 100.0)
+            contentRect = [content boundingRectWithSize:CGSizeMake(200.0, 100.0)
                                                        options:NSStringDrawingUsesLineFragmentOrigin
                                                     attributes:@{NSFontAttributeName:montserrat}
                                                        context:nil];
-            self.messageHeaderLabel.frame = CGRectMake(60.0, 0, contentRect.size.width, contentRect.size.height);
             self.messageHeaderLabel.text = content;
-            self.messageHeaderLabel.lineBreakMode = NSLineBreakByWordWrapping;
-            self.messageHeaderLabel.numberOfLines = 0;
-            [self.messageHeaderLabel setTextColor:[UIColor whiteColor]];
-            [self addSubview:self.messageHeaderLabel];
         }
-        
-        UILabel *timeLabel = [[UILabel alloc] init];
-        [timeLabel setFont:montserrat];
+
+        self.messageHeaderLabel.frame = CGRectMake(60.0, 0, contentRect.size.width, contentRect.size.height);
+        self.messageHeaderLabel.lineBreakMode = NSLineBreakByWordWrapping;
+        self.messageHeaderLabel.numberOfLines = 0;
+        [self.messageHeaderLabel setTextColor:[UIColor whiteColor]];
+        [self addSubview:self.messageHeaderLabel];
+    
+        self.timeLabel = [[UILabel alloc] init];
+        [self.timeLabel setFont:montserrat];
         NSTimeInterval timeInterval = [self.notification.time timeIntervalSinceNow];
         
         NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
@@ -92,29 +99,29 @@
         if (weeks > 0) {
             if (weeks > 1)
                 plural = @"s";
-            timeLabel.text = [NSString stringWithFormat:@"%ld week%@ ago", (long)weeks, plural];
+            self.timeLabel.text = [NSString stringWithFormat:@"%ld week%@ ago", (long)weeks, plural];
         } else if (days > 0) {
             if (days > 1)
                 plural = @"s";
-            timeLabel.text = [NSString stringWithFormat:@"%ld day%@ ago", (long)days, plural];
+            self.timeLabel.text = [NSString stringWithFormat:@"%ld day%@ ago", (long)days, plural];
         } else if (hours > 0) {
             if (hours > 1)
                 plural = @"s";
-            timeLabel.text = [NSString stringWithFormat:@"%ld hour%@ ago", (long)hours, plural];
+            self.timeLabel.text = [NSString stringWithFormat:@"%ld hour%@ ago", (long)hours, plural];
         } else if (minutes > 0) {
             if (minutes > 1)
                 plural = @"s";
-            timeLabel.text = [NSString stringWithFormat:@"%ld minute%@ ago", (long)minutes, plural];
+            self.timeLabel.text = [NSString stringWithFormat:@"%ld minute%@ ago", (long)minutes, plural];
         } else if (seconds > 0) {
             if (seconds > 1)
                 plural = @"s";
-            timeLabel.text = [NSString stringWithFormat:@"%ld second%@ ago", (long)seconds, plural];
+            self.timeLabel.text = [NSString stringWithFormat:@"%ld second%@ ago", (long)seconds, plural];
         }
     
-        CGSize size = [timeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
-        timeLabel.frame = CGRectMake(self.frame.size.width - 60.0 - size.width, MAX(80.0, self.frame.size.height) - size.height, size.width, size.height);
-        [timeLabel setTextColor:[UIColor whiteColor]];
-        [self addSubview:timeLabel];
+        CGSize size = [self.timeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
+        self.timeLabel.frame = CGRectMake(self.frame.size.width - 60.0 - size.width, MAX(self.messageHeaderLabel.frame.size.height, 80.0- size.height), size.width, size.height);
+        [self.timeLabel setTextColor:[UIColor whiteColor]];
+        [self addSubview:self.timeLabel];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated

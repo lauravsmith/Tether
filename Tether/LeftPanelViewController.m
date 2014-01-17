@@ -10,6 +10,7 @@
 #import "Datastore.h"
 #import "FriendAtPlaceCell.h"
 #import "FriendCell.h"
+#import "FriendInviteViewController.h"
 #import "LeftPanelViewController.h"
 
 #define CELL_HEIGHT 65
@@ -245,6 +246,7 @@
         FriendCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell"];
         cell = [[FriendCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Cell"];
         cell.delegate = self;
+        cell.selectionStyle = UITableViewCellSelectionStyleNone;
         
         if (indexPath.section == 1) {
             [cell setFriend:[sharedDataManager.tetherFriendsGoingOut objectAtIndex:indexPath.row]];
@@ -259,7 +261,6 @@
         }
         [cell layoutSubviews];
         
-        cell.selectionStyle = UITableViewCellSelectionStyleNone;
         return cell;
     } else {
         FriendAtPlaceCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell"];
@@ -312,6 +313,12 @@
 -(void)goToPlaceInListView:(id)placeId {
     if ([self.delegate respondsToSelector:@selector(goToPlaceInListView:)]) {
         [self.delegate goToPlaceInListView:placeId];
+    }
+}
+
+-(void)inviteFriend:(Friend *)friend {
+    if ([self.delegate respondsToSelector:@selector(inviteFriend:)]) {
+        [self.delegate inviteFriend:friend];
     }
 }
 
