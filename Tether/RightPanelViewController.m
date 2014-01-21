@@ -85,6 +85,7 @@
         query.cachePolicy = kPFCachePolicyNetworkElseCache;
         [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
             if (!error) {
+                sharedDataManager.todaysNotificationsArray = [[NSMutableArray alloc] init];
                 self.notificationsArray = [[NSMutableArray alloc] init];
                 for (PFObject *invitation in objects) {
                     Notification *notification = [[Notification alloc] init];
@@ -139,7 +140,7 @@
                     }
                     [self.notificationsArray addObject:notification];
 
-                    if (![notification.type isEqualToString:@"acceptance"] && [today compare:notification.time] == NSOrderedAscending) {
+                    if ([notification.type isEqualToString:@"invitation"] && [today compare:notification.time] == NSOrderedAscending) {
                         [sharedDataManager.todaysNotificationsArray addObject:notification];
                     }
                 }

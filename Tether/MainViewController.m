@@ -90,6 +90,7 @@
     NSLog(@"View did load");
     [super viewDidLoad];
     [self.navigationController setNavigationBarHidden:YES];
+    [self setNeedsStatusBarAppearanceUpdate];
     [self setupView];
     
     [[NSNotificationCenter defaultCenter]
@@ -106,6 +107,10 @@
     [self refreshNotificationsNumber];
 }
 
+-(UIStatusBarStyle)preferredStatusBarStyle{
+    return UIStatusBarStyleLightContent;
+}
+
 -(void)viewWillAppear:(BOOL)animated{
     [super viewWillAppear:animated];
     
@@ -119,7 +124,12 @@
         // check if parse timed out?
         [self setupView];
     }
-    [self queryFriendsStatus];
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    if (sharedDataManager.facebookFriends) {
+        [self queryFriendsStatus];
+    } else {
+        [self populateUserDetails];
+    }
     [self.pollingTimer invalidate];
     self.pollingTimer = [NSTimer scheduledTimerWithTimeInterval:POLLING_INTERVAL
                                                            target:self
@@ -235,10 +245,10 @@
                 [self.decisionViewController addProfileImageView];
                 self.facebookId = facebookId;
                 self.centerViewController.userProfilePictureView = [[FBProfilePictureView alloc] initWithProfileID:(NSString *)sharedDataManager.facebookId pictureCropping:FBProfilePictureCroppingSquare];
-                self.centerViewController.userProfilePictureView.layer.cornerRadius = 12.0;
+                self.centerViewController.userProfilePictureView.layer.cornerRadius = 14.0;
                 self.centerViewController.userProfilePictureView.clipsToBounds = YES;
                 [self.centerViewController.userProfilePictureView.layer setBorderColor:[[UIColor whiteColor] CGColor]];
-               self.centerViewController.userProfilePictureView.frame = CGRectMake(7.0, 7.0, 25.0, 25.0);
+               self.centerViewController.userProfilePictureView.frame = CGRectMake((self.centerViewController.bottomBar.frame.size.height - 28.0) / 2.0, (self.centerViewController.bottomBar.frame.size.height - 28.0) / 2.0, 28.0, 28.0);
                 [self.centerViewController.bottomBar addSubview:self.centerViewController.userProfilePictureView];
                 [self.centerViewController.bottomBar addSubview:self.centerViewController.settingsButtonLarge];
             }
@@ -492,11 +502,15 @@
 {
     if (value)
     {
-        [_centerViewController.view.layer setCornerRadius:CORNER_RADIUS];
         [_centerViewController.view.layer setShadowColor:[UIColor blackColor].CGColor];
-        [_centerViewController.view.layer setShadowOpacity:0.8];
-        [_centerViewController.view.layer setShadowOffset:CGSizeMake(offset, offset)];
+        [_centerViewController.view.layer setShadowOpacity:0.6];
+        [_centerViewController.view.layer setShadowOffset:CGSizeMake(0,0)];
+        [_centerViewController.view.layer setShadowRadius:7.0];
         
+        CGRect frame = _centerViewController.view.bounds;
+        frame.size.height += 20.0;
+        CGPathRef shadowPath = [UIBezierPath bezierPathWithRect:frame].CGPath;
+        _centerViewController.view.layer.shadowPath = shadowPath;
     }
     else
     {
@@ -548,7 +562,7 @@
     self.showingLeftPanel = YES;
     
     // set up view shadows
-    [self showCenterViewWithShadow:YES withOffset:-2];
+    [self showCenterViewWithShadow:YES withOffset:-6];
     
     UIView *view = self.leftPanelViewController.view;
     return view;
@@ -745,37 +759,39 @@
 
 - (void)movePanelLeft // to show left panel
 {
-    UIView *childView = [self getRightView];
-    [self.view sendSubviewToBack:childView];
-    self.centerViewController.listViewButton.userInteractionEnabled = NO;
-    self.centerViewController.listViewButtonLarge.userInteractionEnabled = NO;
-    
-    [UIView animateWithDuration:0.5
-                          delay:0.0
-         usingSpringWithDamping:0.7
-          initialSpringVelocity:5.0
-                        options:UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
-                         _centerViewController.view.frame = CGRectMake(-self.view.frame.size.width + PANEL_WIDTH, 0, self.view.frame.size.width, self.view.frame.size.height);
-                     }
-                     completion:^(BOOL finished) {
-                         _centerViewController.notificationsButton.tag = 0;
-                         _centerViewController.notificationsButtonLarge.tag = 0;
-                         _centerViewController.mv.userInteractionEnabled = NO;
-                         UITapGestureRecognizer *mapTapGesture =
-                         [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(closePanel:)];
-                         [self.centerViewController.view addGestureRecognizer:mapTapGesture];
-                     }];
-    
-    PFInstallation *currentInstallation = [PFInstallation currentInstallation];
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
-    if (currentInstallation.badge != 0 || sharedDataManager.notifications != 0) {
-        [self loadNotifications];
+    if (![self.view.subviews containsObject:self.decisionViewController]) {
+        UIView *childView = [self getRightView];
+        [self.view sendSubviewToBack:childView];
+        self.centerViewController.listViewButton.userInteractionEnabled = NO;
+        self.centerViewController.listViewButtonLarge.userInteractionEnabled = NO;
+        
+        [UIView animateWithDuration:0.5
+                              delay:0.0
+             usingSpringWithDamping:0.7
+              initialSpringVelocity:5.0
+                            options:UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                             _centerViewController.view.frame = CGRectMake(-self.view.frame.size.width + PANEL_WIDTH, 0, self.view.frame.size.width, self.view.frame.size.height);
+                         }
+                         completion:^(BOOL finished) {
+                             _centerViewController.notificationsButton.tag = 0;
+                             _centerViewController.notificationsButtonLarge.tag = 0;
+                             _centerViewController.mv.userInteractionEnabled = NO;
+                             UITapGestureRecognizer *mapTapGesture =
+                             [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(closePanel:)];
+                             [self.centerViewController.view addGestureRecognizer:mapTapGesture];
+                         }];
+        
+        PFInstallation *currentInstallation = [PFInstallation currentInstallation];
+        Datastore *sharedDataManager = [Datastore sharedDataManager];
+        if (currentInstallation.badge != 0 || sharedDataManager.notifications != 0) {
+            [self loadNotifications];
+        }
+        currentInstallation.badge = 0;
+        [currentInstallation saveEventually];
+        sharedDataManager.notifications = 0;
+        [self updateNotificationsNumber];
     }
-    currentInstallation.badge = 0;
-    [currentInstallation saveEventually];
-    sharedDataManager.notifications = 0;
-    [self updateNotificationsNumber];
 }
 
 - (void)movePanelToOriginalPosition
@@ -1034,6 +1050,7 @@
                          [self.placesViewController removeFromParentViewController];
                          [self canUpdatePlaces:YES];
                          [self.placesViewController sortPlacesByPopularity];
+                         self.centerViewController.listViewOpen = NO;
                      }];
 }
 
@@ -1154,12 +1171,12 @@
                 [push setData:data];
                 [push sendPushInBackground];
                 
-                PFObject *invitation = [PFObject objectWithClassName:kNotificationClassKey];
-                [invitation setObject:friend.friendID forKey:kNotificationSenderKey];
+                PFObject *invitation = [PFObject objectWithClassName:kNotificationClassKey];                
+                [invitation setObject:sharedDataManager.facebookId forKey:kNotificationSenderKey];
                 [invitation setObject:place.name forKey:kNotificationPlaceNameKey];
                 [invitation setObject:place.placeId forKey:kNotificationPlaceIdKey];
                 [invitation setObject:messageHeader forKey:kNotificationMessageHeaderKey];
-                [invitation setObject:sharedDataManager.facebookId forKey:kNotificationRecipientKey];
+                [invitation setObject:friend.friendID forKey:kNotificationRecipientKey];
                 [invitation setObject:@"acceptance" forKey:kNotificationTypeKey];
                 [invitation saveInBackground];
            }
@@ -1223,6 +1240,7 @@
                          completion:^(BOOL finished) {
                              [self.friendsListViewController.view removeFromSuperview];
                              [self.friendsListViewController removeFromParentViewController];
+                              self.centerViewController.listViewOpen = NO;
                          }];
 }
 

@@ -95,6 +95,9 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.userProfilePictureView.frame = CGRectMake(PADDING, self.topBarView.frame.size.height + 25.0, 45.0, 45.0);
     [self.view addSubview:self.userProfilePictureView];
     
+    UITapGestureRecognizer *dismissKeyboard = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissKeyboard:)];
+    [self.view addGestureRecognizer:dismissKeyboard];
+    
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:16];
     
     self.statusMessageTextField = [[UITextField alloc] initWithFrame:CGRectMake(self.userProfilePictureView.frame.origin.x + self.userProfilePictureView.frame.size.width + 18.0, self.topBarView.frame.size.height + 34.0, 220.0, 25.0)];
@@ -260,6 +263,12 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 	
     // when the view slides in, its significant enough that a screen change notification should be posted
     UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, nil);
+}
+
+-(void) dismissKeyboard:(UIGestureRecognizer *) sender {
+    if ([self.statusMessageTextField isFirstResponder]) {
+        [self.statusMessageTextField resignFirstResponder];
+    }
 }
 
 - (NSMutableArray *)searchResults

@@ -16,7 +16,7 @@
 @property (nonatomic, weak) id<InviteViewControllerDelegate> delegate;
 @property (retain, nonatomic) Place *place;
 @property (retain, nonatomic) UIView * topBarView;
-@property (retain, nonatomic) UITextField *placeTextField;
+@property (retain, nonatomic) UILabel *placeLabel;
 @property (retain, nonatomic) UISearchBar *searchBar;
 @property (retain, nonatomic) UIView *searchBarBackgroundView;
 -(void)addFriend:(Friend *)friend;

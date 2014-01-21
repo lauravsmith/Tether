@@ -16,11 +16,12 @@
 #import <FacebookSDK/FacebookSDK.h>
 #import <MapKit/MapKit.h> 
 
-#define BOTTOM_BAR_HEIGHT 40.0
+#define BOTTOM_BAR_HEIGHT 45.0
 #define CORNER_RADIUS 20.0
 #define DISTANCE_FACE_TO_PIN 20.0
 #define FACE_SIZE 40.0
 #define MAX_FRIENDS_ON_PIN 4.0
+#define NOTIFICATIONS_SIZE 32.0
 #define PADDING 20.0
 #define SPINNER_SIZE 30.0
 #define STATUS_BAR_HEIGHT 20.0
@@ -32,7 +33,7 @@
 @property (assign, nonatomic) bool mapHasAdjusted;
 @property (strong, nonatomic) CLLocationManager * locationManager;
 @property (strong, nonatomic) NSTimer * finishLoadingTimer;
-@property (retain, nonatomic) UITapGestureRecognizer * cityTap;
+@property (retain, nonatomic) UITapGestureRecognizer * cityTapGesture;
 @property (strong, nonatomic) UIButton *commitmentButton;
 
 @end
@@ -54,13 +55,15 @@
 {
     [super viewDidLoad];
     
+    self.listViewOpen = NO;
+    
     // mapview setup
     self.mv = [[MKMapView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)];
     self.mv.delegate = self;
     [self.view addSubview:self.mv];
     
     // top bar setup
-    self.topBar = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width,TOP_BAR_HEIGHT)];
+    self.topBar = [[UIView alloc] initWithFrame:CGRectMake(0, self.tabBarController.view.frame.size.height, self.view.frame.size.width,TOP_BAR_HEIGHT)];
     [self.topBar setBackgroundColor:UIColorFromRGB(0x8e0528)];
     [self.view addSubview:self.topBar];
     
@@ -74,24 +77,14 @@
     [self.leftPanelButtonLarge addTarget:self action:@selector(btnMovePanelRight:) forControlEvents:UIControlEventTouchUpInside];
     self.leftPanelButtonLarge.tag = 1;
     [self.topBar addSubview:self.leftPanelButtonLarge];
-
-    // number of friends going out label setup
-    self.numberButton = [[UIButton alloc] initWithFrame:CGRectMake(PADDING, PADDING, 40.0, 40.0)];
-    [self.numberButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [self.numberButton setTitleColor:[UIColor grayColor] forState:UIControlStateHighlighted];
-    UIFont *helveticaNeueLarge = [UIFont fontWithName:@"HelveticaNeue" size:30];
-    self.numberButton.titleLabel.font = helveticaNeueLarge;
-    [self.numberButton addTarget:self action:@selector(btnMovePanelRight:) forControlEvents:UIControlEventTouchUpInside];
-    self.numberButton.tag = 1;
-    [self.topBar addSubview:self.numberButton];
     
     self.tethrLabel = [[UILabel alloc] init];
-    UIFont *helvetica = [UIFont fontWithName:@"Helvetica" size:30];
+    UIFont *helvetica = [UIFont fontWithName:@"HelveticaNeueLTStd-UltLt" size:25];
     self.tethrLabel.font = helvetica;
     self.tethrLabel.text = @"tethr";
     [self.tethrLabel setTextColor:[UIColor whiteColor]];
     CGSize size = [self.tethrLabel.text sizeWithAttributes:@{NSFontAttributeName:helvetica}];
-    self.tethrLabel.frame = CGRectMake((self.topBar.frame.size.width - size.width) / 2, (self.topBar.frame.size.height - size.height +STATUS_BAR_HEIGHT) / 2, size.width, size.height);
+    self.tethrLabel.frame = CGRectMake((self.topBar.frame.size.width - size.width) / 2, (self.topBar.frame.size.height - size.height + STATUS_BAR_HEIGHT) / 2 + 5.0, size.width, size.height);
     self.tethrLabel.userInteractionEnabled = YES;
     UITapGestureRecognizer *refreshTapGesture =
     [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(refreshTapped:)];
@@ -99,21 +92,33 @@
     [self.tethrLabel setHidden:YES];
     [self.topBar addSubview:self.tethrLabel];
     
+    // number of friends going out label setup
+    self.numberButton = [[UIButton alloc] init];
+    [self.numberButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [self.numberButton setTitleColor:[UIColor grayColor] forState:UIControlStateHighlighted];
+    UIFont *helveticaNeueLarge = [UIFont fontWithName:@"HelveticaNeue-Bold" size:30];
+    size = [self.numberButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:helveticaNeueLarge}];
+    self.numberButton.frame = CGRectMake(PADDING, self.tethrLabel.frame.origin.y - STATUS_BAR_HEIGHT / 2.0 - 1.0, size.width, size.height);
+    self.numberButton.titleLabel.font = helveticaNeueLarge;
+    [self.numberButton addTarget:self action:@selector(btnMovePanelRight:) forControlEvents:UIControlEventTouchUpInside];
+    self.numberButton.tag = 1;
+    [self.topBar addSubview:self.numberButton];
+    
     UIImage *triangleImage = [UIImage imageNamed:@"WhiteTriangle"];
-    self.triangleButton = [[UIButton alloc] initWithFrame:CGRectMake(5.0, 30.0, 10.0, 10.0)];
+    self.triangleButton = [[UIButton alloc] initWithFrame:CGRectMake(5.0, self.numberButton.frame.origin.y + STATUS_BAR_HEIGHT / 2.0 + 2.0, 10.0, 10.0)];
     [self.triangleButton setImage:triangleImage forState:UIControlStateNormal];
     [self.view addSubview:self.triangleButton];
     self.triangleButton.tag = 1;
     [self.triangleButton addTarget:self action:@selector(btnMovePanelRight:) forControlEvents:UIControlEventTouchDown];
     [self.topBar addSubview:self.triangleButton];
     
-    self.spinner = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake((self.topBar.frame.size.width - SPINNER_SIZE) / 2.0, STATUS_BAR_HEIGHT, SPINNER_SIZE, SPINNER_SIZE)];
+    self.spinner = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake((self.topBar.frame.size.width - SPINNER_SIZE) / 2.0, STATUS_BAR_HEIGHT + (self.topBar.frame.size.height - STATUS_BAR_HEIGHT - SPINNER_SIZE) / 2.0, SPINNER_SIZE, SPINNER_SIZE)];
     self.spinner.hidesWhenStopped = YES;
     [self.spinner startAnimating];
     [self.topBar addSubview:self.spinner];
     
     // list view arrow button setup
-    self.listViewButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 40.0, (self.topBar.frame.size.height - 25.0) / 2.0 +  5.0, 25.0, 25.0)];
+    self.listViewButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 35.0, self.tethrLabel.frame.origin.y - 2.0, 25.0, 25.0)];
     [self.listViewButton setImage:[UIImage imageNamed:@"LineNavigator"] forState:UIControlStateNormal];
     [self.listViewButton addTarget:self action:@selector(showListView) forControlEvents:UIControlEventTouchDown];
     [self.topBar addSubview:self.listViewButton];
@@ -137,17 +142,18 @@
     self.notificationsButtonLarge.tag = 1;
     [self.bottomBar addSubview:self.notificationsButtonLarge];
     
-    self.notificationsButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 30.0, 10, 30, 30)];
+    self.notificationsButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - NOTIFICATIONS_SIZE, 5.0, NOTIFICATIONS_SIZE, NOTIFICATIONS_SIZE)];
+    self.notificationsButton.imageEdgeInsets = UIEdgeInsetsMake(0, 0, 0, 0);
     [self.notificationsButton setBackgroundImage:[UIImage imageNamed:@"FriendsThing"] forState:UIControlStateNormal];
-    [self.notificationsButton setBackgroundColor:[UIColor whiteColor]];
+    [self.notificationsButton setBackgroundColor:[UIColor clearColor]];
     [self.notificationsButton addTarget:self action:@selector(btnMovePanelLeft:) forControlEvents:UIControlEventTouchUpInside];
     self.notificationsButton.tag = 1;
     [self.bottomBar addSubview:self.notificationsButton];
     [self refreshNotificationsNumber];
     
-    self.notificationsLabel = [[UILabel alloc] initWithFrame:CGRectMake(self.notificationsButton.frame.origin.x + 2.0, self.notificationsButton.frame.origin.y + 2.0, 12.0, 12.0)];
+    self.notificationsLabel = [[UILabel alloc] initWithFrame:CGRectMake(self.notificationsButton.frame.origin.x + 3.0, self.notificationsButton.frame.origin.y + 2.0, 12.0, 12.0)];
     self.notificationsLabel.layer.cornerRadius = 6.0;
-    self.notificationsLabel.layer.borderWidth = 1.0;
+    self.notificationsLabel.layer.borderWidth = 1.5;
     self.notificationsLabel.layer.borderColor = [UIColor whiteColor].CGColor;
     [self.notificationsLabel setBackgroundColor:UIColorFromRGB(0x8e0528)];
     [self.notificationsLabel setTextColor:[UIColor whiteColor]];
@@ -158,8 +164,8 @@
     self.notificationsLabel.adjustsFontSizeToFitWidth = YES;
     [self.bottomBar addSubview:self.notificationsLabel];
     
-    UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:18];
-    UIFont *montserratExtraSmall = [UIFont fontWithName:@"Montserrat" size:14];
+    UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:14];
+    UIFont *montserratExtraSmall = [UIFont fontWithName:@"Montserrat" size:10];
     self.placeLabel = [[UILabel alloc] init];
     [self.placeLabel setFont:montserratExtraSmall];
     [self.placeLabel setTextColor:UIColorFromRGB(0x8e0528)];
@@ -183,45 +189,62 @@
 
 
 -(void)layoutNumberButton {
-    UIFont *helveticaNeue = [UIFont fontWithName:@"HelveticaNeue" size:30];
+    UIFont *helveticaNeue = [UIFont fontWithName:@"HelveticaNeue-Bold" size:30];
     CGSize size = [self.numberButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:helveticaNeue}];
-    self.numberButton.frame = CGRectMake(PADDING, PADDING, size.width, size.height);
+    self.numberButton.frame = CGRectMake(PADDING, self.tethrLabel.frame.origin.y - STATUS_BAR_HEIGHT / 2.0 - 1.0, size.width, size.height);
     self.numberButton.tag = 1;
     [self.topBar addSubview:self.numberButton];
     [self refreshComplete];
 }
 
 -(void)layoutCurrentCommitment {
-    UIFont *helvetica = [UIFont fontWithName:@"Helvetica" size:30];
-    UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:18];
-    UIFont *montserratExtraSmall = [UIFont fontWithName:@"Montserrat" size:14];
-    
+    UIFont *helvetica = [UIFont fontWithName:@"HelveticaNeueLTStd-UltLt" size:25];
+    UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:14];
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     
     if (sharedDataManager.currentCommitmentPlace) {
+        UIFont *montserratExtraSmall = [UIFont fontWithName:@"Montserrat" size:10];
+        
         self.placeLabel.text = sharedDataManager.currentCommitmentPlace.name;
         self.placeNumberLabel.text = [NSString stringWithFormat:@"%d", sharedDataManager.currentCommitmentPlace.numberCommitments];
         self.tethrLabel.text = @"tethrd";
-        CGSize size = [self.placeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratExtraSmall}];
-        self.placeLabel.frame = CGRectMake(MAX(self.userProfilePictureView.frame.origin.x + self.userProfilePictureView.frame.size.width, (self.view.frame.size.width - size.width) / 2), self.bottomBar.frame.size.height - size.height, MIN(267.0, size.width), size.height);
+        
+        self.placeLabel.font = montserratExtraSmall;
+        
+        CGSize size1 = [self.placeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratExtraSmall}];
+        CGSize size2 = [self.placeNumberLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratSmall}];
+        
+        self.placeLabel.frame = CGRectMake(MAX(self.userProfilePictureView.frame.origin.x + self.userProfilePictureView.frame.size.width, (self.view.frame.size.width - size1.width) / 2), (self.bottomBar.frame.size.height - size1.height + size2.height) / 2.0, MIN(267.0, size1.width), size1.height);
+
         for (UIGestureRecognizer *gestureRecognizer in self.placeLabel.gestureRecognizers) {
             [self.placeLabel removeGestureRecognizer:gestureRecognizer];
         }
 
         [self.bottomBar addSubview:self.commitmentButton];
         self.commitmentButton.tag = 1;
+        
+        self.placeNumberLabel.frame = CGRectMake((self.view.frame.size.width - size2.width) / 2, (self.bottomBar.frame.size.height - size1.height - size2.height) / 2.0, size2.width, size2.height);
+
     } else {
+        UIFont *montserratExtraSmall = [UIFont fontWithName:@"Montserrat" size:16];
+        
         NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
         if ([userDetails objectForKey:@"city"]) {
-            self.placeLabel.text = [NSString stringWithFormat:@"%@",[userDetails objectForKey:@"city"]];   
+            self.placeLabel.text = [NSString stringWithFormat:@"%@",[userDetails objectForKey:@"city"]];
+            self.placeLabel.font = montserratExtraSmall;
         }
+        
         self.placeNumberLabel.text = @"";
         self.tethrLabel.text = @"tethr";
+        
+        CGSize size = [self.placeNumberLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratSmall}];
+        self.placeNumberLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2, 0, size.width, size.height);
 
-        CGSize size = [self.placeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratExtraSmall}];
+        size = [self.placeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratExtraSmall}];
         self.placeLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2, (self.bottomBar.frame.size.height - size.height) / 2.0, MIN(300.0, size.width), size.height);
-        self.cityTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(cityNameTap:)];
-        [self.placeLabel addGestureRecognizer:self.cityTap];
+        
+        self.cityTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(cityNameTap:)];
+        [self.placeLabel addGestureRecognizer:self.cityTapGesture];
         self.placeLabel.userInteractionEnabled = YES;
         
         if (self.commitmentButton.tag == 1) {
@@ -229,11 +252,9 @@
         }
         self.commitmentButton.tag = 0;
     }
-
-    CGSize size = [self.placeNumberLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratSmall}];
-    self.placeNumberLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2, 0, size.width, size.height);
-    size = [self.tethrLabel.text sizeWithAttributes:@{NSFontAttributeName:helvetica}];
-    self.tethrLabel.frame = CGRectMake((self.topBar.frame.size.width - size.width) / 2, (self.topBar.frame.size.height - size.height  + STATUS_BAR_HEIGHT) / 2, size.width, size.height);
+    
+    CGSize size = [self.tethrLabel.text sizeWithAttributes:@{NSFontAttributeName:helvetica}];
+    self.tethrLabel.frame = CGRectMake((self.topBar.frame.size.width - size.width) / 2, (self.topBar.frame.size.height - size.height  + STATUS_BAR_HEIGHT) / 2+ 5.0, size.width, size.height);
 }
 
 -(void)cityNameTap:(UIGestureRecognizer*)recognizer {
@@ -389,7 +410,7 @@
                  self.mv.showsUserLocation = YES;
             }
         } else {
-            NSLog(error);
+            NSLog(@"Error: %@", error);
         }
     }];
 }
@@ -465,24 +486,47 @@
 - (IBAction)showListViewForPlace:(UIButton*)sender
 {
     Place *p = [self.annotationsArray objectAtIndex:sender.tag];
-    if ([self.delegate respondsToSelector:@selector(openPageForPlaceWithId:)]) {
-        [self.delegate openPageForPlaceWithId:p.placeId];
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    if ([sharedDataManager.currentCommitmentPlace.placeId isEqualToString:p.placeId]) {
+        if([self.delegate respondsToSelector:@selector(removePreviousCommitment)]) {
+            [self.delegate removePreviousCommitment];
+        }
+        if ([self.delegate respondsToSelector:@selector(removeCommitmentFromDatabase)]) {
+            [self.delegate removeCommitmentFromDatabase];
+        }
+        
+        UIButton *button = (UIButton*)sender;
+        [button setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
+    } else {
+        if ([self.delegate respondsToSelector:@selector(commitToPlace:)]) {
+            [self.delegate commitToPlace:p];
+            UIButton *button = (UIButton*)sender;
+            [button setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+        }
     }
+
+//    if ([self.delegate respondsToSelector:@selector(openPageForPlaceWithId:)]) {
+//        [self.delegate openPageForPlaceWithId:p.placeId];
+//    }
 }
 
 #pragma mark MapView delegate
 
 - (MKAnnotationView *)mapView:(MKMapView *)mapView viewForAnnotation:(id <MKAnnotation>)annotation
 {
-    // If it's the user location, just return nil.
+    // If it's the user location, set no callout and return nil.
     if ([annotation isKindOfClass:[MKUserLocation class]])
+    {
+        ((MKUserLocation *)annotation).title = @"";
         return nil;
+    }
     
     // Handle any custom annotations.
     if ([annotation isKindOfClass:[TetherAnnotation class]])
     {
         // Try to dequeue an existing pin view first.
         TetherAnnotationView *pinView = [[TetherAnnotationView alloc] init];
+        pinView.userInteractionEnabled = YES;
         
         TetherAnnotation *annotationPoint = (TetherAnnotation*)annotation;
         Place *p = annotationPoint.place;
@@ -508,7 +552,15 @@
         [pinView addSubview:numberLabel];
     
         UIButton* rightButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, 25.0, 25.0)];
-        [rightButton setImage:[UIImage imageNamed:@"Arrow"] forState:UIControlStateNormal];
+        [rightButton setTitle:@"t" forState:UIControlStateNormal];
+        UIFont *helvetica = [UIFont fontWithName:@"HelveticaNeueLTStd-UltLt" size:25];
+        rightButton.titleLabel.font = helvetica;
+        Datastore *sharedDataManager = [Datastore sharedDataManager];
+        if ([p.placeId isEqualToString:sharedDataManager.currentCommitmentPlace.placeId]) {
+            [rightButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+        } else {
+             [rightButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
+        }
         [rightButton addTarget:self action:@selector(showListViewForPlace:) forControlEvents:UIControlEventTouchUpInside];
         pinView.rightCalloutAccessoryView = rightButton;
     
@@ -528,6 +580,12 @@
         leftLabel.tag = rightButton.tag;
         NSLog(@"INDEX: %d", leftLabel.tag);
     
+        UIView *touchableView = [[UIView alloc]initWithFrame:CGRectMake(-10.0, -30.0, 100.0, 100.0)];
+        touchableView.userInteractionEnabled = YES;
+        touchableView.tag = 1000;
+        
+        [pinView addSubview:touchableView];
+        
         int i = 0;
         BOOL evenNumberFriends = NO;
         if (p.numberCommitments % 2 == 0) {
@@ -582,10 +640,39 @@
             }
             i++;
         }
+        [self addPlaceTouchViewForAnnotationView:pinView];
+        
         [self.placeToAnnotationViewDictionary setObject:pinView forKey:p.placeId];
         return pinView;
     }
     return nil;
+}
+
+-(void)addPlaceTouchViewForAnnotationView:(TetherAnnotationView*)pinView {
+    UIFont *systemFont = [UIFont systemFontOfSize:18.0];
+    UIFont *subtitleSystemFont = [UIFont systemFontOfSize:14.0];
+    CGSize titleSize = [((TetherAnnotation*)pinView.annotation).place.name sizeWithAttributes:@{NSFontAttributeName:systemFont}];
+    CGSize subtitleSize = [((TetherAnnotation*)pinView.annotation).place.address sizeWithAttributes:@{NSFontAttributeName:subtitleSystemFont}];
+    CGFloat width = MAX(titleSize.width,subtitleSize.width);
+    
+    pinView.placeTouchView = [[UIView alloc] initWithFrame:CGRectMake(- width / 2.0, -58.0, MIN(MAX(titleSize.width,subtitleSize.width), self.view.frame.size.width - 100.0), 45.0)];
+    pinView.placeTouchView.userInteractionEnabled = NO;
+    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(openPlacePage:)];
+    [pinView.placeTouchView addGestureRecognizer:tap];
+    
+    [pinView addSubview:pinView.placeTouchView];
+}
+
+- (void)openPlacePage:(UIGestureRecognizer *) sender
+{
+    if (self.listViewOpen == NO) {
+        UIView *view = sender.view;
+        Place *p = [self.annotationsArray objectAtIndex:view.tag];
+        if ([self.delegate respondsToSelector:@selector(openPageForPlaceWithId:)]) {
+            self.listViewOpen = YES;
+            [self.delegate openPageForPlaceWithId:p.placeId];
+        }
+    }
 }
 
 -(void) annotationClick:(UIGestureRecognizer *) sender {
@@ -626,12 +713,40 @@
                              }
                          }
                          completion:^(BOOL finished) {
+                             [self layoutTouchEventForAnnotationView:((TetherAnnotationView*)view)];
                          }];
         view.tag = 0;
     } else {
         [self.mv deselectAnnotation:view.annotation animated:YES];
         view.tag = 1;
     }
+}
+
+-(void)layoutTouchEventForAnnotationView:(TetherAnnotationView*)view {
+     ((TetherAnnotationView*)view).placeTouchView.userInteractionEnabled = YES;
+
+    [view bringSubviewToFront:view.placeTouchView];
+    if (view.frame.origin.x > self.view.frame.size.width / 2.0 ) {
+        CGFloat originRight = view.frame.origin.x +((TetherAnnotationView*)view).placeTouchView.frame.size.width / 2.0 + ((TetherAnnotationView*)view).rightCalloutAccessoryView.frame.size.width + 40.0;
+        if (originRight > self.view.frame.size.width) {
+            CGFloat offset = originRight - self.view.frame.size.width;
+            CGRect frame = view.placeTouchView.frame;
+            frame.origin.x = - frame.size.width / 2.0 - abs(offset);
+            view.placeTouchView.frame = frame;
+            return;
+        }
+    } else {
+        CGFloat originX = view.frame.origin.x - view.placeTouchView.frame.size.width / 2.0 - ((TetherAnnotationView*)view).leftCalloutAccessoryView.frame.size.width;
+        if (originX < 0) {
+            CGRect frame = view.placeTouchView.frame;
+            frame.origin.x = - frame.size.width / 2.0 + abs(originX);
+            view.placeTouchView.frame = frame;
+            return;
+        }
+    }
+    CGRect frame = view.placeTouchView.frame;
+    frame.origin.x = - frame.size.width / 2.0;
+    view.placeTouchView.frame = frame;
 }
 
 - (void)mapView:(MKMapView *)mapView didDeselectAnnotationView:(MKAnnotationView *)view {
@@ -649,7 +764,8 @@
                              }
                          }                     }
                      completion:^(BOOL finished){
-                         
+                          ((TetherAnnotationView*)view).placeTouchView.userInteractionEnabled = NO;
+                         [((TetherAnnotationView*)view).placeTouchView setBackgroundColor:[UIColor clearColor]];
                      }];
     view.tag = 1;
 }

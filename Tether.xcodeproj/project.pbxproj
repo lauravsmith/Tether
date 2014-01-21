@@ -79,6 +79,85 @@
 		47461002188237B70067545B /* FriendIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 47461001188237B70067545B /* FriendIcon.png */; };
 		478C4BFF18482B78004C6BD0 /* SettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 478C4BFE18482B78004C6BD0 /* SettingsViewController.m */; };
 		4790C3EF1888874700DB9759 /* FriendInviteViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4790C3EE1888874700DB9759 /* FriendInviteViewController.m */; };
+		4790C4401889B0F100DB9759 /* HelveticaInseratLTStd-Roman.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3F11889B0F100DB9759 /* HelveticaInseratLTStd-Roman.otf */; };
+		4790C4411889B0F100DB9759 /* HelveticaLTStd-Blk.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3F21889B0F100DB9759 /* HelveticaLTStd-Blk.otf */; };
+		4790C4421889B0F100DB9759 /* HelveticaLTStd-BlkCond.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3F31889B0F100DB9759 /* HelveticaLTStd-BlkCond.otf */; };
+		4790C4431889B0F100DB9759 /* HelveticaLTStd-BlkCondObl.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3F41889B0F100DB9759 /* HelveticaLTStd-BlkCondObl.otf */; };
+		4790C4441889B0F100DB9759 /* HelveticaLTStd-BlkObl.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3F51889B0F100DB9759 /* HelveticaLTStd-BlkObl.otf */; };
+		4790C4451889B0F100DB9759 /* HelveticaLTStd-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3F61889B0F100DB9759 /* HelveticaLTStd-Bold.otf */; };
+		4790C4461889B0F100DB9759 /* HelveticaLTStd-BoldCond.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3F71889B0F100DB9759 /* HelveticaLTStd-BoldCond.otf */; };
+		4790C4471889B0F100DB9759 /* HelveticaLTStd-BoldCondObl.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3F81889B0F100DB9759 /* HelveticaLTStd-BoldCondObl.otf */; };
+		4790C4481889B0F100DB9759 /* HelveticaLTStd-BoldObl.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3F91889B0F100DB9759 /* HelveticaLTStd-BoldObl.otf */; };
+		4790C4491889B0F100DB9759 /* HelveticaLTStd-Comp.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3FA1889B0F100DB9759 /* HelveticaLTStd-Comp.otf */; };
+		4790C44A1889B0F100DB9759 /* HelveticaLTStd-Cond.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3FB1889B0F100DB9759 /* HelveticaLTStd-Cond.otf */; };
+		4790C44B1889B0F100DB9759 /* HelveticaLTStd-CondObl.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3FC1889B0F100DB9759 /* HelveticaLTStd-CondObl.otf */; };
+		4790C44C1889B0F100DB9759 /* HelveticaLTStd-ExtraComp.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3FD1889B0F100DB9759 /* HelveticaLTStd-ExtraComp.otf */; };
+		4790C44D1889B0F100DB9759 /* HelveticaLTStd-Fractions.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3FE1889B0F100DB9759 /* HelveticaLTStd-Fractions.otf */; };
+		4790C44E1889B0F100DB9759 /* HelveticaLTStd-FractionsBd.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3FF1889B0F100DB9759 /* HelveticaLTStd-FractionsBd.otf */; };
+		4790C44F1889B0F100DB9759 /* HelveticaLTStd-Light.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4001889B0F100DB9759 /* HelveticaLTStd-Light.otf */; };
+		4790C4501889B0F100DB9759 /* HelveticaLTStd-LightCond.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4011889B0F100DB9759 /* HelveticaLTStd-LightCond.otf */; };
+		4790C4511889B0F100DB9759 /* HelveticaLTStd-LightCondObl.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4021889B0F100DB9759 /* HelveticaLTStd-LightCondObl.otf */; };
+		4790C4521889B0F100DB9759 /* HelveticaLTStd-LightObl.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4031889B0F100DB9759 /* HelveticaLTStd-LightObl.otf */; };
+		4790C4531889B0F100DB9759 /* HelveticaLTStd-Obl.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4041889B0F100DB9759 /* HelveticaLTStd-Obl.otf */; };
+		4790C4541889B0F100DB9759 /* HelveticaLTStd-Roman.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4051889B0F100DB9759 /* HelveticaLTStd-Roman.otf */; };
+		4790C4551889B0F100DB9759 /* HelveticaLTStd-UltraComp.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4061889B0F100DB9759 /* HelveticaLTStd-UltraComp.otf */; };
+		4790C4561889B0F100DB9759 /* HelveticaNeueLTStd-Bd.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4071889B0F100DB9759 /* HelveticaNeueLTStd-Bd.otf */; };
+		4790C4571889B0F100DB9759 /* HelveticaNeueLTStd-BdCn.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4081889B0F100DB9759 /* HelveticaNeueLTStd-BdCn.otf */; };
+		4790C4581889B0F100DB9759 /* HelveticaNeueLTStd-BdCnO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4091889B0F100DB9759 /* HelveticaNeueLTStd-BdCnO.otf */; };
+		4790C4591889B0F100DB9759 /* HelveticaNeueLTStd-BdEx.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C40A1889B0F100DB9759 /* HelveticaNeueLTStd-BdEx.otf */; };
+		4790C45A1889B0F100DB9759 /* HelveticaNeueLTStd-BdExO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C40B1889B0F100DB9759 /* HelveticaNeueLTStd-BdExO.otf */; };
+		4790C45B1889B0F100DB9759 /* HelveticaNeueLTStd-BdIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C40C1889B0F100DB9759 /* HelveticaNeueLTStd-BdIt.otf */; };
+		4790C45C1889B0F100DB9759 /* HelveticaNeueLTStd-BdOu.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C40D1889B0F100DB9759 /* HelveticaNeueLTStd-BdOu.otf */; };
+		4790C45D1889B0F100DB9759 /* HelveticaNeueLTStd-Blk.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C40E1889B0F100DB9759 /* HelveticaNeueLTStd-Blk.otf */; };
+		4790C45E1889B0F100DB9759 /* HelveticaNeueLTStd-BlkCn.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C40F1889B0F100DB9759 /* HelveticaNeueLTStd-BlkCn.otf */; };
+		4790C45F1889B0F100DB9759 /* HelveticaNeueLTStd-BlkCnO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4101889B0F100DB9759 /* HelveticaNeueLTStd-BlkCnO.otf */; };
+		4790C4601889B0F100DB9759 /* HelveticaNeueLTStd-BlkEx.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4111889B0F100DB9759 /* HelveticaNeueLTStd-BlkEx.otf */; };
+		4790C4611889B0F100DB9759 /* HelveticaNeueLTStd-BlkExO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4121889B0F100DB9759 /* HelveticaNeueLTStd-BlkExO.otf */; };
+		4790C4621889B0F100DB9759 /* HelveticaNeueLTStd-BlkIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4131889B0F100DB9759 /* HelveticaNeueLTStd-BlkIt.otf */; };
+		4790C4631889B0F100DB9759 /* HelveticaNeueLTStd-Cn.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4141889B0F100DB9759 /* HelveticaNeueLTStd-Cn.otf */; };
+		4790C4641889B0F100DB9759 /* HelveticaNeueLTStd-CnO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4151889B0F100DB9759 /* HelveticaNeueLTStd-CnO.otf */; };
+		4790C4651889B0F100DB9759 /* HelveticaNeueLTStd-Ex.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4161889B0F100DB9759 /* HelveticaNeueLTStd-Ex.otf */; };
+		4790C4661889B0F100DB9759 /* HelveticaNeueLTStd-ExO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4171889B0F100DB9759 /* HelveticaNeueLTStd-ExO.otf */; };
+		4790C4671889B0F100DB9759 /* HelveticaNeueLTStd-Hv.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4181889B0F100DB9759 /* HelveticaNeueLTStd-Hv.otf */; };
+		4790C4681889B0F100DB9759 /* HelveticaNeueLTStd-HvCn.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4191889B0F100DB9759 /* HelveticaNeueLTStd-HvCn.otf */; };
+		4790C4691889B0F100DB9759 /* HelveticaNeueLTStd-HvCnO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C41A1889B0F100DB9759 /* HelveticaNeueLTStd-HvCnO.otf */; };
+		4790C46A1889B0F100DB9759 /* HelveticaNeueLTStd-HvEx.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C41B1889B0F100DB9759 /* HelveticaNeueLTStd-HvEx.otf */; };
+		4790C46B1889B0F100DB9759 /* HelveticaNeueLTStd-HvExO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C41C1889B0F100DB9759 /* HelveticaNeueLTStd-HvExO.otf */; };
+		4790C46C1889B0F100DB9759 /* HelveticaNeueLTStd-HvIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C41D1889B0F100DB9759 /* HelveticaNeueLTStd-HvIt.otf */; };
+		4790C46D1889B0F100DB9759 /* HelveticaNeueLTStd-It.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C41E1889B0F100DB9759 /* HelveticaNeueLTStd-It.otf */; };
+		4790C46E1889B0F100DB9759 /* HelveticaNeueLTStd-Lt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C41F1889B0F100DB9759 /* HelveticaNeueLTStd-Lt.otf */; };
+		4790C46F1889B0F100DB9759 /* HelveticaNeueLTStd-LtCn.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4201889B0F100DB9759 /* HelveticaNeueLTStd-LtCn.otf */; };
+		4790C4701889B0F100DB9759 /* HelveticaNeueLTStd-LtCnO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4211889B0F100DB9759 /* HelveticaNeueLTStd-LtCnO.otf */; };
+		4790C4711889B0F100DB9759 /* HelveticaNeueLTStd-LtEx.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4221889B0F100DB9759 /* HelveticaNeueLTStd-LtEx.otf */; };
+		4790C4721889B0F100DB9759 /* HelveticaNeueLTStd-LtExO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4231889B0F100DB9759 /* HelveticaNeueLTStd-LtExO.otf */; };
+		4790C4731889B0F100DB9759 /* HelveticaNeueLTStd-LtIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4241889B0F100DB9759 /* HelveticaNeueLTStd-LtIt.otf */; };
+		4790C4741889B0F100DB9759 /* HelveticaNeueLTStd-Md.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4251889B0F100DB9759 /* HelveticaNeueLTStd-Md.otf */; };
+		4790C4751889B0F100DB9759 /* HelveticaNeueLTStd-MdCn.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4261889B0F100DB9759 /* HelveticaNeueLTStd-MdCn.otf */; };
+		4790C4761889B0F100DB9759 /* HelveticaNeueLTStd-MdCnO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4271889B0F100DB9759 /* HelveticaNeueLTStd-MdCnO.otf */; };
+		4790C4771889B0F100DB9759 /* HelveticaNeueLTStd-MdEx.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4281889B0F100DB9759 /* HelveticaNeueLTStd-MdEx.otf */; };
+		4790C4781889B0F100DB9759 /* HelveticaNeueLTStd-MdExO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4291889B0F100DB9759 /* HelveticaNeueLTStd-MdExO.otf */; };
+		4790C4791889B0F100DB9759 /* HelveticaNeueLTStd-MdIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C42A1889B0F100DB9759 /* HelveticaNeueLTStd-MdIt.otf */; };
+		4790C47A1889B0F100DB9759 /* HelveticaNeueLTStd-Roman.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C42B1889B0F100DB9759 /* HelveticaNeueLTStd-Roman.otf */; };
+		4790C47B1889B0F100DB9759 /* HelveticaNeueLTStd-Th.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C42C1889B0F100DB9759 /* HelveticaNeueLTStd-Th.otf */; };
+		4790C47C1889B0F100DB9759 /* HelveticaNeueLTStd-ThCn.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C42D1889B0F100DB9759 /* HelveticaNeueLTStd-ThCn.otf */; };
+		4790C47D1889B0F100DB9759 /* HelveticaNeueLTStd-ThCnO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C42E1889B0F100DB9759 /* HelveticaNeueLTStd-ThCnO.otf */; };
+		4790C47E1889B0F100DB9759 /* HelveticaNeueLTStd-ThEx.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C42F1889B0F100DB9759 /* HelveticaNeueLTStd-ThEx.otf */; };
+		4790C47F1889B0F100DB9759 /* HelveticaNeueLTStd-ThExO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4301889B0F100DB9759 /* HelveticaNeueLTStd-ThExO.otf */; };
+		4790C4801889B0F100DB9759 /* HelveticaNeueLTStd-ThIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4311889B0F100DB9759 /* HelveticaNeueLTStd-ThIt.otf */; };
+		4790C4811889B0F100DB9759 /* HelveticaNeueLTStd-UltLt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4321889B0F100DB9759 /* HelveticaNeueLTStd-UltLt.otf */; };
+		4790C4821889B0F100DB9759 /* HelveticaNeueLTStd-UltLtCn.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4331889B0F100DB9759 /* HelveticaNeueLTStd-UltLtCn.otf */; };
+		4790C4831889B0F100DB9759 /* HelveticaNeueLTStd-UltLtCnO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4341889B0F100DB9759 /* HelveticaNeueLTStd-UltLtCnO.otf */; };
+		4790C4841889B0F100DB9759 /* HelveticaNeueLTStd-UltLtEx.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4351889B0F100DB9759 /* HelveticaNeueLTStd-UltLtEx.otf */; };
+		4790C4851889B0F100DB9759 /* HelveticaNeueLTStd-UltLtExO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4361889B0F100DB9759 /* HelveticaNeueLTStd-UltLtExO.otf */; };
+		4790C4861889B0F100DB9759 /* HelveticaNeueLTStd-UltLtIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4371889B0F100DB9759 /* HelveticaNeueLTStd-UltLtIt.otf */; };
+		4790C4871889B0F100DB9759 /* HelveticaNeueLTStd-XBlkCn.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4381889B0F100DB9759 /* HelveticaNeueLTStd-XBlkCn.otf */; };
+		4790C4881889B0F100DB9759 /* HelveticaNeueLTStd-XBlkCnO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4391889B0F100DB9759 /* HelveticaNeueLTStd-XBlkCnO.otf */; };
+		4790C4891889B0F100DB9759 /* HelveticaRoundedLTStd-Bd.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C43A1889B0F100DB9759 /* HelveticaRoundedLTStd-Bd.otf */; };
+		4790C48A1889B0F100DB9759 /* HelveticaRoundedLTStd-BdCn.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C43B1889B0F100DB9759 /* HelveticaRoundedLTStd-BdCn.otf */; };
+		4790C48B1889B0F100DB9759 /* HelveticaRoundedLTStd-BdCnO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C43C1889B0F100DB9759 /* HelveticaRoundedLTStd-BdCnO.otf */; };
+		4790C48C1889B0F100DB9759 /* HelveticaRoundedLTStd-BdO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C43D1889B0F100DB9759 /* HelveticaRoundedLTStd-BdO.otf */; };
+		4790C48D1889B0F100DB9759 /* HelveticaRoundedLTStd-Black.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C43E1889B0F100DB9759 /* HelveticaRoundedLTStd-Black.otf */; };
+		4790C48E1889B0F100DB9759 /* HelveticaRoundedLTStd-BlkO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C43F1889B0F100DB9759 /* HelveticaRoundedLTStd-BlkO.otf */; };
 		47BB2C57187E074100BB40F5 /* FriendLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 47BB2C56187E074100BB40F5 /* FriendLabel.m */; };
 		47BB2C59187E0A6E00BB40F5 /* WhiteTriangle.png in Resources */ = {isa = PBXBuildFile; fileRef = 47BB2C58187E0A6E00BB40F5 /* WhiteTriangle.png */; };
 		47BB2C5B187E0E1900BB40F5 /* RedTriangle.png in Resources */ = {isa = PBXBuildFile; fileRef = 47BB2C5A187E0E1900BB40F5 /* RedTriangle.png */; };
@@ -119,7 +198,7 @@
 		4705F1291859298F0095F8B1 /* SearchResultCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SearchResultCell.m; sourceTree = "<group>"; };
 		4705F12B185940B60095F8B1 /* FriendsListViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FriendsListViewController.h; sourceTree = "<group>"; };
 		4705F12C185940B60095F8B1 /* FriendsListViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FriendsListViewController.m; sourceTree = "<group>"; };
-		47064C82183D9E3800E9228A /* Tether.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tether.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		47064C82183D9E3800E9228A /* Tethr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tethr.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		47064C85183D9E3800E9228A /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		47064C87183D9E3800E9228A /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		47064C89183D9E3800E9228A /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
@@ -190,6 +269,85 @@
 		478C4BFE18482B78004C6BD0 /* SettingsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SettingsViewController.m; sourceTree = "<group>"; };
 		4790C3ED1888874700DB9759 /* FriendInviteViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FriendInviteViewController.h; sourceTree = "<group>"; };
 		4790C3EE1888874700DB9759 /* FriendInviteViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FriendInviteViewController.m; sourceTree = "<group>"; };
+		4790C3F11889B0F100DB9759 /* HelveticaInseratLTStd-Roman.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaInseratLTStd-Roman.otf"; sourceTree = "<group>"; };
+		4790C3F21889B0F100DB9759 /* HelveticaLTStd-Blk.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-Blk.otf"; sourceTree = "<group>"; };
+		4790C3F31889B0F100DB9759 /* HelveticaLTStd-BlkCond.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-BlkCond.otf"; sourceTree = "<group>"; };
+		4790C3F41889B0F100DB9759 /* HelveticaLTStd-BlkCondObl.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-BlkCondObl.otf"; sourceTree = "<group>"; };
+		4790C3F51889B0F100DB9759 /* HelveticaLTStd-BlkObl.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-BlkObl.otf"; sourceTree = "<group>"; };
+		4790C3F61889B0F100DB9759 /* HelveticaLTStd-Bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-Bold.otf"; sourceTree = "<group>"; };
+		4790C3F71889B0F100DB9759 /* HelveticaLTStd-BoldCond.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-BoldCond.otf"; sourceTree = "<group>"; };
+		4790C3F81889B0F100DB9759 /* HelveticaLTStd-BoldCondObl.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-BoldCondObl.otf"; sourceTree = "<group>"; };
+		4790C3F91889B0F100DB9759 /* HelveticaLTStd-BoldObl.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-BoldObl.otf"; sourceTree = "<group>"; };
+		4790C3FA1889B0F100DB9759 /* HelveticaLTStd-Comp.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-Comp.otf"; sourceTree = "<group>"; };
+		4790C3FB1889B0F100DB9759 /* HelveticaLTStd-Cond.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-Cond.otf"; sourceTree = "<group>"; };
+		4790C3FC1889B0F100DB9759 /* HelveticaLTStd-CondObl.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-CondObl.otf"; sourceTree = "<group>"; };
+		4790C3FD1889B0F100DB9759 /* HelveticaLTStd-ExtraComp.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-ExtraComp.otf"; sourceTree = "<group>"; };
+		4790C3FE1889B0F100DB9759 /* HelveticaLTStd-Fractions.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-Fractions.otf"; sourceTree = "<group>"; };
+		4790C3FF1889B0F100DB9759 /* HelveticaLTStd-FractionsBd.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-FractionsBd.otf"; sourceTree = "<group>"; };
+		4790C4001889B0F100DB9759 /* HelveticaLTStd-Light.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-Light.otf"; sourceTree = "<group>"; };
+		4790C4011889B0F100DB9759 /* HelveticaLTStd-LightCond.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-LightCond.otf"; sourceTree = "<group>"; };
+		4790C4021889B0F100DB9759 /* HelveticaLTStd-LightCondObl.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-LightCondObl.otf"; sourceTree = "<group>"; };
+		4790C4031889B0F100DB9759 /* HelveticaLTStd-LightObl.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-LightObl.otf"; sourceTree = "<group>"; };
+		4790C4041889B0F100DB9759 /* HelveticaLTStd-Obl.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-Obl.otf"; sourceTree = "<group>"; };
+		4790C4051889B0F100DB9759 /* HelveticaLTStd-Roman.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-Roman.otf"; sourceTree = "<group>"; };
+		4790C4061889B0F100DB9759 /* HelveticaLTStd-UltraComp.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-UltraComp.otf"; sourceTree = "<group>"; };
+		4790C4071889B0F100DB9759 /* HelveticaNeueLTStd-Bd.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-Bd.otf"; sourceTree = "<group>"; };
+		4790C4081889B0F100DB9759 /* HelveticaNeueLTStd-BdCn.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-BdCn.otf"; sourceTree = "<group>"; };
+		4790C4091889B0F100DB9759 /* HelveticaNeueLTStd-BdCnO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-BdCnO.otf"; sourceTree = "<group>"; };
+		4790C40A1889B0F100DB9759 /* HelveticaNeueLTStd-BdEx.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-BdEx.otf"; sourceTree = "<group>"; };
+		4790C40B1889B0F100DB9759 /* HelveticaNeueLTStd-BdExO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-BdExO.otf"; sourceTree = "<group>"; };
+		4790C40C1889B0F100DB9759 /* HelveticaNeueLTStd-BdIt.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-BdIt.otf"; sourceTree = "<group>"; };
+		4790C40D1889B0F100DB9759 /* HelveticaNeueLTStd-BdOu.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-BdOu.otf"; sourceTree = "<group>"; };
+		4790C40E1889B0F100DB9759 /* HelveticaNeueLTStd-Blk.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-Blk.otf"; sourceTree = "<group>"; };
+		4790C40F1889B0F100DB9759 /* HelveticaNeueLTStd-BlkCn.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-BlkCn.otf"; sourceTree = "<group>"; };
+		4790C4101889B0F100DB9759 /* HelveticaNeueLTStd-BlkCnO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-BlkCnO.otf"; sourceTree = "<group>"; };
+		4790C4111889B0F100DB9759 /* HelveticaNeueLTStd-BlkEx.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-BlkEx.otf"; sourceTree = "<group>"; };
+		4790C4121889B0F100DB9759 /* HelveticaNeueLTStd-BlkExO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-BlkExO.otf"; sourceTree = "<group>"; };
+		4790C4131889B0F100DB9759 /* HelveticaNeueLTStd-BlkIt.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-BlkIt.otf"; sourceTree = "<group>"; };
+		4790C4141889B0F100DB9759 /* HelveticaNeueLTStd-Cn.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-Cn.otf"; sourceTree = "<group>"; };
+		4790C4151889B0F100DB9759 /* HelveticaNeueLTStd-CnO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-CnO.otf"; sourceTree = "<group>"; };
+		4790C4161889B0F100DB9759 /* HelveticaNeueLTStd-Ex.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-Ex.otf"; sourceTree = "<group>"; };
+		4790C4171889B0F100DB9759 /* HelveticaNeueLTStd-ExO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-ExO.otf"; sourceTree = "<group>"; };
+		4790C4181889B0F100DB9759 /* HelveticaNeueLTStd-Hv.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-Hv.otf"; sourceTree = "<group>"; };
+		4790C4191889B0F100DB9759 /* HelveticaNeueLTStd-HvCn.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-HvCn.otf"; sourceTree = "<group>"; };
+		4790C41A1889B0F100DB9759 /* HelveticaNeueLTStd-HvCnO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-HvCnO.otf"; sourceTree = "<group>"; };
+		4790C41B1889B0F100DB9759 /* HelveticaNeueLTStd-HvEx.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-HvEx.otf"; sourceTree = "<group>"; };
+		4790C41C1889B0F100DB9759 /* HelveticaNeueLTStd-HvExO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-HvExO.otf"; sourceTree = "<group>"; };
+		4790C41D1889B0F100DB9759 /* HelveticaNeueLTStd-HvIt.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-HvIt.otf"; sourceTree = "<group>"; };
+		4790C41E1889B0F100DB9759 /* HelveticaNeueLTStd-It.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-It.otf"; sourceTree = "<group>"; };
+		4790C41F1889B0F100DB9759 /* HelveticaNeueLTStd-Lt.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-Lt.otf"; sourceTree = "<group>"; };
+		4790C4201889B0F100DB9759 /* HelveticaNeueLTStd-LtCn.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-LtCn.otf"; sourceTree = "<group>"; };
+		4790C4211889B0F100DB9759 /* HelveticaNeueLTStd-LtCnO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-LtCnO.otf"; sourceTree = "<group>"; };
+		4790C4221889B0F100DB9759 /* HelveticaNeueLTStd-LtEx.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-LtEx.otf"; sourceTree = "<group>"; };
+		4790C4231889B0F100DB9759 /* HelveticaNeueLTStd-LtExO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-LtExO.otf"; sourceTree = "<group>"; };
+		4790C4241889B0F100DB9759 /* HelveticaNeueLTStd-LtIt.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-LtIt.otf"; sourceTree = "<group>"; };
+		4790C4251889B0F100DB9759 /* HelveticaNeueLTStd-Md.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-Md.otf"; sourceTree = "<group>"; };
+		4790C4261889B0F100DB9759 /* HelveticaNeueLTStd-MdCn.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-MdCn.otf"; sourceTree = "<group>"; };
+		4790C4271889B0F100DB9759 /* HelveticaNeueLTStd-MdCnO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-MdCnO.otf"; sourceTree = "<group>"; };
+		4790C4281889B0F100DB9759 /* HelveticaNeueLTStd-MdEx.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-MdEx.otf"; sourceTree = "<group>"; };
+		4790C4291889B0F100DB9759 /* HelveticaNeueLTStd-MdExO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-MdExO.otf"; sourceTree = "<group>"; };
+		4790C42A1889B0F100DB9759 /* HelveticaNeueLTStd-MdIt.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-MdIt.otf"; sourceTree = "<group>"; };
+		4790C42B1889B0F100DB9759 /* HelveticaNeueLTStd-Roman.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-Roman.otf"; sourceTree = "<group>"; };
+		4790C42C1889B0F100DB9759 /* HelveticaNeueLTStd-Th.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-Th.otf"; sourceTree = "<group>"; };
+		4790C42D1889B0F100DB9759 /* HelveticaNeueLTStd-ThCn.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-ThCn.otf"; sourceTree = "<group>"; };
+		4790C42E1889B0F100DB9759 /* HelveticaNeueLTStd-ThCnO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-ThCnO.otf"; sourceTree = "<group>"; };
+		4790C42F1889B0F100DB9759 /* HelveticaNeueLTStd-ThEx.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-ThEx.otf"; sourceTree = "<group>"; };
+		4790C4301889B0F100DB9759 /* HelveticaNeueLTStd-ThExO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-ThExO.otf"; sourceTree = "<group>"; };
+		4790C4311889B0F100DB9759 /* HelveticaNeueLTStd-ThIt.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-ThIt.otf"; sourceTree = "<group>"; };
+		4790C4321889B0F100DB9759 /* HelveticaNeueLTStd-UltLt.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-UltLt.otf"; sourceTree = "<group>"; };
+		4790C4331889B0F100DB9759 /* HelveticaNeueLTStd-UltLtCn.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-UltLtCn.otf"; sourceTree = "<group>"; };
+		4790C4341889B0F100DB9759 /* HelveticaNeueLTStd-UltLtCnO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-UltLtCnO.otf"; sourceTree = "<group>"; };
+		4790C4351889B0F100DB9759 /* HelveticaNeueLTStd-UltLtEx.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-UltLtEx.otf"; sourceTree = "<group>"; };
+		4790C4361889B0F100DB9759 /* HelveticaNeueLTStd-UltLtExO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-UltLtExO.otf"; sourceTree = "<group>"; };
+		4790C4371889B0F100DB9759 /* HelveticaNeueLTStd-UltLtIt.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-UltLtIt.otf"; sourceTree = "<group>"; };
+		4790C4381889B0F100DB9759 /* HelveticaNeueLTStd-XBlkCn.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-XBlkCn.otf"; sourceTree = "<group>"; };
+		4790C4391889B0F100DB9759 /* HelveticaNeueLTStd-XBlkCnO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-XBlkCnO.otf"; sourceTree = "<group>"; };
+		4790C43A1889B0F100DB9759 /* HelveticaRoundedLTStd-Bd.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaRoundedLTStd-Bd.otf"; sourceTree = "<group>"; };
+		4790C43B1889B0F100DB9759 /* HelveticaRoundedLTStd-BdCn.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaRoundedLTStd-BdCn.otf"; sourceTree = "<group>"; };
+		4790C43C1889B0F100DB9759 /* HelveticaRoundedLTStd-BdCnO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaRoundedLTStd-BdCnO.otf"; sourceTree = "<group>"; };
+		4790C43D1889B0F100DB9759 /* HelveticaRoundedLTStd-BdO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaRoundedLTStd-BdO.otf"; sourceTree = "<group>"; };
+		4790C43E1889B0F100DB9759 /* HelveticaRoundedLTStd-Black.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaRoundedLTStd-Black.otf"; sourceTree = "<group>"; };
+		4790C43F1889B0F100DB9759 /* HelveticaRoundedLTStd-BlkO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaRoundedLTStd-BlkO.otf"; sourceTree = "<group>"; };
 		47BB2C55187E074100BB40F5 /* FriendLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FriendLabel.h; sourceTree = "<group>"; };
 		47BB2C56187E074100BB40F5 /* FriendLabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FriendLabel.m; sourceTree = "<group>"; };
 		47BB2C58187E0A6E00BB40F5 /* WhiteTriangle.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = WhiteTriangle.png; sourceTree = "<group>"; };
@@ -310,7 +468,7 @@
 		47064C83183D9E3800E9228A /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				47064C82183D9E3800E9228A /* Tether.app */,
+				47064C82183D9E3800E9228A /* Tethr.app */,
 				47064CA3183D9E3800E9228A /* TetherTests.xctest */,
 			);
 			name = Products;
@@ -371,6 +529,7 @@
 		47064C8C183D9E3800E9228A /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				4790C3F01889B0F100DB9759 /* Helvetica */,
 				47460FF4188079BE0067545B /* Montserrat */,
 				47064CD3183DBAE300E9228A /* champagne_limousines */,
 				47064C8D183D9E3800E9228A /* Tether-Info.plist */,
@@ -466,6 +625,93 @@
 			path = Montserrat;
 			sourceTree = "<group>";
 		};
+		4790C3F01889B0F100DB9759 /* Helvetica */ = {
+			isa = PBXGroup;
+			children = (
+				4790C3F11889B0F100DB9759 /* HelveticaInseratLTStd-Roman.otf */,
+				4790C3F21889B0F100DB9759 /* HelveticaLTStd-Blk.otf */,
+				4790C3F31889B0F100DB9759 /* HelveticaLTStd-BlkCond.otf */,
+				4790C3F41889B0F100DB9759 /* HelveticaLTStd-BlkCondObl.otf */,
+				4790C3F51889B0F100DB9759 /* HelveticaLTStd-BlkObl.otf */,
+				4790C3F61889B0F100DB9759 /* HelveticaLTStd-Bold.otf */,
+				4790C3F71889B0F100DB9759 /* HelveticaLTStd-BoldCond.otf */,
+				4790C3F81889B0F100DB9759 /* HelveticaLTStd-BoldCondObl.otf */,
+				4790C3F91889B0F100DB9759 /* HelveticaLTStd-BoldObl.otf */,
+				4790C3FA1889B0F100DB9759 /* HelveticaLTStd-Comp.otf */,
+				4790C3FB1889B0F100DB9759 /* HelveticaLTStd-Cond.otf */,
+				4790C3FC1889B0F100DB9759 /* HelveticaLTStd-CondObl.otf */,
+				4790C3FD1889B0F100DB9759 /* HelveticaLTStd-ExtraComp.otf */,
+				4790C3FE1889B0F100DB9759 /* HelveticaLTStd-Fractions.otf */,
+				4790C3FF1889B0F100DB9759 /* HelveticaLTStd-FractionsBd.otf */,
+				4790C4001889B0F100DB9759 /* HelveticaLTStd-Light.otf */,
+				4790C4011889B0F100DB9759 /* HelveticaLTStd-LightCond.otf */,
+				4790C4021889B0F100DB9759 /* HelveticaLTStd-LightCondObl.otf */,
+				4790C4031889B0F100DB9759 /* HelveticaLTStd-LightObl.otf */,
+				4790C4041889B0F100DB9759 /* HelveticaLTStd-Obl.otf */,
+				4790C4051889B0F100DB9759 /* HelveticaLTStd-Roman.otf */,
+				4790C4061889B0F100DB9759 /* HelveticaLTStd-UltraComp.otf */,
+				4790C4071889B0F100DB9759 /* HelveticaNeueLTStd-Bd.otf */,
+				4790C4081889B0F100DB9759 /* HelveticaNeueLTStd-BdCn.otf */,
+				4790C4091889B0F100DB9759 /* HelveticaNeueLTStd-BdCnO.otf */,
+				4790C40A1889B0F100DB9759 /* HelveticaNeueLTStd-BdEx.otf */,
+				4790C40B1889B0F100DB9759 /* HelveticaNeueLTStd-BdExO.otf */,
+				4790C40C1889B0F100DB9759 /* HelveticaNeueLTStd-BdIt.otf */,
+				4790C40D1889B0F100DB9759 /* HelveticaNeueLTStd-BdOu.otf */,
+				4790C40E1889B0F100DB9759 /* HelveticaNeueLTStd-Blk.otf */,
+				4790C40F1889B0F100DB9759 /* HelveticaNeueLTStd-BlkCn.otf */,
+				4790C4101889B0F100DB9759 /* HelveticaNeueLTStd-BlkCnO.otf */,
+				4790C4111889B0F100DB9759 /* HelveticaNeueLTStd-BlkEx.otf */,
+				4790C4121889B0F100DB9759 /* HelveticaNeueLTStd-BlkExO.otf */,
+				4790C4131889B0F100DB9759 /* HelveticaNeueLTStd-BlkIt.otf */,
+				4790C4141889B0F100DB9759 /* HelveticaNeueLTStd-Cn.otf */,
+				4790C4151889B0F100DB9759 /* HelveticaNeueLTStd-CnO.otf */,
+				4790C4161889B0F100DB9759 /* HelveticaNeueLTStd-Ex.otf */,
+				4790C4171889B0F100DB9759 /* HelveticaNeueLTStd-ExO.otf */,
+				4790C4181889B0F100DB9759 /* HelveticaNeueLTStd-Hv.otf */,
+				4790C4191889B0F100DB9759 /* HelveticaNeueLTStd-HvCn.otf */,
+				4790C41A1889B0F100DB9759 /* HelveticaNeueLTStd-HvCnO.otf */,
+				4790C41B1889B0F100DB9759 /* HelveticaNeueLTStd-HvEx.otf */,
+				4790C41C1889B0F100DB9759 /* HelveticaNeueLTStd-HvExO.otf */,
+				4790C41D1889B0F100DB9759 /* HelveticaNeueLTStd-HvIt.otf */,
+				4790C41E1889B0F100DB9759 /* HelveticaNeueLTStd-It.otf */,
+				4790C41F1889B0F100DB9759 /* HelveticaNeueLTStd-Lt.otf */,
+				4790C4201889B0F100DB9759 /* HelveticaNeueLTStd-LtCn.otf */,
+				4790C4211889B0F100DB9759 /* HelveticaNeueLTStd-LtCnO.otf */,
+				4790C4221889B0F100DB9759 /* HelveticaNeueLTStd-LtEx.otf */,
+				4790C4231889B0F100DB9759 /* HelveticaNeueLTStd-LtExO.otf */,
+				4790C4241889B0F100DB9759 /* HelveticaNeueLTStd-LtIt.otf */,
+				4790C4251889B0F100DB9759 /* HelveticaNeueLTStd-Md.otf */,
+				4790C4261889B0F100DB9759 /* HelveticaNeueLTStd-MdCn.otf */,
+				4790C4271889B0F100DB9759 /* HelveticaNeueLTStd-MdCnO.otf */,
+				4790C4281889B0F100DB9759 /* HelveticaNeueLTStd-MdEx.otf */,
+				4790C4291889B0F100DB9759 /* HelveticaNeueLTStd-MdExO.otf */,
+				4790C42A1889B0F100DB9759 /* HelveticaNeueLTStd-MdIt.otf */,
+				4790C42B1889B0F100DB9759 /* HelveticaNeueLTStd-Roman.otf */,
+				4790C42C1889B0F100DB9759 /* HelveticaNeueLTStd-Th.otf */,
+				4790C42D1889B0F100DB9759 /* HelveticaNeueLTStd-ThCn.otf */,
+				4790C42E1889B0F100DB9759 /* HelveticaNeueLTStd-ThCnO.otf */,
+				4790C42F1889B0F100DB9759 /* HelveticaNeueLTStd-ThEx.otf */,
+				4790C4301889B0F100DB9759 /* HelveticaNeueLTStd-ThExO.otf */,
+				4790C4311889B0F100DB9759 /* HelveticaNeueLTStd-ThIt.otf */,
+				4790C4321889B0F100DB9759 /* HelveticaNeueLTStd-UltLt.otf */,
+				4790C4331889B0F100DB9759 /* HelveticaNeueLTStd-UltLtCn.otf */,
+				4790C4341889B0F100DB9759 /* HelveticaNeueLTStd-UltLtCnO.otf */,
+				4790C4351889B0F100DB9759 /* HelveticaNeueLTStd-UltLtEx.otf */,
+				4790C4361889B0F100DB9759 /* HelveticaNeueLTStd-UltLtExO.otf */,
+				4790C4371889B0F100DB9759 /* HelveticaNeueLTStd-UltLtIt.otf */,
+				4790C4381889B0F100DB9759 /* HelveticaNeueLTStd-XBlkCn.otf */,
+				4790C4391889B0F100DB9759 /* HelveticaNeueLTStd-XBlkCnO.otf */,
+				4790C43A1889B0F100DB9759 /* HelveticaRoundedLTStd-Bd.otf */,
+				4790C43B1889B0F100DB9759 /* HelveticaRoundedLTStd-BdCn.otf */,
+				4790C43C1889B0F100DB9759 /* HelveticaRoundedLTStd-BdCnO.otf */,
+				4790C43D1889B0F100DB9759 /* HelveticaRoundedLTStd-BdO.otf */,
+				4790C43E1889B0F100DB9759 /* HelveticaRoundedLTStd-Black.otf */,
+				4790C43F1889B0F100DB9759 /* HelveticaRoundedLTStd-BlkO.otf */,
+			);
+			name = Helvetica;
+			path = Montserrat/Helvetica;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -485,7 +731,7 @@
 			);
 			name = Tether;
 			productName = Tether;
-			productReference = 47064C82183D9E3800E9228A /* Tether.app */;
+			productReference = 47064C82183D9E3800E9228A /* Tethr.app */;
 			productType = "com.apple.product-type.application";
 		};
 		47064CA2183D9E3800E9228A /* TetherTests */ = {
@@ -545,31 +791,110 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4790C4881889B0F100DB9759 /* HelveticaNeueLTStd-XBlkCnO.otf in Resources */,
+				4790C45C1889B0F100DB9759 /* HelveticaNeueLTStd-BdOu.otf in Resources */,
+				4790C4861889B0F100DB9759 /* HelveticaNeueLTStd-UltLtIt.otf in Resources */,
 				4746100018822E9F0067545B /* FriendsThing.png in Resources */,
+				4790C4441889B0F100DB9759 /* HelveticaLTStd-BlkObl.otf in Resources */,
+				4790C4771889B0F100DB9759 /* HelveticaNeueLTStd-MdEx.otf in Resources */,
+				4790C4601889B0F100DB9759 /* HelveticaNeueLTStd-BlkEx.otf in Resources */,
 				47460FFA188079BE0067545B /* OFL.txt in Resources */,
+				4790C47A1889B0F100DB9759 /* HelveticaNeueLTStd-Roman.otf in Resources */,
+				4790C4491889B0F100DB9759 /* HelveticaLTStd-Comp.otf in Resources */,
 				47064CCE183DB14C00E9228A /* Gear.png in Resources */,
+				4790C44D1889B0F100DB9759 /* HelveticaLTStd-Fractions.otf in Resources */,
+				4790C4551889B0F100DB9759 /* HelveticaLTStd-UltraComp.otf in Resources */,
+				4790C4461889B0F100DB9759 /* HelveticaLTStd-BoldCond.otf in Resources */,
 				47BB2C59187E0A6E00BB40F5 /* WhiteTriangle.png in Resources */,
+				4790C47E1889B0F100DB9759 /* HelveticaNeueLTStd-ThEx.otf in Resources */,
+				4790C4731889B0F100DB9759 /* HelveticaNeueLTStd-LtIt.otf in Resources */,
+				4790C44C1889B0F100DB9759 /* HelveticaLTStd-ExtraComp.otf in Resources */,
+				4790C4401889B0F100DB9759 /* HelveticaInseratLTStd-Roman.otf in Resources */,
 				47064CCC183DB14C00E9228A /* Arrow.png in Resources */,
+				4790C4471889B0F100DB9759 /* HelveticaLTStd-BoldCondObl.otf in Resources */,
+				4790C4841889B0F100DB9759 /* HelveticaNeueLTStd-UltLtEx.otf in Resources */,
+				4790C4691889B0F100DB9759 /* HelveticaNeueLTStd-HvCnO.otf in Resources */,
 				4702442118576BFD001C19AC /* CHANGELOG.md in Resources */,
+				4790C45E1889B0F100DB9759 /* HelveticaNeueLTStd-BlkCn.otf in Resources */,
+				4790C4631889B0F100DB9759 /* HelveticaNeueLTStd-Cn.otf in Resources */,
+				4790C4571889B0F100DB9759 /* HelveticaNeueLTStd-BdCn.otf in Resources */,
 				47BB2C5B187E0E1900BB40F5 /* RedTriangle.png in Resources */,
+				4790C4591889B0F100DB9759 /* HelveticaNeueLTStd-BdEx.otf in Resources */,
 				470A33AD18402A37006E48F9 /* facebook.png in Resources */,
+				4790C4561889B0F100DB9759 /* HelveticaNeueLTStd-Bd.otf in Resources */,
+				4790C4641889B0F100DB9759 /* HelveticaNeueLTStd-CnO.otf in Resources */,
+				4790C4821889B0F100DB9759 /* HelveticaNeueLTStd-UltLtCn.otf in Resources */,
+				4790C45A1889B0F100DB9759 /* HelveticaNeueLTStd-BdExO.otf in Resources */,
+				4790C46F1889B0F100DB9759 /* HelveticaNeueLTStd-LtCn.otf in Resources */,
+				4790C4711889B0F100DB9759 /* HelveticaNeueLTStd-LtEx.otf in Resources */,
+				4790C4651889B0F100DB9759 /* HelveticaNeueLTStd-Ex.otf in Resources */,
+				4790C4761889B0F100DB9759 /* HelveticaNeueLTStd-MdCnO.otf in Resources */,
+				4790C48B1889B0F100DB9759 /* HelveticaRoundedLTStd-BdCnO.otf in Resources */,
 				47064C9E183D9E3800E9228A /* Images.xcassets in Resources */,
+				4790C4501889B0F100DB9759 /* HelveticaLTStd-LightCond.otf in Resources */,
+				4790C46D1889B0F100DB9759 /* HelveticaNeueLTStd-It.otf in Resources */,
 				47064CDD183DBAE300E9228A /* Champagne&LimousinesItalic.ttf in Resources */,
+				4790C48E1889B0F100DB9759 /* HelveticaRoundedLTStd-BlkO.otf in Resources */,
+				4790C48A1889B0F100DB9759 /* HelveticaRoundedLTStd-BdCn.otf in Resources */,
+				4790C4581889B0F100DB9759 /* HelveticaNeueLTStd-BdCnO.otf in Resources */,
+				4790C4701889B0F100DB9759 /* HelveticaNeueLTStd-LtCnO.otf in Resources */,
+				4790C4421889B0F100DB9759 /* HelveticaLTStd-BlkCond.otf in Resources */,
 				47460FF9188079BE0067545B /* Montserrat.ttf in Resources */,
+				4790C4721889B0F100DB9759 /* HelveticaNeueLTStd-LtExO.otf in Resources */,
+				4790C45F1889B0F100DB9759 /* HelveticaNeueLTStd-BlkCnO.otf in Resources */,
+				4790C4751889B0F100DB9759 /* HelveticaNeueLTStd-MdCn.otf in Resources */,
+				4790C47F1889B0F100DB9759 /* HelveticaNeueLTStd-ThExO.otf in Resources */,
 				47064CD9183DBAE300E9228A /* Champagne&LimousinesBoldItalic.ttf in Resources */,
 				47064C90183D9E3800E9228A /* InfoPlist.strings in Resources */,
 				47064CE1183DBAE300E9228A /* readme.txt in Resources */,
 				4702442318576BFD001C19AC /* README.md in Resources */,
+				4790C4891889B0F100DB9759 /* HelveticaRoundedLTStd-Bd.otf in Resources */,
+				4790C44F1889B0F100DB9759 /* HelveticaLTStd-Light.otf in Resources */,
+				4790C4451889B0F100DB9759 /* HelveticaLTStd-Bold.otf in Resources */,
+				4790C4681889B0F100DB9759 /* HelveticaNeueLTStd-HvCn.otf in Resources */,
+				4790C4781889B0F100DB9759 /* HelveticaNeueLTStd-MdExO.otf in Resources */,
+				4790C46E1889B0F100DB9759 /* HelveticaNeueLTStd-Lt.otf in Resources */,
 				47064CDF183DBAE300E9228A /* Champagne&Limousines.ttf in Resources */,
+				4790C4671889B0F100DB9759 /* HelveticaNeueLTStd-Hv.otf in Resources */,
+				4790C4791889B0F100DB9759 /* HelveticaNeueLTStd-MdIt.otf in Resources */,
+				4790C46C1889B0F100DB9759 /* HelveticaNeueLTStd-HvIt.otf in Resources */,
 				47460FFC188216A20067545B /* BlackTexture.png in Resources */,
+				4790C4411889B0F100DB9759 /* HelveticaLTStd-Blk.otf in Resources */,
 				47BB2C5D187E208C00BB40F5 /* LineNavigator.png in Resources */,
+				4790C4831889B0F100DB9759 /* HelveticaNeueLTStd-UltLtCnO.otf in Resources */,
+				4790C4611889B0F100DB9759 /* HelveticaNeueLTStd-BlkExO.otf in Resources */,
+				4790C48C1889B0F100DB9759 /* HelveticaRoundedLTStd-BdO.otf in Resources */,
+				4790C4871889B0F100DB9759 /* HelveticaNeueLTStd-XBlkCn.otf in Resources */,
+				4790C47C1889B0F100DB9759 /* HelveticaNeueLTStd-ThCn.otf in Resources */,
+				4790C46B1889B0F100DB9759 /* HelveticaNeueLTStd-HvExO.otf in Resources */,
 				47064CD1183DB16200E9228A /* Whiteline.png in Resources */,
+				4790C47B1889B0F100DB9759 /* HelveticaNeueLTStd-Th.otf in Resources */,
+				4790C4741889B0F100DB9759 /* HelveticaNeueLTStd-Md.otf in Resources */,
+				4790C48D1889B0F100DB9759 /* HelveticaRoundedLTStd-Black.otf in Resources */,
+				4790C4851889B0F100DB9759 /* HelveticaNeueLTStd-UltLtExO.otf in Resources */,
+				4790C44A1889B0F100DB9759 /* HelveticaLTStd-Cond.otf in Resources */,
+				4790C4521889B0F100DB9759 /* HelveticaLTStd-LightObl.otf in Resources */,
+				4790C4541889B0F100DB9759 /* HelveticaLTStd-Roman.otf in Resources */,
+				4790C4511889B0F100DB9759 /* HelveticaLTStd-LightCondObl.otf in Resources */,
+				4790C44B1889B0F100DB9759 /* HelveticaLTStd-CondObl.otf in Resources */,
+				4790C4621889B0F100DB9759 /* HelveticaNeueLTStd-BlkIt.otf in Resources */,
 				47461002188237B70067545B /* FriendIcon.png in Resources */,
 				47BB2C5F187E27B100BB40F5 /* LocationIcon.png in Resources */,
+				4790C45B1889B0F100DB9759 /* HelveticaNeueLTStd-BdIt.otf in Resources */,
+				4790C45D1889B0F100DB9759 /* HelveticaNeueLTStd-Blk.otf in Resources */,
+				4790C4661889B0F100DB9759 /* HelveticaNeueLTStd-ExO.otf in Resources */,
+				4790C44E1889B0F100DB9759 /* HelveticaLTStd-FractionsBd.otf in Resources */,
+				4790C4531889B0F100DB9759 /* HelveticaLTStd-Obl.otf in Resources */,
+				4790C4811889B0F100DB9759 /* HelveticaNeueLTStd-UltLt.otf in Resources */,
+				4790C47D1889B0F100DB9759 /* HelveticaNeueLTStd-ThCnO.otf in Resources */,
 				47064CDB183DBAE300E9228A /* Champagne&LimousinesBold.ttf in Resources */,
+				4790C4431889B0F100DB9759 /* HelveticaLTStd-BlkCondObl.otf in Resources */,
+				4790C46A1889B0F100DB9759 /* HelveticaNeueLTStd-HvEx.otf in Resources */,
+				4790C4481889B0F100DB9759 /* HelveticaLTStd-BoldObl.otf in Resources */,
 				47460FFE18821C5B0067545B /* MontserratBold.ttf in Resources */,
 				47FDB6041884B62100841FAD /* poweredByFoursquare.png in Resources */,
 				47064C99183D9E3800E9228A /* Main.storyboard in Resources */,
+				4790C4801889B0F100DB9759 /* HelveticaNeueLTStd-ThIt.otf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -800,7 +1125,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Tether/Tether-Prefix.pch";
 				INFOPLIST_FILE = "Tether/Tether-Info.plist";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = Tethr;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -821,7 +1146,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Tether/Tether-Prefix.pch";
 				INFOPLIST_FILE = "Tether/Tether-Info.plist";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = Tethr;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;

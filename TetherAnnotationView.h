@@ -9,5 +9,5 @@
 #import <MapKit/MapKit.h>
 
 @interface TetherAnnotationView : MKAnnotationView
-
+@property (nonatomic, strong) UIView *placeTouchView;
 @end

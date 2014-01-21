@@ -139,7 +139,8 @@
         [self.arrowButton setHidden:YES];
     }
     
-    self.inviteButton.frame = CGRectMake(self.commitButton.frame.origin.x + self.commitButton.frame.size.width + 40.0, self.addressLabel.frame.origin.y + self.addressLabel.frame.size.height, 20, 30);
+    self.inviteButton.tag = 0;
+    self.inviteButton.frame = CGRectMake(90.0, self.frame.size.height - 35.0, 30, 40);
     [self.inviteButton setImage:[UIImage imageNamed:@"FriendIcon"] forState:UIControlStateNormal];
     [self.inviteButton addTarget:self
                           action:@selector(inviteClicked:)
@@ -150,10 +151,10 @@
                           action:@selector(inviteClicked:)
                 forControlEvents:UIControlEventTouchUpInside];
     
-    self.plusIconLabel.frame = CGRectMake(self.inviteButton.frame.origin.x + 3.0, self.inviteButton.frame.origin.y + 7.0, 8.0, 8.0);
+    self.plusIconLabel.frame = CGRectMake(self.inviteButton.frame.origin.x + 6.0, self.inviteButton.frame.origin.y + 8.0, 10.0, 10.0);
     [self.plusIconLabel setBackgroundColor:UIColorFromRGB(0x8e0528)];
     [self.plusIconLabel setTextColor:[UIColor whiteColor]];
-    self.plusIconLabel.layer.borderWidth = 0.5;
+    self.plusIconLabel.layer.borderWidth = 1.0;
     self.plusIconLabel.layer.borderColor = [UIColor whiteColor].CGColor;
     UIFont *montserratExtraExtraSmall = [UIFont fontWithName:@"Montserrat" size:8];
     self.plusIconLabel.font = montserratExtraExtraSmall;
@@ -179,7 +180,7 @@
     }
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:16.0f];
     CGSize size = [self.commitButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
-    self.commitButton.frame = CGRectMake(self.placeNameLabel.frame.origin.x, self.addressLabel.frame.origin.y + self.addressLabel.frame.size.height + 4.0, size.width, size.height);
+    self.commitButton.frame = CGRectMake(self.placeNameLabel.frame.origin.x, self.frame.size.height - size.height - 5.0, size.width, size.height);
 }
 
 -(IBAction)commitClicked:(id)sender {
@@ -204,8 +205,12 @@
 }
 
 -(IBAction)inviteClicked:(id)sender {
-    if ([self.delegate respondsToSelector:@selector(inviteToPlace:)]) {
-        [self.delegate inviteToPlace:self.place];
+    if (self.inviteButton.tag == 0) {
+        if ([self.delegate respondsToSelector:@selector(inviteToPlace:)]) {
+            [self.delegate inviteToPlace:self.place];
+        }
+    } else {
+        self.inviteButton.tag = 0;
     }
 }
 

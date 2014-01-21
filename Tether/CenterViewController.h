@@ -34,6 +34,8 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 -(void)commitToPlace:(Place *)place;
 -(void)pollDatabase;
 -(void)openPageForPlaceWithId:(id)placeId;
+-(void)removePreviousCommitment;
+-(void)removeCommitmentFromDatabase;
 @end
 
 @interface CenterViewController : ViewController <MKMapViewDelegate>
@@ -61,6 +63,7 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 @property (retain, nonatomic) UIView * bottomBar;
 @property (strong, nonatomic) NSMutableArray * annotationsArray;
 @property (strong, nonatomic) CLLocation *userCoordinates;
+@property (assign, nonatomic) bool listViewOpen;
 -(void)updateLocation;
 -(void)setCityFromCLLocation:(CLLocation*)location;
 -(void)layoutNumberButton;

@@ -15,10 +15,12 @@
 #import "InviteViewController.h"
 
 #define CELL_HEIGHT 60.0
-#define LABEL_HEIGHT 30.0
+#define LABEL_HEIGHT 40.0
+#define LEFT_PADDING 30.0
 #define MAX_MESSAGE_FIELD_HEIGHT 210.0
 #define SEARCH_BAR_HEIGHT 40.0
 #define SEARCH_BAR_WIDTH 280.0
+#define SPINNER_SIZE 30.0
 #define STATUS_BAR_HEIGHT 20.0
 #define PADDING 10.0
 
@@ -36,6 +38,9 @@
 @property (assign, nonatomic) NSInteger friendsInvitedViewHeight;
 @property (assign, nonatomic) NSInteger friendsInvitedViewWidth;
 @property (retain, nonatomic) UIButton *sendButton;
+@property (retain, nonatomic) UIView *confirmationView;
+@property (retain, nonatomic) UILabel *confirmationLabel;
+@property (retain, nonatomic) UIActivityIndicatorView *activityIndicatorView;
 @end
 
 @implementation InviteViewController
@@ -62,14 +67,15 @@
     self.topBarView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 50.0)];
     [self.topBarView setBackgroundColor:UIColorFromRGB(0x8e0528)];
     
-    self.placeTextField = [[UITextField alloc] initWithFrame:CGRectMake(30.0, 10.0, self.view.frame.size.width - 40.0, 40.0)];
-    self.placeTextField.text = self.place.name;
-    [self.placeTextField setTextColor:[UIColor whiteColor]];
-    UIFont *montserratLarge = [UIFont fontWithName:@"Montserrat" size:22];
-    self.placeTextField.font = montserratLarge;
-    self.placeTextField.adjustsFontSizeToFitWidth = YES;
-    self.placeTextField.userInteractionEnabled = NO;
-    [self.topBarView addSubview:self.placeTextField];
+    self.placeLabel = [[UILabel alloc] init];
+    self.placeLabel.text = self.place.name;
+    [self.placeLabel setTextColor:[UIColor whiteColor]];
+    UIFont *montserratLarge = [UIFont fontWithName:@"Montserrat" size:16.0f];
+    self.placeLabel.font = montserratLarge;
+    CGSize size = [self.placeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratLarge}];
+    self.placeLabel.frame = CGRectMake(LEFT_PADDING, STATUS_BAR_HEIGHT, MIN(self.view.frame.size.width - LEFT_PADDING, size.width), size.height);
+    self.placeLabel.adjustsFontSizeToFitWidth = YES;
+    [self.topBarView addSubview:self.placeLabel];
     [self.view addSubview:self.topBarView];
     
     self.searchBarBackgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, self.topBarView.frame.size.height, self.view.frame.size.width, SEARCH_BAR_HEIGHT)];
@@ -265,10 +271,7 @@
             }
         }];
     }
-    
-    if ([self.delegate respondsToSelector:@selector(closeInviteView)]) {
-        [self.delegate closeInviteView];
-    }
+    [self confirmInvitationsSent];
 }
 
 -(IBAction)removeFriend:(id)sender {
@@ -285,6 +288,56 @@
     }
 }
 
+-(void)confirmInvitationsSent {
+    self.confirmationView = [[UIView alloc] initWithFrame:CGRectMake((self.view.frame.size.width - 200.0) / 2.0, (self.view.frame.size.height - 100.0) / 2.0, 200.0, 100.0)];
+    [self.confirmationView setBackgroundColor:[UIColor whiteColor]];
+    self.confirmationView.alpha = 0.8;
+    self.confirmationView.layer.cornerRadius = 10.0;
+    
+    self.confirmationLabel = [[UILabel alloc] init];
+    if ([self.friendsInvitedDictionary count] > 1) {
+        self.confirmationLabel.text = @"Sending invitations...";
+    } else {
+        self.confirmationLabel.text = @"Sending invitation...";
+    }
+    self.confirmationLabel.textColor = UIColorFromRGB(0x8e0528);
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:16.0f];
+    self.confirmationLabel.font = montserrat;
+    CGSize size = [self.confirmationLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
+    self.confirmationLabel.frame = CGRectMake((self.confirmationView.frame.size.width - size.width) / 2.0, (self.confirmationView.frame.size.height - size.height) / 2.0, size.width, size.height);
+    [self.confirmationView addSubview:self.confirmationLabel];
+    
+    [self.view addSubview:self.confirmationView];
+    
+    self.activityIndicatorView = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake((self.confirmationView.frame.size.width - SPINNER_SIZE) / 2.0, self.confirmationLabel.frame.origin.y + self.confirmationLabel.frame.size.height + 2.0, SPINNER_SIZE, SPINNER_SIZE)];
+    self.activityIndicatorView.color = UIColorFromRGB(0x8e0528);
+    [self.confirmationView addSubview:self.activityIndicatorView];
+    [self.activityIndicatorView startAnimating];
+    
+    [self performSelector:@selector(dismissConfirmation) withObject:Nil afterDelay:2.0];
+}
+
+-(void)dismissConfirmation {
+    [self.activityIndicatorView stopAnimating];
+    if ([self.friendsInvitedDictionary count] > 1) {
+        self.confirmationLabel.text = @"Invitations sent";
+    } else {
+        self.confirmationLabel.text = @"Invitation sent";
+    }
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:16.0f];
+    self.confirmationLabel.font = montserrat;
+    CGSize size = [self.confirmationLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
+    self.confirmationLabel.frame = CGRectMake((self.confirmationView.frame.size.width - size.width) / 2.0, (self.confirmationView.frame.size.height - size.height) / 2.0, size.width, size.height);
+    
+    [UIView animateWithDuration:0.2
+                          delay:0.5
+                        options:UIViewAnimationOptionAllowAnimatedContent animations:^{
+                                self.confirmationView.alpha = 0.2;
+                        } completion:^(BOOL finished) {
+                                [self.confirmationView removeFromSuperview];
+                                [self closeView];
+    }];
+}
 
 #pragma mark SearchBarDelegate methods
 

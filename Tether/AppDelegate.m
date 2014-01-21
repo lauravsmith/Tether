@@ -39,6 +39,8 @@ NSString *const SessionStateChangedNotification =
                                                                                                   nil]
                                                                                         forState:UIControlStateNormal];
     
+    [application setStatusBarStyle:UIStatusBarStyleDefault];
+    
     [application registerForRemoteNotificationTypes:UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound | UIRemoteNotificationTypeNone];
     
       NSDictionary *notificationPayload = launchOptions[UIApplicationLaunchOptionsRemoteNotificationKey];

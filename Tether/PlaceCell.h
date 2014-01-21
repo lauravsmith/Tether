@@ -26,6 +26,5 @@
 -(void)removeCommitmentFromDatabase;
 -(void)showFriendsViewFromCell:(PlaceCell*)placeCell;
 -(void)inviteToPlace:(Place *)place;
--(void)pollDatabase;
 
 @end

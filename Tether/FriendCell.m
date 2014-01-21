@@ -120,7 +120,10 @@
     self.statusLabel.adjustsFontSizeToFitWidth = YES;
     [self addSubview:self.statusLabel];
     
-    self.inviteButton.frame = CGRectMake(self.frame.size.width - 30.0, self.friendNameLabel.frame.origin.y, 20, 30);
+    self.inviteButton.tag = 0;
+    if (self.friend) {
+        self.inviteButton.frame = CGRectMake(self.frame.size.width - 35.0, self.friendNameLabel.frame.origin.y, 30, 40);
+    }
     [self.inviteButton setImage:[UIImage imageNamed:@"FriendIcon"] forState:UIControlStateNormal];
     [self.inviteButton addTarget:self
                           action:@selector(inviteClicked:)
@@ -131,7 +134,9 @@
                                action:@selector(inviteClicked:)
                      forControlEvents:UIControlEventTouchUpInside];
     
-    self.plusIconLabel.frame = CGRectMake(self.inviteButton.frame.origin.x + 3.0, self.inviteButton.frame.origin.y + 7.0, 8.0, 8.0);
+    if (self.friend) {
+        self.plusIconLabel.frame = CGRectMake(self.inviteButton.frame.origin.x + 6.0, self.inviteButton.frame.origin.y + 8.0, 10.0, 10.0);
+    }
     [self.plusIconLabel setBackgroundColor:UIColorFromRGB(0x8e0528)];
     [self.plusIconLabel setTextColor:[UIColor whiteColor]];
     self.plusIconLabel.layer.borderWidth = 0.5;
@@ -167,8 +172,13 @@
 }
 
 -(IBAction)inviteClicked:(id)sender {
-    if ([self.delegate respondsToSelector:@selector(inviteFriend:)]) {
-        [self.delegate inviteFriend:self.friend];
+    if (self.inviteButton.tag == 0) {
+        if ([self.delegate respondsToSelector:@selector(inviteFriend:)]) {
+            [self.delegate inviteFriend:self.friend];
+            self.inviteButton.tag = 1;
+        }
+    } else {
+        self.inviteButton.tag = 0;
     }
 }
 

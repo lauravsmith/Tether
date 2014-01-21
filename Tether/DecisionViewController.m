@@ -12,7 +12,7 @@
 
 #import <FacebookSDK/FacebookSDK.h>
 
-#define BOTTOM_BAR_HEIGHT 40.0
+#define BOTTOM_BAR_HEIGHT 45.0
 #define PROFILE_IMAGE_VIEW_SIZE 80.0
 #define STATUS_BAR_HEIGHT 20.0
 #define TOP_BAR_HEIGHT 70.0
@@ -52,12 +52,12 @@
     [self.view addSubview:self.topBar];
     
     self.tethrLabel = [[UILabel alloc] init];
-    UIFont *champagneTall = [UIFont fontWithName:@"Helvetica" size:30];
-    self.tethrLabel.font = champagneTall;
+    UIFont *helvetica = [UIFont fontWithName:@"HelveticaNeueLTStd-UltLt" size:25];
+    self.tethrLabel.font = helvetica;
     self.tethrLabel.text = @"tethr";
     [self.tethrLabel setTextColor:[UIColor whiteColor]];
-    CGSize size = [self.tethrLabel.text sizeWithAttributes:@{NSFontAttributeName:champagneTall}];
-    self.tethrLabel.frame = CGRectMake((self.topBar.frame.size.width - size.width) / 2, (self.topBar.frame.size.height - size.height +STATUS_BAR_HEIGHT) / 2, size.width, size.height);
+    CGSize size = [self.tethrLabel.text sizeWithAttributes:@{NSFontAttributeName:helvetica}];
+    self.tethrLabel.frame = CGRectMake((self.topBar.frame.size.width - size.width) / 2, (self.topBar.frame.size.height - size.height +STATUS_BAR_HEIGHT) / 2 + 5.0, size.width, size.height);
     [self.topBar addSubview:self.tethrLabel];
     
     UILabel *questionLabel = [[UILabel alloc] init];

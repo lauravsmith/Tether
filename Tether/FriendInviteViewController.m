@@ -12,9 +12,11 @@
 
 #import <AFNetworking/AFHTTPRequestOperationManager.h>
 
+#define LEFT_PADDING 40.0
 #define SEARCH_BAR_HEIGHT 40.0
 #define SEARCH_BAR_WIDTH 280.0
 #define SEARCH_RESULTS_CELL_HEIGHT 60.0
+#define STATUS_BAR_HEIGHT 20.0
 
 @interface FriendInviteViewController () <UISearchBarDelegate, UITableViewDelegate, UITableViewDataSource>
 @property (retain, nonatomic) UISearchBar *placeSearchBar;
@@ -66,8 +68,13 @@
 
 -(void)setDestination:(Place*)place {
     self.place = place;
-    self.placeTextField.text = place.name;
+    self.placeLabel.text = place.name;
     [self.placeSearchBar setHidden:YES];
+    
+    UIFont *montserratLarge = [UIFont fontWithName:@"Montserrat" size:16.0f];
+    self.placeLabel.font = montserratLarge;
+    CGSize size = [self.placeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratLarge}];
+    self.placeLabel.frame = CGRectMake(LEFT_PADDING, STATUS_BAR_HEIGHT, MIN(self.view.frame.size.width - LEFT_PADDING, size.width), size.height);
     
     self.searchBar.placeholder = @"Invite more friends...";
     [self.searchBar setHidden:NO];
