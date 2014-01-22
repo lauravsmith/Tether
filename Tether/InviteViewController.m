@@ -238,7 +238,7 @@
     for (id key in self.friendsInvitedDictionary) {
         Friend *friend = [self.friendsInvitedDictionary objectForKey:key];
         PFQuery *friendQuery = [PFUser query];
-        [friendQuery whereKey:@"facebookId" equalTo:friend.friendID];
+        [friendQuery whereKey:kUserFacebookIDKey equalTo:friend.friendID];
         
         [friendQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
             if (!error) {

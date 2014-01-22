@@ -201,12 +201,15 @@
     UIFont *helvetica = [UIFont fontWithName:@"HelveticaNeueLTStd-UltLt" size:25];
     UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:14];
     Datastore *sharedDataManager = [Datastore sharedDataManager];
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    NSDate *timeLastUpdated = [userDetails objectForKey:@"timeLastUpdated"];
+    NSDate *startTime = [self getStartTime];
     
-    if (sharedDataManager.currentCommitmentPlace) {
+    if (sharedDataManager.currentCommitmentPlace && [startTime compare:timeLastUpdated] == NSOrderedAscending) {
         UIFont *montserratExtraSmall = [UIFont fontWithName:@"Montserrat" size:10];
         
         self.placeLabel.text = sharedDataManager.currentCommitmentPlace.name;
-        self.placeNumberLabel.text = [NSString stringWithFormat:@"%d", sharedDataManager.currentCommitmentPlace.numberCommitments];
+        self.placeNumberLabel.text = [NSString stringWithFormat:@"%d", [sharedDataManager.currentCommitmentPlace.friendsCommitted count]];
         self.tethrLabel.text = @"tethrd";
         
         self.placeLabel.font = montserratExtraSmall;
@@ -257,6 +260,27 @@
     self.tethrLabel.frame = CGRectMake((self.topBar.frame.size.width - size.width) / 2, (self.topBar.frame.size.height - size.height  + STATUS_BAR_HEIGHT) / 2+ 5.0, size.width, size.height);
 }
 
+-(NSDate*)getStartTime{
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    [formatter setDateFormat:@"HH"];
+    NSDate *now = [NSDate date];
+    NSString *hour = [formatter stringFromDate:[NSDate date]];
+    NSCalendar *calendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
+    
+    NSDateComponents *components = [calendar components:NSYearCalendarUnit|NSMonthCalendarUnit|NSDayCalendarUnit fromDate:now];
+    
+    // if after 6am, start from today's date
+    if ([hour intValue] > 6) {
+        [components setHour:6.0];
+        return [calendar dateFromComponents:components];
+    } else { // if before 6am, start from yesterday's date
+        NSDateComponents* deltaComps = [[NSDateComponents alloc] init];
+        [deltaComps setDay:-1.0];
+        [components setHour:6.0];
+        return [calendar dateByAddingComponents:deltaComps toDate:[calendar dateFromComponents:components] options:0];
+    }
+}
+
 -(void)cityNameTap:(UIGestureRecognizer*)recognizer {
     if ([self.delegate respondsToSelector:@selector(showSettingsView)]) {
         [self.delegate showSettingsView];
@@ -269,8 +293,10 @@
     
     if (annotationView.tag == 1) {
         [self.mv selectAnnotation:((MKAnnotationView*)annotationView).annotation animated:YES];
+            annotationView.placeTouchView.userInteractionEnabled = YES;
     } else {
         [self.mv deselectAnnotation:((MKAnnotationView*)annotationView).annotation animated:YES];
+        annotationView.placeTouchView.userInteractionEnabled = NO;
     }
 }
 
@@ -292,7 +318,7 @@
 -(void)refreshNotificationsNumber {
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     self.notificationsLabel.text = [NSString stringWithFormat:@"%d", sharedDataManager.notifications];
-    if (sharedDataManager.notifications == 0) {
+    if (sharedDataManager.notifications == 0 || !sharedDataManager.notifications) {
         [self.notificationsLabel setHidden:YES];
     } else {
         [self.notificationsLabel setHidden:NO];
@@ -504,10 +530,6 @@
             [button setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
         }
     }
-
-//    if ([self.delegate respondsToSelector:@selector(openPageForPlaceWithId:)]) {
-//        [self.delegate openPageForPlaceWithId:p.placeId];
-//    }
 }
 
 #pragma mark MapView delegate
@@ -531,14 +553,6 @@
         TetherAnnotation *annotationPoint = (TetherAnnotation*)annotation;
         Place *p = annotationPoint.place;
         
-        // If an existing pin view was not available, create one.
-        UILabel *numberLabel = [[UILabel alloc] initWithFrame:CGRectMake(16.0, 7.0, 10.0, 15.0)];
-        UIFont *helveticaNeueSmall = [UIFont fontWithName:@"HelveticaNeue" size:15];
-        numberLabel.font = helveticaNeueSmall;
-        numberLabel.adjustsFontSizeToFitWidth = YES;
-        numberLabel.text = [NSString stringWithFormat:@"%d", ((TetherAnnotation*)annotation).place.numberCommitments];
-        numberLabel.textColor = [UIColor whiteColor];
-        
         pinView = [[TetherAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:@"CustomPinAnnotationView"];
         pinView.canShowCallout = YES;
         UIImage *pinImage = [UIImage imageNamed:@"LocationIcon"];
@@ -547,6 +561,16 @@
         pinView.frame = CGRectMake(0, 0, 40.0, 40.0);
         UIImageView *imageView = [[UIImageView alloc] initWithImage:pinImage];
         imageView.frame = CGRectMake(0, 0, 40.0, 40.0);
+        
+        // If an existing pin view was not available, create one.
+        UILabel *numberLabel = [[UILabel alloc] init];
+        UIFont *helveticaNeueSmall = [UIFont fontWithName:@"HelveticaNeue-Bold" size:10];
+        numberLabel.font = helveticaNeueSmall;
+        numberLabel.text = [NSString stringWithFormat:@"%d", [((TetherAnnotation*)annotation).place.friendsCommitted count]];
+        CGSize size = [numberLabel.text sizeWithAttributes:@{NSFontAttributeName:helveticaNeueSmall}];
+        numberLabel.frame = CGRectMake((pinView.frame.size.width - size.width) / 2.0, (pinView.frame.size.height - size.height) / 4.0, MIN(size.width, 20), MIN(size.height, 15.0));
+        numberLabel.adjustsFontSizeToFitWidth = YES;
+        numberLabel.textColor = [UIColor whiteColor];
         
         [pinView addSubview:imageView];
         [pinView addSubview:numberLabel];
@@ -564,27 +588,22 @@
         [rightButton addTarget:self action:@selector(showListViewForPlace:) forControlEvents:UIControlEventTouchUpInside];
         pinView.rightCalloutAccessoryView = rightButton;
     
-        UILabel* leftLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 30.0, 50.0)];
+        UILabel* leftLabel = [[UILabel alloc] init];
         leftLabel.userInteractionEnabled = YES;
         [leftLabel setTextColor:[UIColor whiteColor]];
-        UIFont *helveticaNeue = [UIFont fontWithName:@"HelveticaNeue" size:20];
+        UIFont *helveticaNeue = [UIFont fontWithName:@"HelveticaNeue-Bold" size:20];
         [leftLabel setFont:helveticaNeue];
         [leftLabel setText:[NSString stringWithFormat:@"  %d",((TetherAnnotation*)annotation).place.numberCommitments]];
-        [leftLabel setBackgroundColor:UIColorFromRGB(0x8e0528)];
-        CGSize size = [leftLabel.text sizeWithAttributes:@{NSFontAttributeName:helveticaNeue}];
-        pinView.leftCalloutAccessoryView = leftLabel;
-        [pinView.leftCalloutAccessoryView setFrame:CGRectMake(0, 0, size.width + 10.0, 45.0)];
+        size = [leftLabel.text sizeWithAttributes:@{NSFontAttributeName:helveticaNeue}];
+        leftLabel.frame = CGRectMake(0, -2.0, size.width + 10.0, 45.0);
+        UIView *backgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, size.width + 10.0, 45.0)];
+        [backgroundView setBackgroundColor:UIColorFromRGB(0x8e0528)];
+        [backgroundView addSubview:leftLabel];
+        pinView.leftCalloutAccessoryView = backgroundView;
     
         [self.annotationsArray addObject:p];
-        rightButton.tag = [self.annotationsArray indexOfObject:p];
-        leftLabel.tag = rightButton.tag;
-        NSLog(@"INDEX: %d", leftLabel.tag);
-    
-        UIView *touchableView = [[UIView alloc]initWithFrame:CGRectMake(-10.0, -30.0, 100.0, 100.0)];
-        touchableView.userInteractionEnabled = YES;
-        touchableView.tag = 1000;
         
-        [pinView addSubview:touchableView];
+        rightButton.tag = [self.annotationsArray indexOfObject:p];
         
         int i = 0;
         BOOL evenNumberFriends = NO;
@@ -641,6 +660,7 @@
             i++;
         }
         [self addPlaceTouchViewForAnnotationView:pinView];
+        pinView.placeTouchView.tag = [self.annotationsArray indexOfObject:p];
         
         [self.placeToAnnotationViewDictionary setObject:pinView forKey:p.placeId];
         return pinView;

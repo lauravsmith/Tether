@@ -21,6 +21,7 @@
 @property (nonatomic, strong) UILabel *placeNameLabel;
 @property (nonatomic, strong) UIButton *commitButton;
 @property (nonatomic, strong) UIButton *friendsGoingButton;
+@property (nonatomic, strong) UIButton *friendsGoingButtonLarge;
 @property (nonatomic, strong) UIButton *arrowButton;
 @property (nonatomic, strong) UILabel *addressLabel;
 @property (nonatomic, strong) UIButton *inviteButton;
@@ -56,6 +57,8 @@
         [self addSubview:self.addressLabel];
         self.friendsGoingButton = [[UIButton alloc] init];
         [self addSubview:self.friendsGoingButton];
+        self.friendsGoingButtonLarge = [[UIButton alloc] init];
+        [self addSubview:self.friendsGoingButtonLarge];
         self.arrowButton = [[UIButton alloc] init];
         [self addSubview:self.arrowButton];
         self.inviteButton = [[UIButton alloc] init];
@@ -126,16 +129,25 @@
         [self.friendsGoingButton addTarget:self
                                     action:@selector(friendsGoingClicked:)
                           forControlEvents:UIControlEventTouchUpInside];
+        self.friendsGoingButtonLarge.frame = CGRectMake(self.friendsGoingButton.frame.origin.x, self.friendsGoingButton.frame.origin.y, self.frame.size.width - self.friendsGoingButton.frame.origin.x, self.frame.size.height);
+        [self.friendsGoingButtonLarge addTarget:self
+                                    action:@selector(friendsGoingClicked:)
+                          forControlEvents:UIControlEventTouchUpInside];
+        
         Datastore *sharedDataManager = [Datastore sharedDataManager];
         if (self.place.numberCommitments == 1 && [self.place.friendsCommitted containsObject:sharedDataManager.facebookId]) {
             [self.arrowButton setHidden:YES];
             [self.friendsGoingButton setEnabled:NO];
+            [self.friendsGoingButtonLarge setEnabled:NO];
         } else {
             [self.arrowButton setHidden:NO];
             [self.friendsGoingButton setEnabled:YES];
+            [self.friendsGoingButtonLarge setEnabled:YES];
         }
     } else {
+        [self.friendsGoingButton setEnabled:NO];
         [self.friendsGoingButton setTitle:@"" forState:UIControlStateNormal];
+        [self.friendsGoingButtonLarge setEnabled:NO];
         [self.arrowButton setHidden:YES];
     }
     

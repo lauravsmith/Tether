@@ -7,6 +7,7 @@
 //
 
 #import "CenterViewController.h"
+#import "Constants.h"
 #import "Datastore.h"
 #import "Friend.h"
 #import "FriendsListViewController.h"
@@ -24,6 +25,7 @@
 #define SEARCH_BAR_HEIGHT 50.0
 #define SEARCH_BAR_WIDTH 280.0
 #define STATUS_BAR_HEIGHT 20.0
+#define SLIDE_TIMING 0.6
 
 @interface PlacesViewController () <InviteViewControllerDelegate, FriendsListViewControllerDelegate, PlaceCellDelegate, UISearchBarDelegate, UITableViewDelegate, UITableViewDataSource>
 
@@ -126,15 +128,15 @@
     
     NSString *userCity;
     NSString *userState = [[NSString alloc] init];
-    userCity = [self.userDetails objectForKey:@"city"];
-    userState = [self.userDetails objectForKey:@"state"];
+    userCity = [self.userDetails objectForKey:kUserDefaultsCityKey];
+    userState = [self.userDetails objectForKey:kUserDefaultsStateKey];
         
     NSDate *lastWeek = [self getThisWeek];
     
-    PFQuery *query = [PFQuery queryWithClassName:@"Commitment"];
-    [query whereKey:@"facebookId" containedIn:friendsArrayWithMe];
-    [query whereKey:@"placeCityName" equalTo:userCity];
-    [query whereKey:@"dateCommitted" greaterThan:lastWeek];
+    PFQuery *query = [PFQuery queryWithClassName:kCommitmentClassKey];
+    [query whereKey:kUserFacebookIDKey containedIn:friendsArrayWithMe];
+    [query whereKey:kCommitmentCityKey equalTo:userCity];
+    [query whereKey:kCommitmentDateKey greaterThan:lastWeek];
     query.limit = 5000; // is this an appropriate limit?
     //TODO: Check for same State
     
@@ -150,27 +152,27 @@
 
             for (PFObject *object in objects) {
                 Place *place = [[Place alloc] init];
-                geoPoint = [object objectForKey:@"placePoint"];
-                id friendID =[object objectForKey:@"facebookId"];
-                if (![tempDictionary objectForKey:[object objectForKey:@"placeId"]]) {
-                    place.city = [object objectForKey:@"placeCityName"];
-                    place.name = [object objectForKey:@"placeName"];
-                    place.address = [object objectForKey:@"address"];
+                geoPoint = [object objectForKey:kCommitmentGeoPointKey];
+                id friendID =[object objectForKey:kUserFacebookIDKey];
+                if (![tempDictionary objectForKey:[object objectForKey:kCommitmentPlaceIDKey]]) {
+                    place.city = [object objectForKey:kCommitmentCityKey];
+                    place.name = [object objectForKey:kCommitmentPlaceKey];
+                    place.address = [object objectForKey:kCommitmentAddressKey];
                     place.coord = CLLocationCoordinate2DMake(geoPoint.latitude, geoPoint.longitude);
-                    place.placeId = [object objectForKey:@"placeId"];
+                    place.placeId = [object objectForKey:kCommitmentPlaceIDKey];
                     place.numberCommitments = 0;
                     place.numberPastCommitments = 0;
                     place.friendsCommitted = [[NSMutableSet alloc] init];
-                    NSLog(@"Created place: %@", [object objectForKey:@"placeName"]);
+                    NSLog(@"Created place: %@", [object objectForKey:kCommitmentPlaceKey]);
                 } else {
-                    place = [tempDictionary objectForKey:[object objectForKey:@"placeId"]];
-                    NSLog(@"Updated place %@", [object objectForKey:@"placeName"]);
+                    place = [tempDictionary objectForKey:[object objectForKey:kCommitmentPlaceIDKey]];
+                    NSLog(@"Updated place %@", [object objectForKey:kCommitmentPlaceKey]);
                 }
                 
-                NSDate *commitmentTime = [object objectForKey:@"dateCommitted"];
+                NSDate *commitmentTime = [object objectForKey:kCommitmentDateKey];
                 if (commitmentTime != nil && [startTime compare:commitmentTime] == NSOrderedAscending) {
                     // commitment for tonight
-                    [place.friendsCommitted addObject:[object objectForKey:@"facebookId"]];
+                    [place.friendsCommitted addObject:[object objectForKey:kUserFacebookIDKey]];
                     place.numberCommitments = place.numberCommitments + 1;
                     if ([sharedDataManager.facebookId isEqualToString:friendID] && ![sharedDataManager.currentCommitmentPlace.name isEqualToString:place.name]) {
                         NSLog(@"Setting your current commitment to %@", place.name);
@@ -187,7 +189,7 @@
                     place.numberPastCommitments = place.numberPastCommitments + 1;
                 }
 
-                [tempDictionary setObject:place forKey:[object objectForKey:@"placeId"]];
+                [tempDictionary setObject:place forKey:[object objectForKey:kCommitmentPlaceIDKey]];
             }
             
             if ([self.delegate respondsToSelector:@selector(sortFriendsList)]) {
@@ -491,10 +493,10 @@
         [self addChildViewController:friendsListViewController];
         [friendsListViewController didMoveToParentViewController:self];
         
-        [UIView animateWithDuration:0.5
+        [UIView animateWithDuration:SLIDE_TIMING
                               delay:0.0
              usingSpringWithDamping:1.0
-              initialSpringVelocity:5.0
+              initialSpringVelocity:1.0
                             options:UIViewAnimationOptionBeginFromCurrentState
                          animations:^{
                              [friendsListViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
@@ -515,10 +517,10 @@
     [self addChildViewController:inviteViewController];
     [inviteViewController didMoveToParentViewController:self];
     
-    [UIView animateWithDuration:0.5
+    [UIView animateWithDuration:SLIDE_TIMING
                           delay:0.0
          usingSpringWithDamping:1.0
-          initialSpringVelocity:5.0
+          initialSpringVelocity:1.0
                         options:UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
                          [inviteViewController.view setFrame:CGRectMake( 0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
@@ -530,10 +532,10 @@
 
 -(void)closeFriendsView {
     for (UIViewController *childViewController in self.childViewControllers) {
-        [UIView animateWithDuration:0.5
+        [UIView animateWithDuration:SLIDE_TIMING
                               delay:0.0
              usingSpringWithDamping:1.0
-              initialSpringVelocity:5.0
+              initialSpringVelocity:1.0
                             options:UIViewAnimationOptionBeginFromCurrentState
                          animations:^{
                              [childViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
@@ -562,10 +564,10 @@
 #pragma mark InviteViewControllerDelegate
 -(void)closeInviteView {
     for (UIViewController *childViewController in self.childViewControllers) {
-        [UIView animateWithDuration:0.5
+        [UIView animateWithDuration:SLIDE_TIMING
                               delay:0.0
              usingSpringWithDamping:1.0
-              initialSpringVelocity:5.0
+              initialSpringVelocity:1.0
                             options:UIViewAnimationOptionBeginFromCurrentState
                          animations:^{
                              [childViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];

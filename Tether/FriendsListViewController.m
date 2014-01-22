@@ -7,6 +7,7 @@
 //
 
 #import "CenterViewController.h"
+#import "Constants.h"
 #import "Datastore.h"
 #import "Friend.h"
 #import "FriendAtPlaceCell.h"
@@ -23,6 +24,7 @@
 #define NAME_LABEL_OFFSET_X 70.0
 #define PROFILE_PICTURE_OFFSET_X 10.0
 #define PROFILE_PICTURE_SIZE 50.0
+#define SLIDE_TIMING 0.6
 #define STATUS_BAR_HEIGHT 20.0
 #define TOP_BAR_HEIGHT 70.0
 
@@ -152,30 +154,31 @@
 
 -(void)loadFriendsOfFriends {
     NSMutableArray *allFriendsOfFriends = [[NSMutableArray alloc] init];
-    NSMutableArray *closeFriendsAtPlace = [[NSMutableArray alloc] init];
+    
     for (Friend *friend in self.friendsArray) {
-        [closeFriendsAtPlace addObject:friend.friendID];
         [allFriendsOfFriends addObjectsFromArray:friend.friendsArray];
     }
     Datastore *sharedDataManager = [Datastore sharedDataManager];
-    [closeFriendsAtPlace addObject:sharedDataManager.facebookId];
 
-    PFQuery *query = [PFQuery queryWithClassName:@"Commitment"];
-    [query whereKey:@"facebookId" containedIn:allFriendsOfFriends];
-    [query whereKey:@"facebookId" notContainedIn:closeFriendsAtPlace];
-    [query whereKey:@"placeId" equalTo:self.place.placeId];
+    NSMutableArray *facebookFriendsArray = [sharedDataManager.facebookFriends mutableCopy];
+    [facebookFriendsArray addObject:sharedDataManager.facebookId];
+    
+    PFQuery *query = [PFQuery queryWithClassName:kCommitmentClassKey];
+    [query whereKey:kUserFacebookIDKey containedIn:allFriendsOfFriends];
+    [query whereKey:kUserFacebookIDKey notContainedIn:facebookFriendsArray];
+    [query whereKey:kCommitmentPlaceIDKey equalTo:self.place.placeId];
     NSDate *startTime = [self getStartTime];
-    [query whereKey:@"dateCommitted" greaterThan:startTime];
+    [query whereKey:kCommitmentDateKey greaterThan:startTime];
     
     [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
         if (!error) {
             NSMutableArray *friendsOfFriendsIdsArray = [[NSMutableArray alloc] init];
             for (PFObject * object in objects) {
-                [friendsOfFriendsIdsArray addObject:object[@"facebookId"]];
+                [friendsOfFriendsIdsArray addObject:object[kUserFacebookIDKey]];
             }
             
             PFQuery *facebookFriendsQuery = [PFUser query];
-            [facebookFriendsQuery whereKey:@"facebookId" containedIn:friendsOfFriendsIdsArray];
+            [facebookFriendsQuery whereKey:kUserFacebookIDKey containedIn:friendsOfFriendsIdsArray];
             
             [facebookFriendsQuery findObjectsInBackgroundWithBlock:^(NSArray *userObjects, NSError *error) {
                 if (!error) {
@@ -183,16 +186,16 @@
                     for (PFUser *user in userObjects) {
                         Friend *friend;
                         friend = [[Friend alloc] init];
-                        if ([friendsOfFriendsDictionary objectForKey:user[@"facebookId"]]) {
-                            friend = [friendsOfFriendsDictionary objectForKey:user[@"facebookId"]];
-                            friend.mutualFriends += 1;
+                        if ([friendsOfFriendsDictionary objectForKey:user[kUserFacebookIDKey]]) {
+                            friend = [friendsOfFriendsDictionary objectForKey:user[kUserFacebookIDKey]];
+                            friend.mutualFriendsCount += 1;
                         } else {
-                            friend.friendID = user[@"facebookId"];
-                            friend.name = user[@"displayName"];
+                            friend.friendID = user[kUserFacebookIDKey];
+                            friend.name = user[kUserDisplayNameKey];
                             friend.placeId = self.place.placeId;
-                            friend.status = [user[@"status"] boolValue];
-                            friend.statusMessage = user[@"statusMessage"];
-                            friend.mutualFriends = 1;
+                            friend.status = [user[kUserStatusKey] boolValue];
+                            friend.statusMessage = user[kUserStatusMessageKey];
+                            friend.mutualFriendsCount = 1;
                         }
                         
                         [friendsOfFriendsDictionary setObject:friend forKey:friend.friendID];
@@ -200,7 +203,7 @@
                     for (id key in friendsOfFriendsDictionary) {
                         [self.friendsOfFriendsArray addObject:[friendsOfFriendsDictionary objectForKey:key]];
                     }
-                    NSSortDescriptor *mutualFriendsDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"mutualFriends" ascending:NO];
+                    NSSortDescriptor *mutualFriendsDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"mutualFriendsCount" ascending:NO];
                     [self.friendsOfFriendsArray sortUsingDescriptors:[NSArray arrayWithObjects:mutualFriendsDescriptor, nil]];
                     
                     [self.friendsTableView reloadData];
@@ -253,10 +256,10 @@
     [self addChildViewController:inviteViewController];
     [inviteViewController didMoveToParentViewController:self];
     
-    [UIView animateWithDuration:0.5
+    [UIView animateWithDuration:SLIDE_TIMING
                           delay:0.0
          usingSpringWithDamping:1.0
-          initialSpringVelocity:5.0
+          initialSpringVelocity:SLIDE_TIMING
                         options:UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
                          [inviteViewController.view setFrame:CGRectMake( 0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
@@ -296,10 +299,10 @@
 
 -(void)closeInviteView {
     for (UIViewController *childViewController in self.childViewControllers) {
-        [UIView animateWithDuration:0.5
+        [UIView animateWithDuration:SLIDE_TIMING
                               delay:0.0
              usingSpringWithDamping:1.0
-              initialSpringVelocity:5.0
+              initialSpringVelocity:1.0
                             options:UIViewAnimationOptionBeginFromCurrentState
                          animations:^{
                              [childViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];

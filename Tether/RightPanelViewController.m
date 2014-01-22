@@ -183,9 +183,16 @@
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:12.0f];
     NotificationCell *cell = (NotificationCell*)[self tableView:tableView cellForRowAtIndexPath:indexPath];
-    CGSize size = [cell.messageHeaderLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
     CGSize sizeTime = [cell.timeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
-    return MAX(CELL_HEIGHT, size.height + sizeTime.height);
+    
+    NSDictionary *attributes = @{NSFontAttributeName:montserrat};
+    
+    CGRect rect = [cell.messageHeaderLabel.text boundingRectWithSize:CGSizeMake(200.0, self.view.frame.size.height)
+                                              options:NSStringDrawingUsesLineFragmentOrigin
+                                           attributes:attributes
+                                              context:nil];
+    
+    return MAX(CELL_HEIGHT, rect.size.height + sizeTime.height);
 }
 
 

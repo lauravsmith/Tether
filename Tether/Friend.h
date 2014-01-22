@@ -17,5 +17,5 @@
 @property (nonatomic, strong) NSArray *friendsArray;
 @property (nonatomic, assign) BOOL status;
 @property (nonatomic, assign) id placeId;
-@property (nonatomic, assign) int mutualFriends;
+@property (nonatomic, assign) int mutualFriendsCount;
 @end

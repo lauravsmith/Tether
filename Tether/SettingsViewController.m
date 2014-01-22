@@ -69,8 +69,15 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     backgroundImageView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
     [self.view addSubview:backgroundImageView];
     
+    UITapGestureRecognizer *closeKeyBoardTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissKeyboard)];
+    backgroundImageView.userInteractionEnabled = YES;
+    [backgroundImageView addGestureRecognizer:closeKeyBoardTap];
+    
     self.topBarView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 70.0)];
     self.topBarView.backgroundColor = UIColorFromRGB(0xF3F3F3);
+    self.topBarView.userInteractionEnabled = YES;
+    UITapGestureRecognizer *closeKeyBoardTopBarTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissKeyboard)];
+    [self.topBarView addGestureRecognizer:closeKeyBoardTopBarTap];
     [self.view addSubview:self.topBarView];
     
     self.topBarView.layer.masksToBounds = NO;
@@ -78,16 +85,16 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.topBarView.layer.shadowOffset = CGSizeMake(0.0f, 0.0f);
     self.topBarView.layer.shadowOpacity = 0.5f;
     
-    self.largeSettingsButton = [[UIButton alloc] initWithFrame:CGRectMake(self.topBarView.frame.size.width / 4.0, 0.0, self.topBarView.frame.size.width / 2.0, self.topBarView.frame.size.height)];
-    [self.largeSettingsButton addTarget:self action:@selector(handleCloseSettings:) forControlEvents:UIControlEventTouchDown];
-    [self.topBarView addSubview:self.largeSettingsButton];
-    
     UIImage *gearImage = [UIImage imageNamed:@"WhiteTriangle"];
-    self.settingsButton = [[UIButton alloc] initWithFrame:CGRectMake((self.view.frame.size.width - 30.0) / 2.0, (self.topBarView.frame.size.height - 30.0) / 2.0 + 10.0, 30.0, 30.0)];
+    self.settingsButton = [[UIButton alloc] initWithFrame:CGRectMake(PADDING*4, self.view.frame.size.height - 30.0 - PADDING*2, 30.0, 30.0)];
     self.settingsButton.transform = CGAffineTransformMakeRotation(degreesToRadian(270));
     [self.settingsButton setImage:gearImage forState:UIControlStateNormal];
     [self.settingsButton addTarget:self action:@selector(handleCloseSettings:) forControlEvents:UIControlEventTouchDown];
-    [self.topBarView addSubview:self.settingsButton];
+    [self.view addSubview:self.settingsButton];
+    
+    self.largeSettingsButton = [[UIButton alloc] initWithFrame:CGRectMake(0.0, self.settingsButton.frame.origin.y, self.view.frame.size.width / 3.0, self.view.frame.size.height - self.settingsButton.frame.origin.y)];
+    [self.largeSettingsButton addTarget:self action:@selector(handleCloseSettings:) forControlEvents:UIControlEventTouchDown];
+    [self.view addSubview:self.largeSettingsButton];
     
     self.userProfilePictureView.layer.cornerRadius = 20.0;
     self.userProfilePictureView.clipsToBounds = YES;
@@ -95,12 +102,9 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.userProfilePictureView.frame = CGRectMake(PADDING, self.topBarView.frame.size.height + 25.0, 45.0, 45.0);
     [self.view addSubview:self.userProfilePictureView];
     
-    UITapGestureRecognizer *dismissKeyboard = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissKeyboard:)];
-    [self.view addGestureRecognizer:dismissKeyboard];
-    
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:16];
     
-    self.statusMessageTextField = [[UITextField alloc] initWithFrame:CGRectMake(self.userProfilePictureView.frame.origin.x + self.userProfilePictureView.frame.size.width + 18.0, self.topBarView.frame.size.height + 34.0, 220.0, 25.0)];
+    self.statusMessageTextField = [[UITextField alloc] initWithFrame:CGRectMake(self.userProfilePictureView.frame.origin.x + self.userProfilePictureView.frame.size.width + 18.0, self.topBarView.frame.size.height + 34.0, self.view.frame.size.width - 24.0 - self.userProfilePictureView.frame.size.width - 22.0, 25.0)];
     self.statusMessageTextField.delegate = self;
     self.statusMessageTextField.layer.cornerRadius = 2.0;
     self.statusMessageTextField.placeholder = @"Enter status message";
@@ -162,7 +166,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [self.view addSubview:self.yesLabel];
     
     //city search
-    self.cityTextField = [[UITextField  alloc] initWithFrame:CGRectMake(25.0, self.setLocationSwitch.frame.origin.y + self.setLocationSwitch.frame.size.height + PADDING, self.view.frame.size.width - 25.0 * 2, 25.0)];
+    self.cityTextField = [[UITextField  alloc] initWithFrame:CGRectMake(self.defaultCityLabel.frame.origin.x, self.setLocationSwitch.frame.origin.y + self.setLocationSwitch.frame.size.height + PADDING, self.view.frame.size.width - self.defaultCityLabel.frame.origin.x*2, 25.0)];
     self.cityTextField.delegate = self;
     NSString *location = [NSString stringWithFormat:@"%@, %@",[userDetails objectForKey:@"city"], [userDetails objectForKey:@"state"]];
     self.cityTextField.text = [location uppercaseString];
@@ -192,7 +196,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [self.cancelSearchButton setTitle:@"Cancel" forState:UIControlStateNormal];
     UIFont *cancelButtonFont = [UIFont fontWithName:@"Montserrat" size:12];
     CGSize size = [self.cancelSearchButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName: cancelButtonFont}];
-    self.cancelSearchButton.frame = CGRectMake(self.view.frame.size.width - size.width - PADDING*2, self.topBarView.frame.origin.y + self.topBarView.frame.size.height + PADDING + 5.0, size.width, size.height);
+    self.cancelSearchButton.frame = CGRectMake(self.view.frame.size.width - size.width - PADDING, self.topBarView.frame.origin.y + self.topBarView.frame.size.height + PADDING + 5.0, size.width, size.height);
     self.cancelSearchButton.titleLabel.font = cancelButtonFont;
     self.cancelSearchButton.hidden = YES;
     [self.view addSubview:self.cancelSearchButton];
@@ -241,7 +245,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     UIFont *montserratBold = [UIFont fontWithName:@"Montserrat-Bold" size:28];
     self.logoutButton.titleLabel.font = montserratBold;
     size = [self.logoutButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];
-    self.logoutButton.frame = CGRectMake((self.view.frame.size.width - size.width) / 2.0, 500.0, size.width, size.height);
+    self.logoutButton.frame = CGRectMake(self.view.frame.size.width - size.width - PADDING*4, self.view.frame.size.height - size.height - PADDING*2, size.width, size.height);
     [self.logoutButton addTarget:self action:@selector(logoutButtonWasPressed:) forControlEvents:UIControlEventTouchDown];
     [self.view addSubview:self.logoutButton];
     
@@ -250,6 +254,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [self.searchResultsTableView setDataSource:self];
     [self.searchResultsTableView setDelegate:self];
     self.searchResultsTableView.hidden = YES;
+    [self.view bringSubviewToFront:self.searchResultsTableView];
     
     [self.view addSubview:self.searchResultsTableView];
     
@@ -263,12 +268,6 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 	
     // when the view slides in, its significant enough that a screen change notification should be posted
     UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, nil);
-}
-
--(void) dismissKeyboard:(UIGestureRecognizer *) sender {
-    if ([self.statusMessageTextField isFirstResponder]) {
-        [self.statusMessageTextField resignFirstResponder];
-    }
 }
 
 - (NSMutableArray *)searchResults
@@ -298,7 +297,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
                      animations:^{
                          CGRect frame = self.cityTextField.frame;
                          frame.origin.y = self.setLocationSwitch.frame.origin.y + self.setLocationSwitch.frame.size.height + PADDING;
-                         frame.size.width = self.view.frame.size.width - 25.0 * 2;
+                         frame.size.width = self.view.frame.size.width - self.defaultCityLabel.frame.origin.x*2;
                          self.cityTextField.frame = frame;
                      }
                      completion:^(BOOL finished) {
@@ -315,6 +314,12 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     NSString *location = [NSString stringWithFormat:@"%@, %@",[userDetails objectForKey:@"city"], [userDetails objectForKey:@"state"]];
     self.cityTextField.text = [location uppercaseString];
     self.view.userInteractionEnabled = YES;
+}
+
+-(void)dismissKeyboard {
+    if ([self.statusMessageTextField isFirstResponder]) {
+        [self.statusMessageTextField resignFirstResponder];
+    }
 }
 
 #pragma mark UITextField delegate methods
@@ -548,7 +553,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 		double longitude = [[result objectForKey:kILGeoNamesLongitudeKey] doubleValue];
         self.cityTextField.textColor = UIColorFromRGB(0x8e0528);
         self.cityTextField.text =[[result objectForKey:kILGeoNamesAlternateNameKey] uppercaseString];
-//        [self closeSearchResultsTableView];
+        [self closeSearchResultsTableView];
         CLLocation *location = [[CLLocation alloc] initWithLatitude:latitude longitude:longitude];
         if ([self.delegate respondsToSelector:@selector(userChangedLocationInSettings:)]) {
             [self.delegate userChangedLocationInSettings:location];

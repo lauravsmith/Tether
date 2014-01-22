@@ -32,7 +32,7 @@
 #define LEFT_PANEL_TAG 2
 #define RIGHT_PANEL_TAG 3
 #define CORNER_RADIUS 4.0
-#define SLIDE_TIMING 0.5
+#define SLIDE_TIMING 0.6
 #define PANEL_WIDTH 60
 #define POLLING_INTERVAL 20
 
@@ -324,7 +324,9 @@
                     friend.statusMessage = user[kUserStatusMessageKey];
                     friend.placeId = @"";
                     
-                    if ([sharedDataManager.friendsToPlacesMap objectForKey:friend.friendID]) {
+                    NSDate *startTime = [self getStartTime];
+                    // Set friends place if they are going out, have been active today and have committed to a place
+                    if ([sharedDataManager.friendsToPlacesMap objectForKey:friend.friendID] && [startTime compare:friend.timeLastUpdated] == NSOrderedAscending && friend.status) {
                         friend.placeId = [sharedDataManager.friendsToPlacesMap objectForKey:friend.friendID];
                     }
                     
@@ -367,6 +369,7 @@
         Friend *friend = [sharedDataManager.tetherFriendsNearbyDictionary objectForKey:key];
         if (friend) {
             if ([startTime compare:friend.timeLastUpdated] == NSOrderedDescending || !friend.status) {
+                friend.placeId = @"";
                 [tempFriendsUndecidedSet addObject:friend];
             } else {
                 if (friend) {
@@ -397,12 +400,14 @@
         if (![friendsCommittments isEqualToSet:tempFriendsCommittments]) {
             sharedDataManager.tetherFriendsGoingOut = [[tempFriendsGoingOutSet allObjects] mutableCopy];
             listsHaveChanged = YES;
+            NSLog(@"FRIENDS PLACES CHANGED");
         }
     }
     
     if (![tempFriendsNotGoingOutSet isEqualToSet:[NSSet setWithArray:sharedDataManager.tetherFriendsNotGoingOut]]) {
         sharedDataManager.tetherFriendsNotGoingOut = [[tempFriendsNotGoingOutSet allObjects] mutableCopy];
         listsHaveChanged = YES;
+        NSLog(@"GOING OUT LIST CHANGED");
     }
     
     [self.centerViewController.numberButton setTitle:[NSString stringWithFormat:@"%lu", (unsigned long)([sharedDataManager.tetherFriendsGoingOut count] + [sharedDataManager.tetherFriendsNotGoingOut count])] forState:UIControlStateNormal];
@@ -486,8 +491,8 @@
 
 -(void)showDecisionView {
     // check if user has input status today
-    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-    if (!self.showingDecisionView && ([self shouldShowDecisionView] || ![userDetails boolForKey:kUserDefaultsStatusKey])) {
+    if (!self.showingDecisionView && [self shouldShowDecisionView]) {
+        [self movePanelToOriginalPosition];
         self.decisionViewController = [[DecisionViewController alloc] init];
         self.decisionViewController.delegate = self;
         [self.decisionViewController addProfileImageView];
@@ -495,6 +500,8 @@
         [self addChildViewController:_decisionViewController];
         [_decisionViewController didMoveToParentViewController:self];
         self.showingDecisionView = YES;
+    } else if ([self shouldShowDecisionView] && self.showingDecisionView) {
+        [self.view bringSubviewToFront:self.decisionViewController.view];
     }
 }
 
@@ -533,6 +540,8 @@
         _centerViewController.notificationsButtonLarge.tag = 1;
         _centerViewController.listViewButton.userInteractionEnabled = YES;
         _centerViewController.listViewButtonLarge.userInteractionEnabled = YES;
+        _centerViewController.userProfilePictureView.userInteractionEnabled = YES;
+        _centerViewController.settingsButtonLarge.enabled = YES;
         self.showingRightPanel = NO;
     }
     
@@ -696,10 +705,10 @@
     [self.settingsViewController.view setFrame:CGRectMake(0.0f, self.view.frame.size.height, self.view.frame.size.width, self.view.frame.size.height)]; //notice this is OFF screen!
     [self.view addSubview:self.settingsViewController.view];
     
-    [UIView animateWithDuration:0.5
+    [UIView animateWithDuration:SLIDE_TIMING*1.2
                           delay:0.0
          usingSpringWithDamping:1.0
-          initialSpringVelocity:5.0
+          initialSpringVelocity:1.0
                         options:UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
                             [self.settingsViewController.view setFrame:CGRectMake( 0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
@@ -719,10 +728,10 @@
     [self.placesViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
     [self.view addSubview:self.placesViewController.view];
     
-    [UIView animateWithDuration:0.5
+    [UIView animateWithDuration:SLIDE_TIMING
                           delay:0.0
          usingSpringWithDamping:1.0
-          initialSpringVelocity:5.0
+          initialSpringVelocity:1.0
                         options:UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
                         [self.placesViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
@@ -738,10 +747,10 @@
     UIView *childView = [self getLeftView];
     [self.view sendSubviewToBack:childView];
     
-    [UIView animateWithDuration:0.5
+    [UIView animateWithDuration:SLIDE_TIMING
                           delay:0.0
-         usingSpringWithDamping:0.7
-          initialSpringVelocity:5.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
                         options:UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
                          _centerViewController.view.frame = CGRectMake(self.view.frame.size.width - PANEL_WIDTH, 0, self.view.frame.size.width, self.view.frame.size.height);
@@ -751,6 +760,8 @@
                           _centerViewController.triangleButton.tag = 0;
                           _centerViewController.leftPanelButtonLarge.tag = 0;
                          _centerViewController.mv.userInteractionEnabled = NO;
+                         _centerViewController.userProfilePictureView.userInteractionEnabled = NO;
+                         _centerViewController.settingsButtonLarge.enabled = NO;
                          UITapGestureRecognizer *mapTapGesture =
                          [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(closePanel:)];
                          [self.centerViewController.view addGestureRecognizer:mapTapGesture];
@@ -765,10 +776,10 @@
         self.centerViewController.listViewButton.userInteractionEnabled = NO;
         self.centerViewController.listViewButtonLarge.userInteractionEnabled = NO;
         
-        [UIView animateWithDuration:0.5
+        [UIView animateWithDuration:SLIDE_TIMING
                               delay:0.0
-             usingSpringWithDamping:0.7
-              initialSpringVelocity:5.0
+             usingSpringWithDamping:1.0
+              initialSpringVelocity:1.0
                             options:UIViewAnimationOptionBeginFromCurrentState
                          animations:^{
                              _centerViewController.view.frame = CGRectMake(-self.view.frame.size.width + PANEL_WIDTH, 0, self.view.frame.size.width, self.view.frame.size.height);
@@ -796,10 +807,10 @@
 
 - (void)movePanelToOriginalPosition
 {
-    [UIView animateWithDuration:0.5
+    [UIView animateWithDuration:SLIDE_TIMING
                           delay:0.0
          usingSpringWithDamping:1.0
-          initialSpringVelocity:5.0
+          initialSpringVelocity:1.0
                         options:UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
                          _centerViewController.view.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
@@ -861,10 +872,10 @@
                 [self addChildViewController:self.friendsListViewController];
                 [self.friendsListViewController didMoveToParentViewController:self.centerViewController];
                 
-                [UIView animateWithDuration:0.5
+                [UIView animateWithDuration:SLIDE_TIMING
                                       delay:0.0
                      usingSpringWithDamping:1.0
-                      initialSpringVelocity:5.0
+                      initialSpringVelocity:1.0
                                     options:UIViewAnimationOptionBeginFromCurrentState
                                  animations:^{
                                      [self.friendsListViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
@@ -902,15 +913,19 @@
     [user saveInBackground];
     
     [self.centerViewController updateLocation];
+    
+    if (self.settingsViewController) {
+        self.settingsViewController.goingOutSwitch.on = choice;
+    }
 }
 
 #pragma mark SettingsViewControllerDelegate
 
 -(void)closeSettings {
-    [UIView animateWithDuration:0.5
+    [UIView animateWithDuration:SLIDE_TIMING*1.2
                           delay:0.0
          usingSpringWithDamping:1.0
-          initialSpringVelocity:5.0
+          initialSpringVelocity:1.0
                         options:UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
                             [self.settingsViewController.view setFrame:CGRectMake( 0.0f, self.view.frame.size.height, self.view.frame.size.width, self.view.frame.size.height)];
@@ -1037,10 +1052,10 @@
 }
 
 -(void)closeListView {
-    [UIView animateWithDuration:0.5
+    [UIView animateWithDuration:SLIDE_TIMING
                           delay:0.0
          usingSpringWithDamping:1.0
-          initialSpringVelocity:5.0
+          initialSpringVelocity:1.0
                         options:UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
                         [self.placesViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
@@ -1151,7 +1166,7 @@
     
     for (Friend *friend in recipents) {
         PFQuery *friendQuery = [PFUser query];
-        [friendQuery whereKey:@"facebookId" equalTo:friend.friendID];
+        [friendQuery whereKey:kUserFacebookIDKey equalTo:friend.friendID];
 
        [friendQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
             if (!error) {

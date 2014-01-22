@@ -32,25 +32,40 @@
     
     [self.view setBackgroundColor:[UIColor whiteColor]];
     
+    UIImage *topImage = [UIImage imageNamed:@"LoginPage"];
+    UIImageView *topImageView = [[UIImageView alloc] initWithImage:topImage];
+    topImageView.frame = CGRectMake(-self.view.frame.size.width / 2.1, -self.view.frame.size.height / 2.0 - 20.0, self.view.frame.size.width*1.9, self.view.frame.size.height*2);
+    topImageView.contentMode = UIViewContentModeScaleAspectFit;
+    [self.view addSubview:topImageView];
+    
+    UIImageView *textureImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"BlackTexture"]];
+    textureImageView.frame = CGRectMake(0, self.view.frame.size.height - 185.0, self.view.frame.size.width, 185);
+    [self.view addSubview:textureImageView];
+
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:15.0f];
+    UIFont *montserratBold = [UIFont fontWithName:@"Montserrat-Bold" size:15.0f];
+    
+    UILabel *sloganLabel = [[UILabel alloc] init];
+    sloganLabel.text = @"Tethr brings people together.";
+    sloganLabel.lineBreakMode = NSLineBreakByWordWrapping;
+    sloganLabel.numberOfLines = 2.0;
+    sloganLabel.textAlignment = NSTextAlignmentCenter;
+    sloganLabel.font = montserrat;
+    sloganLabel.textColor = UIColorFromRGB(0x8e0528);
+    sloganLabel.frame = CGRectMake((self.view.frame.size.width - 160.0) / 2.0, 160.0, 160.0, 40.0);
+    [self.view addSubview:sloganLabel];
+    
     self.loginButton = [[UIButton alloc] init];
     [self.loginButton setTitle:@"Login with facebook" forState:UIControlStateNormal];
-    UIFont *champagne = [UIFont fontWithName:@"Champagne&Limousines-Bold" size:25];
-    CGSize size = [self.loginButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:champagne}];
-    CGRect frame = self.loginButton.frame;
-    frame.origin.x = (self.view.frame.size.width - size.width) / 2.0;
-    frame.origin.y = self.view.frame.size.height / 2.0;
-    frame.size.width = size.width + 10.0;
-    frame.size.height = size.height;
-    self.loginButton.frame = frame;
+    self.loginButton.frame = CGRectMake((self.view.frame.size.width - 230.0) / 2.0, textureImageView.frame.origin.y - 25.0, 230.0, 50.0);
     [self.loginButton setBackgroundColor:UIColorFromRGB(0x8e0528)];
     [self.loginButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    self.loginButton.titleLabel.font = champagne;
-    self.loginButton.layer.cornerRadius = 10.0;
+    self.loginButton.titleLabel.font = montserratBold;
     [self.loginButton setTitleEdgeInsets:UIEdgeInsetsMake(5.0, 5.0, 5.0, 5.0)];
     [self.loginButton addTarget:self action:@selector(loginButtonTouchHandler:) forControlEvents:UIControlEventTouchDown];
     [self.view addSubview:self.loginButton];
     
-    self.spinner = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake((self.view.frame.size.width - 50.0) / 2, 100.0, 50.0, 50.0)];
+    self.spinner = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake((self.view.frame.size.width - 50.0) / 2, 250.0, 50.0, 50.0)];
     [self.spinner setColor:UIColorFromRGB(0x8e0528)];
     [self.view addSubview:self.spinner];
 }
