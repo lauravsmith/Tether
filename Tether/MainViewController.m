@@ -36,7 +36,7 @@
 #define PANEL_WIDTH 60
 #define POLLING_INTERVAL 20
 
-@interface MainViewController () <CenterViewControllerDelegate, DecisionViewControllerDelegate, FriendsListViewControllerDelegate, InviteViewControllerDelegate, LeftPanelViewControllerDelegate, UIGestureRecognizerDelegate, SettingsViewControllerDelegate, PlacesViewControllerDelegate>
+@interface MainViewController () <CenterViewControllerDelegate, DecisionViewControllerDelegate, FriendsListViewControllerDelegate, InviteViewControllerDelegate, LeftPanelViewControllerDelegate, PlacesViewControllerDelegate, RightPanelViewControllerDelegate, SettingsViewControllerDelegate, UIGestureRecognizerDelegate>
 
 @property (nonatomic, strong) CenterViewController *centerViewController;
 @property (nonatomic, strong) LeftPanelViewController *leftPanelViewController;
@@ -140,10 +140,10 @@
 
 -(void)timerFired{
     if (self.canUpdatePlaces) {
-        [self pollDatabase];
         if ([self shouldShowDecisionView] && !self.showingDecisionView) {
             [self setupView];
         }
+        [self pollDatabase];
     }
 }
 
@@ -412,6 +412,12 @@
     
     [self.centerViewController.numberButton setTitle:[NSString stringWithFormat:@"%lu", (unsigned long)([sharedDataManager.tetherFriendsGoingOut count] + [sharedDataManager.tetherFriendsNotGoingOut count])] forState:UIControlStateNormal];
     [self.centerViewController layoutNumberButton];
+    
+    if (self.showingDecisionView) {
+        self.decisionViewController.numberLabel.text = [NSString stringWithFormat:@"%lu", (unsigned long)([sharedDataManager.tetherFriendsGoingOut count] + [sharedDataManager.tetherFriendsNotGoingOut count])];
+        [self.decisionViewController layoutNumberLabel];
+    }
+    
     // if lists have changed or all are empty, update view
     if (listsHaveChanged ||
         ([sharedDataManager.tetherFriendsUndecided count] == 0 &&
@@ -460,9 +466,21 @@
     self.centerViewController.placeToAnnotationDictionary = [[NSMutableDictionary alloc] init];
     self.centerViewController.placeToAnnotationViewDictionary = [[NSMutableDictionary alloc] init];
     
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    
     [self.view addSubview:self.centerViewController.view];
     [self addChildViewController:_centerViewController];
     [_centerViewController didMoveToParentViewController:self];
+    
+    if (!self.centerViewController.userProfilePictureView && sharedDataManager.facebookId) {
+        self.centerViewController.userProfilePictureView = [[FBProfilePictureView alloc] initWithProfileID:(NSString *)sharedDataManager.facebookId pictureCropping:FBProfilePictureCroppingSquare];
+        self.centerViewController.userProfilePictureView.layer.cornerRadius = 14.0;
+        self.centerViewController.userProfilePictureView.clipsToBounds = YES;
+        [self.centerViewController.userProfilePictureView.layer setBorderColor:[[UIColor whiteColor] CGColor]];
+        self.centerViewController.userProfilePictureView.frame = CGRectMake((self.centerViewController.bottomBar.frame.size.height - 28.0) / 2.0, (self.centerViewController.bottomBar.frame.size.height - 28.0) / 2.0, 28.0, 28.0);
+        [self.centerViewController.bottomBar addSubview:self.centerViewController.userProfilePictureView];
+        [self.centerViewController.bottomBar addSubview:self.centerViewController.settingsButtonLarge];
+    }
     
     [self setupGestures];
     
@@ -473,7 +491,23 @@
     
     // define the view for the left panel view controller
     self.rightPanelViewController = [[RightPanelViewController alloc] init];
+    self.rightPanelViewController.delegate = self;
     self.rightPanelViewController.view.tag = RIGHT_PANEL_TAG;
+    
+    self.placesViewController = [[PlacesViewController alloc] init];
+    self.placesViewController.delegate = self;
+    
+    //reset Datastore values associated with a specific day
+    sharedDataManager.todaysNotificationsArray = [[NSMutableArray alloc] init];
+    sharedDataManager.currentCommitmentPlace = nil;
+    sharedDataManager.currentCommitmentParseObject = nil;
+    sharedDataManager.tetherFriendsGoingOut = [[NSMutableArray alloc] init];
+    sharedDataManager.tetherFriendsNotGoingOut = [[NSMutableArray alloc] init];
+    sharedDataManager.tetherFriendsUndecided = [[NSMutableArray alloc] init];
+    
+    [self.centerViewController layoutCurrentCommitment];
+    [self.centerViewController layoutNumberButton];
+    [self updateNotificationsNumber];
     
     // check if user has input status today
     [self showDecisionView];
@@ -669,26 +703,16 @@
         // Allow dragging only in x-coordinates by only updating the x-coordinate with translation position.
         float xCoord = 0.0;
         if (_showingLeftPanel) {
-            xCoord = MAX(160.0,[sender view].center.x + translatedPoint.x);
+            xCoord = MAX(160.0,[sender view].center.x + translatedPoint.x + 0.0008*velocity.x);
         } else if (_showingRightPanel) {
-            xCoord = MIN(160.0,[sender view].center.x + translatedPoint.x);
+            xCoord = MIN(160.0,[sender view].center.x + translatedPoint.x + 0.0008*velocity.x);
         }
-
+        
         [sender view].center = CGPointMake(xCoord, [sender view].center.y);
-        [(UIPanGestureRecognizer*)sender setTranslation:CGPointMake(0,0) inView:self.view];
-        
-        // If you needed to check for a change in direction, you could use this code to do so.
-        if(velocity.x*_preVelocity.x + velocity.y*_preVelocity.y > 0) {
-            // NSLog(@"same direction");
-        } else {
-            // NSLog(@"opposite direction");
-        }
-        
-        _preVelocity = velocity;
+        [(UIPanGestureRecognizer*)sender setTranslation:CGPointZero inView:self.view];
     }
 }
 
-#pragma mark -
 #pragma mark CenterViewControllerDelegate Actions
 
 -(void)showSettingsView
@@ -791,26 +815,26 @@
                              UITapGestureRecognizer *mapTapGesture =
                              [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(closePanel:)];
                              [self.centerViewController.view addGestureRecognizer:mapTapGesture];
+                             
+                             PFInstallation *currentInstallation = [PFInstallation currentInstallation];
+                             Datastore *sharedDataManager = [Datastore sharedDataManager];
+                             if (currentInstallation.badge != 0 || sharedDataManager.notifications != 0) {
+                                 [self loadNotifications];
+                             }
+                             currentInstallation.badge = 0;
+                             [currentInstallation saveEventually];
+                             sharedDataManager.notifications = 0;
+                             [self updateNotificationsNumber];
                          }];
-        
-        PFInstallation *currentInstallation = [PFInstallation currentInstallation];
-        Datastore *sharedDataManager = [Datastore sharedDataManager];
-        if (currentInstallation.badge != 0 || sharedDataManager.notifications != 0) {
-            [self loadNotifications];
-        }
-        currentInstallation.badge = 0;
-        [currentInstallation saveEventually];
-        sharedDataManager.notifications = 0;
-        [self updateNotificationsNumber];
     }
 }
 
 - (void)movePanelToOriginalPosition
 {
-    [UIView animateWithDuration:SLIDE_TIMING
+    [UIView animateWithDuration:SLIDE_TIMING*1.2
                           delay:0.0
          usingSpringWithDamping:1.0
-          initialSpringVelocity:1.0
+          initialSpringVelocity:0.01
                         options:UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
                          _centerViewController.view.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
@@ -852,7 +876,7 @@
         Place *place;
         place = [sharedDataManager.placesDictionary objectForKey:placeId];
         if ([place.friendsCommitted count] > 0) {
-            if (place.numberCommitments == 1 && [place.friendsCommitted containsObject:sharedDataManager.facebookId]) {
+            if ([place.friendsCommitted count] == 1 && [place.friendsCommitted containsObject:sharedDataManager.facebookId]) {
                 [self goToPlaceInListView:placeId];
             } else {
                 self.friendsListViewController = [[FriendsListViewController alloc] init];
@@ -961,7 +985,7 @@
 #pragma mark LeftPanelViewControllerDelegate
 -(void)goToPlaceInListView:(id)placeId {
     [self movePanelToOriginalPosition];
-    [self showListView];
+    [self performSelector:@selector(showListView) withObject:nil afterDelay:0.2];
     [self.placesViewController.placesTableView reloadData];
     [self.placesViewController scrollToPlaceWithId:placeId];
 }
@@ -976,10 +1000,10 @@
     [self addChildViewController:self.inviteViewController];
     [self.inviteViewController didMoveToParentViewController:self];
     
-    [UIView animateWithDuration:0.5
+    [UIView animateWithDuration:SLIDE_TIMING
                           delay:0.0
          usingSpringWithDamping:1.0
-          initialSpringVelocity:5.0
+          initialSpringVelocity:1.0
                         options:UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
                          [self.inviteViewController.view setFrame:CGRectMake( 0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
@@ -991,10 +1015,10 @@
 #pragma mark FriendInviteViewControllerDelegate methods
 
 -(void)closeInviteView {
-        [UIView animateWithDuration:0.5
+        [UIView animateWithDuration:SLIDE_TIMING
                               delay:0.0
              usingSpringWithDamping:1.0
-              initialSpringVelocity:5.0
+              initialSpringVelocity:1.0
                             options:UIViewAnimationOptionBeginFromCurrentState
                          animations:^{
                              [self.inviteViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
@@ -1024,8 +1048,8 @@
         [self removePlaceMarkFromMapView:place];
     }
     [self.centerViewController.placeToAnnotationDictionary  setObject:annotation forKey:place.placeId];
-    if (place.numberCommitments > 0) {
-        NSLog(@"MAIN VIEW: Adding annotation with %d commitments", place.numberCommitments);
+    if ([place.friendsCommitted count] > 0) {
+        NSLog(@"MAIN VIEW: Adding annotation with %d commitments", [place.friendsCommitted count]);
         [self.centerViewController.mv addAnnotation:annotation];
     }
 }
@@ -1205,7 +1229,6 @@
         NSLog(@"Removing previous commitment to %@", sharedDataManager.currentCommitmentPlace.name);
         if ([sharedDataManager.currentCommitmentPlace.friendsCommitted containsObject:sharedDataManager.facebookId]) {
             [sharedDataManager.currentCommitmentPlace.friendsCommitted removeObject:sharedDataManager.facebookId];
-            sharedDataManager.currentCommitmentPlace.numberCommitments =  [sharedDataManager.currentCommitmentPlace.friendsCommitted count];
             [sharedDataManager.placesDictionary setObject:sharedDataManager.currentCommitmentPlace
                                                    forKey:sharedDataManager.currentCommitmentPlace.placeId];
             [sharedDataManager.popularPlacesDictionary setObject:sharedDataManager.currentCommitmentPlace
@@ -1244,10 +1267,10 @@
 #pragma mark FriendsListViewControllerDelegate
 
 -(void)closeFriendsView {
-        [UIView animateWithDuration:0.5
+        [UIView animateWithDuration:SLIDE_TIMING
                               delay:0.0
              usingSpringWithDamping:1.0
-              initialSpringVelocity:5.0
+              initialSpringVelocity:1.0
                             options:UIViewAnimationOptionBeginFromCurrentState
                          animations:^{
                              [self.friendsListViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];

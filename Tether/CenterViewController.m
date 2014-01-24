@@ -206,6 +206,7 @@
     NSDate *startTime = [self getStartTime];
     
     if (sharedDataManager.currentCommitmentPlace && [startTime compare:timeLastUpdated] == NSOrderedAscending) {
+         self.mv.showsUserLocation = NO;
         UIFont *montserratExtraSmall = [UIFont fontWithName:@"Montserrat" size:10];
         
         self.placeLabel.text = sharedDataManager.currentCommitmentPlace.name;
@@ -229,6 +230,11 @@
         self.placeNumberLabel.frame = CGRectMake((self.view.frame.size.width - size2.width) / 2, (self.bottomBar.frame.size.height - size1.height - size2.height) / 2.0, size2.width, size2.height);
 
     } else {
+        
+        if (!self.mv.showsUserLocation && self.userCoordinates.coordinate.longitude != 0.0) {
+            [self.mv setShowsUserLocation:YES];
+        }
+
         UIFont *montserratExtraSmall = [UIFont fontWithName:@"Montserrat" size:16];
         
         NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
@@ -539,8 +545,17 @@
     // If it's the user location, set no callout and return nil.
     if ([annotation isKindOfClass:[MKUserLocation class]])
     {
+        Datastore *sharedDataManager = [Datastore sharedDataManager];
         ((MKUserLocation *)annotation).title = @"";
-        return nil;
+        FBProfilePictureView *profileView = [[FBProfilePictureView alloc] initWithFrame:CGRectMake(-15.0, 0, 40.0, 40.0)];
+        profileView.profileID = sharedDataManager.facebookId;
+        profileView.layer.cornerRadius = CORNER_RADIUS;
+        profileView.clipsToBounds = YES;
+        profileView.tag = 2;
+        MKAnnotationView * annotationView = [[MKAnnotationView alloc] initWithFrame:CGRectMake(0, 0, 40.0, 40.0)];
+        [annotationView addSubview:profileView];
+        annotationView.annotation = annotation;
+        return annotationView;
     }
     
     // Handle any custom annotations.
@@ -593,7 +608,7 @@
         [leftLabel setTextColor:[UIColor whiteColor]];
         UIFont *helveticaNeue = [UIFont fontWithName:@"HelveticaNeue-Bold" size:20];
         [leftLabel setFont:helveticaNeue];
-        [leftLabel setText:[NSString stringWithFormat:@"  %d",((TetherAnnotation*)annotation).place.numberCommitments]];
+        [leftLabel setText:[NSString stringWithFormat:@"  %d",[((TetherAnnotation*)annotation).place.friendsCommitted count]]];
         size = [leftLabel.text sizeWithAttributes:@{NSFontAttributeName:helveticaNeue}];
         leftLabel.frame = CGRectMake(0, -2.0, size.width + 10.0, 45.0);
         UIView *backgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, size.width + 10.0, 45.0)];
@@ -607,7 +622,7 @@
         
         int i = 0;
         BOOL evenNumberFriends = NO;
-        if (p.numberCommitments % 2 == 0) {
+        if ([p.friendsCommitted count] % 2 == 0) {
             evenNumberFriends = YES;
         }
         for (id friendId in p.friendsCommitted) {
@@ -702,6 +717,9 @@
 }
 
 - (void)mapView:(MKMapView *)mapView didSelectAnnotationView:(MKAnnotationView *)view {
+    if ([view.annotation isKindOfClass:[MKUserLocation class]]) {
+        return;
+    }
     UITapGestureRecognizer *singleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(annotationClick:)];
     [view addGestureRecognizer:singleTap];
     
@@ -770,6 +788,9 @@
 }
 
 - (void)mapView:(MKMapView *)mapView didDeselectAnnotationView:(MKAnnotationView *)view {
+    if ([view.annotation isKindOfClass:[MKUserLocation class]]) {
+        return;
+    }
     for (UIGestureRecognizer *recognizer in view.gestureRecognizers) {
         [view removeGestureRecognizer:recognizer];
     }

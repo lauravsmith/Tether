@@ -10,8 +10,10 @@
 #import "Place.h"
 
 #import <Foundation/Foundation.h>
+#import <Parse/Parse.h>
 
 @interface Notification : NSObject
+@property (retain, nonatomic) PFObject *parseObject;
 @property (retain, nonatomic) NSString *messageHeader;
 @property (retain, nonatomic) NSString *message;
 @property (retain, nonatomic) NSDate *time;

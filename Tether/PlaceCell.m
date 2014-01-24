@@ -120,8 +120,8 @@
                       forControlEvents:UIControlEventTouchUpInside];
     
     UIFont *helveticaNeue = [UIFont fontWithName:@"HelveticaNeue" size:30.0f];
-    if (self.place.numberCommitments > 0) {
-        [self.friendsGoingButton setTitle:[NSString stringWithFormat:@"%d", self.place.numberCommitments] forState:UIControlStateNormal];
+    if ([self.place.friendsCommitted count] > 0) {
+        [self.friendsGoingButton setTitle:[NSString stringWithFormat:@"%d", [self.place.friendsCommitted count]] forState:UIControlStateNormal];
         size = [self.friendsGoingButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:helveticaNeue}];
         self.friendsGoingButton.frame = CGRectMake(self.frame.size.width - size.width - 20.0, (self.frame.size.height - size.height) / 2, size.width, size.height);
         [self.friendsGoingButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
@@ -135,7 +135,7 @@
                           forControlEvents:UIControlEventTouchUpInside];
         
         Datastore *sharedDataManager = [Datastore sharedDataManager];
-        if (self.place.numberCommitments == 1 && [self.place.friendsCommitted containsObject:sharedDataManager.facebookId]) {
+        if ([self.place.friendsCommitted count] == 1 && [self.place.friendsCommitted containsObject:sharedDataManager.facebookId]) {
             [self.arrowButton setHidden:YES];
             [self.friendsGoingButton setEnabled:NO];
             [self.friendsGoingButtonLarge setEnabled:NO];
@@ -166,7 +166,6 @@
     self.plusIconLabel.frame = CGRectMake(self.inviteButton.frame.origin.x + 6.0, self.inviteButton.frame.origin.y + 8.0, 10.0, 10.0);
     [self.plusIconLabel setBackgroundColor:UIColorFromRGB(0x8e0528)];
     [self.plusIconLabel setTextColor:[UIColor whiteColor]];
-    self.plusIconLabel.layer.borderWidth = 1.0;
     self.plusIconLabel.layer.borderColor = [UIColor whiteColor].CGColor;
     UIFont *montserratExtraExtraSmall = [UIFont fontWithName:@"Montserrat" size:8];
     self.plusIconLabel.font = montserratExtraExtraSmall;

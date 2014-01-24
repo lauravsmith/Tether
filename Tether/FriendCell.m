@@ -13,6 +13,7 @@
 
 #define MAX_LABEL_WIDTH 150.0
 #define NAME_LABEL_OFFSET_X 70.0
+#define PANEL_WIDTH 60
 #define PROFILE_PICTURE_CORNER_RADIUS 22.0
 #define PROFILE_PICTURE_OFFSET_X 10.0
 #define PROFILE_PICTURE_SIZE 45.0
@@ -122,7 +123,7 @@
     
     self.inviteButton.tag = 0;
     if (self.friend) {
-        self.inviteButton.frame = CGRectMake(self.frame.size.width - 35.0, self.friendNameLabel.frame.origin.y, 30, 40);
+        self.inviteButton.frame = CGRectMake(self.frame.size.width - PANEL_WIDTH - 35.0, self.friendNameLabel.frame.origin.y, 30, 40);
     }
     [self.inviteButton setImage:[UIImage imageNamed:@"FriendIcon"] forState:UIControlStateNormal];
     [self.inviteButton addTarget:self
@@ -139,7 +140,6 @@
     }
     [self.plusIconLabel setBackgroundColor:UIColorFromRGB(0x8e0528)];
     [self.plusIconLabel setTextColor:[UIColor whiteColor]];
-    self.plusIconLabel.layer.borderWidth = 0.5;
     self.plusIconLabel.layer.borderColor = [UIColor whiteColor].CGColor;
     UIFont *montserratExtraExtraSmall = [UIFont fontWithName:@"Montserrat" size:8];
     self.plusIconLabel.font = montserratExtraExtraSmall;

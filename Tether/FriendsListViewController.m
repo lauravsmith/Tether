@@ -71,12 +71,12 @@
     
     // left panel view button setup
     UIImage *leftPanelButtonImage = [UIImage imageNamed:@"WhiteTriangle"];
-    self.backButton = [[UIButton alloc] initWithFrame:CGRectMake(10.0,  (self.topBar.frame.size.height) / 2.0, 10.0, 10.0)];
+    self.backButton = [[UIButton alloc] initWithFrame:CGRectMake(5.0, (STATUS_BAR_HEIGHT + 57.0) / 2.0, 10.0, 10.0)];
     [self.backButton setImage:leftPanelButtonImage forState:UIControlStateNormal];
     [self.view addSubview:self.backButton];
     [self.backButton addTarget:self action:@selector(closeFriendsView) forControlEvents:UIControlEventTouchDown];
     
-    self.backButtonLarge = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, (self.view.frame.size.width) / 4.0, 50.0)];
+    self.backButtonLarge = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, (self.view.frame.size.width) / 4.0, TOP_BAR_HEIGHT)];
     [self.backButtonLarge addTarget:self action:@selector(closeFriendsView) forControlEvents:UIControlEventTouchDown];
     [self.view addSubview:self.backButtonLarge];
 
@@ -129,7 +129,7 @@
     [self.topBar addSubview:self.plusIconLabel];
     
     UIView *lineBar = [[UIView alloc] initWithFrame:CGRectMake(0, self.topBar.frame.size.height, self.view.frame.size.width, 1.0)];
-    [lineBar setBackgroundColor:[UIColor whiteColor]];
+    [lineBar setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
     [self.view addSubview:lineBar];
     
     //set up friends going out table view

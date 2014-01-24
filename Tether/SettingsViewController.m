@@ -10,10 +10,13 @@
 #import "Constants.h"
 #import "Datastore.h"
 #import "SettingsViewController.h"
+#import "TethrTextField.h"
 
 #define PADDING 15.0
+#define PROFILE_IMAGE_VIEW_SIZE 80.0
+#define STATUS_BAR_HEIGHT 20.0
 #define STATUS_MESSAGE_LENGTH 30.0
-#define TABLE_VIEW_HEIGHT 235.0
+#define TABLE_VIEW_HEIGHT 277.0
 
 #define degreesToRadian(x) (M_PI * (x) / 180.0)
 
@@ -21,15 +24,16 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 
 @interface SettingsViewController () <ILGeoNamesLookupDelegate, UITextFieldDelegate, UITableViewDelegate, UITableViewDataSource>
 
-@property (retain, nonatomic) UITextField *statusMessageTextField;
-@property (retain, nonatomic) UIButton * settingsButton;
-@property (retain, nonatomic) UIButton * largeSettingsButton;
+@property (retain, nonatomic) TethrTextField *statusMessageTextField;
+@property (retain, nonatomic) UIButton * doneButton;
+@property (retain, nonatomic) UIButton * largeDoneButton;
 @property (retain, nonatomic) UIView * topBarView;
 @property (retain, nonatomic) UITextField *cityTextField;
 @property (retain, nonatomic) UIButton * logoutButton;
 @property (retain, nonatomic) UISwitch * setLocationSwitch;
 @property (retain, nonatomic) UIView * whiteLineView;
 @property (retain, nonatomic) UIView * whiteLineView2;
+@property (retain, nonatomic) UIView * whiteLineView3;
 @property (retain, nonatomic) UILabel * defaultCityLabel;
 @property (retain, nonatomic) UILabel * locationSwitchLabel;
 @property (retain, nonatomic) UILabel * goingOutLabel;
@@ -73,41 +77,13 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     backgroundImageView.userInteractionEnabled = YES;
     [backgroundImageView addGestureRecognizer:closeKeyBoardTap];
     
-    self.topBarView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 70.0)];
-    self.topBarView.backgroundColor = UIColorFromRGB(0xF3F3F3);
-    self.topBarView.userInteractionEnabled = YES;
-    UITapGestureRecognizer *closeKeyBoardTopBarTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissKeyboard)];
-    [self.topBarView addGestureRecognizer:closeKeyBoardTopBarTap];
-    [self.view addSubview:self.topBarView];
+    [self addProfileImageView];
     
-    self.topBarView.layer.masksToBounds = NO;
-    self.topBarView.layer.shadowColor = [UIColor blackColor].CGColor;
-    self.topBarView.layer.shadowOffset = CGSizeMake(0.0f, 0.0f);
-    self.topBarView.layer.shadowOpacity = 0.5f;
-    
-    UIImage *gearImage = [UIImage imageNamed:@"WhiteTriangle"];
-    self.settingsButton = [[UIButton alloc] initWithFrame:CGRectMake(PADDING*4, self.view.frame.size.height - 30.0 - PADDING*2, 30.0, 30.0)];
-    self.settingsButton.transform = CGAffineTransformMakeRotation(degreesToRadian(270));
-    [self.settingsButton setImage:gearImage forState:UIControlStateNormal];
-    [self.settingsButton addTarget:self action:@selector(handleCloseSettings:) forControlEvents:UIControlEventTouchDown];
-    [self.view addSubview:self.settingsButton];
-    
-    self.largeSettingsButton = [[UIButton alloc] initWithFrame:CGRectMake(0.0, self.settingsButton.frame.origin.y, self.view.frame.size.width / 3.0, self.view.frame.size.height - self.settingsButton.frame.origin.y)];
-    [self.largeSettingsButton addTarget:self action:@selector(handleCloseSettings:) forControlEvents:UIControlEventTouchDown];
-    [self.view addSubview:self.largeSettingsButton];
-    
-    self.userProfilePictureView.layer.cornerRadius = 20.0;
-    self.userProfilePictureView.clipsToBounds = YES;
-    [self.userProfilePictureView.layer setBorderColor:[[UIColor whiteColor] CGColor]];
-    self.userProfilePictureView.frame = CGRectMake(PADDING, self.topBarView.frame.size.height + 25.0, 45.0, 45.0);
-    [self.view addSubview:self.userProfilePictureView];
-    
-    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:16];
-    
-    self.statusMessageTextField = [[UITextField alloc] initWithFrame:CGRectMake(self.userProfilePictureView.frame.origin.x + self.userProfilePictureView.frame.size.width + 18.0, self.topBarView.frame.size.height + 34.0, self.view.frame.size.width - 24.0 - self.userProfilePictureView.frame.size.width - 22.0, 25.0)];
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14];
+    self.statusMessageTextField = [[TethrTextField alloc] initWithFrame:CGRectMake(PADDING, self.userProfilePictureView.frame.origin.y + self.userProfilePictureView.frame.size.height + PADDING, self.view.frame.size.width - PADDING * 2, 25.0)];
     self.statusMessageTextField.delegate = self;
     self.statusMessageTextField.layer.cornerRadius = 2.0;
-    self.statusMessageTextField.placeholder = @"Enter status message";
+    self.statusMessageTextField.placeholder = @"Enter a status message";
     [self.statusMessageTextField setBackgroundColor:[UIColor whiteColor]];
     [self.statusMessageTextField setFont:montserrat];
     Datastore *sharedDataManager = [Datastore sharedDataManager];
@@ -117,7 +93,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [self.view addSubview:self.statusMessageTextField];
     
     // white line separator
-    self.whiteLineView = [[UIView alloc] initWithFrame:CGRectMake(12.0, self.topBarView.frame.size.height + 94.0, self.view.frame.size.width - 24.0, 1.0)];
+    self.whiteLineView = [[UIView alloc] initWithFrame:CGRectMake(PADDING, self.statusMessageTextField.frame.origin.y + self.statusMessageTextField.frame.size.height + PADDING, self.view.frame.size.width - PADDING * 2.0, 1.0)];
     [self.whiteLineView setBackgroundColor:[UIColor whiteColor]];
     [self.view addSubview:self.whiteLineView];
     
@@ -126,7 +102,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.defaultCityLabel.font = montserrat;
     self.defaultCityLabel.textColor = [UIColor whiteColor];
     CGSize textLabelSize = [self.defaultCityLabel.text sizeWithAttributes:@{NSFontAttributeName: montserrat}];
-    self.defaultCityLabel.frame = CGRectMake(PADDING, self.whiteLineView.frame.origin.y + 20.0, textLabelSize.width, textLabelSize.height);
+    self.defaultCityLabel.frame = CGRectMake(PADDING, self.whiteLineView.frame.origin.y + PADDING, textLabelSize.width, textLabelSize.height);
     [self.view addSubview:self.defaultCityLabel];
     
     self.locationSwitchLabel = [[UILabel alloc] init];
@@ -166,7 +142,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [self.view addSubview:self.yesLabel];
     
     //city search
-    self.cityTextField = [[UITextField  alloc] initWithFrame:CGRectMake(self.defaultCityLabel.frame.origin.x, self.setLocationSwitch.frame.origin.y + self.setLocationSwitch.frame.size.height + PADDING, self.view.frame.size.width - self.defaultCityLabel.frame.origin.x*2, 25.0)];
+    self.cityTextField = [[UITextField  alloc] initWithFrame:CGRectMake(PADDING, self.setLocationSwitch.frame.origin.y + self.setLocationSwitch.frame.size.height + PADDING, self.view.frame.size.width - PADDING*2, 25.0)];
     self.cityTextField.delegate = self;
     NSString *location = [NSString stringWithFormat:@"%@, %@",[userDetails objectForKey:@"city"], [userDetails objectForKey:@"state"]];
     self.cityTextField.text = [location uppercaseString];
@@ -180,7 +156,6 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.cityTextField.enabled = !self.setLocationSwitch.on;
     self.cityTextField .clearButtonMode = UITextFieldViewModeWhileEditing;
     [self.cityTextField addTarget:self action:@selector(textFieldDidChange:) forControlEvents:UIControlEventEditingChanged];
-    
     [self.cityTextField setLeftView:[[UIView alloc] initWithFrame:CGRectMake(0, 0, 10, 20)]];
     [self.cityTextField setLeftViewMode:UITextFieldViewModeAlways];
     self.cityTextField.tag = 1;
@@ -196,7 +171,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [self.cancelSearchButton setTitle:@"Cancel" forState:UIControlStateNormal];
     UIFont *cancelButtonFont = [UIFont fontWithName:@"Montserrat" size:12];
     CGSize size = [self.cancelSearchButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName: cancelButtonFont}];
-    self.cancelSearchButton.frame = CGRectMake(self.view.frame.size.width - size.width - PADDING, self.topBarView.frame.origin.y + self.topBarView.frame.size.height + PADDING + 5.0, size.width, size.height);
+    self.cancelSearchButton.frame = CGRectMake(self.view.frame.size.width - size.width - PADDING, STATUS_BAR_HEIGHT + PADDING + 5.0, size.width, size.height);
     self.cancelSearchButton.titleLabel.font = cancelButtonFont;
     self.cancelSearchButton.hidden = YES;
     [self.view addSubview:self.cancelSearchButton];
@@ -204,7 +179,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.activityIndicator = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake((self.view.frame.size.width - 50.0) / 2.0, self.defaultCityLabel.frame.origin.y + self.defaultCityLabel.frame.size.height , 50.0, 50.0)];
     [self.view addSubview:self.activityIndicator];
     
-    self.whiteLineView2 = [[UIView alloc] initWithFrame:CGRectMake(12.0, self.cityTextField.frame.origin.y + self.cityTextField.frame.size.height + PADDING, self.view.frame.size.width - 24.0, 1.0)];
+    self.whiteLineView2 = [[UIView alloc] initWithFrame:CGRectMake(PADDING, self.cityTextField.frame.origin.y + self.cityTextField.frame.size.height + PADDING, self.view.frame.size.width - PADDING * 2.0, 1.0)];
     [self.whiteLineView2 setBackgroundColor:[UIColor whiteColor]];
     [self.view addSubview:self.whiteLineView2];
     
@@ -212,9 +187,9 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.goingOutLabel.text = @"Going out?";
     self.goingOutLabel.font = montserrat;
     self.goingOutLabel.textColor = [UIColor whiteColor];
-    locationSwitchLabelSize = [self.goingOutLabel.text sizeWithAttributes:@{NSFontAttributeName: montserrat}];
+    size = [self.goingOutLabel.text sizeWithAttributes:@{NSFontAttributeName: montserrat}];
     self.goingOutLabel.frame =
-    CGRectMake(PADDING, self.whiteLineView2.frame.origin.y + self.whiteLineView2.frame.size.height + PADDING, locationSwitchLabelSize.width, locationSwitchLabelSize.height);
+    CGRectMake(PADDING, self.whiteLineView2.frame.origin.y + self.whiteLineView2.frame.size.height + PADDING, size.width, size.height);
     [self.view addSubview:self.goingOutLabel];
     
     UILabel *noLabel2 = [[UILabel alloc] init];
@@ -239,17 +214,34 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     yesLabel2.frame = CGRectMake(self.goingOutSwitch.frame.origin.x + 35.0, self.goingOutLabel.frame.origin.y + self.goingOutLabel.frame.size.height + PADDING, yesLabelSize.width, yesLabelSize.height);
     [self.view addSubview:yesLabel2];
     
+    self.whiteLineView3 = [[UIView alloc] initWithFrame:CGRectMake(PADDING, noLabel2.frame.origin.y + noLabel2.frame.size.height + PADDING, self.view.frame.size.width - PADDING * 2, 1.0)];
+    [self.whiteLineView3 setBackgroundColor:[UIColor whiteColor]];
+    [self.view addSubview:self.whiteLineView3];
+    
     self.logoutButton = [[UIButton alloc] init];
     [self.logoutButton setTitle:@"Logout" forState:UIControlStateNormal];
-    [self.logoutButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+    [self.logoutButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     UIFont *montserratBold = [UIFont fontWithName:@"Montserrat-Bold" size:28];
     self.logoutButton.titleLabel.font = montserratBold;
     size = [self.logoutButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];
-    self.logoutButton.frame = CGRectMake(self.view.frame.size.width - size.width - PADDING*4, self.view.frame.size.height - size.height - PADDING*2, size.width, size.height);
+    self.logoutButton.frame = CGRectMake((self.view.frame.size.width - size.width) / 2.0, self.whiteLineView3.frame.origin.y + self.whiteLineView3.frame.size.height + size.height - PADDING, size.width, size.height);
     [self.logoutButton addTarget:self action:@selector(logoutButtonWasPressed:) forControlEvents:UIControlEventTouchDown];
     [self.view addSubview:self.logoutButton];
     
-    self.searchResultsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, self.topBarView.frame.origin.y + self.topBarView.frame.size.height + 50, self.view.frame.size.width, 0)];
+    UIFont *montserratLarge = [UIFont fontWithName:@"Montserrat" size:16];
+    self.doneButton = [[UIButton alloc] init];
+    [self.doneButton setTitle:@"Done" forState:UIControlStateNormal];
+    [self.doneButton addTarget:self action:@selector(handleCloseSettings:) forControlEvents:UIControlEventTouchDown];
+    self.doneButton.titleLabel.font = montserratLarge;
+    CGSize buttonSize = [self.doneButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratLarge}];
+    self.doneButton.frame = CGRectMake(PADDING, self.view.frame.size.height - buttonSize.height - PADDING, buttonSize.width, buttonSize.height);
+    [self.view addSubview:self.doneButton];
+    
+    self.largeDoneButton = [[UIButton alloc] initWithFrame:CGRectMake(0.0, self.doneButton.frame.origin.y - PADDING, self.view.frame.size.width / 2.0, self.view.frame.size.height - self.doneButton.frame.origin.y)];
+    [self.largeDoneButton addTarget:self action:@selector(handleCloseSettings:) forControlEvents:UIControlEventTouchDown];
+    [self.view addSubview:self.largeDoneButton];
+    
+    self.searchResultsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, STATUS_BAR_HEIGHT + PADDING*2 + self.statusMessageTextField.frame.size.height, self.view.frame.size.width, TABLE_VIEW_HEIGHT)];
     [self.searchResultsTableView setBackgroundColor:[UIColor whiteColor]];
     [self.searchResultsTableView setDataSource:self];
     [self.searchResultsTableView setDelegate:self];
@@ -268,6 +260,27 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 	
     // when the view slides in, its significant enough that a screen change notification should be posted
     UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, nil);
+}
+
+-(void)addProfileImageView {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    self.userProfilePictureView = [[FBProfilePictureView alloc] initWithProfileID:(NSString *)sharedDataManager.facebookId pictureCropping:FBProfilePictureCroppingSquare];
+    self.userProfilePictureView.layer.cornerRadius = 12.0;
+    self.userProfilePictureView.clipsToBounds = YES;
+    [self.userProfilePictureView.layer setBorderColor:[[UIColor whiteColor] CGColor]];
+    self.userProfilePictureView.frame = CGRectMake((self.view.frame.size.width - PROFILE_IMAGE_VIEW_SIZE) / 2.0 , STATUS_BAR_HEIGHT + PADDING, PROFILE_IMAGE_VIEW_SIZE, PROFILE_IMAGE_VIEW_SIZE);
+    // mask test
+    UIImage *maskingImage = [UIImage imageNamed:@"LocationIcon"];
+    CALayer *maskingLayer = [CALayer layer];
+    CGRect frame = self.userProfilePictureView.bounds;
+    frame.origin.x = -7.0;
+    frame.origin.y = -7.0;
+    frame.size.width += 14.0;
+    frame.size.height += 14.0;
+    maskingLayer.frame = frame;
+    [maskingLayer setContents:(id)[maskingImage CGImage]];
+    [self.userProfilePictureView.layer setMask:maskingLayer];
+    [self.view addSubview:self.userProfilePictureView];
 }
 
 - (NSMutableArray *)searchResults
@@ -329,7 +342,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
         [UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionBeginFromCurrentState
                          animations:^{
                              CGRect frame = self.cityTextField.frame;
-                             frame.origin.y = self.topBarView.frame.origin.y + self.topBarView.frame.size.height + PADDING;
+                             frame.origin.y = STATUS_BAR_HEIGHT + PADDING;
                              frame.size.width = frame.size.width - self.cancelSearchButton.frame.size.width - PADDING;
                              self.cityTextField.frame = frame;
                          }
@@ -375,7 +388,6 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
         // Delay the search 1 second to minimize outstanding requests
         [NSObject cancelPreviousPerformRequestsWithTarget:self];
         [self performSelector:@selector(delayedSearch:) withObject:textField.text afterDelay:0.5];
-        [self resizeTableView];
     }
 }
 
@@ -582,7 +594,6 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 	}
     
 	[self.searchResultsTableView reloadData];
-    [self resizeTableView];
     // when the table view is repopulated, its significant enough that a screen change notification should be posted
     UIAccessibilityPostNotification(UIAccessibilityLayoutChangedNotification, nil);
     UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, nil);

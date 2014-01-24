@@ -13,6 +13,7 @@
 #import <FacebookSDK/FacebookSDK.h>
 
 #define BOTTOM_BAR_HEIGHT 45.0
+#define PADDING 20.0
 #define PROFILE_IMAGE_VIEW_SIZE 80.0
 #define STATUS_BAR_HEIGHT 20.0
 #define TOP_BAR_HEIGHT 70.0
@@ -59,6 +60,12 @@
     CGSize size = [self.tethrLabel.text sizeWithAttributes:@{NSFontAttributeName:helvetica}];
     self.tethrLabel.frame = CGRectMake((self.topBar.frame.size.width - size.width) / 2, (self.topBar.frame.size.height - size.height +STATUS_BAR_HEIGHT) / 2 + 5.0, size.width, size.height);
     [self.topBar addSubview:self.tethrLabel];
+    
+    UIFont *helveticaNeueLarge = [UIFont fontWithName:@"HelveticaNeue-Bold" size:30];
+    self.numberLabel = [[UILabel alloc] init];
+    self.numberLabel.font = helveticaNeueLarge;
+    self.numberLabel.textColor = [UIColor whiteColor];
+    [self.topBar addSubview:self.numberLabel];
     
     UILabel *questionLabel = [[UILabel alloc] init];
     questionLabel.text = @"Are you going out?";
@@ -112,6 +119,13 @@
     self.view.backgroundColor = [UIColor clearColor];
 }
 
+-(void)layoutNumberLabel {
+    UIFont *helveticaNeue = [UIFont fontWithName:@"HelveticaNeue-Bold" size:30];
+    CGSize size = [self.numberLabel.text sizeWithAttributes:@{NSFontAttributeName:helveticaNeue}];
+    self.numberLabel.frame = CGRectMake(PADDING, self.tethrLabel.frame.origin.y - STATUS_BAR_HEIGHT / 2.0 - 1.0, size.width, size.height);
+    [self.topBar addSubview:self.numberLabel];
+}
+
 -(void)addProfileImageView {
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     self.userProfilePictureView = [[FBProfilePictureView alloc] initWithProfileID:(NSString *)sharedDataManager.facebookId pictureCropping:FBProfilePictureCroppingSquare];
@@ -119,7 +133,7 @@
     self.userProfilePictureView.clipsToBounds = YES;
     [self.userProfilePictureView.layer setBorderColor:[[UIColor whiteColor] CGColor]];
     self.userProfilePictureView.frame = CGRectMake((self.view.frame.size.width - PROFILE_IMAGE_VIEW_SIZE) / 2.0 , self.topBar.frame.size.height + 100.0, PROFILE_IMAGE_VIEW_SIZE, PROFILE_IMAGE_VIEW_SIZE);
-    // mask test
+
     UIImage *maskingImage = [UIImage imageNamed:@"LocationIcon"];
     CALayer *maskingLayer = [CALayer layer];
     CGRect frame = self.userProfilePictureView.bounds;

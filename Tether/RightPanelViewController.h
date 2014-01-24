@@ -8,7 +8,16 @@
 
 #import <UIKit/UIKit.h>
 
+@protocol RightPanelViewControllerDelegate;
+
 @interface RightPanelViewController : UIViewController
+@property (nonatomic, weak) id<RightPanelViewControllerDelegate> delegate;
 @property (retain, nonatomic) NSMutableArray *notificationsArray;
 -(void)loadNotifications;
+@end
+
+@protocol RightPanelViewControllerDelegate <NSObject>
+
+-(void)goToPlaceInListView:(id)placeId;
+
 @end

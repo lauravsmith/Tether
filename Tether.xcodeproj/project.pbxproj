@@ -167,6 +167,7 @@
 		47C7B6C1184AC7BB00358BE1 /* PlaceCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 47C7B6C0184AC7BB00358BE1 /* PlaceCell.m */; };
 		47E73EB9187B92C4009CA44A /* TetherAnnotationView.m in Sources */ = {isa = PBXBuildFile; fileRef = 47E73EB8187B92C4009CA44A /* TetherAnnotationView.m */; };
 		47E73EBF187C499A009CA44A /* FriendAtPlaceCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 47E73EBE187C499A009CA44A /* FriendAtPlaceCell.m */; };
+		47F2EABA1891E5C2007FFEC8 /* TethrTextField.m in Sources */ = {isa = PBXBuildFile; fileRef = 47F2EAB91891E5C2007FFEC8 /* TethrTextField.m */; };
 		47FB08D61849701400A07908 /* Place.m in Sources */ = {isa = PBXBuildFile; fileRef = 47FB08D51849701400A07908 /* Place.m */; };
 		47FB08D9184970CA00A07908 /* PlacesViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 47FB08D8184970CA00A07908 /* PlacesViewController.m */; };
 		47FCE5271853E7A20030B1E1 /* Datastore.m in Sources */ = {isa = PBXBuildFile; fileRef = 47FCE5261853E7A20030B1E1 /* Datastore.m */; };
@@ -363,6 +364,8 @@
 		47E73EBD187C499A009CA44A /* FriendAtPlaceCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FriendAtPlaceCell.h; sourceTree = "<group>"; };
 		47E73EBE187C499A009CA44A /* FriendAtPlaceCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FriendAtPlaceCell.m; sourceTree = "<group>"; };
 		47E935DA22E34ED294148A9A /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		47F2EAB81891E5C2007FFEC8 /* TethrTextField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TethrTextField.h; sourceTree = "<group>"; };
+		47F2EAB91891E5C2007FFEC8 /* TethrTextField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TethrTextField.m; sourceTree = "<group>"; };
 		47FB08D41849701400A07908 /* Place.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Place.h; sourceTree = "<group>"; };
 		47FB08D51849701400A07908 /* Place.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Place.m; sourceTree = "<group>"; };
 		47FB08D7184970CA00A07908 /* PlacesViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlacesViewController.h; sourceTree = "<group>"; };
@@ -452,6 +455,8 @@
 				47FCE5261853E7A20030B1E1 /* Datastore.m */,
 				472392A518649298000D0C7E /* Notification.h */,
 				472392A618649298000D0C7E /* Notification.m */,
+				47F2EAB81891E5C2007FFEC8 /* TethrTextField.h */,
+				47F2EAB91891E5C2007FFEC8 /* TethrTextField.m */,
 			);
 			name = Model;
 			sourceTree = "<group>";
@@ -967,6 +972,7 @@
 				472392B51867D08C000D0C7E /* Constants.m in Sources */,
 				47064CC4183DA01B00E9228A /* LeftPanelViewController.m in Sources */,
 				478C4BFF18482B78004C6BD0 /* SettingsViewController.m in Sources */,
+				47F2EABA1891E5C2007FFEC8 /* TethrTextField.m in Sources */,
 				470981AB184D7DD100779FC8 /* TetherAnnotation.m in Sources */,
 				47FB08D9184970CA00A07908 /* PlacesViewController.m in Sources */,
 				47FCE5271853E7A20030B1E1 /* Datastore.m in Sources */,

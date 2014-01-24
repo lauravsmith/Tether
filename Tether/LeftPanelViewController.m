@@ -60,7 +60,7 @@
     
     //set up friends going out table view
     self.friendsGoingOutTableView = [[UITableView alloc] init];
-    self.friendsGoingOutTableView.frame = CGRectMake(0.0, 0.0, self.view.frame.size.width - PANEL_WIDTH, self.view.frame.size.height);
+    self.friendsGoingOutTableView.frame = CGRectMake(0.0, 0.0, self.view.frame.size.width, self.view.frame.size.height);
     [self.friendsGoingOutTableView setSeparatorColor:UIColorFromRGB(0xc8c8c8)];
     [self.friendsGoingOutTableView setDataSource:self];
     [self.friendsGoingOutTableView setDelegate:self];

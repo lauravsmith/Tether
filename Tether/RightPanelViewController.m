@@ -14,11 +14,12 @@
 
 #import <Parse/Parse.h>
 
-#define CELL_HEIGHT 80.0
+#define CELL_HEIGHT 90.0
+#define PADDING 10.0
 #define PANEL_WIDTH 60.0
 #define STATUS_BAR_HEIGHT 20.0
 
-@interface RightPanelViewController () <UITableViewDataSource, UITableViewDelegate>
+@interface RightPanelViewController () <NotificationCellDelegate, UITableViewDataSource, UITableViewDelegate>
 @property (nonatomic, strong) UITableView *notificationsTableView;
 @property (nonatomic, strong) UITableViewController *notificationsTableViewController;
 @property (retain, nonatomic) UIRefreshControl * refreshControl;
@@ -89,6 +90,9 @@
                 self.notificationsArray = [[NSMutableArray alloc] init];
                 for (PFObject *invitation in objects) {
                     Notification *notification = [[Notification alloc] init];
+                    
+                    notification.parseObject = invitation;
+                    
                     if ([invitation objectForKey:kNotificationTypeKey]) {
                         notification.type = [invitation objectForKey:kNotificationTypeKey];
                     }
@@ -173,6 +177,19 @@
     }
 }
 
+#pragma mark NotificationCellDelegate Methods
+
+-(void)goToPlace:(id)placeId {
+    if ([self.delegate respondsToSelector:@selector(goToPlaceInListView:)]) {
+        [self.delegate goToPlaceInListView:placeId];
+    }
+}
+
+-(void)deleteNotification:(Notification*)notification {
+    [notification.parseObject delete];
+    
+    [self performSelector:@selector(refresh) withObject:self.refreshControl afterDelay:2.0f];
+}
 
 #pragma mark UITableViewDataSource Methods
 
@@ -185,14 +202,11 @@
     NotificationCell *cell = (NotificationCell*)[self tableView:tableView cellForRowAtIndexPath:indexPath];
     CGSize sizeTime = [cell.timeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
     
-    NSDictionary *attributes = @{NSFontAttributeName:montserrat};
+    CGRect rect = [cell.text boundingRectWithSize:CGSizeMake(190.f, 500.f)
+                                          options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading)
+                                          context:nil];
     
-    CGRect rect = [cell.messageHeaderLabel.text boundingRectWithSize:CGSizeMake(200.0, self.view.frame.size.height)
-                                              options:NSStringDrawingUsesLineFragmentOrigin
-                                           attributes:attributes
-                                              context:nil];
-    
-    return MAX(CELL_HEIGHT, rect.size.height + sizeTime.height);
+    return MAX(CELL_HEIGHT, rect.size.height + sizeTime.height + 1.0 + PADDING);
 }
 
 
@@ -202,6 +216,7 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     NotificationCell *cell = [[NotificationCell alloc] init];
+    cell.delegate = self;
     
     if ([self.notificationsArray count] > 0) {
         cell.notification = [self.notificationsArray objectAtIndex:indexPath.row];
@@ -213,11 +228,8 @@
 
 -(UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
 {
-    UIImage *backgroundImage = [UIImage imageNamed:@"BlackTexture"];
-    UIImageView *backgroundImageView = [[UIImageView alloc] initWithImage:backgroundImage];
-    backgroundImageView.frame = CGRectMake(0, 0, self.view.frame.size.width, STATUS_BAR_HEIGHT);
-    [self.view addSubview:backgroundImageView];
-    return backgroundImageView;
+    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, STATUS_BAR_HEIGHT)];
+    return view;
 }
 
 - (void)didReceiveMemoryWarning

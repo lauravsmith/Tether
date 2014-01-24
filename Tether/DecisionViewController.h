@@ -13,9 +13,11 @@
 @interface DecisionViewController : UIViewController
 
 @property (nonatomic, weak) id<DecisionViewControllerDelegate> delegate;
+@property (strong, nonatomic) UILabel *numberLabel;
 -(void)addProfileImageView;
 -(IBAction)handleYesButton:(id)sender;
 -(IBAction)handleNoButton:(id)sender;
+-(void)layoutNumberLabel;
 
 @end
 

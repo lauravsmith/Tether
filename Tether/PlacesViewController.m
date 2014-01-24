@@ -109,12 +109,12 @@
     self.placesTableViewController.refreshControl = self.refreshControl;
     
     UIImage *triangleImage = [UIImage imageNamed:@"WhiteTriangle"];
-    self.backButton = [[UIButton alloc] initWithFrame:CGRectMake(10.0, (SEARCH_BAR_HEIGHT + STATUS_BAR_HEIGHT + 5.0) / 2.0, 10.0, 10.0)];
+    self.backButton = [[UIButton alloc] initWithFrame:CGRectMake(5.0, (SEARCH_BAR_HEIGHT + STATUS_BAR_HEIGHT + 7.0) / 2.0, 10.0, 10.0)];
     [self.backButton setImage:triangleImage forState:UIControlStateNormal];
     [self.backButton addTarget:self action:@selector(closeListView) forControlEvents:UIControlEventTouchDown];
     [self.view addSubview:self.backButton];
     
-    self.backButtonLarge = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, (self.view.frame.size.width - SEARCH_BAR_WIDTH) / 2.0, 60.0)];
+    self.backButtonLarge = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, (self.view.frame.size.width - SEARCH_BAR_WIDTH) / 2.0, STATUS_BAR_HEIGHT + 60.0)];
     [self.backButtonLarge addTarget:self action:@selector(closeListView) forControlEvents:UIControlEventTouchDown];
     [self.view addSubview:self.backButtonLarge];
 }
