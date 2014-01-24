@@ -23,11 +23,11 @@
 #define CELL_HEIGHT 90.0
 #define SEARCH_RESULTS_CELL_HEIGHT 60.0
 #define SEARCH_BAR_HEIGHT 50.0
-#define SEARCH_BAR_WIDTH 280.0
+#define SEARCH_BAR_WIDTH 270.0
 #define STATUS_BAR_HEIGHT 20.0
 #define SLIDE_TIMING 0.6
 
-@interface PlacesViewController () <InviteViewControllerDelegate, FriendsListViewControllerDelegate, PlaceCellDelegate, UISearchBarDelegate, UITableViewDelegate, UITableViewDataSource>
+@interface PlacesViewController () <InviteViewControllerDelegate, FriendsListViewControllerDelegate, PlaceCellDelegate, UIGestureRecognizerDelegate,UISearchBarDelegate, UITableViewDelegate, UITableViewDataSource>
 
 @property (nonatomic, strong) NSMutableArray *placesArray;
 @property (nonatomic, strong) UITableViewController *placesTableViewController;
@@ -42,6 +42,7 @@
 @property (nonatomic, strong) UITableView *searchResultsTableView;
 @property (nonatomic, strong) UITableViewController *searchResultsTableViewController;
 @property (nonatomic, strong) UIRefreshControl *refreshControl;
+@property (assign, nonatomic) bool openingInviteView;
 
 @end
 
@@ -66,6 +67,12 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
+    UIPanGestureRecognizer *panRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(moveBack:)];
+    [panRecognizer setMinimumNumberOfTouches:1];
+    [panRecognizer setMaximumNumberOfTouches:1];
+    [panRecognizer setDelegate:self];
+    [self.view addGestureRecognizer:panRecognizer];
     
     // set up search bar and corresponding search results tableview
     UIView *searchBarBackground = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, STATUS_BAR_HEIGHT + SEARCH_BAR_HEIGHT)];
@@ -305,9 +312,12 @@
 }
 
 -(void)closeListView {
-    [self searchBarCancelButtonClicked:self.searchBar];
-    if ([self.delegate respondsToSelector:@selector(closeListView)]) {
-        [self.delegate closeListView];
+    if (!self.closingListView) {
+        self.closingListView = YES;
+        [self searchBarCancelButtonClicked:self.searchBar];
+        if ([self.delegate respondsToSelector:@selector(closeListView)]) {
+            [self.delegate closeListView];
+        }
     }
 }
 
@@ -375,41 +385,15 @@
 
 #pragma mark gesture handlers
 
-- (IBAction)btnMovePanelRight:(id)sender
-{
-    UIButton *button = sender;
-    switch (button.tag) {
-        case 0: {
-            [_delegate movePanelToOriginalPosition];
-            break;
+-(void)moveBack:(id)sender {
+    [[[(UITapGestureRecognizer*)sender view] layer] removeAllAnimations];
+    
+    CGPoint velocity = [(UIPanGestureRecognizer*)sender velocityInView:[sender view]];
+    
+    if([(UIPanGestureRecognizer*)sender state] == UIGestureRecognizerStateEnded) {
+        if(velocity.x > 0) {
+            [self closeListView];
         }
-            
-        case 1: {
-            [_delegate movePanelRight];
-            break;
-        }
-            
-        default:
-            break;
-    }
-}
-
-- (IBAction)btnMovePanelLeft:(id)sender
-{
-    UIButton *button = sender;
-    switch (button.tag) {
-        case 0: {
-            [_delegate movePanelToOriginalPosition];
-            break;
-        }
-            
-        case 1: {
-            [_delegate movePanelLeft];
-            break;
-        }
-            
-        default:
-            break;
     }
 }
 
@@ -508,26 +492,30 @@
 }
 
 -(void)inviteToPlace:(Place *)place {
-    InviteViewController *inviteViewController = [[InviteViewController alloc] init];
-    inviteViewController.delegate = self;
-    inviteViewController.place = place;
-    [inviteViewController.view setBackgroundColor:[UIColor blackColor]];
-    [inviteViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
-    [self.view addSubview:inviteViewController.view];
-    [self addChildViewController:inviteViewController];
-    [inviteViewController didMoveToParentViewController:self];
-    
-    [UIView animateWithDuration:SLIDE_TIMING
-                          delay:0.0
-         usingSpringWithDamping:1.0
-          initialSpringVelocity:1.0
-                        options:UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
-                         [inviteViewController.view setFrame:CGRectMake( 0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
-                     }
-                     completion:^(BOOL finished) {
-                          [self searchBarCancelButtonClicked:self.searchBar];
-                     }];
+    if (!self.openingInviteView) {
+        self.openingInviteView = YES;
+        InviteViewController *inviteViewController = [[InviteViewController alloc] init];
+        inviteViewController.delegate = self;
+        inviteViewController.place = place;
+        [inviteViewController.view setBackgroundColor:[UIColor blackColor]];
+        [inviteViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+        [self.view addSubview:inviteViewController.view];
+        [self addChildViewController:inviteViewController];
+        [inviteViewController didMoveToParentViewController:self];
+        
+        [UIView animateWithDuration:SLIDE_TIMING
+                              delay:0.0
+             usingSpringWithDamping:1.0
+              initialSpringVelocity:1.0
+                            options:UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                             [inviteViewController.view setFrame:CGRectMake( 0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                         }
+                         completion:^(BOOL finished) {
+                             [self searchBarCancelButtonClicked:self.searchBar];
+                             self.openingInviteView = NO;
+                         }];
+    }
 }
 
 -(void)closeFriendsView {
@@ -774,6 +762,19 @@
         }
         [self scrollToPlaceWithId:cell.place.placeId];
         [self searchBarCancelButtonClicked:self.searchBar];
+    } else {
+        PlaceCell *cell = (PlaceCell*)[tableView cellForRowAtIndexPath:indexPath];
+        Datastore *sharedDataManager = [Datastore sharedDataManager];
+        if ([cell.place.placeId isEqualToString:sharedDataManager.currentCommitmentPlace.placeId]) {
+            [self removePreviousCommitment];
+            [cell setTethered:NO];
+        } else {
+            [cell setTethered:YES];
+            [self commitToPlace:cell.place fromCell:cell];
+        }
+        [cell layoutCommitButton];
+        [cell setNeedsLayout];
+         [tableView deselectRowAtIndexPath:indexPath animated:YES];
     }
     
     return;

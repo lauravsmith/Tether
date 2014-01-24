@@ -33,7 +33,7 @@
 #define RIGHT_PANEL_TAG 3
 #define CORNER_RADIUS 4.0
 #define SLIDE_TIMING 0.6
-#define PANEL_WIDTH 60
+#define PANEL_WIDTH 60.0
 #define POLLING_INTERVAL 20
 
 @interface MainViewController () <CenterViewControllerDelegate, DecisionViewControllerDelegate, FriendsListViewControllerDelegate, InviteViewControllerDelegate, LeftPanelViewControllerDelegate, PlacesViewControllerDelegate, RightPanelViewControllerDelegate, SettingsViewControllerDelegate, UIGestureRecognizerDelegate>
@@ -701,7 +701,7 @@
         _showPanel = abs([sender view].center.x - _centerViewController.view.frame.size.width/2) > _centerViewController.view.frame.size.width/2;
         
         // Allow dragging only in x-coordinates by only updating the x-coordinate with translation position.
-        float xCoord = 0.0;
+        CGFloat xCoord = 0.0;
         if (_showingLeftPanel) {
             xCoord = MAX(160.0,[sender view].center.x + translatedPoint.x + 0.0008*velocity.x);
         } else if (_showingRightPanel) {
@@ -800,13 +800,23 @@
         self.centerViewController.listViewButton.userInteractionEnabled = NO;
         self.centerViewController.listViewButtonLarge.userInteractionEnabled = NO;
         
+        PFInstallation *currentInstallation = [PFInstallation currentInstallation];
+        Datastore *sharedDataManager = [Datastore sharedDataManager];
+        if (currentInstallation.badge != 0 || sharedDataManager.notifications != 0) {
+            [self loadNotifications];
+        }
+        currentInstallation.badge = 0;
+        [currentInstallation saveEventually];
+        sharedDataManager.notifications = 0;
+        [self updateNotificationsNumber];
+        
         [UIView animateWithDuration:SLIDE_TIMING
                               delay:0.0
              usingSpringWithDamping:1.0
               initialSpringVelocity:1.0
                             options:UIViewAnimationOptionBeginFromCurrentState
                          animations:^{
-                             _centerViewController.view.frame = CGRectMake(-self.view.frame.size.width + PANEL_WIDTH, 0, self.view.frame.size.width, self.view.frame.size.height);
+                             _centerViewController.view.frame = CGRectMake(-self.view.frame.size.width + PANEL_WIDTH, 0.0, self.view.frame.size.width, self.view.frame.size.height);
                          }
                          completion:^(BOOL finished) {
                              _centerViewController.notificationsButton.tag = 0;
@@ -816,15 +826,7 @@
                              [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(closePanel:)];
                              [self.centerViewController.view addGestureRecognizer:mapTapGesture];
                              
-                             PFInstallation *currentInstallation = [PFInstallation currentInstallation];
-                             Datastore *sharedDataManager = [Datastore sharedDataManager];
-                             if (currentInstallation.badge != 0 || sharedDataManager.notifications != 0) {
-                                 [self loadNotifications];
-                             }
-                             currentInstallation.badge = 0;
-                             [currentInstallation saveEventually];
-                             sharedDataManager.notifications = 0;
-                             [self updateNotificationsNumber];
+
                          }];
     }
 }
@@ -1090,6 +1092,7 @@
                          [self canUpdatePlaces:YES];
                          [self.placesViewController sortPlacesByPopularity];
                          self.centerViewController.listViewOpen = NO;
+                         self.placesViewController.closingListView = NO;
                      }];
 }
 

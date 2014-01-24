@@ -6,6 +6,7 @@
 //  Copyright (c) 2013 Laura Smith. All rights reserved.
 //
 
+#import "CenterViewController.h"
 #import "Constants.h"
 #import "Datastore.h"
 #import "Notification.h"
@@ -17,12 +18,16 @@
 #define CELL_HEIGHT 90.0
 #define PADDING 10.0
 #define PANEL_WIDTH 60.0
+#define SPINNER_SIZE 30.0
 #define STATUS_BAR_HEIGHT 20.0
 
 @interface RightPanelViewController () <NotificationCellDelegate, UITableViewDataSource, UITableViewDelegate>
 @property (nonatomic, strong) UITableView *notificationsTableView;
 @property (nonatomic, strong) UITableViewController *notificationsTableViewController;
 @property (retain, nonatomic) UIRefreshControl * refreshControl;
+@property (retain, nonatomic) UIView * deleteConfirmationView;
+@property (retain, nonatomic) UILabel * deleteConfirmationLabel;
+@property (retain, nonatomic) UIActivityIndicatorView * activityIndicatorView;
 @end
 
 @implementation RightPanelViewController
@@ -177,6 +182,50 @@
     }
 }
 
+-(void)confirmDelete {
+    self.deleteConfirmationView = [[UIView alloc] initWithFrame:CGRectMake((self.view.frame.size.width - 200.0) / 2.0, (self.view.frame.size.height - 100.0) / 2.0, 200.0, 100.0)];
+    [self.deleteConfirmationView setBackgroundColor:[UIColor whiteColor]];
+    self.deleteConfirmationView.alpha = 0.8;
+    self.deleteConfirmationView.layer.cornerRadius = 10.0;
+    
+    self.deleteConfirmationLabel = [[UILabel alloc] init];
+    self.deleteConfirmationLabel.text = @"Deleting...";
+    self.deleteConfirmationLabel.textColor = UIColorFromRGB(0x8e0528);
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:16.0f];
+    self.deleteConfirmationLabel.font = montserrat;
+    CGSize size = [self.deleteConfirmationLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
+    self.deleteConfirmationLabel.frame = CGRectMake((self.deleteConfirmationView.frame.size.width - size.width) / 2.0, (self.deleteConfirmationView.frame.size.height - size.height) / 2.0, size.width, size.height);
+    [self.deleteConfirmationView addSubview:self.deleteConfirmationLabel];
+    
+    [self.view addSubview:self.deleteConfirmationView];
+    
+    self.activityIndicatorView = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake((self.deleteConfirmationView.frame.size.width - SPINNER_SIZE) / 2.0, self.deleteConfirmationLabel.frame.origin.y + self.deleteConfirmationLabel.frame.size.height + 2.0, SPINNER_SIZE, SPINNER_SIZE)];
+    self.activityIndicatorView.color = UIColorFromRGB(0x8e0528);
+    [self.deleteConfirmationView addSubview:self.activityIndicatorView];
+    [self.activityIndicatorView startAnimating];
+    
+    self.view.userInteractionEnabled = NO;
+    [self performSelector:@selector(dismissConfirmation) withObject:Nil afterDelay:1.0];
+}
+
+-(void)dismissConfirmation {
+    [self.activityIndicatorView stopAnimating];
+    self.deleteConfirmationLabel.text = @"Deleted";
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:16.0f];
+    self.deleteConfirmationLabel.font = montserrat;
+    CGSize size = [self.deleteConfirmationLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
+    self.deleteConfirmationLabel.frame = CGRectMake((self.deleteConfirmationView.frame.size.width - size.width) / 2.0, (self.deleteConfirmationView.frame.size.height - size.height) / 2.0, size.width, size.height);
+    
+    [UIView animateWithDuration:0.2
+                          delay:0.5
+                        options:UIViewAnimationOptionAllowAnimatedContent animations:^{
+                            self.deleteConfirmationView.alpha = 0.2;
+                        } completion:^(BOOL finished) {
+                            [self.deleteConfirmationView removeFromSuperview];
+                            self.view.userInteractionEnabled = YES;
+                        }];
+}
+
 #pragma mark NotificationCellDelegate Methods
 
 -(void)goToPlace:(id)placeId {
@@ -187,6 +236,7 @@
 
 -(void)deleteNotification:(Notification*)notification {
     [notification.parseObject delete];
+    [self confirmDelete];
     
     [self performSelector:@selector(refresh) withObject:self.refreshControl afterDelay:2.0f];
 }

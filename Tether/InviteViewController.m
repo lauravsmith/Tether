@@ -16,20 +16,19 @@
 
 #define CELL_HEIGHT 60.0
 #define LABEL_HEIGHT 40.0
-#define LEFT_PADDING 30.0
+#define LEFT_PADDING 35.0
 #define MAX_MESSAGE_FIELD_HEIGHT 210.0
-#define SEARCH_BAR_HEIGHT 40.0
-#define SEARCH_BAR_WIDTH 280.0
+#define SEARCH_BAR_HEIGHT 50.0
+#define SEARCH_BAR_WIDTH 270.0
 #define SPINNER_SIZE 30.0
 #define STATUS_BAR_HEIGHT 20.0
 #define PADDING 10.0
 
-@interface InviteViewController () <UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate>
+@interface InviteViewController () <UIGestureRecognizerDelegate, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate>
 @property (retain, nonatomic) NSMutableArray *friendSearchResultsArray;
 @property (nonatomic, strong) UITableView *friendSearchResultsTableView;
 @property (nonatomic, strong) UITableViewController *friendSearchResultsTableViewController;
 @property (retain, nonatomic) UIScrollView *friendsInvitedScrollView;
-@property (retain, nonatomic) NSMutableDictionary *friendsInvitedDictionary;
 @property (retain, nonatomic) NSMutableDictionary *friendsLabelsDictionary;
 @property (retain, nonatomic) NSMutableDictionary *removeLabelButtonsDictionary;
 @property (retain, nonatomic) UITextView *messageTextView;
@@ -37,7 +36,6 @@
 @property (retain, nonatomic) UIButton *backButtonLarge;
 @property (assign, nonatomic) NSInteger friendsInvitedViewHeight;
 @property (assign, nonatomic) NSInteger friendsInvitedViewWidth;
-@property (retain, nonatomic) UIButton *sendButton;
 @property (retain, nonatomic) UIView *confirmationView;
 @property (retain, nonatomic) UILabel *confirmationLabel;
 @property (retain, nonatomic) UIActivityIndicatorView *activityIndicatorView;
@@ -64,7 +62,13 @@
     
     [self.view setBackgroundColor:[UIColor blackColor]];
     
-    self.topBarView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 50.0)];
+    UIPanGestureRecognizer *panRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(moveBack:)];
+    [panRecognizer setMinimumNumberOfTouches:1];
+    [panRecognizer setMaximumNumberOfTouches:1];
+    [panRecognizer setDelegate:self];
+    [self.view addGestureRecognizer:panRecognizer];
+    
+    self.topBarView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 60.0)];
     [self.topBarView setBackgroundColor:UIColorFromRGB(0x8e0528)];
     
     self.placeLabel = [[UILabel alloc] init];
@@ -73,7 +77,7 @@
     UIFont *montserratLarge = [UIFont fontWithName:@"Montserrat" size:16.0f];
     self.placeLabel.font = montserratLarge;
     CGSize size = [self.placeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratLarge}];
-    self.placeLabel.frame = CGRectMake(LEFT_PADDING, STATUS_BAR_HEIGHT, MIN(self.view.frame.size.width - LEFT_PADDING, size.width), size.height);
+    self.placeLabel.frame = CGRectMake(LEFT_PADDING, STATUS_BAR_HEIGHT + PADDING + 4.0, MIN(self.view.frame.size.width - LEFT_PADDING, size.width), size.height);
     self.placeLabel.adjustsFontSizeToFitWidth = YES;
     [self.topBarView addSubview:self.placeLabel];
     [self.view addSubview:self.topBarView];
@@ -84,7 +88,7 @@
     
     self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake((self.view.frame.size.width - SEARCH_BAR_WIDTH) / 2, self.topBarView.frame.size.height, SEARCH_BAR_WIDTH, SEARCH_BAR_HEIGHT)];
     self.searchBar.delegate = self;
-    self.searchBar.placeholder = @"Invite friends...";
+    self.searchBar.placeholder = @"Search for friends...";
     [self.searchBar setBackgroundImage:[UIImage new]];
     [self.searchBar setTranslucent:YES];
     [self.view addSubview:self.searchBar];
@@ -108,7 +112,11 @@
     [self.sendButton setTitle:@"Send" forState:UIControlStateNormal];
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:18.0];
     self.sendButton.titleLabel.font = montserrat;
-    [self.sendButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    [self.sendButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateDisabled];
+    [self.sendButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+    [self.sendButton setTitleColor:[UIColor whiteColor] forState:UIControlStateHighlighted];
+    [self.sendButton addTarget:self action:@selector(buttonHighlight:) forControlEvents:UIControlEventTouchDown];
+    [self.sendButton addTarget:self action:@selector(buttonTouchCancel:) forControlEvents:UIControlEventTouchDragExit];
     [self.sendButton setBackgroundColor:[UIColor whiteColor]];
     [self.sendButton setEnabled:NO];
     [self.view addSubview:self.sendButton];
@@ -127,7 +135,7 @@
     
     // left panel view button setup
     UIImage *triangleImage = [UIImage imageNamed:@"WhiteTriangle"];
-    self.backButton = [[UIButton alloc] initWithFrame:CGRectMake(10.0,  (self.topBarView.frame.size.height) / 2.0, 10.0, 10.0)];
+    self.backButton = [[UIButton alloc] initWithFrame:CGRectMake(5.0,  (SEARCH_BAR_HEIGHT + STATUS_BAR_HEIGHT + 7.0) / 2.0, 10.0, 10.0)];
     [self.backButton setImage:triangleImage forState:UIControlStateNormal];
     [self.view addSubview:self.backButton];
     self.backButton.tag = 1;
@@ -136,6 +144,28 @@
     self.backButtonLarge = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, (self.view.frame.size.width) / 4.0, 50.0)];
     [self.backButtonLarge addTarget:self action:@selector(closeView) forControlEvents:UIControlEventTouchDown];
     [self.view addSubview:self.backButtonLarge];
+}
+
+-(IBAction)buttonHighlight:(id)sender {
+    [self.sendButton setBackgroundColor:UIColorFromRGB(0x8e0528)];
+}
+
+-(IBAction)buttonTouchCancel:(id)sender {
+    [self.sendButton setBackgroundColor:[UIColor whiteColor]];
+}
+
+#pragma mark gesture handlers
+
+-(void)moveBack:(id)sender {
+    [[[(UITapGestureRecognizer*)sender view] layer] removeAllAnimations];
+    
+    CGPoint velocity = [(UIPanGestureRecognizer*)sender velocityInView:[sender view]];
+    
+    if([(UIPanGestureRecognizer*)sender state] == UIGestureRecognizerStateEnded) {
+        if(velocity.x > 0) {
+            [self closeView];
+        }
+    }
 }
 
 -(void)closeView {
@@ -171,7 +201,9 @@
 }
 
 -(void)addFriend:(Friend *)friend {
-    [self.sendButton setEnabled:YES];
+    if (self.place) {
+        [self.sendButton setEnabled:YES];
+    }
     FriendLabel *friendLabel = [[FriendLabel alloc] init];
     friendLabel.friend = friend;
     [friendLabel setTextColor:[UIColor whiteColor]];
@@ -184,8 +216,9 @@
     friendLabel.frame = CGRectMake(0, 0, friendLabelSize.width + 20.0, LABEL_HEIGHT);
 
     UIButton *xButton = [[UIButton alloc] init];
-    [xButton setTitle:@"x" forState:UIControlStateNormal];
-    xButton.titleLabel.font = [UIFont systemFontOfSize:12.0];
+    [xButton setTitle:@"X" forState:UIControlStateNormal];
+    xButton.titleLabel.font = [UIFont systemFontOfSize:10.0];
+    [xButton.titleLabel setTextAlignment: NSTextAlignmentCenter];
     [xButton setBackgroundColor:UIColorFromRGB(0x8e0528)];
     xButton.layer.cornerRadius = 7.0;
     [xButton addTarget:self action:@selector(removeFriend:) forControlEvents:UIControlEventTouchUpInside];
@@ -227,6 +260,11 @@
 #pragma mark button action handlers
 
 -(IBAction)sendButtonClicked:(id)sender {
+    [self.sendButton setBackgroundColor:[UIColor whiteColor]];
+    
+    if (!self.place || [self.friendsInvitedDictionary count] < 1) {
+        return;
+    }
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     
     NSMutableArray *friendsInvited = [[NSMutableArray alloc] init];

@@ -13,6 +13,7 @@
 @interface PlacesViewController : ViewController
 @property (nonatomic, weak) id<PlacesViewControllerDelegate> delegate;
 @property (nonatomic, strong) UITableView *placesTableView;
+@property (assign, nonatomic) bool closingListView;
 -(void)getFriendsCommitments;
 -(void)removePreviousCommitment;
 -(void)scrollToPlaceWithId:(id)placeId;

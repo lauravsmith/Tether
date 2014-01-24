@@ -54,7 +54,8 @@
 {
     [super viewDidLoad];
     
-    [self.view setBackgroundColor:[UIColor whiteColor]];
+    self.view.layer.backgroundColor = [UIColor blackColor].CGColor;
+//    [self.view setBackgroundColor:[UIColor blackColor]];
     
     self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width - PANEL_WIDTH, SEARCH_BAR_HEIGHT)];
     

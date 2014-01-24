@@ -27,24 +27,26 @@
 {
     self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
     if (self) {
+        self.profileView = [[FBProfilePictureView alloc] initWithFrame: CGRectMake(PADDING, (CELL_HEIGHT - PROFILE_PICTURE_SIZE) / 2.0, PROFILE_PICTURE_SIZE, PROFILE_PICTURE_SIZE)];
+        [self addSubview:self.profileView];
+        self.messageHeaderLabel = [[TTTAttributedLabel alloc] init];
+        [self addSubview:self.messageHeaderLabel];
+        self.timeLabel = [[UILabel alloc] init];
+        [self addSubview:self.timeLabel];
     }
     return self;
 }
 
 -(void)loadNotification {
-    
     [self setBackgroundColor:[UIColor clearColor]];
     
     if (self.notification.sender) {
-        FBProfilePictureView *profileView = [[FBProfilePictureView alloc] initWithProfileID:self.notification.sender.friendID
-                                                                            pictureCropping:FBProfilePictureCroppingSquare];
-        profileView.frame = CGRectMake(PADDING, (CELL_HEIGHT - PROFILE_PICTURE_SIZE) / 2.0, PROFILE_PICTURE_SIZE, PROFILE_PICTURE_SIZE);
-        profileView.layer.cornerRadius = PROFILE_PICTURE_CORNER_RADIUS;
-        [self addSubview:profileView];
+        self.profileView.profileID = self.notification.sender.friendID;
+        self.profileView.pictureCropping = FBProfilePictureCroppingSquare;
+        self.profileView.layer.cornerRadius = PROFILE_PICTURE_CORNER_RADIUS;
     }
-
+    
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:12.0f];
-    self.messageHeaderLabel = [[TTTAttributedLabel alloc] init];
     [self.messageHeaderLabel setFont:montserrat];
     if ([self.notification.type isEqualToString:@"acceptance"]) {
         self.text = [[NSMutableAttributedString alloc] initWithString:self.notification.messageHeader];
@@ -82,8 +84,8 @@
     
     CGRect contentRect;
     contentRect = [self.text boundingRectWithSize:CGSizeMake(190.0, 500.f)
-                                        options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading)
-                                        context:nil];
+                                          options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading)
+                                          context:nil];
     self.messageHeaderLabel.lineBreakMode = NSLineBreakByWordWrapping;
     self.messageHeaderLabel.numberOfLines = 0;
     self.messageHeaderLabel.frame = CGRectMake(60.0, PADDING / 2.0, contentRect.size.width, ceil(contentRect.size.height) + 1.0);
@@ -107,9 +109,6 @@
         [self.messageHeaderLabel addLinkToURL:[NSURL URLWithString:@"action://show-place"] withRange:placeRange];
     }
     
-    [self addSubview:self.messageHeaderLabel];
-
-    self.timeLabel = [[UILabel alloc] init];
     [self.timeLabel setFont:montserrat];
     NSTimeInterval timeInterval = [self.notification.time timeIntervalSinceNow];
     
@@ -121,7 +120,7 @@
     NSInteger hours = (ti / 3600);
     NSInteger days = (ti / 86400);
     NSInteger weeks = (ti / 604800);
-
+    
     NSString *plural = @"";
     if (weeks > 0) {
         if (weeks > 1)
@@ -145,7 +144,7 @@
         self.timeLabel.text = [NSString stringWithFormat:@"%ld second%@ ago", (long)seconds, plural];
     }
     self.time = self.timeLabel.text;
-
+    
     CGSize size = [self.timeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
     self.timeLabel.frame = CGRectMake(self.frame.size.width - 60.0 - size.width - PADDING, MAX(self.messageHeaderLabel.frame.size.height, CELL_HEIGHT - size.height - PADDING / 2.0), size.width, size.height);
     [self.timeLabel setTextColor:[UIColor whiteColor]];
@@ -155,8 +154,6 @@
     self.changeToTimeTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(changeToTime:)];
     self.deleteTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(deleteNotification:)];
     [self.timeLabel addGestureRecognizer:self.changeToDeleteTap];
-    
-    [self addSubview:self.timeLabel];
 }
 
 -(void)changeToDelete:(UIGestureRecognizer*)recognizer {
@@ -164,7 +161,6 @@
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:12.0f];
     CGSize size = [self.timeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
     self.timeLabel.frame = CGRectMake(self.frame.size.width - size.width - PADDING, MAX(self.messageHeaderLabel.frame.size.height, CELL_HEIGHT - size.height - PADDING / 2.0), size.width, size.height);
-//    [self.timeLabel setTextColor:UIColorFromRGB(0x8e0528)];
     
     [self.timeLabel removeGestureRecognizer:self.changeToDeleteTap];
     [self.messageHeaderLabel addGestureRecognizer:self.changeToTimeTap];

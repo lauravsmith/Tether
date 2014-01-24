@@ -19,6 +19,8 @@
 @property (retain, nonatomic) UILabel *placeLabel;
 @property (retain, nonatomic) UISearchBar *searchBar;
 @property (retain, nonatomic) UIView *searchBarBackgroundView;
+@property (retain, nonatomic) UIButton *sendButton;
+@property (retain, nonatomic) NSMutableDictionary *friendsInvitedDictionary;
 -(void)addFriend:(Friend *)friend;
 -(void)layoutFriendsInvitedView;
 - (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar;

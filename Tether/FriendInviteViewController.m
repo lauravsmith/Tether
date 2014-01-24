@@ -6,15 +6,17 @@
 //  Copyright (c) 2014 Laura Smith. All rights reserved.
 //
 
+#import "CenterViewController.h"
 #import "Datastore.h"
 #import "FriendInviteViewController.h"
 #import "SearchResultCell.h"
 
 #import <AFNetworking/AFHTTPRequestOperationManager.h>
 
-#define LEFT_PADDING 40.0
-#define SEARCH_BAR_HEIGHT 40.0
-#define SEARCH_BAR_WIDTH 280.0
+#define LEFT_PADDING 35.0
+#define PADDING 10.0
+#define SEARCH_BAR_HEIGHT 50.0
+#define SEARCH_BAR_WIDTH 270.0
 #define SEARCH_RESULTS_CELL_HEIGHT 60.0
 #define STATUS_BAR_HEIGHT 20.0
 
@@ -67,6 +69,10 @@
 }
 
 -(void)setDestination:(Place*)place {
+    if ([self.friendsInvitedDictionary count] > 0) {
+        [self.sendButton setEnabled:YES];
+    }
+    
     self.place = place;
     self.placeLabel.text = place.name;
     [self.placeSearchBar setHidden:YES];
@@ -74,7 +80,7 @@
     UIFont *montserratLarge = [UIFont fontWithName:@"Montserrat" size:16.0f];
     self.placeLabel.font = montserratLarge;
     CGSize size = [self.placeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratLarge}];
-    self.placeLabel.frame = CGRectMake(LEFT_PADDING, STATUS_BAR_HEIGHT, MIN(self.view.frame.size.width - LEFT_PADDING, size.width), size.height);
+    self.placeLabel.frame = CGRectMake(LEFT_PADDING, STATUS_BAR_HEIGHT + PADDING + 4.0, MIN(self.view.frame.size.width - LEFT_PADDING, size.width), size.height);
     
     self.searchBar.placeholder = @"Invite more friends...";
     [self.searchBar setHidden:NO];

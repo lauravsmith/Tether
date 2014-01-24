@@ -17,6 +17,7 @@
 @property (nonatomic, strong) Place *place;
 @property (nonatomic, strong) NSIndexPath *cellIndexPath;
 -(void)setTethered:(bool)isTethered;
+-(void)layoutCommitButton;
 @end
 
 @protocol PlaceCellDelegate <NSObject>

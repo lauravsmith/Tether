@@ -29,6 +29,7 @@
 @property (nonatomic, strong) UIButton *moreInfoButton;
 @property (nonatomic, strong) UILabel *plusIconLabel;
 - (void)prepareForReuse;
+-(void)layoutCommitButton;
 
 @end
 
@@ -252,7 +253,6 @@
     self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
     if (self) {
         // Initialization code
-        self.selectionStyle = UITableViewCellSelectionStyleNone;
     }
     return self;
 }
@@ -298,6 +298,10 @@
     if ([self.delegate respondsToSelector:@selector(inviteToPlace:)]) {
         [self.delegate inviteToPlace:place];
     }
+}
+
+-(void)layoutCommitButton{
+    [self.cellContentView layoutCommitButton];
 }
 
 #pragma mark PlaceCellContentViewDelegate Methods

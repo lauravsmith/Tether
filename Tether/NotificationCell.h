@@ -24,6 +24,7 @@
 @property (nonatomic, strong) UITapGestureRecognizer *changeToDeleteTap;
 @property (nonatomic, strong) UITapGestureRecognizer *deleteTap;
 @property (nonatomic, strong) UITapGestureRecognizer *changeToTimeTap;
+@property (nonatomic, strong) FBProfilePictureView *profileView;
 -(void)loadNotification;
 @end
 

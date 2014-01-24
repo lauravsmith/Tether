@@ -15,7 +15,7 @@
 #define PADDING 15.0
 #define PROFILE_IMAGE_VIEW_SIZE 80.0
 #define STATUS_BAR_HEIGHT 20.0
-#define STATUS_MESSAGE_LENGTH 30.0
+#define STATUS_MESSAGE_LENGTH 35.0
 #define TABLE_VIEW_HEIGHT 277.0
 
 #define degreesToRadian(x) (M_PI * (x) / 180.0)
