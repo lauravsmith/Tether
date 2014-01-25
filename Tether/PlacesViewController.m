@@ -128,7 +128,7 @@
 
 -(void)getFriendsCommitments {
     Datastore *sharedDataManager = [Datastore sharedDataManager];
-    NSMutableArray *friendsArrayWithMe = [[NSMutableArray alloc] initWithArray:sharedDataManager.facebookFriends];
+    NSMutableArray *friendsArrayWithMe = [[NSMutableArray alloc] initWithArray:sharedDataManager.tetherFriends];
 
     if (sharedDataManager.facebookId) {
         [friendsArrayWithMe addObject:sharedDataManager.facebookId];
@@ -767,6 +767,7 @@
         Datastore *sharedDataManager = [Datastore sharedDataManager];
         if ([cell.place.placeId isEqualToString:sharedDataManager.currentCommitmentPlace.placeId]) {
             [self removePreviousCommitment];
+            [self removeCommitmentFromDatabase];
             [cell setTethered:NO];
         } else {
             [cell setTethered:YES];

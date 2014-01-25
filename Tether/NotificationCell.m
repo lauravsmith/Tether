@@ -92,22 +92,19 @@
     
     self.messageHeaderLabel.delegate = self;
     
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
-    if ([sharedDataManager.placesDictionary objectForKey:self.notification.placeId]) {
-        // bold place names and link to open place
-        NSRange placeRange = [self.messageHeaderLabel.text rangeOfString:self.notification.placeName];
-        UIFont *montserratBold = [UIFont fontWithName:@"Montserrat-Bold" size:12.0f];
-        CTFontRef font = CTFontCreateWithName((__bridge CFStringRef)montserratBold.fontName, montserratBold.pointSize, NULL);
-        
-        NSArray *keys = [[NSArray alloc] initWithObjects:(id)kCTForegroundColorAttributeName,(id)kCTUnderlineStyleAttributeName
-                         ,(id)kCTFontAttributeName, nil];
-        NSArray *objects = [[NSArray alloc] initWithObjects:UIColorFromRGB(0xc8c8c8),[NSNumber numberWithInt:kCTUnderlineStyleNone],(__bridge id)font, nil];
-        NSDictionary *linkAttributes = [[NSDictionary alloc] initWithObjects:objects forKeys:keys];
-        self.messageHeaderLabel.linkAttributes = linkAttributes;
-        self.messageHeaderLabel.activeLinkAttributes = [NSDictionary dictionaryWithObjectsAndKeys:
-                                                        (id)[UIColorFromRGB(0x8e0528) CGColor], (NSString*)kCTForegroundColorAttributeName, nil];
-        [self.messageHeaderLabel addLinkToURL:[NSURL URLWithString:@"action://show-place"] withRange:placeRange];
-    }
+    // bold place names and link to open place
+    NSRange placeRange = [self.messageHeaderLabel.text rangeOfString:self.notification.placeName];
+    UIFont *montserratBold = [UIFont fontWithName:@"Montserrat-Bold" size:12.0f];
+    CTFontRef font = CTFontCreateWithName((__bridge CFStringRef)montserratBold.fontName, montserratBold.pointSize, NULL);
+    
+    NSArray *keys = [[NSArray alloc] initWithObjects:(id)kCTForegroundColorAttributeName,(id)kCTUnderlineStyleAttributeName
+                     ,(id)kCTFontAttributeName, nil];
+    NSArray *objects = [[NSArray alloc] initWithObjects:UIColorFromRGB(0xc8c8c8),[NSNumber numberWithInt:kCTUnderlineStyleSingle],(__bridge id)font, nil];
+    NSDictionary *linkAttributes = [[NSDictionary alloc] initWithObjects:objects forKeys:keys];
+    self.messageHeaderLabel.linkAttributes = linkAttributes;
+    self.messageHeaderLabel.activeLinkAttributes = [NSDictionary dictionaryWithObjectsAndKeys:
+                                                    (id)[UIColorFromRGB(0x8e0528) CGColor], (NSString*)kCTForegroundColorAttributeName, nil];
+    [self.messageHeaderLabel addLinkToURL:[NSURL URLWithString:@"action://show-place"] withRange:placeRange];
     
     [self.timeLabel setFont:montserrat];
     NSTimeInterval timeInterval = [self.notification.time timeIntervalSinceNow];

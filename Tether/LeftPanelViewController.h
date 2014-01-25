@@ -23,4 +23,6 @@
 -(void)goToPlaceInListView:(id)placeId;
 -(void)pollDatabase;
 -(void)inviteFriend:(Friend*)friend;
+-(void)sortTetherFriends;
+-(void)blockFriend:(Friend*)friend block:(BOOL)block;
 @end

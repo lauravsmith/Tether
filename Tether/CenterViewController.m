@@ -20,7 +20,7 @@
 #define CORNER_RADIUS 20.0
 #define DISTANCE_FACE_TO_PIN 20.0
 #define FACE_SIZE 40.0
-#define MAX_FRIENDS_ON_PIN 4.0
+#define MAX_FRIENDS_ON_PIN 15.0
 #define NOTIFICATIONS_SIZE 32.0
 #define PADDING 20.0
 #define SPINNER_SIZE 30.0
@@ -63,7 +63,7 @@
     [self.view addSubview:self.mv];
     
     // top bar setup
-    self.topBar = [[UIView alloc] initWithFrame:CGRectMake(0, self.tabBarController.view.frame.size.height, self.view.frame.size.width,TOP_BAR_HEIGHT)];
+    self.topBar = [[UIView alloc] initWithFrame:CGRectMake(0, 0.0, self.view.frame.size.width,TOP_BAR_HEIGHT)];
     [self.topBar setBackgroundColor:UIColorFromRGB(0x8e0528)];
     [self.view addSubview:self.topBar];
     
@@ -129,8 +129,16 @@
     
     // bottom nav bar setup
     self.bottomBar = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - BOTTOM_BAR_HEIGHT, self.view.frame.size.width, BOTTOM_BAR_HEIGHT)];
+    if ([UIApplication sharedApplication].statusBarFrame.size.height == 40.0) {
+        self.bottomBar.frame = CGRectMake(0, self.view.frame.size.height - BOTTOM_BAR_HEIGHT - STATUS_BAR_HEIGHT, self.view.frame.size.width, BOTTOM_BAR_HEIGHT);
+    }
     [self.bottomBar setBackgroundColor:[UIColor whiteColor]];
     [self.bottomBar setAlpha:0.85];
+    
+    UISwipeGestureRecognizer * swipeUp = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swipeUp:)];
+    [swipeUp setDirection:(UISwipeGestureRecognizerDirectionUp)];
+    self.bottomBar.userInteractionEnabled = YES;
+    [self.view addGestureRecognizer:swipeUp];
     
     // large background button to increase touch surface area
     self.settingsButtonLarge = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, self.bottomBar.frame.size.width / 4.0, self.bottomBar.frame.size.height)];
@@ -185,8 +193,15 @@
     [self.commitmentButton addTarget:self action:@selector(commitmentClicked:) forControlEvents:UIControlEventTouchUpInside];
     
     [self restartTimer];
+    
+    [self setNeedsStatusBarAppearanceUpdate];
 }
 
+-(void)setNeedsStatusBarAppearanceUpdate {
+    self.topBar.frame = CGRectMake(0, 0.0, self.view.frame.size.width,TOP_BAR_HEIGHT);
+    self.bottomBar.frame = CGRectMake(0, self.view.frame.size.height - BOTTOM_BAR_HEIGHT, self.view.frame.size.width, BOTTOM_BAR_HEIGHT);
+    self.mv.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
+}
 
 -(void)layoutNumberButton {
     UIFont *helveticaNeue = [UIFont fontWithName:@"HelveticaNeue-Bold" size:30];
@@ -284,6 +299,14 @@
         [deltaComps setDay:-1.0];
         [components setHour:6.0];
         return [calendar dateByAddingComponents:deltaComps toDate:[calendar dateFromComponents:components] options:0];
+    }
+}
+
+#pragma UIGestureRecognizers
+
+-(void)swipeUp:(UIGestureRecognizer*)recognizer  {
+    if ([self.delegate respondsToSelector:@selector(showSettingsView)]) {
+        [self.delegate showSettingsView];
     }
 }
 
@@ -621,56 +644,96 @@
         rightButton.tag = [self.annotationsArray indexOfObject:p];
         
         int i = 0;
-        BOOL evenNumberFriends = NO;
-        if ([p.friendsCommitted count] % 2 == 0) {
-            evenNumberFriends = YES;
-        }
+
         for (id friendId in p.friendsCommitted) {
-            FBProfilePictureView *profileView = [[FBProfilePictureView alloc] initWithFrame:CGRectMake(-15.0, 0, 40.0, 40.0)];
-            profileView.profileID = friendId;
-            profileView.layer.cornerRadius = CORNER_RADIUS;
-            profileView.clipsToBounds = YES;
-            profileView.tag = 2;
-            [pinView addSubview:profileView];
-            profileView.alpha = 0.0;
-            CGRect frame;
-            switch (i) {
-                case 0:
-                    frame = CGRectMake(-DISTANCE_FACE_TO_PIN, 0, FACE_SIZE, FACE_SIZE);
-                    profileView.frame = frame;
-                    [pinView sendSubviewToBack:profileView];
-                    break;
-                case 1:
-                    frame = CGRectMake(DISTANCE_FACE_TO_PIN + 5.0, 0, FACE_SIZE, FACE_SIZE);
-                    profileView.frame = frame;
-                    [pinView sendSubviewToBack:profileView];
-                    break;
-                case 2:
-                    if (evenNumberFriends) {
-                        frame = CGRectMake(DISTANCE_FACE_TO_PIN - 5.0, DISTANCE_FACE_TO_PIN +5.0, FACE_SIZE, FACE_SIZE);
-                    } else {
-                        frame = CGRectMake(0, DISTANCE_FACE_TO_PIN + 5.0, FACE_SIZE, FACE_SIZE);
-                    }
-                    profileView.frame = frame;
-                    break;
-                case 3:
-                    if (evenNumberFriends) {
+            if (i < MAX_FRIENDS_ON_PIN) {
+                FBProfilePictureView *profileView = [[FBProfilePictureView alloc] initWithFrame:CGRectMake(-15.0, 0, 40.0, 40.0)];
+                profileView.profileID = friendId;
+                profileView.layer.cornerRadius = CORNER_RADIUS;
+                profileView.clipsToBounds = YES;
+                profileView.tag = 2;
+                [pinView addSubview:profileView];
+                profileView.alpha = 0.0;
+                CGRect frame;
+                switch (i) {
+                    case 0:
+                        frame = CGRectMake(-DISTANCE_FACE_TO_PIN, 0, FACE_SIZE, FACE_SIZE);
+                        profileView.frame = frame;
+                        [pinView sendSubviewToBack:profileView];
+                        break;
+                    case 1:
+                        frame = CGRectMake(DISTANCE_FACE_TO_PIN + 5.0, 0, FACE_SIZE, FACE_SIZE);
+                        profileView.frame = frame;
+                        [pinView sendSubviewToBack:profileView];
+                        break;
+                    case 2:
+                        if ([p.friendsCommitted count] == 3) {
+                            frame = CGRectMake(0, DISTANCE_FACE_TO_PIN +5.0, FACE_SIZE, FACE_SIZE);
+                            profileView.frame = frame;
+                        } else {
+                            frame = CGRectMake(DISTANCE_FACE_TO_PIN - 5.0, DISTANCE_FACE_TO_PIN +5.0, FACE_SIZE, FACE_SIZE);
+                            profileView.frame = frame;
+                        }
+                        break;
+                    case 3:
                          frame = CGRectMake(-DISTANCE_FACE_TO_PIN + 5.0, DISTANCE_FACE_TO_PIN + 5.0, FACE_SIZE, FACE_SIZE);
-                    } else {
-                         frame = CGRectMake(DISTANCE_FACE_TO_PIN + 5.0, DISTANCE_FACE_TO_PIN +5.0, FACE_SIZE, FACE_SIZE);
-                    }
-                    profileView.frame = frame;
-                    break;
-                case 4:
-                    if (evenNumberFriends) {
-                        
-                    } else {
-                        frame = CGRectMake(-DISTANCE_FACE_TO_PIN + 5.0, DISTANCE_FACE_TO_PIN +5.0, FACE_SIZE, FACE_SIZE);
-                    }
-                    profileView.frame = frame;
-                break;
-                default:
-                     break;
+                        profileView.frame = frame;
+                        break;
+                    case 4:
+                        frame = CGRectMake(0.0, -DISTANCE_FACE_TO_PIN -5.0, FACE_SIZE, FACE_SIZE);
+                        profileView.frame = frame;
+                        [pinView sendSubviewToBack:profileView];
+                        break;
+                    case 5:
+                        frame = CGRectMake(-DISTANCE_FACE_TO_PIN - FACE_SIZE / 2.0, FACE_SIZE / 2.0, FACE_SIZE*0.75, FACE_SIZE*0.75);
+                        profileView.frame = frame;
+                        [pinView sendSubviewToBack:profileView];
+                        break;
+                    case 6:
+                        frame = CGRectMake(+DISTANCE_FACE_TO_PIN + FACE_SIZE / 2.0, FACE_SIZE / 2.0, FACE_SIZE*0.75, FACE_SIZE*0.75);
+                        profileView.frame = frame;
+                        [pinView sendSubviewToBack:profileView];
+                        break;
+                    case 7:
+                        frame = CGRectMake(0.0, DISTANCE_FACE_TO_PIN + 5.0 + FACE_SIZE / 2.0, FACE_SIZE*0.75, FACE_SIZE*0.75);
+                        profileView.frame = frame;
+                        break;
+                    case 8:
+                        frame = CGRectMake(-DISTANCE_FACE_TO_PIN - FACE_SIZE / 4.0, -DISTANCE_FACE_TO_PIN - FACE_SIZE / 4.0, FACE_SIZE*0.75, FACE_SIZE*0.75);
+                        profileView.frame = frame;
+                        break;
+                    case 9:
+                        frame = CGRectMake(DISTANCE_FACE_TO_PIN + FACE_SIZE / 4.0, -DISTANCE_FACE_TO_PIN - FACE_SIZE / 4.0, FACE_SIZE*0.75, FACE_SIZE*0.75);
+                        profileView.frame = frame;
+                        break;
+                    case 10:
+                        frame = CGRectMake(-DISTANCE_FACE_TO_PIN - FACE_SIZE / 2.0, 0.0, 30.0, 30.0);
+                        profileView.frame = frame;
+                        [pinView sendSubviewToBack:profileView];
+                        break;
+                    case 11:
+                        frame = CGRectMake(DISTANCE_FACE_TO_PIN + FACE_SIZE / 2.0 + 5.0, 0.0, 30.0, 30.0);
+                        profileView.frame = frame;
+                        [pinView sendSubviewToBack:profileView];
+                        break;
+                    case 12:
+                        frame = CGRectMake(-DISTANCE_FACE_TO_PIN - FACE_SIZE / 4.0, DISTANCE_FACE_TO_PIN + FACE_SIZE / 2.0 + 5.0, 30.0, 30.0);
+                        profileView.frame = frame;
+                        [pinView sendSubviewToBack:profileView];
+                        break;
+                    case 13:
+                        frame = CGRectMake(DISTANCE_FACE_TO_PIN + FACE_SIZE / 4.0, DISTANCE_FACE_TO_PIN + FACE_SIZE / 2.0 + 5.0, 30.0, 30.0);
+                        profileView.frame = frame;
+                        [pinView sendSubviewToBack:profileView];
+                        break;
+                    case 14:
+                        frame = CGRectMake(0.0, DISTANCE_FACE_TO_PIN + FACE_SIZE, 30.0, 30.0);
+                        profileView.frame = frame;
+                        [pinView sendSubviewToBack:profileView];
+                        break;
+                    default:
+                         break;
+                }
             }
             i++;
         }
@@ -705,7 +768,7 @@
         Place *p = [self.annotationsArray objectAtIndex:view.tag];
         if ([self.delegate respondsToSelector:@selector(openPageForPlaceWithId:)]) {
             self.listViewOpen = YES;
-            [self.delegate openPageForPlaceWithId:p.placeId];
+            [self.delegate goToPlaceInListView:p.placeId];
         }
     }
 }

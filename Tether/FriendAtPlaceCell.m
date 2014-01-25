@@ -19,6 +19,7 @@
 @interface FriendAtPlaceCellContentView : UIView
 @property (nonatomic, strong) Friend *friend;
 @property (nonatomic, strong) UILabel *friendNameLabel;
+@property (nonatomic, strong) UILabel *unblockLabel;
 @property (nonatomic, assign) NSString *friendID;
 @property (nonatomic, strong) FBProfilePictureView *friendProfilePictureView;
 @property (nonatomic, assign) BOOL showingStatusMessage;
@@ -33,6 +34,8 @@
         self.friendNameLabel = [[UILabel alloc] init];
         self.friendNameLabel.contentMode = UIViewContentModeScaleAspectFill;
         [self addSubview:self.friendNameLabel];
+        self.unblockLabel = [[UILabel alloc] init];
+        [self addSubview:self.unblockLabel];
     }
     return self;
 }
@@ -54,6 +57,17 @@
     self.friendNameLabel.frame = CGRectMake(NAME_LABEL_OFFSET_X, (self.frame.size.height - size.height) / 2.0, size.width, size.height);
     [self.friendNameLabel setTextColor:UIColorFromRGB(0x8e0528)];
     [self.friendNameLabel setFont:montserrat];
+    
+    if (self.friend.blocked) {
+        self.unblockLabel.text = @"unblock";
+         size = [self.unblockLabel.text sizeWithAttributes:@{NSFontAttributeName: montserrat}];
+        self.unblockLabel.frame = CGRectMake(NAME_LABEL_OFFSET_X, self.friendNameLabel.frame.origin.y + self.friendNameLabel.frame.size.height, size.width, size.height);
+        self.unblockLabel.font = montserrat;
+        [self.unblockLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
+        self.unblockLabel.hidden = NO;
+    } else {
+        self.unblockLabel.hidden = YES;
+    }
 }
 
 - (void)setFriend:(Friend *)friend {

@@ -23,6 +23,7 @@ extern NSString *const kUserStatusMessageKey;
 extern NSString *const kUserGenderKey;
 extern NSString *const kUserFacebookFriendsKey;
 extern NSString *const kUserTimeLastUpdatedKey;
+extern NSString *const kUserBlockedListKey;
 
 #pragma mark - PFObject Commitment Class
 extern NSString *const kCommitmentClassKey;

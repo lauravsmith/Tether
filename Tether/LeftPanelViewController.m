@@ -27,7 +27,7 @@
 #define STATUS_BAR_HEIGHT 20.0
 #define TABLE_HEIGHT 400.0
 
-@interface LeftPanelViewController ()<UITableViewDelegate, UITableViewDataSource, FriendCellDelegate, UIScrollViewDelegate, UISearchBarDelegate>
+@interface LeftPanelViewController ()<UIAlertViewDelegate ,UITableViewDelegate, UITableViewDataSource, FriendCellDelegate, UIScrollViewDelegate, UISearchBarDelegate>
 
 @property (nonatomic, strong) UITableView *friendsGoingOutTableView;
 @property (nonatomic, strong) UITableViewController *friendsGoingOutTableViewController;
@@ -36,6 +36,8 @@
 @property (retain, nonatomic) NSMutableArray *searchResultsArray;
 @property (nonatomic, strong) UITableView *searchResultsTableView;
 @property (nonatomic, strong) UITableViewController *searchResultsTableViewController;
+@property (nonatomic, strong) Friend *friendToBlock;
+@property (nonatomic, strong) UIAlertView *blockAlertView;
 
 @end
 
@@ -54,8 +56,7 @@
 {
     [super viewDidLoad];
     
-    self.view.layer.backgroundColor = [UIColor blackColor].CGColor;
-//    [self.view setBackgroundColor:[UIColor blackColor]];
+    self.view.layer.backgroundColor = [UIColor clearColor].CGColor;
     
     self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width - PANEL_WIDTH, SEARCH_BAR_HEIGHT)];
     
@@ -127,6 +128,15 @@
             }
         }
     }
+    
+    for (Friend *friend in sharedDataManager.blockedFriends) {
+        if (friend.name ) {
+            if ([[friend.name lowercaseString] rangeOfString:[search lowercaseString]].location != NSNotFound) {
+                [self.searchResultsArray addObject:friend];
+            }
+        }
+    }
+    
     [self.searchResultsTableView reloadData];
 }
 
@@ -294,15 +304,21 @@
         
         Datastore *sharedDataManager = [Datastore sharedDataManager];
         
-        if ([sharedDataManager.tetherFriendsGoingOut containsObject:friend]) {
-            [self.friendsGoingOutTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:[sharedDataManager.tetherFriendsGoingOut indexOfObject:friend] inSection:1]
-                                                 atScrollPosition:UITableViewScrollPositionTop animated:YES];
-        } else if ([sharedDataManager.tetherFriendsNotGoingOut containsObject:friend]) {
-            [self.friendsGoingOutTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:[sharedDataManager.tetherFriendsNotGoingOut indexOfObject:friend] inSection:2]
-                                                 atScrollPosition:UITableViewScrollPositionTop animated:YES];
-        } else if ([sharedDataManager.tetherFriendsUndecided containsObject:friend]) {
-            [self.friendsGoingOutTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:[sharedDataManager.tetherFriendsUndecided indexOfObject:friend] inSection:3]
-                                                 atScrollPosition:UITableViewScrollPositionTop animated:YES];
+        if (friend.blocked == YES) {
+            if ([self.delegate respondsToSelector:@selector(blockFriend:block:)]) {
+                [self.delegate blockFriend:friend block:NO];
+            }
+        } else {
+            if ([sharedDataManager.tetherFriendsGoingOut containsObject:friend]) {
+                [self.friendsGoingOutTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:[sharedDataManager.tetherFriendsGoingOut indexOfObject:friend] inSection:1]
+                                                     atScrollPosition:UITableViewScrollPositionTop animated:YES];
+            } else if ([sharedDataManager.tetherFriendsNotGoingOut containsObject:friend]) {
+                [self.friendsGoingOutTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:[sharedDataManager.tetherFriendsNotGoingOut indexOfObject:friend] inSection:2]
+                                                     atScrollPosition:UITableViewScrollPositionTop animated:YES];
+            } else if ([sharedDataManager.tetherFriendsUndecided containsObject:friend]) {
+                [self.friendsGoingOutTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:[sharedDataManager.tetherFriendsUndecided indexOfObject:friend] inSection:3]
+                                                     atScrollPosition:UITableViewScrollPositionTop animated:YES];
+            }
         }
         [self searchBarCancelButtonClicked:self.searchBar];
 
@@ -323,10 +339,46 @@
     }
 }
 
-- (void)didReceiveMemoryWarning
-{
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+-(void)showBlockFriendAlertView:(Friend*)friend {
+    self.friendToBlock = friend;
+
+    if (!self.blockAlertView.isVisible) {
+        self.blockAlertView = [[UIAlertView alloc] initWithTitle:[NSString stringWithFormat:@"Block %@", self.friendToBlock.name]
+                                                         message:[NSString stringWithFormat:@"Would you like to block %@?", friend.name]
+                                                        delegate:self
+                                               cancelButtonTitle:@"Cancel"
+                                               otherButtonTitles:@"Block", nil];
+        self.blockAlertView.tag = 0;
+        [self.blockAlertView show];
+    }
+    NSLog(@"Alert is visible %d", self.blockAlertView.isVisible);
+}
+
+#pragma mark UIAlertViewDelegate
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if (alertView.tag == 0) {
+        if (buttonIndex == 1 && self.friendToBlock) {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:[NSString stringWithFormat:@"Block %@", self.friendToBlock.name]
+                                                            message:[NSString stringWithFormat:@"%@ will not be able to view your activity on Tethr", self.friendToBlock.name]
+                                                           delegate:self
+                                                  cancelButtonTitle:@"Cancel"
+                                                  otherButtonTitles:@"Block", nil];
+            alert.tag = 1;
+            [alert show];
+        } else {
+            self.friendToBlock = nil;
+        }
+    } else {
+    if (buttonIndex == 1 && self.friendToBlock) {
+        if ([self.delegate respondsToSelector:@selector(blockFriend:block:)]) {
+            [self.delegate blockFriend:self.friendToBlock block:YES];
+        }
+    } else {
+        NSLog(@"user pressed Cancel");
+        self.friendToBlock = nil;
+    }
+    }
 }
 
 #pragma mark UIScrollView Delegate methods
@@ -360,6 +412,12 @@
     self.friendsGoingOutTableView.scrollEnabled = NO;
     self.searchResultsTableView.hidden = NO;
     [self searchFriends:searchBar.text];
+}
+
+- (void)didReceiveMemoryWarning
+{
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
 }
 
 @end

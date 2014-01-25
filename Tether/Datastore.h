@@ -15,6 +15,8 @@
     NSString *name;
     NSString *statusMessage;
     NSArray *facebookFriends;
+    NSMutableArray * tetherFriends;
+    NSMutableArray * blockedFriends;
     NSMutableDictionary *tetherFriendsNearbyDictionary;
     NSMutableDictionary *tetherFriendsDictionary;
     NSMutableArray * tetherFriendsGoingOut;
@@ -28,17 +30,21 @@
     Place *currentCommitmentPlace;
     NSInteger notifications;
     NSMutableArray *todaysNotificationsArray;
+    NSMutableArray * blockedList;
 }
 
 @property (nonatomic, retain) NSString *facebookId;
 @property (nonatomic, retain) NSString *name;
 @property (nonatomic, retain) NSArray *facebookFriends;
+@property (nonatomic, strong) NSMutableArray * tetherFriends;
+@property (nonatomic, strong) NSMutableArray * blockedFriends;
 @property (nonatomic, retain) NSMutableDictionary *tetherFriendsNearbyDictionary;
 @property (nonatomic, retain) NSMutableDictionary *tetherFriendsDictionary;
 @property (nonatomic, retain) NSString *statusMessage;
 @property (nonatomic, strong) NSMutableArray * tetherFriendsGoingOut;
 @property (nonatomic, strong) NSMutableArray * tetherFriendsNotGoingOut;
 @property (nonatomic, strong) NSMutableArray * tetherFriendsUndecided;
+@property (nonatomic, strong) NSMutableArray * blockedList;
 @property (nonatomic, strong) NSMutableDictionary *friendsToPlacesMap;
 @property (nonatomic, strong) NSMutableDictionary *popularPlacesDictionary;
 @property (nonatomic, strong) NSMutableDictionary *foursquarePlacesDictionary;

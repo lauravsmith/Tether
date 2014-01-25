@@ -18,4 +18,5 @@
 @property (nonatomic, assign) BOOL status;
 @property (nonatomic, assign) id placeId;
 @property (nonatomic, assign) int mutualFriendsCount;
+@property (nonatomic, assign) BOOL blocked;
 @end

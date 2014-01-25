@@ -89,6 +89,7 @@
 {
     NSLog(@"View did load");
     [super viewDidLoad];
+    
     [self.navigationController setNavigationBarHidden:YES];
     [self setNeedsStatusBarAppearanceUpdate];
     [self setupView];
@@ -105,6 +106,51 @@
                                    userInfo:nil
                                     repeats:YES];
     [self refreshNotificationsNumber];
+}
+
+-(void)setNeedsStatusBarAppearanceUpdate {
+    [super setNeedsStatusBarAppearanceUpdate];
+    
+    if (self.settingsViewController) {
+        if ([UIApplication sharedApplication].statusBarFrame.size.height == 40.0) {
+            self.settingsViewController.view.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - 20.0);
+        } else {
+            self.settingsViewController.view.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height + 20.0);
+        }
+
+        [self.settingsViewController.view setNeedsDisplay];
+    }
+    
+    if (self.centerViewController) {
+        if ([UIApplication sharedApplication].statusBarFrame.size.height == 40.0) {
+            self.centerViewController.view.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - 20.0);
+        } else {
+            self.centerViewController.view.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height + 20.0);
+        }
+        [self.centerViewController setNeedsStatusBarAppearanceUpdate];
+        [self.centerViewController.view setNeedsDisplay];
+        [self.centerViewController.view setNeedsLayout];
+    }
+    
+    if (self.leftPanelViewController) {
+        if ([UIApplication sharedApplication].statusBarFrame.size.height == 40.0) {
+            self.leftPanelViewController.view.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - 20.0);
+        } else {
+            self.leftPanelViewController.view.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height + 20.0);
+        }
+        [self.leftPanelViewController.view setNeedsDisplay];
+        [self.leftPanelViewController.view setNeedsLayout];
+    }
+    
+    if (self.rightPanelViewController) {
+        if ([UIApplication sharedApplication].statusBarFrame.size.height == 40.0) {
+            self.rightPanelViewController.view.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - 20.0);
+        } else {
+            self.rightPanelViewController.view.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height + 20.0);
+        }
+        [self.rightPanelViewController.view setNeedsDisplay];
+        [self.rightPanelViewController.view setNeedsLayout];
+    }
 }
 
 -(UIStatusBarStyle)preferredStatusBarStyle{
@@ -196,17 +242,12 @@
     }
     
     sharedDataManager.facebookFriends = facebookFriendsIds;
-    
-    [self.currentUser setObject:sharedDataManager.facebookFriends forKey:@"facebookFriends"];
-    
-    [self.currentUser saveEventually];
-    
-    NSLog(@"PARSE SAVE: saving your facebook friends");
 
     [self queryFriendsStatus];
 }
 
 -(void)facebookRequestDidLoad:(id)result {
+    [[PFUser currentUser] refresh];
     self.currentUser = [PFUser currentUser];
     
     NSArray *data = [result objectForKey:@"data"];
@@ -269,6 +310,11 @@
             if ([self.currentUser objectForKey:kUserStatusMessageKey]) {
                 sharedDataManager.statusMessage = [self.currentUser objectForKey:kUserStatusMessageKey];
             }
+            
+            if ([self.currentUser objectForKey:kUserBlockedListKey]) {
+                sharedDataManager.blockedList = [[NSMutableArray alloc] init];
+                [sharedDataManager.blockedList addObjectsFromArray:[self.currentUser objectForKey:kUserBlockedListKey]];
+            }
         }
         
         [FBRequestConnection startForMyFriendsWithCompletionHandler:^(FBRequestConnection *connection, id friends, NSError *error) {
@@ -292,6 +338,25 @@
     }
 }
 
+-(void)blockFriend:(Friend*)friend block:(BOOL)block {
+    NSLog(@"Blocking Friend");
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    if (!sharedDataManager.blockedList) {
+        sharedDataManager.blockedList = [[NSMutableArray alloc] init];
+    }
+    if (block) {
+        if (![sharedDataManager.blockedList containsObject:friend.friendID]) {
+            [sharedDataManager.blockedList addObject:friend.friendID];
+        }
+    } else {
+        [sharedDataManager.blockedList removeObject:friend.friendID];
+    }
+
+    [self.currentUser setObject:sharedDataManager.blockedList forKey:kUserBlockedListKey];
+    [self.currentUser saveEventually];
+    [self pollDatabase];
+}
+
 -(void)queryFriendsStatus{
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     NSString *city = [userDetails objectForKey:kUserDefaultsCityKey];
@@ -308,32 +373,47 @@
                 self.parseError = NO;
                 NSLog(@"QUERY: queried your facebook friends status who are on Tether");
                 sharedDataManager.tetherFriendsNearbyDictionary = [[NSMutableDictionary alloc] init];
+                sharedDataManager.tetherFriends = [[NSMutableArray alloc] init];
+                sharedDataManager.blockedFriends = [[NSMutableArray alloc] init];
                 
                 for (PFUser *user in objects) {
-                    Friend *friend;
-                    if ([sharedDataManager.tetherFriendsDictionary objectForKey:user[kUserFacebookIDKey]]) {
-                        friend = [sharedDataManager.tetherFriendsDictionary objectForKey:user[kUserFacebookIDKey]];
-                    } else {
-                        friend = [[Friend alloc] init];
-                        friend.friendID = user[kUserFacebookIDKey];
-                        friend.name = user[kUserDisplayNameKey];
-                        friend.friendsArray = user[kUserFacebookFriendsKey];
+                    // check that you are no on their block list
+                    NSMutableArray *blockedList = user[kUserBlockedListKey];
+                    if (![blockedList containsObject:sharedDataManager.facebookId]) {
+                        Friend *friend;
+                        if ([sharedDataManager.tetherFriendsDictionary objectForKey:user[kUserFacebookIDKey]]) {
+                            friend = [sharedDataManager.tetherFriendsDictionary objectForKey:user[kUserFacebookIDKey]];
+                        } else {
+                            friend = [[Friend alloc] init];
+                            friend.friendID = user[kUserFacebookIDKey];
+                            friend.name = user[kUserDisplayNameKey];
+                            friend.friendsArray = user[kUserFacebookFriendsKey];
+                        }
+                        friend.timeLastUpdated = user[kUserTimeLastUpdatedKey];
+                        friend.status = [user[kUserStatusKey] boolValue];
+                        friend.statusMessage = user[kUserStatusMessageKey];
+                        friend.placeId = @"";
+
+                        if ([sharedDataManager.blockedList containsObject:friend.friendID]) {
+                            friend.blocked = YES;
+                            if (!sharedDataManager.blockedFriends) {
+                                sharedDataManager.blockedFriends = [[NSMutableArray alloc] init];
+                            }
+                            [sharedDataManager.blockedFriends addObject:friend];
+                        } else {
+                            NSDate *startTime = [self getStartTime];
+                            // Set friends place if they are going out, have been active today and have committed to a place
+                            if ([sharedDataManager.friendsToPlacesMap objectForKey:friend.friendID] && [startTime compare:friend.timeLastUpdated] == NSOrderedAscending && friend.status) {
+                                friend.placeId = [sharedDataManager.friendsToPlacesMap objectForKey:friend.friendID];
+                            }
+                            
+                            if ([user[kUserCityKey] isEqualToString:city] && [user[kUserStateKey] isEqualToString:state]) {
+                                [sharedDataManager.tetherFriendsNearbyDictionary setObject:friend forKey:friend.friendID];
+                            }
+                            [sharedDataManager.tetherFriendsDictionary setObject:friend forKey:friend.friendID];
+                            [sharedDataManager.tetherFriends addObject:friend.friendID];
+                        }
                     }
-                    friend.timeLastUpdated = user[kUserTimeLastUpdatedKey];
-                    friend.status = [user[kUserStatusKey] boolValue];
-                    friend.statusMessage = user[kUserStatusMessageKey];
-                    friend.placeId = @"";
-                    
-                    NSDate *startTime = [self getStartTime];
-                    // Set friends place if they are going out, have been active today and have committed to a place
-                    if ([sharedDataManager.friendsToPlacesMap objectForKey:friend.friendID] && [startTime compare:friend.timeLastUpdated] == NSOrderedAscending && friend.status) {
-                        friend.placeId = [sharedDataManager.friendsToPlacesMap objectForKey:friend.friendID];
-                    }
-                    
-                    if ([user[kUserCityKey] isEqualToString:city] && [user[kUserStateKey] isEqualToString:state]) {
-                        [sharedDataManager.tetherFriendsNearbyDictionary setObject:friend forKey:friend.friendID];
-                    }
-                    [sharedDataManager.tetherFriendsDictionary setObject:friend forKey:friend.friendID];
                 }
                 
                 [self sortTetherFriends];
@@ -368,7 +448,7 @@
     for (id key in sharedDataManager.tetherFriendsNearbyDictionary) {
         Friend *friend = [sharedDataManager.tetherFriendsNearbyDictionary objectForKey:key];
         if (friend) {
-            if ([startTime compare:friend.timeLastUpdated] == NSOrderedDescending || !friend.status) {
+            if (([startTime compare:friend.timeLastUpdated] == NSOrderedDescending || !friend.status) && [sharedDataManager.friendsToPlacesMap objectForKey:friend.friendID]) {
                 friend.placeId = @"";
                 [tempFriendsUndecidedSet addObject:friend];
             } else {
@@ -628,10 +708,9 @@
     
     self.showingRightPanel = YES;
     
-    // set up view shadows
-    [self showCenterViewWithShadow:YES withOffset:2];
-    
     UIView *view = self.rightPanelViewController.view;
+    [self.rightPanelViewController.view setNeedsDisplay];
+    [self.rightPanelViewController.view layoutIfNeeded];
     return view;
 }
 
@@ -797,6 +876,11 @@
     if (![self.view.subviews containsObject:self.decisionViewController]) {
         UIView *childView = [self getRightView];
         [self.view sendSubviewToBack:childView];
+        [childView setNeedsLayout];
+        [childView layoutIfNeeded];
+        [self.view setNeedsLayout];
+        [self.view layoutIfNeeded];
+        
         self.centerViewController.listViewButton.userInteractionEnabled = NO;
         self.centerViewController.listViewButtonLarge.userInteractionEnabled = NO;
         
@@ -818,15 +902,13 @@
                          animations:^{
                              _centerViewController.view.frame = CGRectMake(-self.view.frame.size.width + PANEL_WIDTH, 0.0, self.view.frame.size.width, self.view.frame.size.height);
                          }
-                         completion:^(BOOL finished) {
+                         completion:^(BOOL finished) {                             
                              _centerViewController.notificationsButton.tag = 0;
                              _centerViewController.notificationsButtonLarge.tag = 0;
                              _centerViewController.mv.userInteractionEnabled = NO;
                              UITapGestureRecognizer *mapTapGesture =
                              [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(closePanel:)];
                              [self.centerViewController.view addGestureRecognizer:mapTapGesture];
-                             
-
                          }];
     }
 }
@@ -1157,8 +1239,11 @@
             
             NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
             BOOL status = [userDetails boolForKey:kUserDefaultsStatusKey];
-            if (!status) {
+            NSDate *timeLastUpdated = [userDetails objectForKey:kUserDefaultsTimeLastUpdatedKey];
+            
+            if (!status || [[self getStartTime] compare:timeLastUpdated] == NSOrderedDescending) {
                 [userDetails setBool:YES forKey:kUserDefaultsStatusKey];
+                [userDetails setObject:[NSDate date] forKey:kUserDefaultsTimeLastUpdatedKey];
                 [userDetails synchronize];
                 
                 PFUser *user = [PFUser currentUser];

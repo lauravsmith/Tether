@@ -411,9 +411,11 @@
     searchText = [searchText lowercaseString];
     for(id key in sharedDataManager.tetherFriendsDictionary) {
         Friend *friend = [sharedDataManager.tetherFriendsDictionary objectForKey:key];
-        NSString *name = [friend.name lowercaseString];
-        if ([name rangeOfString:searchText].location != NSNotFound) {
-            [self.friendSearchResultsArray addObject:friend];
+        if (!friend.blocked) {
+            NSString *name = [friend.name lowercaseString];
+            if ([name rangeOfString:searchText].location != NSNotFound) {
+                [self.friendSearchResultsArray addObject:friend];
+            }
         }
     }
     [self.friendSearchResultsTableView reloadData];

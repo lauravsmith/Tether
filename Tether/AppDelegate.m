@@ -200,4 +200,13 @@ fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
     return [PFFacebookUtils handleOpenURL:url];
 }
 
+-(void)application:(UIApplication *)application willChangeStatusBarFrame:(CGRect)newStatusBarFrame {
+    NSLog(@"Change status");
+    [self.mainViewController setNeedsStatusBarAppearanceUpdate];
+}
+
+-(void)application:(UIApplication *)application didChangeStatusBarFrame:(CGRect)oldStatusBarFrame {
+     NSLog(@"Change status");
+}
+
 @end

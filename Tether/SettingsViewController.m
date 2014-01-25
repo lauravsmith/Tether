@@ -77,6 +77,10 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     backgroundImageView.userInteractionEnabled = YES;
     [backgroundImageView addGestureRecognizer:closeKeyBoardTap];
     
+    UISwipeGestureRecognizer * swipeDown = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swipeDown:)];
+    [swipeDown setDirection:(UISwipeGestureRecognizerDirectionDown)];
+    [self.view addGestureRecognizer:swipeDown];
+    
     [self addProfileImageView];
     
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14];
@@ -85,6 +89,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.statusMessageTextField.layer.cornerRadius = 2.0;
     self.statusMessageTextField.placeholder = @"Enter a status message";
     [self.statusMessageTextField setBackgroundColor:[UIColor whiteColor]];
+    [self.statusMessageTextField setTextColor:UIColorFromRGB(0xc8c8c8)];
     [self.statusMessageTextField setFont:montserrat];
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     if (sharedDataManager.statusMessage) {
@@ -149,7 +154,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.cityTextField.placeholder = @"Search by city name";
     UIFont *textViewFont = [UIFont fontWithName:@"Montserrat" size:16];
     self.cityTextField.font = textViewFont;
-    self.cityTextField.textColor = UIColorFromRGB(0x8e0528);
+    self.cityTextField.textColor = UIColorFromRGB(0xc8c8c8);
     self.cityTextField.layer.cornerRadius = 2.0;
     [self.cityTextField setBackgroundColor:[UIColor whiteColor]];
     [self.view addSubview:self.cityTextField];
@@ -335,6 +340,12 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     }
 }
 
+-(void)swipeDown:(UIGestureRecognizer*)recognizer  {
+    if ([self.delegate respondsToSelector:@selector(closeSettings)]) {
+        [self.delegate closeSettings];
+    }
+}
+
 #pragma mark UITextField delegate methods
 
 - (void)textFieldDidBeginEditing:(UITextField *)textField {
@@ -355,7 +366,6 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
                          }];
         
         self.cityTextField.text = @"";
-        self.cityTextField.textColor = [UIColor darkGrayColor];
         self.locationSwitchLabel.hidden = YES;
         self.setLocationSwitch.hidden = YES;
         self.yesLabel.hidden = YES;
@@ -563,7 +573,6 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 	if(result) {
 		double latitude = [[result objectForKey:kILGeoNamesLatitudeKey] doubleValue];
 		double longitude = [[result objectForKey:kILGeoNamesLongitudeKey] doubleValue];
-        self.cityTextField.textColor = UIColorFromRGB(0x8e0528);
         self.cityTextField.text =[[result objectForKey:kILGeoNamesAlternateNameKey] uppercaseString];
         [self closeSearchResultsTableView];
         CLLocation *location = [[CLLocation alloc] initWithLatitude:latitude longitude:longitude];

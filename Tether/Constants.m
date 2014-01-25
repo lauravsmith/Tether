@@ -25,6 +25,7 @@ NSString *const kUserStatusMessageKey   = @"statusMessage";
 NSString *const kUserGenderKey          = @"gender";
 NSString *const kUserFacebookFriendsKey = @"facebookFriends";
 NSString *const kUserTimeLastUpdatedKey = @"timeLastUpdated";
+NSString *const kUserBlockedListKey     = @"blockedList";
 
 #pragma mark - Commitment Class
 NSString *const kCommitmentClassKey     = @"Commitment";

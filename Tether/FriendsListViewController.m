@@ -28,7 +28,7 @@
 #define STATUS_BAR_HEIGHT 20.0
 #define TOP_BAR_HEIGHT 70.0
 
-@interface FriendsListViewController () <InviteViewControllerDelegate, UITableViewDataSource, UITableViewDelegate>
+@interface FriendsListViewController () <InviteViewControllerDelegate, UIGestureRecognizerDelegate, UITableViewDataSource, UITableViewDelegate>
 @property (retain, nonatomic) UITableView * friendsTableView;
 @property (retain, nonatomic) UITableViewController * friendsTableViewController;
 @property (retain, nonatomic) NSMutableArray * friendsOfFriendsArray;
@@ -55,6 +55,13 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
+    UIPanGestureRecognizer *panRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(moveBack:)];
+    [panRecognizer setMinimumNumberOfTouches:1];
+    [panRecognizer setMaximumNumberOfTouches:1];
+    [panRecognizer setDelegate:self];
+    [self.view addGestureRecognizer:panRecognizer];
+    
     self.topBar = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, TOP_BAR_HEIGHT)];
     [self.topBar setBackgroundColor:UIColorFromRGB(0x8e0528)];
     
@@ -166,6 +173,7 @@
     PFQuery *query = [PFQuery queryWithClassName:kCommitmentClassKey];
     [query whereKey:kUserFacebookIDKey containedIn:allFriendsOfFriends];
     [query whereKey:kUserFacebookIDKey notContainedIn:facebookFriendsArray];
+    [query whereKey:kUserFacebookIDKey notContainedIn:sharedDataManager.blockedList];
     [query whereKey:kCommitmentPlaceIDKey equalTo:self.place.placeId];
     NSDate *startTime = [self getStartTime];
     [query whereKey:kCommitmentDateKey greaterThan:startTime];
@@ -266,6 +274,20 @@
                      }
                      completion:^(BOOL finished) {
                      }];
+}
+
+#pragma mark gesture handlers
+
+-(void)moveBack:(id)sender {
+    [[[(UITapGestureRecognizer*)sender view] layer] removeAllAnimations];
+    
+    CGPoint velocity = [(UIPanGestureRecognizer*)sender velocityInView:[sender view]];
+    
+    if([(UIPanGestureRecognizer*)sender state] == UIGestureRecognizerStateEnded) {
+        if(velocity.x > 0) {
+            [self closeFriendsView];
+        }
+    }
 }
 
 #pragma mark UIButton action methods

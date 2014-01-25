@@ -194,9 +194,19 @@
 {
     self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
     if (self) {
-        // Initialization code
+        UILongPressGestureRecognizer *lpgr = [[UILongPressGestureRecognizer alloc]
+                                              initWithTarget:self action:@selector(handleLongPress:)];
+        lpgr.minimumPressDuration = 1.0; //seconds
+        [self addGestureRecognizer:lpgr];
     }
     return self;
+}
+
+-(void)handleLongPress:(UILongPressGestureRecognizer *)longPress
+{
+    if ([self.delegate respondsToSelector:@selector(showBlockFriendAlertView:)]) {
+        [self.delegate showBlockFriendAlertView:self.friend];
+    }
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated
