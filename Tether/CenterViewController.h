@@ -58,12 +58,14 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 @property (strong, nonatomic) UILabel *notificationsLabel;
 @property (strong, nonatomic) UIButton *notificationsButton;
 @property (strong, nonatomic) UIButton *notificationsButtonLarge;
-@property (retain, nonatomic) UILabel * placeLabel;
-@property (retain, nonatomic) UILabel * placeNumberLabel;
+@property (retain, nonatomic) UIButton * cityButton;
+@property (retain, nonatomic) UIButton * placeButton;
+@property (retain, nonatomic) UIButton * placeNumberButton;
 @property (retain, nonatomic) UIView * bottomBar;
 @property (strong, nonatomic) NSMutableArray * annotationsArray;
 @property (strong, nonatomic) CLLocation *userCoordinates;
 @property (assign, nonatomic) bool listViewOpen;
+@property (assign, nonatomic) bool dragging;
 -(void)updateLocation;
 -(void)setCityFromCLLocation:(CLLocation*)location;
 -(void)layoutNumberButton;

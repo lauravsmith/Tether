@@ -52,6 +52,7 @@
 		47064CE1183DBAE300E9228A /* readme.txt in Resources */ = {isa = PBXBuildFile; fileRef = 47064CD8183DBAE300E9228A /* readme.txt */; };
 		47064CE2183DBAE300E9228A /* readme.txt in Resources */ = {isa = PBXBuildFile; fileRef = 47064CD8183DBAE300E9228A /* readme.txt */; };
 		47065F1C185AA8BC0047A564 /* RightPanelViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 47065F1B185AA8BC0047A564 /* RightPanelViewController.m */; };
+		4707791E1895F91F00F9B263 /* LoginPageImage.png in Resources */ = {isa = PBXBuildFile; fileRef = 4707791D1895F91F00F9B263 /* LoginPageImage.png */; };
 		470981AB184D7DD100779FC8 /* TetherAnnotation.m in Sources */ = {isa = PBXBuildFile; fileRef = 470981AA184D7DD100779FC8 /* TetherAnnotation.m */; };
 		470A338F184009FC006E48F9 /* FacebookSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 470A338E184009FC006E48F9 /* FacebookSDK.framework */; };
 		470A339518400C6E006E48F9 /* Parse.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 470A339418400C6E006E48F9 /* Parse.framework */; };
@@ -67,7 +68,6 @@
 		470A33AA184029CE006E48F9 /* LoginViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 470A33A9184029CE006E48F9 /* LoginViewController.m */; };
 		470A33AD18402A37006E48F9 /* facebook.png in Resources */ = {isa = PBXBuildFile; fileRef = 470A33AC18402A37006E48F9 /* facebook.png */; };
 		470A33B71842CB98006E48F9 /* DecisionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 470A33B61842CB98006E48F9 /* DecisionViewController.m */; };
-		470C2488188F01F700CCE073 /* LoginPage.png in Resources */ = {isa = PBXBuildFile; fileRef = 470C2487188F01F700CCE073 /* LoginPage.png */; };
 		47194F3618639AF900E114F5 /* InviteViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 47194F3518639AF900E114F5 /* InviteViewController.m */; };
 		472392A718649298000D0C7E /* Notification.m in Sources */ = {isa = PBXBuildFile; fileRef = 472392A618649298000D0C7E /* Notification.m */; };
 		472392AA1864D304000D0C7E /* NotificationCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 472392A91864D304000D0C7E /* NotificationCell.m */; };
@@ -235,6 +235,7 @@
 		47064CD8183DBAE300E9228A /* readme.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = readme.txt; sourceTree = "<group>"; };
 		47065F1A185AA8BC0047A564 /* RightPanelViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RightPanelViewController.h; sourceTree = "<group>"; };
 		47065F1B185AA8BC0047A564 /* RightPanelViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RightPanelViewController.m; sourceTree = "<group>"; };
+		4707791D1895F91F00F9B263 /* LoginPageImage.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = LoginPageImage.png; sourceTree = "<group>"; };
 		470981A9184D7DD100779FC8 /* TetherAnnotation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TetherAnnotation.h; sourceTree = "<group>"; };
 		470981AA184D7DD100779FC8 /* TetherAnnotation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TetherAnnotation.m; sourceTree = "<group>"; };
 		470A338E184009FC006E48F9 /* FacebookSDK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FacebookSDK.framework; path = ../../FacebookSDK/FacebookSDK.framework; sourceTree = "<group>"; };
@@ -253,7 +254,6 @@
 		470A33AC18402A37006E48F9 /* facebook.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = facebook.png; path = ../../../FacebookSDK/Samples/Scrumptious/scrumptious/images/facebook.png; sourceTree = "<group>"; };
 		470A33B51842CB98006E48F9 /* DecisionViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DecisionViewController.h; sourceTree = "<group>"; };
 		470A33B61842CB98006E48F9 /* DecisionViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DecisionViewController.m; sourceTree = "<group>"; };
-		470C2487188F01F700CCE073 /* LoginPage.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = LoginPage.png; sourceTree = "<group>"; };
 		47194F3418639AF900E114F5 /* InviteViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InviteViewController.h; sourceTree = "<group>"; };
 		47194F3518639AF900E114F5 /* InviteViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = InviteViewController.m; sourceTree = "<group>"; };
 		472392A518649298000D0C7E /* Notification.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Notification.h; sourceTree = "<group>"; };
@@ -568,7 +568,7 @@
 		47064CC6183DB11D00E9228A /* Images */ = {
 			isa = PBXGroup;
 			children = (
-				470C2487188F01F700CCE073 /* LoginPage.png */,
+				4707791D1895F91F00F9B263 /* LoginPageImage.png */,
 				47FDB6031884B62100841FAD /* poweredByFoursquare.png */,
 				47461001188237B70067545B /* FriendIcon.png */,
 				47460FFF18822E9F0067545B /* FriendsThing.png */,
@@ -825,7 +825,6 @@
 				4702442118576BFD001C19AC /* CHANGELOG.md in Resources */,
 				4790C45E1889B0F100DB9759 /* HelveticaNeueLTStd-BlkCn.otf in Resources */,
 				4790C4631889B0F100DB9759 /* HelveticaNeueLTStd-Cn.otf in Resources */,
-				470C2488188F01F700CCE073 /* LoginPage.png in Resources */,
 				4790C4571889B0F100DB9759 /* HelveticaNeueLTStd-BdCn.otf in Resources */,
 				47BB2C5B187E0E1900BB40F5 /* RedTriangle.png in Resources */,
 				4790C4591889B0F100DB9759 /* HelveticaNeueLTStd-BdEx.otf in Resources */,
@@ -875,6 +874,7 @@
 				4790C48C1889B0F100DB9759 /* HelveticaRoundedLTStd-BdO.otf in Resources */,
 				4790C4871889B0F100DB9759 /* HelveticaNeueLTStd-XBlkCn.otf in Resources */,
 				4790C47C1889B0F100DB9759 /* HelveticaNeueLTStd-ThCn.otf in Resources */,
+				4707791E1895F91F00F9B263 /* LoginPageImage.png in Resources */,
 				4790C46B1889B0F100DB9759 /* HelveticaNeueLTStd-HvExO.otf in Resources */,
 				47064CD1183DB16200E9228A /* Whiteline.png in Resources */,
 				4790C47B1889B0F100DB9759 /* HelveticaNeueLTStd-Th.otf in Resources */,

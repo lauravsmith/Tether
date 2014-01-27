@@ -13,7 +13,7 @@
 
 #define MAX_LABEL_WIDTH 150.0
 #define NAME_LABEL_OFFSET_X 70.0
-#define PANEL_WIDTH 60
+#define PANEL_WIDTH 45.0
 #define PROFILE_PICTURE_CORNER_RADIUS 22.0
 #define PROFILE_PICTURE_OFFSET_X 10.0
 #define PROFILE_PICTURE_SIZE 45.0
@@ -196,7 +196,7 @@
     if (self) {
         UILongPressGestureRecognizer *lpgr = [[UILongPressGestureRecognizer alloc]
                                               initWithTarget:self action:@selector(handleLongPress:)];
-        lpgr.minimumPressDuration = 1.0; //seconds
+        lpgr.minimumPressDuration = 0.5; //seconds
         [self addGestureRecognizer:lpgr];
     }
     return self;

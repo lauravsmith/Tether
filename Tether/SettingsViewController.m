@@ -44,6 +44,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 @property (nonatomic, retain) NSMutableArray *searchResults;
 @property (retain, nonatomic) UIButton * cancelSearchButton;
 @property (retain, nonatomic) UIActivityIndicatorView * activityIndicator;
+@property (retain, nonatomic) UIButton * inviteFriendsButton;
 
 @end
 
@@ -147,7 +148,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [self.view addSubview:self.yesLabel];
     
     //city search
-    self.cityTextField = [[UITextField  alloc] initWithFrame:CGRectMake(PADDING, self.setLocationSwitch.frame.origin.y + self.setLocationSwitch.frame.size.height + PADDING, self.view.frame.size.width - PADDING*2, 25.0)];
+    self.cityTextField = [[UITextField  alloc] initWithFrame:CGRectMake(PADDING, self.setLocationSwitch.frame.origin.y + self.setLocationSwitch.frame.size.height, self.view.frame.size.width - PADDING*2, 25.0)];
     self.cityTextField.delegate = self;
     NSString *location = [NSString stringWithFormat:@"%@, %@",[userDetails objectForKey:@"city"], [userDetails objectForKey:@"state"]];
     self.cityTextField.text = [location uppercaseString];
@@ -233,6 +234,12 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [self.logoutButton addTarget:self action:@selector(logoutButtonWasPressed:) forControlEvents:UIControlEventTouchDown];
     [self.view addSubview:self.logoutButton];
     
+//    self.inviteFriendsButton = [[UIButton alloc] init];
+//    [self.inviteFriendsButton setTitle:@"Invite Friends" forState:UIControlStateNormal];
+//    self.inviteFriendsButton.frame = CGRectMake(0, self.logoutButton.frame.origin.y, 100.0, 100.0);
+//    [self.inviteFriendsButton addTarget:self action:@selector(inviteFriendsPressed:) forControlEvents:UIControlEventTouchUpInside];
+//    [self.view addSubview:self.inviteFriendsButton];
+    
     UIFont *montserratLarge = [UIFont fontWithName:@"Montserrat" size:16];
     self.doneButton = [[UIButton alloc] init];
     [self.doneButton setTitle:@"Done" forState:UIControlStateNormal];
@@ -314,8 +321,8 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
                          CGRect frame = self.cityTextField.frame;
-                         frame.origin.y = self.setLocationSwitch.frame.origin.y + self.setLocationSwitch.frame.size.height + PADDING;
-                         frame.size.width = self.view.frame.size.width - self.defaultCityLabel.frame.origin.x*2;
+                         frame.origin.y = self.setLocationSwitch.frame.origin.y + self.setLocationSwitch.frame.size.height;
+                         frame.size.width = self.view.frame.size.width - PADDING*2;
                          self.cityTextField.frame = frame;
                      }
                      completion:^(BOOL finished) {
@@ -504,6 +511,50 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [self closeSearchResultsTableView];
 }
 
+-(IBAction)inviteFriendsPressed:(id)sender {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    
+    // Display the requests dialog
+    [FBWebDialogs
+     presentRequestsDialogModallyWithSession:nil
+     message:[NSString stringWithFormat:@"%@ sent you an invite on Tethr", sharedDataManager.name]
+     title:@"Invite Friends"
+     parameters:nil
+     handler:^(FBWebDialogResult result, NSURL *resultURL, NSError *error) {
+         if (error) {
+             // Error launching the dialog or sending the request.
+             NSLog(@"Error sending request.");
+         } else {
+             if (result == FBWebDialogResultDialogNotCompleted) {
+                 // User clicked the "x" icon
+                 NSLog(@"User canceled request.");
+             } else {
+                 // Handle the send request callback
+                 NSDictionary *urlParams = [self parseURLParams:[resultURL query]];
+                 if (![urlParams valueForKey:@"request"]) {
+                     // User clicked the Cancel button
+                     NSLog(@"User canceled request.");
+                 } else {
+                     // User clicked the Send button
+                     NSString *requestID = [urlParams valueForKey:@"request"];
+                     NSLog(@"Request ID: %@", requestID);
+                 }
+             }
+         }
+     }];
+}
+
+- (NSDictionary*)parseURLParams:(NSString *)query {
+    NSArray *pairs = [query componentsSeparatedByString:@"&"];
+    NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
+    for (NSString *pair in pairs) {
+        NSArray *kv = [pair componentsSeparatedByString:@"="];
+        NSString *val =
+        [kv[1] stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+        params[kv[0]] = val;
+    }
+    return params;
+}
 
 #pragma mark -
 #pragma mark Table view data source

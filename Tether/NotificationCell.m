@@ -12,10 +12,11 @@
 
 #import <FacebookSDK/FacebookSDK.h>
 
-#define CELL_HEIGHT 90.0
+#define CELL_HEIGHT 70.0
 #define PADDING 10.0
-#define PROFILE_PICTURE_CORNER_RADIUS 22.0
-#define PROFILE_PICTURE_SIZE 45.0
+#define PANEL_WIDTH 45.0
+#define PROFILE_PICTURE_CORNER_RADIUS 14.0
+#define PROFILE_PICTURE_SIZE 28.0
 
 @interface NotificationCell () <TTTAttributedLabelDelegate>
 
@@ -83,12 +84,12 @@
     [self.messageHeaderLabel setText:self.text];
     
     CGRect contentRect;
-    contentRect = [self.text boundingRectWithSize:CGSizeMake(190.0, 500.f)
+    contentRect = [self.text boundingRectWithSize:CGSizeMake(210.0, 500.f)
                                           options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading)
                                           context:nil];
     self.messageHeaderLabel.lineBreakMode = NSLineBreakByWordWrapping;
     self.messageHeaderLabel.numberOfLines = 0;
-    self.messageHeaderLabel.frame = CGRectMake(60.0, PADDING / 2.0, contentRect.size.width, ceil(contentRect.size.height) + 1.0);
+    self.messageHeaderLabel.frame = CGRectMake(PANEL_WIDTH, PADDING / 2.0, contentRect.size.width, ceil(contentRect.size.height) + 1.0);
     
     self.messageHeaderLabel.delegate = self;
     
@@ -143,7 +144,7 @@
     self.time = self.timeLabel.text;
     
     CGSize size = [self.timeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
-    self.timeLabel.frame = CGRectMake(self.frame.size.width - 60.0 - size.width - PADDING, MAX(self.messageHeaderLabel.frame.size.height, CELL_HEIGHT - size.height - PADDING / 2.0), size.width, size.height);
+    self.timeLabel.frame = CGRectMake(self.frame.size.width - PANEL_WIDTH - size.width - PADDING, MAX(self.messageHeaderLabel.frame.size.height, CELL_HEIGHT - size.height - PADDING / 2.0), size.width, size.height);
     [self.timeLabel setTextColor:[UIColor whiteColor]];
     [self.timeLabel setUserInteractionEnabled:YES];
     

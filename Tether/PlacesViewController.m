@@ -769,9 +769,11 @@
             [self removePreviousCommitment];
             [self removeCommitmentFromDatabase];
             [cell setTethered:NO];
+            self.previousCommitmentCellIndexPath = nil;
         } else {
             [cell setTethered:YES];
             [self commitToPlace:cell.place fromCell:cell];
+            self.previousCommitmentCellIndexPath = indexPath;
         }
         [cell layoutCommitButton];
         [cell setNeedsLayout];

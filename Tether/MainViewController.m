@@ -22,6 +22,7 @@
 #import "RightPanelViewController.h"
 #import "SettingsViewController.h"
 #import "TetherAnnotation.h"
+#import "TetherAnnotationView.h"
 #import "TetherCache.h"
 
 #import <FacebookSDK/FacebookSDK.h>
@@ -33,7 +34,7 @@
 #define RIGHT_PANEL_TAG 3
 #define CORNER_RADIUS 4.0
 #define SLIDE_TIMING 0.6
-#define PANEL_WIDTH 60.0
+#define PANEL_WIDTH 45.0
 #define POLLING_INTERVAL 20
 
 @interface MainViewController () <CenterViewControllerDelegate, DecisionViewControllerDelegate, FriendsListViewControllerDelegate, InviteViewControllerDelegate, LeftPanelViewControllerDelegate, PlacesViewControllerDelegate, RightPanelViewControllerDelegate, SettingsViewControllerDelegate, UIGestureRecognizerDelegate>
@@ -55,6 +56,7 @@
 @property (nonatomic, assign) BOOL canUpdatePlaces;
 @property (nonatomic, assign) BOOL shouldSortFriendsList;
 @property (nonatomic, assign) BOOL parseError;
+@property (nonatomic, assign) BOOL committingToPlace;
 @property (nonatomic, strong) NSString *facebookId;
 @property (nonatomic, assign) CGPoint preVelocity;
 @property (nonatomic, assign) NSTimer *pollingTimer;
@@ -108,6 +110,7 @@
     [self refreshNotificationsNumber];
 }
 
+// handle in phone call layout
 -(void)setNeedsStatusBarAppearanceUpdate {
     [super setNeedsStatusBarAppearanceUpdate];
     
@@ -448,7 +451,7 @@
     for (id key in sharedDataManager.tetherFriendsNearbyDictionary) {
         Friend *friend = [sharedDataManager.tetherFriendsNearbyDictionary objectForKey:key];
         if (friend) {
-            if (([startTime compare:friend.timeLastUpdated] == NSOrderedDescending || !friend.status) && [sharedDataManager.friendsToPlacesMap objectForKey:friend.friendID]) {
+            if (([startTime compare:friend.timeLastUpdated] == NSOrderedDescending || !friend.status) && ![sharedDataManager.friendsToPlacesMap objectForKey:friend.friendID]) {
                 friend.placeId = @"";
                 [tempFriendsUndecidedSet addObject:friend];
             } else {
@@ -729,6 +732,7 @@
 
 -(void)movePanel:(id)sender
 {
+     self.centerViewController.dragging = YES;
     [[[(UITapGestureRecognizer*)sender view] layer] removeAllAnimations];
     
     CGPoint translatedPoint = [(UIPanGestureRecognizer*)sender translationInView:self.view];
@@ -822,77 +826,15 @@
 
 -(void)showListView
 {
-    if (!self.placesViewController) {
-        self.placesViewController = [[PlacesViewController alloc] init];
-        self.placesViewController.delegate = self;
-    } 
-
-    [self.placesViewController didMoveToParentViewController:self];
-    [self.placesViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
-    [self.view addSubview:self.placesViewController.view];
-    
-    [UIView animateWithDuration:SLIDE_TIMING
-                          delay:0.0
-         usingSpringWithDamping:1.0
-          initialSpringVelocity:1.0
-                        options:UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
-                        [self.placesViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
-                     }
-                     completion:^(BOOL finished) {
-                         [self resetMainView];
-                         [self canUpdatePlaces:NO];
-                     }];
-}
-
-- (void)movePanelRight // to show left panel
-{
-    UIView *childView = [self getLeftView];
-    [self.view sendSubviewToBack:childView];
-    
-    [UIView animateWithDuration:SLIDE_TIMING
-                          delay:0.0
-         usingSpringWithDamping:1.0
-          initialSpringVelocity:1.0
-                        options:UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
-                         _centerViewController.view.frame = CGRectMake(self.view.frame.size.width - PANEL_WIDTH, 0, self.view.frame.size.width, self.view.frame.size.height);
-                     }
-                     completion:^(BOOL finished) {
-                         _centerViewController.numberButton.tag = 0;
-                          _centerViewController.triangleButton.tag = 0;
-                          _centerViewController.leftPanelButtonLarge.tag = 0;
-                         _centerViewController.mv.userInteractionEnabled = NO;
-                         _centerViewController.userProfilePictureView.userInteractionEnabled = NO;
-                         _centerViewController.settingsButtonLarge.enabled = NO;
-                         UITapGestureRecognizer *mapTapGesture =
-                         [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(closePanel:)];
-                         [self.centerViewController.view addGestureRecognizer:mapTapGesture];
-                     }];
-}
-
-- (void)movePanelLeft // to show left panel
-{
-    if (![self.view.subviews containsObject:self.decisionViewController]) {
-        UIView *childView = [self getRightView];
-        [self.view sendSubviewToBack:childView];
-        [childView setNeedsLayout];
-        [childView layoutIfNeeded];
-        [self.view setNeedsLayout];
-        [self.view layoutIfNeeded];
-        
-        self.centerViewController.listViewButton.userInteractionEnabled = NO;
-        self.centerViewController.listViewButtonLarge.userInteractionEnabled = NO;
-        
-        PFInstallation *currentInstallation = [PFInstallation currentInstallation];
-        Datastore *sharedDataManager = [Datastore sharedDataManager];
-        if (currentInstallation.badge != 0 || sharedDataManager.notifications != 0) {
-            [self loadNotifications];
+    if (!self.centerViewController.dragging) {
+        if (!self.placesViewController) {
+            self.placesViewController = [[PlacesViewController alloc] init];
+            self.placesViewController.delegate = self;
         }
-        currentInstallation.badge = 0;
-        [currentInstallation saveEventually];
-        sharedDataManager.notifications = 0;
-        [self updateNotificationsNumber];
+        
+        [self.placesViewController didMoveToParentViewController:self];
+        [self.placesViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+        [self.view addSubview:self.placesViewController.view];
         
         [UIView animateWithDuration:SLIDE_TIMING
                               delay:0.0
@@ -900,16 +842,88 @@
               initialSpringVelocity:1.0
                             options:UIViewAnimationOptionBeginFromCurrentState
                          animations:^{
-                             _centerViewController.view.frame = CGRectMake(-self.view.frame.size.width + PANEL_WIDTH, 0.0, self.view.frame.size.width, self.view.frame.size.height);
+                             [self.placesViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
                          }
-                         completion:^(BOOL finished) {                             
-                             _centerViewController.notificationsButton.tag = 0;
-                             _centerViewController.notificationsButtonLarge.tag = 0;
+                         completion:^(BOOL finished) {
+                             [self resetMainView];
+                             [self canUpdatePlaces:NO];
+                         }];
+    }
+}
+
+- (void)movePanelRight // to show left panel
+{
+    if (!self.centerViewController.listViewOpen) {
+        self.centerViewController.dragging = YES;
+        UIView *childView = [self getLeftView];
+        [self.view sendSubviewToBack:childView];
+        
+        [UIView animateWithDuration:SLIDE_TIMING
+                              delay:0.0
+             usingSpringWithDamping:1.0
+              initialSpringVelocity:1.0
+                            options:UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                             _centerViewController.view.frame = CGRectMake(self.view.frame.size.width - PANEL_WIDTH, 0, self.view.frame.size.width, self.view.frame.size.height);
+                         }
+                         completion:^(BOOL finished) {
+                             _centerViewController.numberButton.tag = 0;
+                             _centerViewController.triangleButton.tag = 0;
+                             _centerViewController.leftPanelButtonLarge.tag = 0;
                              _centerViewController.mv.userInteractionEnabled = NO;
+                             _centerViewController.userProfilePictureView.userInteractionEnabled = NO;
+                             _centerViewController.settingsButtonLarge.enabled = NO;
                              UITapGestureRecognizer *mapTapGesture =
                              [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(closePanel:)];
                              [self.centerViewController.view addGestureRecognizer:mapTapGesture];
                          }];
+    }
+}
+
+- (void)movePanelLeft // to show left panel
+{
+    if (!self.centerViewController.listViewOpen) {
+        if (![self.view.subviews containsObject:self.decisionViewController]) {
+            self.centerViewController.dragging = YES;
+            UIView *childView = [self getRightView];
+            [self.view sendSubviewToBack:childView];
+            [childView setNeedsLayout];
+            [childView layoutIfNeeded];
+            [self.view setNeedsLayout];
+            [self.view layoutIfNeeded];
+            
+            self.centerViewController.listViewButton.userInteractionEnabled = NO;
+            self.centerViewController.listViewButtonLarge.userInteractionEnabled = NO;
+            
+            PFInstallation *currentInstallation = [PFInstallation currentInstallation];
+            Datastore *sharedDataManager = [Datastore sharedDataManager];
+            if (currentInstallation.badge != 0 || sharedDataManager.notifications != 0) {
+                [self loadNotifications];
+            }
+            currentInstallation.badge = 0;
+            [currentInstallation saveEventually];
+            sharedDataManager.notifications = 0;
+            [self updateNotificationsNumber];
+            
+            [UIView animateWithDuration:SLIDE_TIMING
+                                  delay:0.0
+                 usingSpringWithDamping:1.0
+                  initialSpringVelocity:1.0
+                                options:UIViewAnimationOptionBeginFromCurrentState
+                             animations:^{
+                                 _centerViewController.view.frame = CGRectMake(-self.view.frame.size.width + PANEL_WIDTH, 0.0, self.view.frame.size.width, self.view.frame.size.height);
+                             }
+                             completion:^(BOOL finished) {                             
+                                 _centerViewController.notificationsButton.tag = 0;
+                                 _centerViewController.notificationsButtonLarge.tag = 0;
+                                 _centerViewController.mv.userInteractionEnabled = NO;
+                                 UITapGestureRecognizer *mapTapGesture =
+                                 [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(closePanel:)];
+                                 [self.centerViewController.view addGestureRecognizer:mapTapGesture];
+                             }];
+        }
+    } else {
+        [self movePanelToOriginalPosition];
     }
 }
 
@@ -925,6 +939,7 @@
                      }
                      completion:^(BOOL finished) {
                          [self resetMainView];
+                          self.centerViewController.dragging = NO;
                      }];
 }
 
@@ -1068,6 +1083,7 @@
 
 #pragma mark LeftPanelViewControllerDelegate
 -(void)goToPlaceInListView:(id)placeId {
+      self.centerViewController.dragging = NO;
     [self movePanelToOriginalPosition];
     [self performSelector:@selector(showListView) withObject:nil afterDelay:0.2];
     [self.placesViewController.placesTableView reloadData];
@@ -1126,9 +1142,10 @@
     
     if ([self.centerViewController.placeToAnnotationDictionary objectForKey:place.placeId]) {
         TetherAnnotation *previousAnnotation = [self.centerViewController.placeToAnnotationDictionary objectForKey:place.placeId];
-        if ([place.friendsCommitted isEqualToSet:previousAnnotation.place.friendsCommitted]) {
+        if ([place.friendsCommitted isEqualToSet:previousAnnotation.place.friendsCommitted] && !self.committingToPlace) {
             return;
         }
+        
         [self removePlaceMarkFromMapView:place];
     }
     [self.centerViewController.placeToAnnotationDictionary  setObject:annotation forKey:place.placeId];
@@ -1136,6 +1153,7 @@
         NSLog(@"MAIN VIEW: Adding annotation with %d commitments", [place.friendsCommitted count]);
         [self.centerViewController.mv addAnnotation:annotation];
     }
+    self.committingToPlace = NO;
 }
 
 -(void)removePlaceMarkFromMapView:(Place*)place {
@@ -1256,8 +1274,9 @@
             Datastore *sharedDataManager = [Datastore sharedDataManager];
             sharedDataManager.currentCommitmentParseObject = commitment;
             
-            [self placeMarkOnMapView:place];
-            [self pollDatabase];
+            self.committingToPlace = YES;
+            
+            [self performSelector:@selector(pollDatabase) withObject:nil afterDelay:1.0];
             
             [self notifyFriendsForCommitmentToPlace:place];
         } else {
@@ -1325,7 +1344,6 @@
         }
         sharedDataManager.currentCommitmentPlace = nil;
     }
-    [self pollDatabase];
 }
 
 -(void)removeCommitmentFromDatabase {
@@ -1335,6 +1353,7 @@
         NSLog(@"PARSE DELETE: Removed previous commitment from database");
         sharedDataManager.currentCommitmentParseObject = nil;
     }
+    [self performSelector:@selector(pollDatabase) withObject:nil afterDelay:1.0];
 }
 
 -(void)sortFriendsList {

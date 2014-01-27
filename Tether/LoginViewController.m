@@ -32,14 +32,14 @@
     
     [self.view setBackgroundColor:[UIColor whiteColor]];
     
-    UIImage *topImage = [UIImage imageNamed:@"LoginPage"];
+    UIImage *topImage = [UIImage imageNamed:@"LoginPageImage"];
     UIImageView *topImageView = [[UIImageView alloc] initWithImage:topImage];
-    topImageView.frame = CGRectMake(-self.view.frame.size.width / 2.1, -self.view.frame.size.height / 2.0 - 20.0, self.view.frame.size.width*1.9, self.view.frame.size.height*2);
-    topImageView.contentMode = UIViewContentModeScaleAspectFit;
+    topImageView.frame = CGRectMake(0.0, 0.0, self.view.frame.size.width, self.view.frame.size.height * 3.5 /4.0);
+    topImageView.contentMode = UIViewContentModeScaleAspectFill;
     [self.view addSubview:topImageView];
     
     UIImageView *textureImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"BlackTexture"]];
-    textureImageView.frame = CGRectMake(0, self.view.frame.size.height - 185.0, self.view.frame.size.width, 185);
+    textureImageView.frame = CGRectMake(0, self.view.frame.size.height - self.view.frame.size.height / 3.0, self.view.frame.size.width, self.view.frame.size.height / 3.0);
     [self.view addSubview:textureImageView];
 
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:15.0f];
@@ -52,7 +52,7 @@
     sloganLabel.textAlignment = NSTextAlignmentCenter;
     sloganLabel.font = montserrat;
     sloganLabel.textColor = UIColorFromRGB(0x8e0528);
-    sloganLabel.frame = CGRectMake((self.view.frame.size.width - 160.0) / 2.0, 160.0, 160.0, 40.0);
+    sloganLabel.frame = CGRectMake((self.view.frame.size.width - 160.0) / 2.0, self.view.frame.size.height / 3.5, 160.0, 40.0);
     [self.view addSubview:sloganLabel];
     
     self.loginButton = [[UIButton alloc] init];
@@ -65,7 +65,7 @@
     [self.loginButton addTarget:self action:@selector(loginButtonTouchHandler:) forControlEvents:UIControlEventTouchDown];
     [self.view addSubview:self.loginButton];
     
-    self.spinner = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake((self.view.frame.size.width - 50.0) / 2, 250.0, 50.0, 50.0)];
+    self.spinner = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake((self.view.frame.size.width - 50.0) / 2, sloganLabel.frame.origin.y + (self.loginButton.frame.origin.y - sloganLabel.frame.origin.y) / 2.0, 50.0, 50.0)];
     [self.spinner setColor:UIColorFromRGB(0x8e0528)];
     [self.view addSubview:self.spinner];
 }

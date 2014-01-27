@@ -166,9 +166,17 @@
         [allFriendsOfFriends addObjectsFromArray:friend.friendsArray];
     }
     Datastore *sharedDataManager = [Datastore sharedDataManager];
-
+    
     NSMutableArray *facebookFriendsArray = [sharedDataManager.facebookFriends mutableCopy];
     [facebookFriendsArray addObject:sharedDataManager.facebookId];
+    
+    NSMutableSet *friendsOfFriendsSet = [[NSMutableSet alloc] initWithArray:allFriendsOfFriends];
+    NSMutableSet *myFriendsSet = [[NSMutableSet alloc] initWithArray:facebookFriendsArray];
+    NSMutableSet *blockedListSet = [[NSMutableSet alloc] initWithArray:sharedDataManager.blockedList];
+    [friendsOfFriendsSet minusSet:myFriendsSet];
+    [friendsOfFriendsSet minusSet:blockedListSet];
+
+    allFriendsOfFriends = [[friendsOfFriendsSet allObjects] mutableCopy];
     
     PFQuery *query = [PFQuery queryWithClassName:kCommitmentClassKey];
     [query whereKey:kUserFacebookIDKey containedIn:allFriendsOfFriends];

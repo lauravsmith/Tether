@@ -58,13 +58,13 @@
     self.listViewOpen = NO;
     
     // mapview setup
-    self.mv = [[MKMapView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)];
+    self.mv = [[MKMapView alloc] initWithFrame:CGRectMake(0, TOP_BAR_HEIGHT, self.view.frame.size.width, self.view.frame.size.height)];
     self.mv.delegate = self;
     [self.view addSubview:self.mv];
     
     // top bar setup
     self.topBar = [[UIView alloc] initWithFrame:CGRectMake(0, 0.0, self.view.frame.size.width,TOP_BAR_HEIGHT)];
-    [self.topBar setBackgroundColor:UIColorFromRGB(0x8e0528)];
+    self.topBar.layer.backgroundColor = UIColorFromRGB(0x8e0528).CGColor;
     [self.view addSubview:self.topBar];
     
     self.locationManager = [[CLLocationManager alloc] init];
@@ -174,23 +174,33 @@
     
     UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:14];
     UIFont *montserratExtraSmall = [UIFont fontWithName:@"Montserrat" size:10];
-    self.placeLabel = [[UILabel alloc] init];
-    [self.placeLabel setFont:montserratExtraSmall];
-    [self.placeLabel setTextColor:UIColorFromRGB(0x8e0528)];
-    self.placeLabel.adjustsFontSizeToFitWidth = YES;
-    [self.bottomBar addSubview:self.placeLabel];
+    UIFont *montserratMedium = [UIFont fontWithName:@"Montserrat" size:16];
     
-    self.placeNumberLabel = [[UILabel alloc] init];
-    [self.placeNumberLabel setFont:montserratSmall];
-    [self.placeNumberLabel setTextColor:UIColorFromRGB(0x8e0528)];
-    [self.bottomBar addSubview:self.placeNumberLabel];
-    [self layoutCurrentCommitment];
+    self.cityButton = [[UIButton alloc] init];
+    self.cityButton.titleLabel.font = montserratMedium;
+    [self.cityButton setTitleColor: UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+    [self.cityButton addTarget:self action:@selector(cityNameTap:) forControlEvents:UIControlEventTouchUpInside];
+    [self.bottomBar addSubview:self.cityButton];
     
-    [self.view addSubview:self.bottomBar];
+    self.placeButton = [[UIButton alloc] init];
+    self.placeButton.titleLabel.font = montserratExtraSmall;
+    [self.placeButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+    self.placeButton.titleLabel.adjustsFontSizeToFitWidth = YES;
+    [self.placeButton addTarget:self action:@selector(commitmentClicked:) forControlEvents:UIControlEventTouchUpInside];
+    [self.bottomBar addSubview:self.placeButton];
+    
+    self.placeNumberButton = [[UIButton alloc] init];
+    [self.placeNumberButton.titleLabel setFont:montserratSmall];
+    [self.placeNumberButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+    [self.placeNumberButton addTarget:self action:@selector(commitmentClicked:) forControlEvents:UIControlEventTouchUpInside];
+    [self.bottomBar addSubview:self.placeNumberButton];
     
     self.commitmentButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width / 4.0, 0.0, self.view.frame.size.width / 2.0, self.bottomBar.frame.size.height)];
-    self.commitmentButton.tag = 0;
     [self.commitmentButton addTarget:self action:@selector(commitmentClicked:) forControlEvents:UIControlEventTouchUpInside];
+    [self.bottomBar addSubview:self.commitmentButton];
+    
+    [self.view addSubview:self.bottomBar];
+    [self layoutCurrentCommitment];
     
     [self restartTimer];
     
@@ -200,7 +210,7 @@
 -(void)setNeedsStatusBarAppearanceUpdate {
     self.topBar.frame = CGRectMake(0, 0.0, self.view.frame.size.width,TOP_BAR_HEIGHT);
     self.bottomBar.frame = CGRectMake(0, self.view.frame.size.height - BOTTOM_BAR_HEIGHT, self.view.frame.size.width, BOTTOM_BAR_HEIGHT);
-    self.mv.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
+    self.mv.frame = CGRectMake(0, TOP_BAR_HEIGHT, self.view.frame.size.width, self.view.frame.size.height);
 }
 
 -(void)layoutNumberButton {
@@ -221,60 +231,39 @@
     NSDate *startTime = [self getStartTime];
     
     if (sharedDataManager.currentCommitmentPlace && [startTime compare:timeLastUpdated] == NSOrderedAscending) {
-         self.mv.showsUserLocation = NO;
-        UIFont *montserratExtraSmall = [UIFont fontWithName:@"Montserrat" size:10];
+        self.cityButton.hidden = YES;
+        self.commitmentButton.hidden = NO;
+        self.placeButton.hidden = NO;
+        self.placeNumberButton.hidden = NO;
         
-        self.placeLabel.text = sharedDataManager.currentCommitmentPlace.name;
-        self.placeNumberLabel.text = [NSString stringWithFormat:@"%d", [sharedDataManager.currentCommitmentPlace.friendsCommitted count]];
+        UIFont *montserratExtraSmall = [UIFont fontWithName:@"Montserrat" size:10];
+        [self.placeButton setTitle:sharedDataManager.currentCommitmentPlace.name forState:UIControlStateNormal];
+        [self.placeNumberButton setTitle:[NSString stringWithFormat:@"%d", [sharedDataManager.currentCommitmentPlace.friendsCommitted count]] forState:UIControlStateNormal];
         self.tethrLabel.text = @"tethrd";
         
-        self.placeLabel.font = montserratExtraSmall;
+        CGSize size1 = [self.placeButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratExtraSmall}];
+        CGSize size2 = [self.placeNumberButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratSmall}];
         
-        CGSize size1 = [self.placeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratExtraSmall}];
-        CGSize size2 = [self.placeNumberLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratSmall}];
+        self.placeButton.frame = CGRectMake(MAX(self.userProfilePictureView.frame.origin.x + self.userProfilePictureView.frame.size.width, (self.view.frame.size.width - size1.width) / 2), (self.bottomBar.frame.size.height - size1.height + size2.height) / 2.0, MIN(267.0, size1.width), size1.height);
         
-        self.placeLabel.frame = CGRectMake(MAX(self.userProfilePictureView.frame.origin.x + self.userProfilePictureView.frame.size.width, (self.view.frame.size.width - size1.width) / 2), (self.bottomBar.frame.size.height - size1.height + size2.height) / 2.0, MIN(267.0, size1.width), size1.height);
-
-        for (UIGestureRecognizer *gestureRecognizer in self.placeLabel.gestureRecognizers) {
-            [self.placeLabel removeGestureRecognizer:gestureRecognizer];
-        }
-
-        [self.bottomBar addSubview:self.commitmentButton];
-        self.commitmentButton.tag = 1;
-        
-        self.placeNumberLabel.frame = CGRectMake((self.view.frame.size.width - size2.width) / 2, (self.bottomBar.frame.size.height - size1.height - size2.height) / 2.0, size2.width, size2.height);
-
+        self.placeNumberButton.frame = CGRectMake((self.view.frame.size.width - size2.width) / 2, (self.bottomBar.frame.size.height - size1.height - size2.height) / 2.0, size2.width, size2.height);
     } else {
-        
-        if (!self.mv.showsUserLocation && self.userCoordinates.coordinate.longitude != 0.0) {
-            [self.mv setShowsUserLocation:YES];
-        }
+        self.cityButton.hidden = NO;
+        self.commitmentButton.hidden = YES;
+        self.placeButton.hidden = YES;
+        self.placeNumberButton.hidden = YES;
 
         UIFont *montserratExtraSmall = [UIFont fontWithName:@"Montserrat" size:16];
-        
         NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
         if ([userDetails objectForKey:@"city"]) {
-            self.placeLabel.text = [NSString stringWithFormat:@"%@",[userDetails objectForKey:@"city"]];
-            self.placeLabel.font = montserratExtraSmall;
+            [self.cityButton setTitle:[NSString stringWithFormat:@"%@",[userDetails objectForKey:@"city"]] forState:UIControlStateNormal];
+            self.cityButton.titleLabel.font = montserratExtraSmall;
         }
         
-        self.placeNumberLabel.text = @"";
         self.tethrLabel.text = @"tethr";
         
-        CGSize size = [self.placeNumberLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratSmall}];
-        self.placeNumberLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2, 0, size.width, size.height);
-
-        size = [self.placeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratExtraSmall}];
-        self.placeLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2, (self.bottomBar.frame.size.height - size.height) / 2.0, MIN(300.0, size.width), size.height);
-        
-        self.cityTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(cityNameTap:)];
-        [self.placeLabel addGestureRecognizer:self.cityTapGesture];
-        self.placeLabel.userInteractionEnabled = YES;
-        
-        if (self.commitmentButton.tag == 1) {
-            [self.commitmentButton removeFromSuperview];
-        }
-        self.commitmentButton.tag = 0;
+        CGSize size = [self.cityButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratExtraSmall}];
+        self.cityButton.frame = CGRectMake((self.view.frame.size.width - size.width) / 2, (self.bottomBar.frame.size.height - size.height) / 2.0, MIN(300.0, size.width), size.height);
     }
     
     CGSize size = [self.tethrLabel.text sizeWithAttributes:@{NSFontAttributeName:helvetica}];
@@ -472,6 +461,7 @@
 
 -(void)showListView {
     if ([self.delegate respondsToSelector:@selector(showListView)]) {
+        self.listViewOpen = YES;
         [self.delegate showListView];
     }
 }
@@ -502,61 +492,42 @@
 
 - (IBAction)btnMovePanelRight:(id)sender
 {
-    UIButton *button = sender;
-    switch (button.tag) {
-        case 0: {
-            [_delegate movePanelToOriginalPosition];
-            break;
+    if (!self.listViewOpen) {
+        UIButton *button = sender;
+        switch (button.tag) {
+            case 0: {
+                [_delegate movePanelToOriginalPosition];
+                break;
+            }
+                
+            case 1: {
+                [_delegate movePanelRight];
+                break;
+            }
+                
+            default:
+                break;
         }
-            
-        case 1: {
-            [_delegate movePanelRight];
-            break;
-        }
-            
-        default:
-            break;
     }
 }
 
 - (IBAction)btnMovePanelLeft:(id)sender
 {
-    UIButton *button = sender;
-    switch (button.tag) {
-        case 0: {
-            [_delegate movePanelToOriginalPosition];
-            break;
-        }
-            
-        case 1: {
-            [_delegate movePanelLeft];
-            break;
-        }
-            
-        default:
-            break;
-    }
-}
-
-- (IBAction)showListViewForPlace:(UIButton*)sender
-{
-    Place *p = [self.annotationsArray objectAtIndex:sender.tag];
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
-    if ([sharedDataManager.currentCommitmentPlace.placeId isEqualToString:p.placeId]) {
-        if([self.delegate respondsToSelector:@selector(removePreviousCommitment)]) {
-            [self.delegate removePreviousCommitment];
-        }
-        if ([self.delegate respondsToSelector:@selector(removeCommitmentFromDatabase)]) {
-            [self.delegate removeCommitmentFromDatabase];
-        }
-        
-        UIButton *button = (UIButton*)sender;
-        [button setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
-    } else {
-        if ([self.delegate respondsToSelector:@selector(commitToPlace:)]) {
-            [self.delegate commitToPlace:p];
-            UIButton *button = (UIButton*)sender;
-            [button setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+    if (!self.listViewOpen) {
+        UIButton *button = sender;
+        switch (button.tag) {
+            case 0: {
+                [_delegate movePanelToOriginalPosition];
+                break;
+            }
+                
+            case 1: {
+                [_delegate movePanelLeft];
+                break;
+            }
+                
+            default:
+                break;
         }
     }
 }
@@ -568,17 +539,8 @@
     // If it's the user location, set no callout and return nil.
     if ([annotation isKindOfClass:[MKUserLocation class]])
     {
-        Datastore *sharedDataManager = [Datastore sharedDataManager];
         ((MKUserLocation *)annotation).title = @"";
-        FBProfilePictureView *profileView = [[FBProfilePictureView alloc] initWithFrame:CGRectMake(-15.0, 0, 40.0, 40.0)];
-        profileView.profileID = sharedDataManager.facebookId;
-        profileView.layer.cornerRadius = CORNER_RADIUS;
-        profileView.clipsToBounds = YES;
-        profileView.tag = 2;
-        MKAnnotationView * annotationView = [[MKAnnotationView alloc] initWithFrame:CGRectMake(0, 0, 40.0, 40.0)];
-        [annotationView addSubview:profileView];
-        annotationView.annotation = annotation;
-        return annotationView;
+        return nil;
     }
     
     // Handle any custom annotations.
@@ -612,20 +574,7 @@
         
         [pinView addSubview:imageView];
         [pinView addSubview:numberLabel];
-    
-        UIButton* rightButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, 25.0, 25.0)];
-        [rightButton setTitle:@"t" forState:UIControlStateNormal];
-        UIFont *helvetica = [UIFont fontWithName:@"HelveticaNeueLTStd-UltLt" size:25];
-        rightButton.titleLabel.font = helvetica;
-        Datastore *sharedDataManager = [Datastore sharedDataManager];
-        if ([p.placeId isEqualToString:sharedDataManager.currentCommitmentPlace.placeId]) {
-            [rightButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
-        } else {
-             [rightButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
-        }
-        [rightButton addTarget:self action:@selector(showListViewForPlace:) forControlEvents:UIControlEventTouchUpInside];
-        pinView.rightCalloutAccessoryView = rightButton;
-    
+        
         UILabel* leftLabel = [[UILabel alloc] init];
         leftLabel.userInteractionEnabled = YES;
         [leftLabel setTextColor:[UIColor whiteColor]];
@@ -640,8 +589,6 @@
         pinView.leftCalloutAccessoryView = backgroundView;
     
         [self.annotationsArray addObject:p];
-        
-        rightButton.tag = [self.annotationsArray indexOfObject:p];
         
         int i = 0;
 

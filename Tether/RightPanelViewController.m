@@ -15,9 +15,10 @@
 
 #import <Parse/Parse.h>
 
-#define CELL_HEIGHT 90.0
+#define CELL_HEIGHT 70.0
 #define PADDING 10.0
-#define PANEL_WIDTH 60.0
+#define PANEL_WIDTH 45.0
+#define PROFILE_PICTURE_SIZE 28.0
 #define SPINNER_SIZE 30.0
 #define STATUS_BAR_HEIGHT 20.0
 
@@ -252,7 +253,7 @@
     NotificationCell *cell = (NotificationCell*)[self tableView:tableView cellForRowAtIndexPath:indexPath];
     CGSize sizeTime = [cell.timeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
     
-    CGRect rect = [cell.text boundingRectWithSize:CGSizeMake(190.f, 500.f)
+    CGRect rect = [cell.text boundingRectWithSize:CGSizeMake(210.0, 500.f)
                                           options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading)
                                           context:nil];
     
