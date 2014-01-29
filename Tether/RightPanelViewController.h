@@ -18,6 +18,7 @@
 
 @protocol RightPanelViewControllerDelegate <NSObject>
 
+-(void)openPageForPlaceWithId:(id)placeId;
 -(void)goToPlaceInListView:(id)placeId;
 
 @end

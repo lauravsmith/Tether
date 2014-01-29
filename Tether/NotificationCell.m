@@ -84,7 +84,7 @@
     [self.messageHeaderLabel setText:self.text];
     
     CGRect contentRect;
-    contentRect = [self.text boundingRectWithSize:CGSizeMake(210.0, 500.f)
+    contentRect = [self.text boundingRectWithSize:CGSizeMake(200.0, 500.f)
                                           options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading)
                                           context:nil];
     self.messageHeaderLabel.lineBreakMode = NSLineBreakByWordWrapping;
@@ -146,40 +146,6 @@
     CGSize size = [self.timeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
     self.timeLabel.frame = CGRectMake(self.frame.size.width - PANEL_WIDTH - size.width - PADDING, MAX(self.messageHeaderLabel.frame.size.height, CELL_HEIGHT - size.height - PADDING / 2.0), size.width, size.height);
     [self.timeLabel setTextColor:[UIColor whiteColor]];
-    [self.timeLabel setUserInteractionEnabled:YES];
-    
-    self.changeToDeleteTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(changeToDelete:)];
-    self.changeToTimeTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(changeToTime:)];
-    self.deleteTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(deleteNotification:)];
-    [self.timeLabel addGestureRecognizer:self.changeToDeleteTap];
-}
-
--(void)changeToDelete:(UIGestureRecognizer*)recognizer {
-    self.timeLabel.text = @"Delete";
-    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:12.0f];
-    CGSize size = [self.timeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
-    self.timeLabel.frame = CGRectMake(self.frame.size.width - size.width - PADDING, MAX(self.messageHeaderLabel.frame.size.height, CELL_HEIGHT - size.height - PADDING / 2.0), size.width, size.height);
-    
-    [self.timeLabel removeGestureRecognizer:self.changeToDeleteTap];
-    [self.messageHeaderLabel addGestureRecognizer:self.changeToTimeTap];
-    [self.timeLabel addGestureRecognizer:self.deleteTap];
-}
-
--(void)changeToTime:(UIGestureRecognizer*)recognizer {
-    self.timeLabel.text = self.time;
-    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:12.0f];
-    CGSize size = [self.timeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
-    self.timeLabel.frame = CGRectMake(self.frame.size.width - size.width - PADDING, MAX(self.messageHeaderLabel.frame.size.height, CELL_HEIGHT - size.height - PADDING / 2.0), size.width, size.height);
-    [self.timeLabel setTextColor:[UIColor whiteColor]];
-    [self.messageHeaderLabel removeGestureRecognizer:self.changeToTimeTap];
-    [self.timeLabel removeGestureRecognizer:self.deleteTap];
-    [self.timeLabel addGestureRecognizer:self.changeToDeleteTap];
-}
-
--(void)deleteNotification:(UIGestureRecognizer*)recognizer {
-    if ([self.delegate respondsToSelector:@selector(deleteNotification:)]) {
-        [self.delegate deleteNotification:self.notification];
-    }
 }
 
 #pragma mark TTTAttributedLabelDelegate

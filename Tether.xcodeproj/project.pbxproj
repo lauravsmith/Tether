@@ -66,8 +66,10 @@
 		470A33A518400D3B006E48F9 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 470A33A418400D3B006E48F9 /* StoreKit.framework */; };
 		470A33A718400D42006E48F9 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 470A33A618400D42006E48F9 /* SystemConfiguration.framework */; };
 		470A33AA184029CE006E48F9 /* LoginViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 470A33A9184029CE006E48F9 /* LoginViewController.m */; };
-		470A33AD18402A37006E48F9 /* facebook.png in Resources */ = {isa = PBXBuildFile; fileRef = 470A33AC18402A37006E48F9 /* facebook.png */; };
 		470A33B71842CB98006E48F9 /* DecisionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 470A33B61842CB98006E48F9 /* DecisionViewController.m */; };
+		470C80D1189722CE003F06C4 /* InviteIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 470C80D0189722CE003F06C4 /* InviteIcon.png */; };
+		470C80D3189751FF003F06C4 /* KaufmannStd.otf in Resources */ = {isa = PBXBuildFile; fileRef = 470C80D2189751FF003F06C4 /* KaufmannStd.otf */; };
+		470C80D518988466003F06C4 /* SearchGlass.png in Resources */ = {isa = PBXBuildFile; fileRef = 470C80D418988466003F06C4 /* SearchGlass.png */; };
 		47194F3618639AF900E114F5 /* InviteViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 47194F3518639AF900E114F5 /* InviteViewController.m */; };
 		472392A718649298000D0C7E /* Notification.m in Sources */ = {isa = PBXBuildFile; fileRef = 472392A618649298000D0C7E /* Notification.m */; };
 		472392AA1864D304000D0C7E /* NotificationCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 472392A91864D304000D0C7E /* NotificationCell.m */; };
@@ -251,9 +253,11 @@
 		470A33A618400D42006E48F9 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		470A33A8184029CE006E48F9 /* LoginViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LoginViewController.h; sourceTree = "<group>"; };
 		470A33A9184029CE006E48F9 /* LoginViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LoginViewController.m; sourceTree = "<group>"; };
-		470A33AC18402A37006E48F9 /* facebook.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = facebook.png; path = ../../../FacebookSDK/Samples/Scrumptious/scrumptious/images/facebook.png; sourceTree = "<group>"; };
 		470A33B51842CB98006E48F9 /* DecisionViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DecisionViewController.h; sourceTree = "<group>"; };
 		470A33B61842CB98006E48F9 /* DecisionViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DecisionViewController.m; sourceTree = "<group>"; };
+		470C80D0189722CE003F06C4 /* InviteIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = InviteIcon.png; sourceTree = "<group>"; };
+		470C80D2189751FF003F06C4 /* KaufmannStd.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = KaufmannStd.otf; sourceTree = "<group>"; };
+		470C80D418988466003F06C4 /* SearchGlass.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = SearchGlass.png; sourceTree = "<group>"; };
 		47194F3418639AF900E114F5 /* InviteViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InviteViewController.h; sourceTree = "<group>"; };
 		47194F3518639AF900E114F5 /* InviteViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = InviteViewController.m; sourceTree = "<group>"; };
 		472392A518649298000D0C7E /* Notification.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Notification.h; sourceTree = "<group>"; };
@@ -536,6 +540,7 @@
 		47064C8C183D9E3800E9228A /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				470C80D2189751FF003F06C4 /* KaufmannStd.otf */,
 				4790C3F01889B0F100DB9759 /* Helvetica */,
 				47460FF4188079BE0067545B /* Montserrat */,
 				47064CD3183DBAE300E9228A /* champagne_limousines */,
@@ -568,6 +573,8 @@
 		47064CC6183DB11D00E9228A /* Images */ = {
 			isa = PBXGroup;
 			children = (
+				470C80D418988466003F06C4 /* SearchGlass.png */,
+				470C80D0189722CE003F06C4 /* InviteIcon.png */,
 				4707791D1895F91F00F9B263 /* LoginPageImage.png */,
 				47FDB6031884B62100841FAD /* poweredByFoursquare.png */,
 				47461001188237B70067545B /* FriendIcon.png */,
@@ -577,7 +584,6 @@
 				47BB2C5C187E208C00BB40F5 /* LineNavigator.png */,
 				47BB2C5A187E0E1900BB40F5 /* RedTriangle.png */,
 				47BB2C58187E0A6E00BB40F5 /* WhiteTriangle.png */,
-				470A33AC18402A37006E48F9 /* facebook.png */,
 				47064CD0183DB16200E9228A /* Whiteline.png */,
 				47064CCA183DB14C00E9228A /* Arrow.png */,
 				47064CCB183DB14C00E9228A /* Gear.png */,
@@ -824,11 +830,11 @@
 				4790C4691889B0F100DB9759 /* HelveticaNeueLTStd-HvCnO.otf in Resources */,
 				4702442118576BFD001C19AC /* CHANGELOG.md in Resources */,
 				4790C45E1889B0F100DB9759 /* HelveticaNeueLTStd-BlkCn.otf in Resources */,
+				470C80D518988466003F06C4 /* SearchGlass.png in Resources */,
 				4790C4631889B0F100DB9759 /* HelveticaNeueLTStd-Cn.otf in Resources */,
 				4790C4571889B0F100DB9759 /* HelveticaNeueLTStd-BdCn.otf in Resources */,
 				47BB2C5B187E0E1900BB40F5 /* RedTriangle.png in Resources */,
 				4790C4591889B0F100DB9759 /* HelveticaNeueLTStd-BdEx.otf in Resources */,
-				470A33AD18402A37006E48F9 /* facebook.png in Resources */,
 				4790C4561889B0F100DB9759 /* HelveticaNeueLTStd-Bd.otf in Resources */,
 				4790C4641889B0F100DB9759 /* HelveticaNeueLTStd-CnO.otf in Resources */,
 				4790C4821889B0F100DB9759 /* HelveticaNeueLTStd-UltLtCn.otf in Resources */,
@@ -860,6 +866,8 @@
 				4790C44F1889B0F100DB9759 /* HelveticaLTStd-Light.otf in Resources */,
 				4790C4451889B0F100DB9759 /* HelveticaLTStd-Bold.otf in Resources */,
 				4790C4681889B0F100DB9759 /* HelveticaNeueLTStd-HvCn.otf in Resources */,
+				470C80D3189751FF003F06C4 /* KaufmannStd.otf in Resources */,
+				470C80D1189722CE003F06C4 /* InviteIcon.png in Resources */,
 				4790C4781889B0F100DB9759 /* HelveticaNeueLTStd-MdExO.otf in Resources */,
 				4790C46E1889B0F100DB9759 /* HelveticaNeueLTStd-Lt.otf in Resources */,
 				47064CDF183DBAE300E9228A /* Champagne&Limousines.ttf in Resources */,

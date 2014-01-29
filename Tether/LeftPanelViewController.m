@@ -14,7 +14,7 @@
 #import "LeftPanelViewController.h"
 
 #define CELL_HEIGHT 65
-#define HEADER_HEIGHT 40.0
+#define HEADER_HEIGHT 30.0
 #define MIN_CELLS 7
 #define NAME_OFFSET_X 80.0
 #define NAME_OFFSET_Y 20.0
@@ -23,6 +23,7 @@
 #define PROFILE_PICTURE_BORDER_WIDTH 4.0
 #define PROFILE_PICTURE_OFFSET_X 10.0
 #define SEARCH_BAR_HEIGHT 65.0
+#define SEARCH_BAR_WIDTH 270.0
 #define SECOND_TABLE_OFFSET_Y 350.0
 #define STATUS_BAR_HEIGHT 20.0
 #define TABLE_HEIGHT 400.0
@@ -58,7 +59,7 @@
     
     self.view.layer.backgroundColor = [UIColor clearColor].CGColor;
     
-    self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width - PANEL_WIDTH, SEARCH_BAR_HEIGHT)];
+    self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, SEARCH_BAR_WIDTH, SEARCH_BAR_HEIGHT)];
     
     //set up friends going out table view
     self.friendsGoingOutTableView = [[UITableView alloc] init];
@@ -172,7 +173,7 @@
         if (section == 0) {
             UIView *searchBarBackground = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width - PANEL_WIDTH, HEADER_HEIGHT)];
             [searchBarBackground setBackgroundColor:UIColorFromRGB(0x8e0528)];
-            self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width - PANEL_WIDTH, SEARCH_BAR_HEIGHT)];
+            self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, SEARCH_BAR_WIDTH, SEARCH_BAR_HEIGHT)];
             self.searchBar.delegate = self;
             [self.searchBar setBackgroundImage:[UIImage new]];
             [self.searchBar setTranslucent:YES];
@@ -185,22 +186,23 @@
         } else {
             Datastore *sharedDataManager = [Datastore sharedDataManager];
             UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, HEADER_HEIGHT)];
-            [header setBackgroundColor:UIColorFromRGB(0x8e0528)];
+            [header setBackgroundColor:UIColorFromRGB(0xf8f8f8)];
             UILabel *goingOutLabel = [[UILabel alloc] initWithFrame:header.frame];
-            [goingOutLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
-            UILabel *countLabel = [[UILabel alloc] initWithFrame:CGRectMake(100.0, 0, 50.0, 30.0)];
-            [countLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
-            UIFont *montserratBold = [UIFont fontWithName:@"Montserrat-Bold" size:16.0f];
+            [goingOutLabel setTextColor:UIColorFromRGB(0x8e0528)];
+            UILabel *countLabel = [[UILabel alloc] initWithFrame:CGRectMake(100.0, 0, 50.0, HEADER_HEIGHT)];
+            [countLabel setTextColor:UIColorFromRGB(0x8e0528)];
+            UIFont *montserratBold = [UIFont fontWithName:@"Montserrat" size:14.0f];
             goingOutLabel.font = montserratBold;
             countLabel.font = montserratBold;
             if (section == 1) {
-                goingOutLabel.text = @"Tethrd";
+                goingOutLabel.text = @"tethrd";
                 countLabel.text = [NSString stringWithFormat:@"(%lu)",(unsigned long)[sharedDataManager.tetherFriendsGoingOut count]];
             } else if (section == 2) {
                 goingOutLabel.text = @"Going Out";
                 countLabel.text = [NSString stringWithFormat:@"(%lu)",(unsigned long)[sharedDataManager.tetherFriendsNotGoingOut count]];
             } else {
                 goingOutLabel.text = @"Not Going Out";
+                countLabel.text = [NSString stringWithFormat:@"(%lu)",(unsigned long)[sharedDataManager.tetherFriendsUndecided count]];
             }
             CGSize textLabelSize = [goingOutLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];
             CGSize numberLabelSize = [countLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];
@@ -328,8 +330,8 @@
 #pragma mark FriendCellDelegate methods
 
 -(void)goToPlaceInListView:(id)placeId {
-    if ([self.delegate respondsToSelector:@selector(goToPlaceInListView:)]) {
-        [self.delegate goToPlaceInListView:placeId];
+    if ([self.delegate respondsToSelector:@selector(openPageForPlaceWithId:)]) {
+        [self.delegate openPageForPlaceWithId:placeId];
     }
 }
 

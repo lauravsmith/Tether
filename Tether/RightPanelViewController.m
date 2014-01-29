@@ -190,7 +190,7 @@
     self.deleteConfirmationView.layer.cornerRadius = 10.0;
     
     self.deleteConfirmationLabel = [[UILabel alloc] init];
-    self.deleteConfirmationLabel.text = @"Deleting...";
+    self.deleteConfirmationLabel.text = @"Deleting notifications...";
     self.deleteConfirmationLabel.textColor = UIColorFromRGB(0x8e0528);
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:16.0f];
     self.deleteConfirmationLabel.font = montserrat;
@@ -231,14 +231,16 @@
 
 -(void)goToPlace:(id)placeId {
     if ([self.delegate respondsToSelector:@selector(goToPlaceInListView:)]) {
-        [self.delegate goToPlaceInListView:placeId];
+        [self.delegate openPageForPlaceWithId:placeId];
     }
 }
 
--(void)deleteNotification:(Notification*)notification {
-    [notification.parseObject delete];
+-(void)deleteNotifications {
+    for (Notification *notification in self.notificationsArray) {
+        [notification.parseObject deleteInBackground];
+    }
+
     [self confirmDelete];
-    
     [self performSelector:@selector(refresh) withObject:self.refreshControl afterDelay:2.0f];
 }
 
@@ -249,38 +251,68 @@
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:12.0f];
-    NotificationCell *cell = (NotificationCell*)[self tableView:tableView cellForRowAtIndexPath:indexPath];
-    CGSize sizeTime = [cell.timeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
-    
-    CGRect rect = [cell.text boundingRectWithSize:CGSizeMake(210.0, 500.f)
-                                          options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading)
-                                          context:nil];
-    
-    return MAX(CELL_HEIGHT, rect.size.height + sizeTime.height + 1.0 + PADDING);
+    if (indexPath.row == [self.notificationsArray count]) {
+        return CELL_HEIGHT;
+    } else {
+        UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:12.0f];
+        NotificationCell *cell = (NotificationCell*)[self tableView:tableView cellForRowAtIndexPath:indexPath];
+        CGSize sizeTime = [cell.timeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
+        
+        CGRect rect = [cell.text boundingRectWithSize:CGSizeMake(200.0, 500.f)
+                                              options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading)
+                                              context:nil];
+        
+        return MAX(CELL_HEIGHT, rect.size.height + sizeTime.height + 1.0 + PADDING);
+    }
 }
 
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return [self.notificationsArray count];
+    if ([self.notificationsArray count] > 0) {
+        return [self.notificationsArray count] + 1;
+    } else {
+        return 0;
+    }
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    NotificationCell *cell = [[NotificationCell alloc] init];
-    cell.delegate = self;
-    
-    if ([self.notificationsArray count] > 0) {
-        cell.notification = [self.notificationsArray objectAtIndex:indexPath.row];
-        [cell loadNotification];
+    if (indexPath.row == [self.notificationsArray count]) {
+        UITableViewCell *cell = [[UITableViewCell alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.frame.size.width - PANEL_WIDTH, CELL_HEIGHT)];
+        UILabel *clearNotificationsLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, cell.frame.size.width, cell.frame.size.height)];
+        clearNotificationsLabel.text = @"Clear notifications";
+        [clearNotificationsLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
+        UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:20.0f];
+        [clearNotificationsLabel setFont:montserrat];
+        CGSize size = [clearNotificationsLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
+        clearNotificationsLabel.frame = CGRectMake((self.view.frame.size.width - PANEL_WIDTH - size.width) / 2.0, (CELL_HEIGHT - size.height) / 2.0, size.width, size.height);
+        clearNotificationsLabel.textAlignment = NSTextAlignmentCenter;
+        [cell setBackgroundColor:[UIColor clearColor]];
+        [cell addSubview:clearNotificationsLabel];
+        [cell setSelectionStyle:UITableViewCellSelectionStyleGray];
+        return cell;
+    } else {
+        NotificationCell *cell = [[NotificationCell alloc] init];
+        cell.delegate = self;
+        
+        if ([self.notificationsArray count] > 0) {
+            cell.notification = [self.notificationsArray objectAtIndex:indexPath.row];
+            [cell loadNotification];
+        }
+        cell.selectionStyle = UITableViewCellSelectionStyleNone;
+        return cell;
     }
-    cell.selectionStyle = UITableViewCellSelectionStyleNone;
-    return cell;
 }
 
 -(UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
 {
     UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, STATUS_BAR_HEIGHT)];
     return view;
+}
+
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (indexPath.row == [self.notificationsArray count]) {
+        [self deleteNotifications];
+    }
 }
 
 - (void)didReceiveMemoryWarning

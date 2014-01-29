@@ -31,7 +31,6 @@
 @property (nonatomic, assign) BOOL showingStatusMessage;
 @property (nonatomic, strong) UIButton *inviteButton;
 @property (nonatomic, strong) UIButton *inviteButtonLarge;
-@property (nonatomic, strong) UILabel *plusIconLabel;
 - (void)prepareForReuse;
 @end
 
@@ -57,8 +56,6 @@
         [self addSubview:self.inviteButton];
         self.inviteButtonLarge = [[UIButton alloc] init];
         [self addSubview:self.inviteButtonLarge];
-        self.plusIconLabel = [[UILabel alloc] init];
-        [self addSubview:self.plusIconLabel];
     }
     return self;
 }
@@ -77,7 +74,7 @@
     self.friendProfilePictureView.clipsToBounds = YES;
     self.friendProfilePictureView.tag = 0;
 
-    UIFont *montserratBold = [UIFont fontWithName:@"Montserrat" size:16.0f];
+    UIFont *montserratBold = [UIFont fontWithName:@"Montserrat" size:14.0f];
     CGSize size = [self.friendNameLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];
     self.friendNameLabel.frame = CGRectMake(NAME_LABEL_OFFSET_X, self.friendProfilePictureView.frame.origin.y, MIN(size.width, MAX_LABEL_WIDTH), size.height);
     self.friendNameLabel.adjustsFontSizeToFitWidth = YES;
@@ -123,29 +120,18 @@
     
     self.inviteButton.tag = 0;
     if (self.friend) {
-        self.inviteButton.frame = CGRectMake(self.frame.size.width - PANEL_WIDTH - 35.0, self.friendNameLabel.frame.origin.y, 30, 40);
+        self.inviteButton.frame = CGRectMake(self.frame.size.width - PANEL_WIDTH - 35.0, (self.frame.size.height - 20.0) / 2.0, 20, 20);
     }
-    [self.inviteButton setImage:[UIImage imageNamed:@"FriendIcon"] forState:UIControlStateNormal];
+    [self.inviteButton setImage:[UIImage imageNamed:@"InviteIcon"] forState:UIControlStateNormal];
+    self.inviteButton.imageView.contentMode = UIViewContentModeScaleAspectFit;
     [self.inviteButton addTarget:self
                           action:@selector(inviteClicked:)
                 forControlEvents:UIControlEventTouchUpInside];
-    
+    self.inviteButton.contentMode = UIViewContentModeScaleAspectFit;
     self.inviteButtonLarge.frame = CGRectMake(self.inviteButton.frame.origin.x, self.inviteButton.frame.origin.y, 60.0, 60.0);
     [self.inviteButtonLarge addTarget:self
                                action:@selector(inviteClicked:)
                      forControlEvents:UIControlEventTouchUpInside];
-    
-    if (self.friend) {
-        self.plusIconLabel.frame = CGRectMake(self.inviteButton.frame.origin.x + 6.0, self.inviteButton.frame.origin.y + 8.0, 10.0, 10.0);
-    }
-    [self.plusIconLabel setBackgroundColor:UIColorFromRGB(0x8e0528)];
-    [self.plusIconLabel setTextColor:[UIColor whiteColor]];
-    self.plusIconLabel.layer.borderColor = [UIColor whiteColor].CGColor;
-    UIFont *montserratExtraExtraSmall = [UIFont fontWithName:@"Montserrat" size:8];
-    self.plusIconLabel.font = montserratExtraExtraSmall;
-    self.plusIconLabel.text = @"+";
-    self.plusIconLabel.textAlignment = NSTextAlignmentCenter;
-    self.plusIconLabel.layer.cornerRadius = 5.0;
 }
 
 -(void)friendsCommitmentPressed {

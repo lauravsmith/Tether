@@ -31,6 +31,5 @@
 @protocol NotificationCellDelegate <NSObject>
 
 -(void)goToPlace:(id)placeId;
--(void)deleteNotification:(Notification*)notification;
 
 @end

@@ -14,12 +14,14 @@
 @property (nonatomic, weak) id<PlacesViewControllerDelegate> delegate;
 @property (nonatomic, strong) UITableView *placesTableView;
 @property (assign, nonatomic) bool closingListView;
+@property (assign, nonatomic) bool disableSort;
 -(void)getFriendsCommitments;
 -(void)removePreviousCommitment;
 -(void)scrollToPlaceWithId:(id)placeId;
 -(void)removeCommitmentFromDatabase;
 -(void)sortPlacesByPopularity;
 -(void)openPageForPlaceWithId:(id)placeId;
+-(void)setCellForPlace:(Place*)place tethered:(BOOL)tethered;
 
 @end
 

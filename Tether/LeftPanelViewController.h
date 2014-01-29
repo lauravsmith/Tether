@@ -21,6 +21,7 @@
 
 @protocol LeftPanelViewControllerDelegate <NSObject>
 -(void)goToPlaceInListView:(id)placeId;
+-(void)openPageForPlaceWithId:(id)placeId;
 -(void)pollDatabase;
 -(void)inviteFriend:(Friend*)friend;
 -(void)sortTetherFriends;

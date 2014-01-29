@@ -118,8 +118,9 @@
     [self.topBar addSubview:self.spinner];
     
     // list view arrow button setup
-    self.listViewButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 35.0, self.tethrLabel.frame.origin.y - 2.0, 25.0, 25.0)];
-    [self.listViewButton setImage:[UIImage imageNamed:@"LineNavigator"] forState:UIControlStateNormal];
+    self.listViewButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 38.0, self.numberButton.frame.origin.y + 2.0, 32.0, 32.0)];
+    [self.listViewButton setImage:[UIImage imageNamed:@"SearchGlass"] forState:UIControlStateNormal];
+    self.listViewButton.imageView.contentMode = UIViewContentModeScaleAspectFit;
     [self.listViewButton addTarget:self action:@selector(showListView) forControlEvents:UIControlEventTouchDown];
     [self.topBar addSubview:self.listViewButton];
     
@@ -140,6 +141,12 @@
     self.bottomBar.userInteractionEnabled = YES;
     [self.view addGestureRecognizer:swipeUp];
     
+    self.settingsButton = [[UIButton alloc] initWithFrame:CGRectMake(7.0, (self.bottomBar.frame.size.height - 31.0) / 2.0, 30.0, 30.0)];
+    [self.settingsButton setImage:[UIImage imageNamed:@"Gear"] forState:UIControlStateNormal];
+    self.settingsButton.contentMode = UIViewContentModeScaleAspectFit;
+    [self.settingsButton addTarget:self action:@selector(settingsPressed:) forControlEvents:UIControlEventTouchUpInside];
+    [self.bottomBar addSubview:self.settingsButton];
+    
     // large background button to increase touch surface area
     self.settingsButtonLarge = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, self.bottomBar.frame.size.width / 4.0, self.bottomBar.frame.size.height)];
     [self.settingsButtonLarge addTarget:self action:@selector(settingsPressed:) forControlEvents:UIControlEventTouchDown];
@@ -149,20 +156,9 @@
     [self.notificationsButtonLarge addTarget:self action:@selector(btnMovePanelLeft:) forControlEvents:UIControlEventTouchUpInside];
     self.notificationsButtonLarge.tag = 1;
     [self.bottomBar addSubview:self.notificationsButtonLarge];
-    
-    self.notificationsButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - NOTIFICATIONS_SIZE, 5.0, NOTIFICATIONS_SIZE, NOTIFICATIONS_SIZE)];
-    self.notificationsButton.imageEdgeInsets = UIEdgeInsetsMake(0, 0, 0, 0);
-    [self.notificationsButton setBackgroundImage:[UIImage imageNamed:@"FriendsThing"] forState:UIControlStateNormal];
-    [self.notificationsButton setBackgroundColor:[UIColor clearColor]];
-    [self.notificationsButton addTarget:self action:@selector(btnMovePanelLeft:) forControlEvents:UIControlEventTouchUpInside];
-    self.notificationsButton.tag = 1;
-    [self.bottomBar addSubview:self.notificationsButton];
-    [self refreshNotificationsNumber];
-    
-    self.notificationsLabel = [[UILabel alloc] initWithFrame:CGRectMake(self.notificationsButton.frame.origin.x + 3.0, self.notificationsButton.frame.origin.y + 2.0, 12.0, 12.0)];
-    self.notificationsLabel.layer.cornerRadius = 6.0;
-    self.notificationsLabel.layer.borderWidth = 1.5;
-    self.notificationsLabel.layer.borderColor = [UIColor whiteColor].CGColor;
+
+    self.notificationsLabel = [[UILabel alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 40.0, 8.0, 10.0, 10.0)];
+    self.notificationsLabel.layer.cornerRadius = 5.0;
     [self.notificationsLabel setBackgroundColor:UIColorFromRGB(0x8e0528)];
     [self.notificationsLabel setTextColor:[UIColor whiteColor]];
     [self.notificationsLabel setTextAlignment:NSTextAlignmentCenter];
@@ -171,6 +167,7 @@
     [self.notificationsLabel sizeThatFits:CGSizeMake(10.0, 10.0)];
     self.notificationsLabel.adjustsFontSizeToFitWidth = YES;
     [self.bottomBar addSubview:self.notificationsLabel];
+    [self refreshNotificationsNumber];
     
     UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:14];
     UIFont *montserratExtraSmall = [UIFont fontWithName:@"Montserrat" size:10];
@@ -230,7 +227,7 @@
     NSDate *timeLastUpdated = [userDetails objectForKey:@"timeLastUpdated"];
     NSDate *startTime = [self getStartTime];
     
-    if (sharedDataManager.currentCommitmentPlace && [startTime compare:timeLastUpdated] == NSOrderedAscending) {
+    if (sharedDataManager.currentCommitmentPlace && [startTime compare:timeLastUpdated] == NSOrderedAscending && [sharedDataManager.currentCommitmentPlace.friendsCommitted count] > 0) {
         self.cityButton.hidden = YES;
         self.commitmentButton.hidden = NO;
         self.placeButton.hidden = NO;
@@ -244,7 +241,7 @@
         CGSize size1 = [self.placeButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratExtraSmall}];
         CGSize size2 = [self.placeNumberButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratSmall}];
         
-        self.placeButton.frame = CGRectMake(MAX(self.userProfilePictureView.frame.origin.x + self.userProfilePictureView.frame.size.width, (self.view.frame.size.width - size1.width) / 2), (self.bottomBar.frame.size.height - size1.height + size2.height) / 2.0, MIN(267.0, size1.width), size1.height);
+        self.placeButton.frame = CGRectMake(MAX(self.settingsButton.frame.origin.x + self.settingsButton.frame.size.width, (self.view.frame.size.width - size1.width) / 2), (self.bottomBar.frame.size.height - size1.height + size2.height) / 2.0, MIN(267.0, size1.width), size1.height);
         
         self.placeNumberButton.frame = CGRectMake((self.view.frame.size.width - size2.width) / 2, (self.bottomBar.frame.size.height - size1.height - size2.height) / 2.0, size2.width, size2.height);
     } else {
@@ -312,9 +309,11 @@
     if (annotationView.tag == 1) {
         [self.mv selectAnnotation:((MKAnnotationView*)annotationView).annotation animated:YES];
             annotationView.placeTouchView.userInteractionEnabled = YES;
+            annotationView.tag = 0;
     } else {
         [self.mv deselectAnnotation:((MKAnnotationView*)annotationView).annotation animated:YES];
         annotationView.placeTouchView.userInteractionEnabled = NO;
+        annotationView.tag = 1;
     }
 }
 
@@ -532,6 +531,26 @@
     }
 }
 
+- (void)movePanelLeft:(UIGestureRecognizer*)recognizer {
+    if (!self.listViewOpen) {
+        UIView *view = recognizer.view;
+        switch (view.tag) {
+            case 0: {
+                [_delegate movePanelToOriginalPosition];
+                break;
+            }
+                
+            case 1: {
+                [_delegate movePanelLeft];
+                break;
+            }
+                
+            default:
+                break;
+        }
+    }
+}
+
 #pragma mark MapView delegate
 
 - (MKAnnotationView *)mapView:(MKMapView *)mapView viewForAnnotation:(id <MKAnnotation>)annotation
@@ -715,7 +734,7 @@
         Place *p = [self.annotationsArray objectAtIndex:view.tag];
         if ([self.delegate respondsToSelector:@selector(openPageForPlaceWithId:)]) {
             self.listViewOpen = YES;
-            [self.delegate goToPlaceInListView:p.placeId];
+            [self.delegate openPageForPlaceWithId:p.placeId];
         }
     }
 }
@@ -734,6 +753,7 @@
     [view addGestureRecognizer:singleTap];
     
     if (view.tag == 1) {
+        view.userInteractionEnabled = YES;
         for (UIView *subView in view.subviews) {
             if (subView.tag == 2) {
                 CGRect frame = subView.frame;

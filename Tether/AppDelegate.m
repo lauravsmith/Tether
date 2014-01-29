@@ -73,8 +73,6 @@ NSString *const SessionStateChangedNotification =
 - (void)application:(UIApplication *)application
 didReceiveRemoteNotification:(NSDictionary *)userInfo
 fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
-    sharedDataManager.notifications += 1;
     [self.mainViewController updateNotificationsNumber];
 }
 

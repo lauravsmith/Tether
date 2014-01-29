@@ -36,7 +36,6 @@
 @property (retain, nonatomic) NSUserDefaults *userDetails;
 @property (assign, nonatomic) bool friendStatusDetailsHaveLoaded;
 @property (assign, nonatomic) bool foursquarePlacesDataHasLoaded;
-@property (retain, nonatomic) NSIndexPath *previousCommitmentCellIndexPath;
 @property (retain, nonatomic) UISearchBar *searchBar;
 @property (retain, nonatomic) NSMutableArray *searchResultsArray;
 @property (nonatomic, strong) UITableView *searchResultsTableView;
@@ -151,9 +150,9 @@
 
     [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
         if (!error) {
-            NSLog(@"QUERY: finding friends commitments for tonight");
+//            NSLog(@"QUERY: finding friends commitments for tonight");
             // The find succeeded. The first 100 objects are available in objects
-            NSLog(@"Commitments found: %lu",(unsigned long)[objects count]);
+//            NSLog(@"Commitments found: %lu",(unsigned long)[objects count]);
             PFGeoPoint *geoPoint;
             NSMutableDictionary *tempDictionary = [[NSMutableDictionary alloc] init];
 
@@ -170,16 +169,17 @@
                     place.numberCommitments = 0;
                     place.numberPastCommitments = 0;
                     place.friendsCommitted = [[NSMutableSet alloc] init];
-                    NSLog(@"Created place: %@", [object objectForKey:kCommitmentPlaceKey]);
+//                    NSLog(@"Created place: %@", [object objectForKey:kCommitmentPlaceKey]);
                 } else {
                     place = [tempDictionary objectForKey:[object objectForKey:kCommitmentPlaceIDKey]];
-                    NSLog(@"Updated place %@", [object objectForKey:kCommitmentPlaceKey]);
+//                    NSLog(@"Updated place %@", [object objectForKey:kCommitmentPlaceKey]);
                 }
                 
                 NSDate *commitmentTime = [object objectForKey:kCommitmentDateKey];
                 if (commitmentTime != nil && [startTime compare:commitmentTime] == NSOrderedAscending) {
                     // commitment for tonight
                     [place.friendsCommitted addObject:[object objectForKey:kUserFacebookIDKey]];
+                    NSLog(@"Adding commitments to %@", place.name);
                     place.numberCommitments = place.numberCommitments + 1;
                     if ([sharedDataManager.facebookId isEqualToString:friendID] && ![sharedDataManager.currentCommitmentPlace.name isEqualToString:place.name]) {
                         NSLog(@"Setting your current commitment to %@", place.name);
@@ -225,7 +225,7 @@
                 }
             }
 
-            NSLog(@"Updated your friends commitments");
+//            NSLog(@"Updated your friends commitments");
             sharedDataManager.popularPlacesDictionary = tempDictionary;
             
             if (self.foursquarePlacesDataHasLoaded) {
@@ -250,7 +250,7 @@
 }
 
 -(void)addDictionaries {
-    NSLog(@"Adding dictionaries");
+//    NSLog(@"Adding dictionaries");
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     sharedDataManager.placesDictionary = [[NSMutableDictionary alloc] init];
     for (id key in sharedDataManager.popularPlacesDictionary) {
@@ -285,7 +285,7 @@
 -(void)sortPlacesByPopularity {
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     [self.placesArray removeAllObjects];
-    NSLog(@"Sorting places");
+//    NSLog(@"Sorting places");
     for(id key in sharedDataManager.placesDictionary) {
         [self.placesArray addObject:[sharedDataManager.placesDictionary objectForKey:key]];
     }
@@ -295,6 +295,10 @@
     NSSortDescriptor *numberPastCommitmentsDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"numberPastCommitments" ascending:NO];
     [self.placesArray sortUsingDescriptors:[NSArray arrayWithObjects:numberCommitmentsDescriptor, numberPastCommitmentsDescriptor, nil]];
     [self.placesTableView reloadData];
+    if (self.disableSort && sharedDataManager.currentCommitmentPlace) {
+        [self scrollToPlaceWithId:sharedDataManager.currentCommitmentPlace.placeId];
+        self.disableSort = NO;
+    }
 }
 
 -(void)addPinsToMap {
@@ -304,7 +308,7 @@
         Place *p = [sharedDataManager.popularPlacesDictionary objectForKey:key];
         if (p) {
             if ([p.friendsCommitted count] > 0) {
-                NSLog(@"PLACES VIEW: Adding %@ with %d commitments to map", p.name, p.numberCommitments);
+//                NSLog(@"PLACES VIEW: Adding %@ with %d commitments to map", p.name, p.numberCommitments);
                 [self.delegate placeMarkOnMapView:p];
             }
         }
@@ -356,7 +360,7 @@
     Place *place = [sharedDataManager.placesDictionary objectForKey:placeId];
     
     [self.placesTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:[self.placesArray indexOfObject:place] inSection:0]
-                                atScrollPosition:UITableViewScrollPositionTop animated:NO];
+                                atScrollPosition:UITableViewScrollPositionTop animated:YES];
 }
 
 -(void)openPageForPlaceWithId:(id)placeId {
@@ -366,6 +370,7 @@
         if (place.numberCommitments == 1 && [place.friendsCommitted containsObject:sharedDataManager.facebookId]) {
             return;
         } else {
+            [self scrollToPlaceWithId:placeId];
             PlaceCell *cell = (PlaceCell*)[self.placesTableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:[self.placesArray indexOfObject:place] inSection:0]];
             [self showFriendsViewFromCell:cell];
         }
@@ -400,45 +405,15 @@
 #pragma mark PlaceCellDelegate Methods
 
 -(void)commitToPlace:(Place*)place fromCell:(PlaceCell *)cell {
+    self.disableSort = YES;
     Datastore *sharedDataManager = [Datastore sharedDataManager];
+    
     if ([self.delegate respondsToSelector:@selector(commitToPlace:)]) {
-
-        Place *p = [sharedDataManager.placesDictionary objectForKey:place.placeId];
-        if (p) {
-            NSMutableSet *friendsCommitted;
-            if (p.friendsCommitted) {
-                friendsCommitted = [[NSMutableSet alloc] init];
-                friendsCommitted = p.friendsCommitted;
-            } else {
-                friendsCommitted = [[NSMutableSet alloc] init];
-            }
-            
-            NSString *myID = sharedDataManager.facebookId;
-            [friendsCommitted addObject:myID];
-            p.friendsCommitted = friendsCommitted;
-            if (p.numberCommitments) {
-                p.numberCommitments += 1;
-            } else {
-                p.numberCommitments = 1;
-            }
-            [sharedDataManager.placesDictionary setObject:p forKey:place.placeId];
-            [sharedDataManager.popularPlacesDictionary setObject:p forKey:place.placeId];
-            
-            [self.delegate commitToPlace:place];
-        }
-    }
-    
-    // remove "tethered" from previous place committed in tableview
-    if (self.previousCommitmentCellIndexPath) {
-        [self unhighlightCellWithCellIndex:self.previousCommitmentCellIndexPath];
-    }
-    self.previousCommitmentCellIndexPath = [self.placesTableView indexPathForCell:cell];
-    
-    if (sharedDataManager.currentCommitmentPlace) {
-            NSLog(@"PLACE VIEW: previous commitment %@", sharedDataManager.currentCommitmentPlace.name);
-            [self removePreviousCommitment];
+       [self.delegate commitToPlace:place];
     }
     sharedDataManager.currentCommitmentPlace = place;
+    [cell layoutCommitButton];
+    [cell setNeedsLayout];
 }
 
 -(void)removePreviousCommitment {
@@ -459,36 +434,41 @@
     }
     Place *place = placeCell.place;
     Datastore *sharedDataManager = [Datastore sharedDataManager];
-    if ([place.friendsCommitted count] > 0) {
-        FriendsListViewController *friendsListViewController = [[FriendsListViewController alloc] init];
-        friendsListViewController.delegate = self;
-        NSMutableSet *friends = [[NSMutableSet alloc] init];
-        for (id friendId in place.friendsCommitted) {
-            if ([sharedDataManager.tetherFriendsDictionary objectForKey:friendId]) {
-                Friend *friend = [sharedDataManager.tetherFriendsDictionary objectForKey:friendId];
-                [friends addObject:friend];
-            }
+    FriendsListViewController *friendsListViewController = [[FriendsListViewController alloc] init];
+    friendsListViewController.delegate = self;
+    NSMutableSet *friends = [[NSMutableSet alloc] init];
+    for (id friendId in place.friendsCommitted) {
+        if ([sharedDataManager.tetherFriendsDictionary objectForKey:friendId]) {
+            Friend *friend = [sharedDataManager.tetherFriendsDictionary objectForKey:friendId];
+            [friends addObject:friend];
+        } else if ([sharedDataManager.facebookId isEqualToString:friendId]) {
+            Friend *friend = [[Friend alloc] init];
+            friend = [[Friend alloc] init];
+            friend.friendID = sharedDataManager.facebookId;
+            friend.name = sharedDataManager.name;
+            friend.statusMessage = sharedDataManager.statusMessage;
+            [friends addObject:friend];
         }
-        friendsListViewController.friendsArray = [[friends allObjects] mutableCopy];
-        friendsListViewController.place = placeCell.place;
-        [friendsListViewController loadFriendsOfFriends];
-        [friendsListViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
-        [self.view addSubview:friendsListViewController.view];
-        [self addChildViewController:friendsListViewController];
-        [friendsListViewController didMoveToParentViewController:self];
-        
-        [UIView animateWithDuration:SLIDE_TIMING
-                              delay:0.0
-             usingSpringWithDamping:1.0
-              initialSpringVelocity:1.0
-                            options:UIViewAnimationOptionBeginFromCurrentState
-                         animations:^{
-                             [friendsListViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
-                         }
-                         completion:^(BOOL finished) {
-                             [self searchBarCancelButtonClicked:self.searchBar];
-                         }];
     }
+    friendsListViewController.friendsArray = [[friends allObjects] mutableCopy];
+    friendsListViewController.place = placeCell.place;
+    [friendsListViewController loadFriendsOfFriends];
+    [friendsListViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+    [self.view addSubview:friendsListViewController.view];
+    [self addChildViewController:friendsListViewController];
+    [friendsListViewController didMoveToParentViewController:self];
+    
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [friendsListViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                         [self searchBarCancelButtonClicked:self.searchBar];
+                     }];
 }
 
 -(void)inviteToPlace:(Place *)place {
@@ -535,17 +515,30 @@
     }
 }
 
--(void)unhighlightCellWithCellIndex:(NSIndexPath*)cellIndex {
-    //indicate in list view that you are no longer tethered to the previous location
-    PlaceCell *cell = (PlaceCell*)[self.placesTableView cellForRowAtIndexPath:cellIndex];
-    [cell setTethered:NO];
+-(void)setCellForPlace:(Place*)place tethered:(BOOL)tethered {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    
+    Place *p = [sharedDataManager.placesDictionary objectForKey:place.placeId];
+    PlaceCell *cell = (PlaceCell*)[self.placesTableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:[self.placesArray indexOfObject:p] inSection:0]];
+    
+    [cell setTethered:tethered];
+    [cell setNeedsDisplay];
+    [cell setNeedsLayout];
 }
 
 #pragma mark FriendsListViewControllerDelegate
 
 -(void)commitToPlace:(Place *)place {
-    if ([self.delegate respondsToSelector:@selector(commitToPlace:)]) {
-        [self.delegate commitToPlace:place];
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+        
+    Place *p = [sharedDataManager.placesDictionary objectForKey:place.placeId];
+        
+    PlaceCell *cell = (PlaceCell*)[self.placesTableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:[self.placesArray indexOfObject:p] inSection:0]];
+    if ([cell.place.placeId isEqualToString:sharedDataManager.currentCommitmentPlace.placeId]) {
+        [self removePreviousCommitment];
+        [self removeCommitmentFromDatabase];
+    } else {
+        [self commitToPlace:cell.place fromCell:cell];
     }
 }
 
@@ -720,7 +713,6 @@
         Datastore *sharedDataManager = [Datastore sharedDataManager];
         if (sharedDataManager.currentCommitmentPlace && [place.placeId isEqualToString:sharedDataManager.currentCommitmentPlace.placeId]) {
             [cell setTethered:YES];
-            self.previousCommitmentCellIndexPath = indexPath;
         }
         
         return cell;
@@ -763,21 +755,15 @@
         [self scrollToPlaceWithId:cell.place.placeId];
         [self searchBarCancelButtonClicked:self.searchBar];
     } else {
-        PlaceCell *cell = (PlaceCell*)[tableView cellForRowAtIndexPath:indexPath];
-        Datastore *sharedDataManager = [Datastore sharedDataManager];
-        if ([cell.place.placeId isEqualToString:sharedDataManager.currentCommitmentPlace.placeId]) {
-            [self removePreviousCommitment];
-            [self removeCommitmentFromDatabase];
-            [cell setTethered:NO];
-            self.previousCommitmentCellIndexPath = nil;
-        } else {
-            [cell setTethered:YES];
-            [self commitToPlace:cell.place fromCell:cell];
-            self.previousCommitmentCellIndexPath = indexPath;
-        }
-        [cell layoutCommitButton];
-        [cell setNeedsLayout];
-         [tableView deselectRowAtIndexPath:indexPath animated:YES];
+            PlaceCell *cell = (PlaceCell*)[tableView cellForRowAtIndexPath:indexPath];
+            Datastore *sharedDataManager = [Datastore sharedDataManager];
+            if ([cell.place.placeId isEqualToString:sharedDataManager.currentCommitmentPlace.placeId]) {
+                [self removePreviousCommitment];
+                [self removeCommitmentFromDatabase];
+            } else {
+                [self commitToPlace:cell.place fromCell:cell];
+            }
+        [tableView deselectRowAtIndexPath:indexPath animated:YES];
     }
     
     return;

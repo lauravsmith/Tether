@@ -46,7 +46,7 @@
     UIFont *montserratBold = [UIFont fontWithName:@"Montserrat-Bold" size:15.0f];
     
     UILabel *sloganLabel = [[UILabel alloc] init];
-    sloganLabel.text = @"Tethr brings people together.";
+    sloganLabel.text = @"tethr brings people together.";
     sloganLabel.lineBreakMode = NSLineBreakByWordWrapping;
     sloganLabel.numberOfLines = 2.0;
     sloganLabel.textAlignment = NSTextAlignmentCenter;

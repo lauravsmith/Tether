@@ -27,7 +27,7 @@
 @property (nonatomic, strong) UIButton *inviteButton;
 @property (nonatomic, strong) UIButton *inviteButtonLarge;
 @property (nonatomic, strong) UIButton *moreInfoButton;
-@property (nonatomic, strong) UILabel *plusIconLabel;
+
 - (void)prepareForReuse;
 -(void)layoutCommitButton;
 
@@ -68,8 +68,6 @@
         [self addSubview:self.inviteButtonLarge];
         self.moreInfoButton = [[UIButton alloc] init];
         [self addSubview:self.moreInfoButton];
-        self.plusIconLabel = [[UILabel alloc] init];
-        [self addSubview:self.plusIconLabel];
     }
     return self;
 }
@@ -84,7 +82,7 @@
     [self.placeNameLabel setTextColor:UIColorFromRGB(0x8e0528)];
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:16.0f];
     CGSize size = [self.placeNameLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
-    self.placeNameLabel.frame = CGRectMake(10.0, 10.0, MIN(self.frame.size.width - 100.0, size.width), size.height);
+    self.placeNameLabel.frame = CGRectMake(10.0, 10.0, MIN(self.frame.size.width - 150.0, size.width), size.height);
     self.placeNameLabel.adjustsFontSizeToFitWidth = YES;
     [self.placeNameLabel setFont:montserrat];
     
@@ -112,7 +110,7 @@
                 forControlEvents:UIControlEventTouchUpInside];
     [self layoutCommitButton];
     
-    self.arrowButton.frame = CGRectMake(self.frame.size.width - 20.0, (self.frame.size.height - 10.0) / 2, 10.0, 10.0);
+    self.arrowButton.frame = CGRectMake(self.frame.size.width - 30.0, (self.frame.size.height - 10.0) / 2, 10.0, 10.0);
     self.arrowButton.transform = CGAffineTransformMakeRotation(degreesToRadian(180));
     UIImage *btnImage = [UIImage imageNamed:@"RedTriangle"];
     [self.arrowButton setImage:btnImage forState:UIControlStateNormal];
@@ -120,41 +118,34 @@
                                 action:@selector(friendsGoingClicked:)
                       forControlEvents:UIControlEventTouchUpInside];
     
+    self.friendsGoingButtonLarge.frame = CGRectMake(self.frame.size.width - 88.0, 0.0, 88.0, self.frame.size.height);
+    [self.friendsGoingButtonLarge addTarget:self
+                                     action:@selector(friendsGoingClicked:)
+                           forControlEvents:UIControlEventTouchUpInside];
+    
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    
     UIFont *helveticaNeue = [UIFont fontWithName:@"HelveticaNeue" size:30.0f];
-    if ([self.place.friendsCommitted count] > 0) {
-        [self.friendsGoingButton setTitle:[NSString stringWithFormat:@"%d", [self.place.friendsCommitted count]] forState:UIControlStateNormal];
+    [self.friendsGoingButton addTarget:self
+                                action:@selector(friendsGoingClicked:)
+                      forControlEvents:UIControlEventTouchUpInside];
+    [self.friendsGoingButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+    self.friendsGoingButton.titleLabel.font = helveticaNeue;
+
+    Place *p = [sharedDataManager.placesDictionary objectForKey:self.place.placeId];
+    if ([p.friendsCommitted count] > 0) {
+        [self.friendsGoingButton setTitle:[NSString stringWithFormat:@"%d", [p.friendsCommitted count]] forState:UIControlStateNormal];
         size = [self.friendsGoingButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:helveticaNeue}];
-        self.friendsGoingButton.frame = CGRectMake(self.frame.size.width - size.width - 20.0, (self.frame.size.height - size.height) / 2, size.width, size.height);
-        [self.friendsGoingButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
-        self.friendsGoingButton.titleLabel.font = helveticaNeue;
-        [self.friendsGoingButton addTarget:self
-                                    action:@selector(friendsGoingClicked:)
-                          forControlEvents:UIControlEventTouchUpInside];
-        self.friendsGoingButtonLarge.frame = CGRectMake(self.friendsGoingButton.frame.origin.x, self.friendsGoingButton.frame.origin.y, self.frame.size.width - self.friendsGoingButton.frame.origin.x, self.frame.size.height);
-        [self.friendsGoingButtonLarge addTarget:self
-                                    action:@selector(friendsGoingClicked:)
-                          forControlEvents:UIControlEventTouchUpInside];
-        
-        Datastore *sharedDataManager = [Datastore sharedDataManager];
-        if ([self.place.friendsCommitted count] == 1 && [self.place.friendsCommitted containsObject:sharedDataManager.facebookId]) {
-            [self.arrowButton setHidden:YES];
-            [self.friendsGoingButton setEnabled:NO];
-            [self.friendsGoingButtonLarge setEnabled:NO];
-        } else {
-            [self.arrowButton setHidden:NO];
-            [self.friendsGoingButton setEnabled:YES];
-            [self.friendsGoingButtonLarge setEnabled:YES];
-        }
+        self.friendsGoingButton.frame = CGRectMake(self.frame.size.width - MIN(60.0,size.width) - 33.0, (self.frame.size.height - size.height) / 2, MIN(60.0,size.width), size.height);
+        self.friendsGoingButton.titleLabel.adjustsFontSizeToFitWidth = YES;
     } else {
-        [self.friendsGoingButton setEnabled:NO];
         [self.friendsGoingButton setTitle:@"" forState:UIControlStateNormal];
-        [self.friendsGoingButtonLarge setEnabled:NO];
-        [self.arrowButton setHidden:YES];
     }
     
     self.inviteButton.tag = 0;
-    self.inviteButton.frame = CGRectMake(90.0, self.frame.size.height - 35.0, 30, 40);
-    [self.inviteButton setImage:[UIImage imageNamed:@"FriendIcon"] forState:UIControlStateNormal];
+    self.inviteButton.frame = CGRectMake(90.0, self.frame.size.height - 24.0, 20.0, 20.0);
+    [self.inviteButton setImage:[UIImage imageNamed:@"InviteIcon"] forState:UIControlStateNormal];
+    self.inviteButton.imageView.contentMode = UIViewContentModeScaleAspectFit;
     [self.inviteButton addTarget:self
                           action:@selector(inviteClicked:)
                 forControlEvents:UIControlEventTouchUpInside];
@@ -164,15 +155,9 @@
                           action:@selector(inviteClicked:)
                 forControlEvents:UIControlEventTouchUpInside];
     
-    self.plusIconLabel.frame = CGRectMake(self.inviteButton.frame.origin.x + 6.0, self.inviteButton.frame.origin.y + 8.0, 10.0, 10.0);
-    [self.plusIconLabel setBackgroundColor:UIColorFromRGB(0x8e0528)];
-    [self.plusIconLabel setTextColor:[UIColor whiteColor]];
-    self.plusIconLabel.layer.borderColor = [UIColor whiteColor].CGColor;
-    UIFont *montserratExtraExtraSmall = [UIFont fontWithName:@"Montserrat" size:8];
-    self.plusIconLabel.font = montserratExtraExtraSmall;
-    self.plusIconLabel.text = @"+";
-    self.plusIconLabel.textAlignment = NSTextAlignmentCenter;
-    self.plusIconLabel.layer.cornerRadius = 5.0;
+//    UIView *line = [[UIView alloc] initWithFrame:CGRectMake(self.frame.size.width - 88.0, 0.0, 0.5, self.frame.size.height)];
+//    [line setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
+//    [self addSubview:line];
 }
 
 - (void)setPlace:(Place *)place {
@@ -184,10 +169,10 @@
 
 -(void)layoutCommitButton {
     if (self.commitButton.tag == 1) {
-        [self.commitButton setTitle:@"Tethr" forState:UIControlStateNormal];
+        [self.commitButton setTitle:@"tethr" forState:UIControlStateNormal];
         [self.commitButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
     } else {
-        [self.commitButton setTitle:@"Tethred" forState:UIControlStateNormal];
+        [self.commitButton setTitle:@"tethred" forState:UIControlStateNormal];
         [self.commitButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
     }
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:16.0f];
