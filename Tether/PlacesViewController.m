@@ -156,6 +156,7 @@
             PFGeoPoint *geoPoint;
             NSMutableDictionary *tempDictionary = [[NSMutableDictionary alloc] init];
 
+            sharedDataManager.friendsToPlacesMap = [[NSMutableDictionary alloc] init];
             for (PFObject *object in objects) {
                 Place *place = [[Place alloc] init];
                 geoPoint = [object objectForKey:kCommitmentGeoPointKey];
@@ -440,13 +441,6 @@
     for (id friendId in place.friendsCommitted) {
         if ([sharedDataManager.tetherFriendsDictionary objectForKey:friendId]) {
             Friend *friend = [sharedDataManager.tetherFriendsDictionary objectForKey:friendId];
-            [friends addObject:friend];
-        } else if ([sharedDataManager.facebookId isEqualToString:friendId]) {
-            Friend *friend = [[Friend alloc] init];
-            friend = [[Friend alloc] init];
-            friend.friendID = sharedDataManager.facebookId;
-            friend.name = sharedDataManager.name;
-            friend.statusMessage = sharedDataManager.statusMessage;
             [friends addObject:friend];
         }
     }

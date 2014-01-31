@@ -19,6 +19,7 @@
 #define SEARCH_BAR_WIDTH 270.0
 #define SEARCH_RESULTS_CELL_HEIGHT 60.0
 #define STATUS_BAR_HEIGHT 20.0
+#define TOP_BAR_HEIGHT 70.0
 
 @interface FriendInviteViewController () <UISearchBarDelegate, UITableViewDelegate, UITableViewDataSource>
 @property (retain, nonatomic) UISearchBar *placeSearchBar;
@@ -47,7 +48,9 @@
     frame.size.height = 0.0;
     self.searchBarBackgroundView.frame = frame;
     
-    self.placeSearchBar = [[UISearchBar alloc] initWithFrame:CGRectMake((self.topBarView.frame.size.width - SEARCH_BAR_WIDTH) / 2.0, (self.topBarView.frame.size.height - SEARCH_BAR_HEIGHT) / 2.0 + 5.0, SEARCH_BAR_WIDTH, SEARCH_BAR_HEIGHT)];
+    self.topBarView.frame = CGRectMake(0, 0, self.view.frame.size.width, TOP_BAR_HEIGHT);
+    
+    self.placeSearchBar = [[UISearchBar alloc] initWithFrame:CGRectMake((self.topBarView.frame.size.width - SEARCH_BAR_WIDTH) / 2.0, STATUS_BAR_HEIGHT, SEARCH_BAR_WIDTH, SEARCH_BAR_HEIGHT)];
     self.placeSearchBar.delegate = self;
     self.placeSearchBar.placeholder = @"Search places...";
     [self.placeSearchBar setBackgroundImage:[UIImage new]];
@@ -77,10 +80,10 @@
     self.placeLabel.text = place.name;
     [self.placeSearchBar setHidden:YES];
     
-    UIFont *montserratLarge = [UIFont fontWithName:@"Montserrat" size:16.0f];
+    UIFont *montserratLarge = [UIFont fontWithName:@"Montserrat" size:14.0f];
     self.placeLabel.font = montserratLarge;
     CGSize size = [self.placeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratLarge}];
-    self.placeLabel.frame = CGRectMake(LEFT_PADDING, STATUS_BAR_HEIGHT + PADDING + 4.0, MIN(self.view.frame.size.width - LEFT_PADDING, size.width), size.height);
+    self.placeLabel.frame = CGRectMake(MAX(LEFT_PADDING, (self.view.frame.size.width - size.width) / 2.0), STATUS_BAR_HEIGHT + PADDING + 4.0, MIN(self.view.frame.size.width - LEFT_PADDING, size.width), size.height);
     
     self.searchBar.placeholder = @"Invite more friends...";
     [self.searchBar setHidden:NO];

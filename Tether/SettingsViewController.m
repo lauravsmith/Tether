@@ -31,9 +31,6 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 @property (retain, nonatomic) UITextField *cityTextField;
 @property (retain, nonatomic) UIButton * logoutButton;
 @property (retain, nonatomic) UISwitch * setLocationSwitch;
-@property (retain, nonatomic) UIView * whiteLineView;
-@property (retain, nonatomic) UIView * whiteLineView2;
-@property (retain, nonatomic) UIView * whiteLineView3;
 @property (retain, nonatomic) UILabel * defaultCityLabel;
 @property (retain, nonatomic) UILabel * locationSwitchLabel;
 @property (retain, nonatomic) UILabel * goingOutLabel;
@@ -98,17 +95,16 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     }
     [self.view addSubview:self.statusMessageTextField];
     
-    // white line separator
-    self.whiteLineView = [[UIView alloc] initWithFrame:CGRectMake(PADDING, self.statusMessageTextField.frame.origin.y + self.statusMessageTextField.frame.size.height + PADDING, self.view.frame.size.width - PADDING * 2.0, 1.0)];
-    [self.whiteLineView setBackgroundColor:[UIColor whiteColor]];
-    [self.view addSubview:self.whiteLineView];
+    UIImageView *blackLineImageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, self.statusMessageTextField.frame.origin.y + self.statusMessageTextField.frame.size.height + PADDING, self.view.frame.size.width, 4.0)];
+    [blackLineImageView setImage:[UIImage imageNamed:@"DividerSettings"]];
+    [self.view addSubview:blackLineImageView];
     
     self.defaultCityLabel = [[UILabel alloc] init];
     self.defaultCityLabel.text = @"Default City";
     self.defaultCityLabel.font = montserrat;
     self.defaultCityLabel.textColor = [UIColor whiteColor];
     CGSize textLabelSize = [self.defaultCityLabel.text sizeWithAttributes:@{NSFontAttributeName: montserrat}];
-    self.defaultCityLabel.frame = CGRectMake(PADDING, self.whiteLineView.frame.origin.y + PADDING, textLabelSize.width, textLabelSize.height);
+    self.defaultCityLabel.frame = CGRectMake(PADDING, blackLineImageView.frame.origin.y + PADDING, textLabelSize.width, textLabelSize.height);
     [self.view addSubview:self.defaultCityLabel];
     
     self.locationSwitchLabel = [[UILabel alloc] init];
@@ -185,9 +181,9 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.activityIndicator = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake((self.view.frame.size.width - 50.0) / 2.0, self.defaultCityLabel.frame.origin.y + self.defaultCityLabel.frame.size.height , 50.0, 50.0)];
     [self.view addSubview:self.activityIndicator];
     
-    self.whiteLineView2 = [[UIView alloc] initWithFrame:CGRectMake(PADDING, self.cityTextField.frame.origin.y + self.cityTextField.frame.size.height + PADDING, self.view.frame.size.width - PADDING * 2.0, 1.0)];
-    [self.whiteLineView2 setBackgroundColor:[UIColor whiteColor]];
-    [self.view addSubview:self.whiteLineView2];
+    UIImageView *blackLineImageView2 = [[UIImageView alloc] initWithFrame:CGRectMake(0.0, self.cityTextField.frame.origin.y + self.cityTextField.frame.size.height + PADDING, self.view.frame.size.width, 4.0)];
+    [blackLineImageView2 setImage:[UIImage imageNamed:@"DividerSettings"]];
+    [self.view addSubview:blackLineImageView2];
     
     self.goingOutLabel = [[UILabel alloc] init];
     self.goingOutLabel.text = @"Going out?";
@@ -195,7 +191,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.goingOutLabel.textColor = [UIColor whiteColor];
     size = [self.goingOutLabel.text sizeWithAttributes:@{NSFontAttributeName: montserrat}];
     self.goingOutLabel.frame =
-    CGRectMake(PADDING, self.whiteLineView2.frame.origin.y + self.whiteLineView2.frame.size.height + PADDING, size.width, size.height);
+    CGRectMake(PADDING, blackLineImageView2.frame.origin.y + blackLineImageView2.frame.size.height + PADDING, size.width, size.height);
     [self.view addSubview:self.goingOutLabel];
     
     UILabel *noLabel2 = [[UILabel alloc] init];
@@ -220,9 +216,9 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     yesLabel2.frame = CGRectMake(self.goingOutSwitch.frame.origin.x + 35.0, self.goingOutLabel.frame.origin.y + self.goingOutLabel.frame.size.height + PADDING, yesLabelSize.width, yesLabelSize.height);
     [self.view addSubview:yesLabel2];
     
-    self.whiteLineView3 = [[UIView alloc] initWithFrame:CGRectMake(PADDING, noLabel2.frame.origin.y + noLabel2.frame.size.height + PADDING, self.view.frame.size.width - PADDING * 2, 1.0)];
-    [self.whiteLineView3 setBackgroundColor:[UIColor whiteColor]];
-    [self.view addSubview:self.whiteLineView3];
+    UIImageView *blackLineImageView3 = [[UIImageView alloc] initWithFrame:CGRectMake(0.0, noLabel2.frame.origin.y + noLabel2.frame.size.height + PADDING, self.view.frame.size.width, 4.0)];
+    [blackLineImageView3 setImage:[UIImage imageNamed:@"DividerSettings"]];
+    [self.view addSubview:blackLineImageView3];
     
     self.logoutButton = [[UIButton alloc] init];
     [self.logoutButton setTitle:@"Logout" forState:UIControlStateNormal];
@@ -231,15 +227,9 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     UIFont *montserratBold = [UIFont fontWithName:@"Montserrat-Bold" size:28];
     self.logoutButton.titleLabel.font = montserratBold;
     size = [self.logoutButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];
-    self.logoutButton.frame = CGRectMake((self.view.frame.size.width - size.width) / 2.0, self.whiteLineView3.frame.origin.y + self.whiteLineView3.frame.size.height + size.height - PADDING, size.width, size.height);
+    self.logoutButton.frame = CGRectMake((self.view.frame.size.width - size.width) / 2.0, blackLineImageView3.frame.origin.y + blackLineImageView3.frame.size.height + size.height - PADDING, size.width, size.height);
     [self.logoutButton addTarget:self action:@selector(logoutButtonWasPressed:) forControlEvents:UIControlEventTouchDown];
     [self.view addSubview:self.logoutButton];
-    
-//    self.inviteFriendsButton = [[UIButton alloc] init];
-//    [self.inviteFriendsButton setTitle:@"Invite Friends" forState:UIControlStateNormal];
-//    self.inviteFriendsButton.frame = CGRectMake(0, self.logoutButton.frame.origin.y, 100.0, 100.0);
-//    [self.inviteFriendsButton addTarget:self action:@selector(inviteFriendsPressed:) forControlEvents:UIControlEventTouchUpInside];
-//    [self.view addSubview:self.inviteFriendsButton];
     
     UIFont *montserratLarge = [UIFont fontWithName:@"Montserrat" size:16];
     self.doneButton = [[UIButton alloc] init];
@@ -317,7 +307,6 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.noLabel.hidden = NO;
     self.cancelSearchButton.hidden = YES;
     self.userProfilePictureView.hidden = NO;
-    self.whiteLineView.hidden = NO;
     self.defaultCityLabel.hidden = NO;
     self.statusMessageTextField.hidden = NO;
     
@@ -354,6 +343,18 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     if ([self.delegate respondsToSelector:@selector(closeSettings)]) {
         [self.delegate closeSettings];
     }
+    [self saveStatusMessage];
+}
+
+-(void)saveStatusMessage {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    if (![self.statusMessageTextField.text isEqualToString:sharedDataManager.statusMessage]) {
+        sharedDataManager.statusMessage = self.statusMessageTextField.text;
+        PFUser *user = [PFUser currentUser];
+        [user setObject:self.statusMessageTextField.text forKey:@"statusMessage"];
+        [user saveInBackground];
+        NSLog(@"PARSE SAVE: saving status message");
+    }
 }
 
 #pragma mark UITextField delegate methods
@@ -381,7 +382,6 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
         self.yesLabel.hidden = YES;
         self.noLabel.hidden = YES;
         self.userProfilePictureView.hidden = YES;
-        self.whiteLineView.hidden = YES;
         self.defaultCityLabel.hidden = YES;
         self.statusMessageTextField.hidden = YES;
     } else if (textField == self.statusMessageTextField) {
@@ -489,14 +489,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
         [self closeSearchResultsTableView];
     }
     
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
-    if (![self.statusMessageTextField.text isEqualToString:sharedDataManager.statusMessage]) {
-        sharedDataManager.statusMessage = self.statusMessageTextField.text;
-        PFUser *user = [PFUser currentUser];
-        [user setObject:self.statusMessageTextField.text forKey:@"statusMessage"];
-        [user saveInBackground];
-        NSLog(@"PARSE SAVE: saving status message");
-    }
+    [self saveStatusMessage];
 }
 
 -(IBAction)logoutButtonWasPressed:(id)sender {
@@ -512,39 +505,6 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     NSString *location = [NSString stringWithFormat:@"%@, %@",[userDetails objectForKey:@"city"], [userDetails objectForKey:@"state"]];
     self.cityTextField.text = [location uppercaseString];
     [self closeSearchResultsTableView];
-}
-
--(IBAction)inviteFriendsPressed:(id)sender {
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
-    
-    // Display the requests dialog
-    [FBWebDialogs
-     presentRequestsDialogModallyWithSession:nil
-     message:[NSString stringWithFormat:@"%@ sent you an invite on Tethr", sharedDataManager.name]
-     title:@"Invite Friends"
-     parameters:nil
-     handler:^(FBWebDialogResult result, NSURL *resultURL, NSError *error) {
-         if (error) {
-             // Error launching the dialog or sending the request.
-             NSLog(@"Error sending request.");
-         } else {
-             if (result == FBWebDialogResultDialogNotCompleted) {
-                 // User clicked the "x" icon
-                 NSLog(@"User canceled request.");
-             } else {
-                 // Handle the send request callback
-                 NSDictionary *urlParams = [self parseURLParams:[resultURL query]];
-                 if (![urlParams valueForKey:@"request"]) {
-                     // User clicked the Cancel button
-                     NSLog(@"User canceled request.");
-                 } else {
-                     // User clicked the Send button
-                     NSString *requestID = [urlParams valueForKey:@"request"];
-                     NSLog(@"Request ID: %@", requestID);
-                 }
-             }
-         }
-     }];
 }
 
 - (NSDictionary*)parseURLParams:(NSString *)query {

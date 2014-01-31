@@ -96,7 +96,7 @@
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:12.0f];
     [self.placeButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     size = [self.placeButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName: montserrat}];
-    self.placeButton.frame = CGRectMake(NAME_LABEL_OFFSET_X, self.friendNameLabel.frame.origin.y + self.friendNameLabel.frame.size.height, MIN(size.width, MAX_LABEL_WIDTH), size.height);
+    self.placeButton.frame = CGRectMake(NAME_LABEL_OFFSET_X + 1.0, self.friendNameLabel.frame.origin.y + self.friendNameLabel.frame.size.height, MIN(size.width, MAX_LABEL_WIDTH), size.height);
     self.placeButton.titleLabel.font = montserrat;
     self.placeButton.titleLabel.adjustsFontSizeToFitWidth = YES;
     [self.placeButton addTarget:self action:@selector(friendsCommitmentPressed) forControlEvents:UIControlEventTouchUpInside];
@@ -119,8 +119,10 @@
     [self addSubview:self.statusLabel];
     
     self.inviteButton.tag = 0;
-    if (self.friend) {
-        self.inviteButton.frame = CGRectMake(self.frame.size.width - PANEL_WIDTH - 35.0, (self.frame.size.height - 20.0) / 2.0, 20, 20);
+    if (self.friend && ![self.friend.friendID isEqualToString:sharedDataManager.facebookId]) {
+        self.inviteButton.frame = CGRectMake(self.frame.size.width - PANEL_WIDTH - 35.0, self.friendNameLabel.frame.origin.y, 20, 20);
+    } else {
+        self.inviteButton.frame = CGRectMake(0, 0, 0, 0);
     }
     [self.inviteButton setImage:[UIImage imageNamed:@"InviteIcon"] forState:UIControlStateNormal];
     self.inviteButton.imageView.contentMode = UIViewContentModeScaleAspectFit;

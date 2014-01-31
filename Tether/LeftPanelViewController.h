@@ -16,6 +16,7 @@
 @interface LeftPanelViewController : ViewController
 
 @property (nonatomic, assign) id<LeftPanelViewControllerDelegate> delegate;
+-(void)hideSearchBar;
 -(void)updateFriendsList;
 @end
 

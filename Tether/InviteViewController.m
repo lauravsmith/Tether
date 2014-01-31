@@ -22,6 +22,7 @@
 #define SEARCH_BAR_WIDTH 270.0
 #define SPINNER_SIZE 30.0
 #define STATUS_BAR_HEIGHT 20.0
+#define TOP_BAR_HEIGHT 70.0
 #define PADDING 10.0
 
 @interface InviteViewController () <UIGestureRecognizerDelegate, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate>
@@ -60,23 +61,26 @@
 {
     [super viewDidLoad];
     
-    [self.view setBackgroundColor:[UIColor blackColor]];
-    
     UIPanGestureRecognizer *panRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(moveBack:)];
     [panRecognizer setMinimumNumberOfTouches:1];
     [panRecognizer setDelegate:self];
     [self.view addGestureRecognizer:panRecognizer];
     
-    self.topBarView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 60.0)];
+    self.topBarView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, TOP_BAR_HEIGHT)];
     [self.topBarView setBackgroundColor:UIColorFromRGB(0x8e0528)];
+    
+    UIImage *backgroundImage = [UIImage imageNamed:@"BlackTexture"];
+    UIImageView *backgroundImageView = [[UIImageView alloc] initWithImage:backgroundImage];
+    backgroundImageView.frame = CGRectMake(0, self.topBarView.frame.size.height, self.view.frame.size.width, self.view.frame.size.height);
+    [self.view addSubview:backgroundImageView];
     
     self.placeLabel = [[UILabel alloc] init];
     self.placeLabel.text = self.place.name;
     [self.placeLabel setTextColor:[UIColor whiteColor]];
-    UIFont *montserratLarge = [UIFont fontWithName:@"Montserrat" size:16.0f];
+    UIFont *montserratLarge = [UIFont fontWithName:@"Montserrat" size:14.0f];
     self.placeLabel.font = montserratLarge;
     CGSize size = [self.placeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratLarge}];
-    self.placeLabel.frame = CGRectMake(LEFT_PADDING, STATUS_BAR_HEIGHT + PADDING + 4.0, MIN(self.view.frame.size.width - LEFT_PADDING, size.width), size.height);
+    self.placeLabel.frame = CGRectMake(MAX(LEFT_PADDING, (self.view.frame.size.width - size.width) / 2.0), STATUS_BAR_HEIGHT + PADDING + 4.0, MIN(self.view.frame.size.width - LEFT_PADDING, size.width), size.height);
     self.placeLabel.adjustsFontSizeToFitWidth = YES;
     [self.topBarView addSubview:self.placeLabel];
     [self.view addSubview:self.topBarView];
@@ -99,7 +103,7 @@
     [self.view addSubview:self.friendsInvitedScrollView];
     
     self.messageTextView = [[UITextView alloc] initWithFrame:CGRectMake(PADDING, self.friendsInvitedScrollView.frame.origin.y + self.friendsInvitedScrollView.frame.size.height, self.view.frame.size.width - PADDING*2, MAX_MESSAGE_FIELD_HEIGHT)];
-    [self.messageTextView setBackgroundColor:[UIColor grayColor]];
+    [self.messageTextView setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
     [self.messageTextView setTextColor:[UIColor whiteColor]];
     UIFont *montserratBold = [UIFont fontWithName:@"Montserrat-Bold" size:20];
     [self.messageTextView setFont:montserratBold];
@@ -210,7 +214,7 @@
     friendLabel.font = montserrat;
     CGSize friendLabelSize = [friend.name sizeWithAttributes:@{NSFontAttributeName: montserrat}];
     friendLabel.text = [NSString stringWithFormat:@"  %@", friend.name];
-    [friendLabel setBackgroundColor:[UIColor grayColor]];
+    [friendLabel setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
     friendLabel.layer.cornerRadius = 2.0;
     friendLabel.frame = CGRectMake(0, 0, friendLabelSize.width + 20.0, LABEL_HEIGHT);
 
@@ -338,7 +342,7 @@
         self.confirmationLabel.text = @"Sending invitation...";
     }
     self.confirmationLabel.textColor = UIColorFromRGB(0x8e0528);
-    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:16.0f];
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
     self.confirmationLabel.font = montserrat;
     CGSize size = [self.confirmationLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
     self.confirmationLabel.frame = CGRectMake((self.confirmationView.frame.size.width - size.width) / 2.0, (self.confirmationView.frame.size.height - size.height) / 2.0, size.width, size.height);
@@ -410,7 +414,7 @@
     searchText = [searchText lowercaseString];
     for(id key in sharedDataManager.tetherFriendsDictionary) {
         Friend *friend = [sharedDataManager.tetherFriendsDictionary objectForKey:key];
-        if (!friend.blocked) {
+        if (!friend.blocked && ![friend.friendID isEqualToString:sharedDataManager.facebookId] && ![self.friendsInvitedDictionary objectForKey:friend.friendID]) {
             NSString *name = [friend.name lowercaseString];
             if ([name rangeOfString:searchText].location != NSNotFound) {
                 [self.friendSearchResultsArray addObject:friend];

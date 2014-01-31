@@ -63,6 +63,8 @@
 @property (nonatomic, assign) NSTimer *pollingTimer;
 @property (nonatomic, assign) int timerMultiplier;
 @property (nonatomic, strong) PFUser *currentUser;
+@property (nonatomic, strong) NSMutableDictionary *previousTetherFriendsDictionary;
+@property (nonatomic, assign) BOOL listsHaveChanged;
 
 @end
 
@@ -229,7 +231,11 @@
                                                                id result,
                                                                NSError *error) {
             if (!error) {
-                [self facebookRequestDidLoad:result];
+                [[PFUser currentUser] refreshInBackgroundWithBlock:^(PFObject *object, NSError *error) {
+                    if (!error) {
+                        [self facebookRequestDidLoad:result];
+                    }
+                }];
             }
         }];
     }
@@ -246,13 +252,16 @@
         }
     }
     
+    [facebookFriendsIds addObject:sharedDataManager.facebookId];
     sharedDataManager.facebookFriends = facebookFriendsIds;
 
+    [self.currentUser setObject:sharedDataManager.facebookFriends forKey:kUserFacebookFriendsKey];
+    [self.currentUser saveInBackground];
+    
     [self queryFriendsStatus];
 }
 
 -(void)facebookRequestDidLoad:(id)result {
-    [[PFUser currentUser] refresh];
     self.currentUser = [PFUser currentUser];
     
     NSArray *data = [result objectForKey:@"data"];
@@ -372,7 +381,11 @@
     NSString *city = [userDetails objectForKey:kUserDefaultsCityKey];
     NSString *state = [userDetails objectForKey:kUserDefaultsStateKey];
     Datastore *sharedDataManager = [Datastore sharedDataManager];
-//    NSLog(@"Your city: %@ state: %@", city, state);
+    NSLog(@"Your city: %@ state: %@", city, state);
+    
+    if (![self.currentUser objectForKey:kUserCityKey]) {
+        [self saveCity:city state:state];
+    }
     
     if (city && state && sharedDataManager.facebookFriends) {
         PFQuery *facebookFriendsQuery = [PFUser query];
@@ -381,7 +394,8 @@
         [facebookFriendsQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
             if (!error) {
                 self.parseError = NO;
-//                NSLog(@"QUERY: queried your facebook friends status who are on Tether");
+                self.previousTetherFriendsDictionary = [[NSMutableDictionary alloc] init];
+                self.previousTetherFriendsDictionary = [sharedDataManager.tetherFriendsNearbyDictionary mutableCopy];
                 sharedDataManager.tetherFriendsNearbyDictionary = [[NSMutableDictionary alloc] init];
                 sharedDataManager.tetherFriends = [[NSMutableArray alloc] init];
                 sharedDataManager.blockedFriends = [[NSMutableArray alloc] init];
@@ -402,6 +416,10 @@
                         friend.timeLastUpdated = user[kUserTimeLastUpdatedKey];
                         friend.status = [user[kUserStatusKey] boolValue];
                         friend.statusMessage = user[kUserStatusMessageKey];
+                        if (![friend.statusMessage isEqualToString:((Friend*)[self.previousTetherFriendsDictionary objectForKey:friend.friendID]).statusMessage]) {
+                            self.listsHaveChanged = YES;
+                        }
+                        
                         friend.placeId = @"";
 
                         if ([sharedDataManager.blockedList containsObject:friend.friendID]) {
@@ -469,7 +487,7 @@
             }
         }
     }
-    
+
     // only update lists if they have changed
     BOOL listsHaveChanged = NO;
     
@@ -487,14 +505,12 @@
         if (![friendsCommittments isEqualToSet:tempFriendsCommittments]) {
             sharedDataManager.tetherFriendsGoingOut = [[tempFriendsGoingOutSet allObjects] mutableCopy];
             listsHaveChanged = YES;
-//            NSLog(@"FRIENDS PLACES CHANGED");
         }
     }
     
     if (![tempFriendsNotGoingOutSet isEqualToSet:[NSSet setWithArray:sharedDataManager.tetherFriendsNotGoingOut]]) {
         sharedDataManager.tetherFriendsNotGoingOut = [[tempFriendsNotGoingOutSet allObjects] mutableCopy];
         listsHaveChanged = YES;
-//        NSLog(@"GOING OUT LIST CHANGED");
     }
     
     [self.centerViewController.numberButton setTitle:[NSString stringWithFormat:@"%lu", (unsigned long)([sharedDataManager.tetherFriendsGoingOut count] + [sharedDataManager.tetherFriendsNotGoingOut count])] forState:UIControlStateNormal];
@@ -506,13 +522,14 @@
     }
     
     // if lists have changed or all are empty, update view
-    if (listsHaveChanged ||
+    if (self.listsHaveChanged || listsHaveChanged ||
         ([sharedDataManager.tetherFriendsUndecided count] == 0 &&
          [sharedDataManager.tetherFriendsNotGoingOut count] == 0 &&
          [sharedDataManager.tetherFriendsGoingOut count] == 0)) {
         [self.leftPanelViewController updateFriendsList];
     }
     [self refreshCommitmentName];
+    self.listsHaveChanged = NO;
 }
 
 -(NSDate*)getStartTime{
@@ -658,6 +675,7 @@
         _centerViewController.triangleButton.tag = 1;
         _centerViewController.numberButton.tag = 1;
         _centerViewController.leftPanelButtonLarge.tag = 1;
+        [self.leftPanelViewController hideSearchBar];
         self.showingLeftPanel = NO;
     }
     
@@ -991,14 +1009,18 @@
     [self.settingsViewController resettingNewLocationHasFinished];
     [self saveCity:[userDetails objectForKey:@"city"] state:[userDetails objectForKey:@"state"]];
     [self refreshCommitmentName];
-//    NSLog(@"FINISHED RESETTING, NOW POLLING DATABASE");
 }
 
 -(void)saveCity:(NSString*)city state:(NSString*)state {
     [self.currentUser setObject:city forKey:kUserCityKey];
     [self.currentUser setObject:state forKey:kUserStateKey];
-    [self.currentUser saveInBackground];
-//    NSLog(@"PARSE SAVE: saving your location %@ %@",city, state);
+    [self.currentUser saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+        if (!error) {
+           NSLog(@"Saving City, State: %@,%@", city, state);
+        } else {
+            NSLog(@"PARSE SAVING Error: %@ %@", error, [error userInfo]);
+        }
+    }];
 }
 
 -(void)openPageForPlaceWithId:(id)placeId {
@@ -1012,13 +1034,6 @@
                 for (id friendId in place.friendsCommitted) {
                     if ([sharedDataManager.tetherFriendsDictionary objectForKey:friendId]) {
                         Friend *friend = [sharedDataManager.tetherFriendsDictionary objectForKey:friendId];
-                        [friends addObject:friend];
-                    } else if ([sharedDataManager.facebookId isEqualToString:friendId]) {
-                        Friend *friend = [[Friend alloc] init];
-                        friend = [[Friend alloc] init];
-                        friend.friendID = sharedDataManager.facebookId;
-                        friend.name = sharedDataManager.name;
-                        friend.statusMessage = sharedDataManager.statusMessage;
                         [friends addObject:friend];
                     }
                 }
@@ -1065,7 +1080,6 @@
     [userDetails setBool:choice forKey:kUserDefaultsStatusKey];
     [userDetails setObject:[NSDate date] forKey:kUserDefaultsTimeLastUpdatedKey];
     
-//    NSLog(@"PARSE SAVE: Saving your going out choice");
     PFUser *user = [PFUser currentUser];
     [user setObject:[NSNumber numberWithBool:choice] forKey:kUserStatusKey];
     [user setObject:[NSDate date] forKey:kUserTimeLastUpdatedKey];
@@ -1092,6 +1106,7 @@
                      completion:^(BOOL finished) {
                          [self.settingsViewController.view removeFromSuperview];
                          [self.settingsViewController removeFromParentViewController];
+                         self.listsHaveChanged = YES;
                      }];
 }
 
@@ -1193,7 +1208,6 @@
 }
 
 -(void)removePlaceMarkFromMapView:(Place*)place {
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
     if (place) {
         TetherAnnotation *annotation = [self.centerViewController.placeToAnnotationDictionary objectForKey:place.placeId];
         [self.centerViewController.mv removeAnnotation:annotation];
@@ -1318,6 +1332,7 @@
                     sharedDataManager.currentCommitmentParseObject = commitment;
                     [self handleLocalCommitmentToPlace:place];
                     self.committingToPlace = NO;
+                    self.listsHaveChanged = YES;
                     [self pollDatabase];
                 } else {
                     NSLog(@"Committing Error: %@ %@", error, [error userInfo]);
@@ -1347,9 +1362,6 @@
             p.numberCommitments = [friendsCommitted count];
         }
 
-        [sharedDataManager.placesDictionary setObject:p forKey:place.placeId];
-        [sharedDataManager.popularPlacesDictionary setObject:p forKey:place.placeId];
-        
         sharedDataManager.currentCommitmentPlace = p;
         
         [self.placesViewController setCellForPlace:p tethered:YES];

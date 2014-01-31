@@ -80,7 +80,7 @@
     [super layoutSubviews];
     
     [self.placeNameLabel setTextColor:UIColorFromRGB(0x8e0528)];
-    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:16.0f];
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
     CGSize size = [self.placeNameLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
     self.placeNameLabel.frame = CGRectMake(10.0, 10.0, MIN(self.frame.size.width - 150.0, size.width), size.height);
     self.placeNameLabel.adjustsFontSizeToFitWidth = YES;
@@ -89,12 +89,12 @@
     UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:10.0f];
     [self.addressLabel setText:self.place.address];
     size = [self.addressLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratSmall}];
-    self.addressLabel.frame = CGRectMake(self.placeNameLabel.frame.origin.x, self.placeNameLabel.frame.origin.y + self.placeNameLabel.frame.size.height, size.width, size.height);
+    self.addressLabel.frame = CGRectMake(self.placeNameLabel.frame.origin.x, self.placeNameLabel.frame.origin.y + self.placeNameLabel.frame.size.height + 2.0, size.width, size.height);
     [self.addressLabel setFont:montserratSmall];
     [self.addressLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
     
     UIFont *montserratExtraSmall = [UIFont fontWithName:@"Montserrat" size:8.0f];
-    [self.moreInfoButton setTitle:@"(more info)" forState:UIControlStateNormal];
+    [self.moreInfoButton setTitle:@"more info" forState:UIControlStateNormal];
     [self.moreInfoButton setTitleColor:UIColorFromRGB(0x05528e)  forState:UIControlStateNormal];
     self.moreInfoButton.titleLabel.font = montserratExtraSmall;
     size = [self.moreInfoButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratExtraSmall}];
@@ -112,8 +112,6 @@
     
     self.arrowButton.frame = CGRectMake(self.frame.size.width - 30.0, (self.frame.size.height - 10.0) / 2, 10.0, 10.0);
     self.arrowButton.transform = CGAffineTransformMakeRotation(degreesToRadian(180));
-    UIImage *btnImage = [UIImage imageNamed:@"RedTriangle"];
-    [self.arrowButton setImage:btnImage forState:UIControlStateNormal];
     [self.arrowButton addTarget:self
                                 action:@selector(friendsGoingClicked:)
                       forControlEvents:UIControlEventTouchUpInside];
@@ -138,8 +136,11 @@
         size = [self.friendsGoingButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:helveticaNeue}];
         self.friendsGoingButton.frame = CGRectMake(self.frame.size.width - MIN(60.0,size.width) - 33.0, (self.frame.size.height - size.height) / 2, MIN(60.0,size.width), size.height);
         self.friendsGoingButton.titleLabel.adjustsFontSizeToFitWidth = YES;
+        UIImage *btnImage = [UIImage imageNamed:@"RedTriangle"];
+        [self.arrowButton setImage:btnImage forState:UIControlStateNormal];
     } else {
         [self.friendsGoingButton setTitle:@"" forState:UIControlStateNormal];
+        [self.arrowButton setImage:[UIImage imageNamed:@"greytriangle"] forState:UIControlStateNormal];
     }
     
     self.inviteButton.tag = 0;
@@ -154,10 +155,6 @@
     [self.inviteButtonLarge addTarget:self
                           action:@selector(inviteClicked:)
                 forControlEvents:UIControlEventTouchUpInside];
-    
-//    UIView *line = [[UIView alloc] initWithFrame:CGRectMake(self.frame.size.width - 88.0, 0.0, 0.5, self.frame.size.height)];
-//    [line setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
-//    [self addSubview:line];
 }
 
 - (void)setPlace:(Place *)place {
@@ -172,10 +169,10 @@
         [self.commitButton setTitle:@"tethr" forState:UIControlStateNormal];
         [self.commitButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
     } else {
-        [self.commitButton setTitle:@"tethred" forState:UIControlStateNormal];
+        [self.commitButton setTitle:@"tethrd" forState:UIControlStateNormal];
         [self.commitButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
     }
-    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:16.0f];
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
     CGSize size = [self.commitButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
     self.commitButton.frame = CGRectMake(self.placeNameLabel.frame.origin.x, self.frame.size.height - size.height - 5.0, size.width, size.height);
 }

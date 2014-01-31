@@ -58,7 +58,8 @@
     self.listViewOpen = NO;
     
     // mapview setup
-    self.mv = [[MKMapView alloc] initWithFrame:CGRectMake(0, TOP_BAR_HEIGHT, self.view.frame.size.width, self.view.frame.size.height)];
+    self.mv = [[MKMapView alloc] initWithFrame:CGRectMake(0, TOP_BAR_HEIGHT, self.view.frame.size.width, self.view.frame.size.height - TOP_BAR_HEIGHT)];
+    
     self.mv.delegate = self;
     [self.view addSubview:self.mv];
     
@@ -104,8 +105,8 @@
     self.numberButton.tag = 1;
     [self.topBar addSubview:self.numberButton];
     
-    UIImage *triangleImage = [UIImage imageNamed:@"WhiteTriangle"];
-    self.triangleButton = [[UIButton alloc] initWithFrame:CGRectMake(5.0, self.numberButton.frame.origin.y + STATUS_BAR_HEIGHT / 2.0 + 2.0, 10.0, 10.0)];
+    UIImage *triangleImage = [UIImage imageNamed:@"WhiteSmall`"];
+    self.triangleButton = [[UIButton alloc] initWithFrame:CGRectMake(5.0, self.numberButton.frame.origin.y + STATUS_BAR_HEIGHT / 2.0 + 2.0, 6.5, 11.5)];
     [self.triangleButton setImage:triangleImage forState:UIControlStateNormal];
     [self.view addSubview:self.triangleButton];
     self.triangleButton.tag = 1;
@@ -117,9 +118,9 @@
     [self.spinner startAnimating];
     [self.topBar addSubview:self.spinner];
     
-    // list view arrow button setup
-    self.listViewButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 38.0, self.numberButton.frame.origin.y + 2.0, 32.0, 32.0)];
-    [self.listViewButton setImage:[UIImage imageNamed:@"SearchGlass"] forState:UIControlStateNormal];
+    // list view search glass button setup
+    self.listViewButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 35.0, self.numberButton.frame.origin.y + 5.0, 21.0, 25.0)];
+    [self.listViewButton setImage:[UIImage imageNamed:@"SearchIcon"] forState:UIControlStateNormal];
     self.listViewButton.imageView.contentMode = UIViewContentModeScaleAspectFit;
     [self.listViewButton addTarget:self action:@selector(showListView) forControlEvents:UIControlEventTouchDown];
     [self.topBar addSubview:self.listViewButton];
@@ -197,8 +198,8 @@
     [self.bottomBar addSubview:self.commitmentButton];
     
     [self.view addSubview:self.bottomBar];
-    [self layoutCurrentCommitment];
     
+    [self layoutCurrentCommitment];
     [self restartTimer];
     
     [self setNeedsStatusBarAppearanceUpdate];
@@ -420,8 +421,10 @@
                  [userDetails setObject:state forKey:@"state"];
                  [userDetails synchronize];
                  NSLog(@"Current City, State: %@,%@", city, state);
-                 
-                 if ([self.delegate respondsToSelector:@selector(saveCity:state:)]) {
+             }
+             
+             if ([self.delegate respondsToSelector:@selector(saveCity:state:)]) {
+                 if (![city isEqualToString:@""]) {
                      [self.delegate saveCity:city state:state];
                  }
              }

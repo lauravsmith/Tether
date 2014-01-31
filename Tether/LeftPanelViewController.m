@@ -22,10 +22,10 @@
 #define PADDING 10
 #define PROFILE_PICTURE_BORDER_WIDTH 4.0
 #define PROFILE_PICTURE_OFFSET_X 10.0
-#define SEARCH_BAR_HEIGHT 65.0
+#define SEARCH_BAR_HEIGHT 55.0
 #define SEARCH_BAR_WIDTH 270.0
 #define SECOND_TABLE_OFFSET_Y 350.0
-#define STATUS_BAR_HEIGHT 20.0
+#define STATUS_BAR_HEIGHT 15.0
 #define TABLE_HEIGHT 400.0
 
 @interface LeftPanelViewController ()<UIAlertViewDelegate ,UITableViewDelegate, UITableViewDataSource, FriendCellDelegate, UIScrollViewDelegate, UISearchBarDelegate>
@@ -143,7 +143,7 @@
 
 -(void)hideSearchBar {
     if ([self.searchBar.text isEqualToString:@""]) {
-       [self.friendsGoingOutTableView setContentOffset:CGPointMake(0.0, SEARCH_BAR_HEIGHT - 15.0) animated:YES];
+       [self.friendsGoingOutTableView setContentOffset:CGPointMake(0.0, SEARCH_BAR_HEIGHT) animated:YES];
     }
 }
 
@@ -171,9 +171,9 @@
 {
     if (tableView == self.friendsGoingOutTableView) {
         if (section == 0) {
-            UIView *searchBarBackground = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width - PANEL_WIDTH, HEADER_HEIGHT)];
-            [searchBarBackground setBackgroundColor:UIColorFromRGB(0x8e0528)];
-            self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, SEARCH_BAR_WIDTH, SEARCH_BAR_HEIGHT)];
+            UIView *searchBarBackground = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width - PANEL_WIDTH, SEARCH_BAR_HEIGHT)];
+            [searchBarBackground setBackgroundColor:UIColorFromRGB(0xf8f8f8)];
+            self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, STATUS_BAR_HEIGHT, SEARCH_BAR_WIDTH, SEARCH_BAR_HEIGHT - STATUS_BAR_HEIGHT)];
             self.searchBar.delegate = self;
             [self.searchBar setBackgroundImage:[UIImage new]];
             [self.searchBar setTranslucent:YES];
@@ -183,6 +183,46 @@
             [searchBarBackground addSubview:self.searchBar];
             
             return searchBarBackground;
+        } else if (section == 1) {
+            UIView *topBar = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width - PANEL_WIDTH, SEARCH_BAR_HEIGHT + STATUS_BAR_HEIGHT + HEADER_HEIGHT)];
+            
+            UIView *friendsViewBackground = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width - PANEL_WIDTH, SEARCH_BAR_HEIGHT + STATUS_BAR_HEIGHT)];
+            [friendsViewBackground setBackgroundColor:UIColorFromRGB(0x8e0528)];
+            
+            UILabel *friendsLabel = [[UILabel alloc] init];
+            [friendsLabel setTextColor:[UIColor whiteColor]];
+            UIFont *montserratBold = [UIFont fontWithName:@"Montserrat" size:14.0f];
+            friendsLabel.font = montserratBold;
+            friendsLabel.text = @"Friends";
+            
+            CGSize textLabelSize = [friendsLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];
+            friendsLabel.frame = CGRectMake((self.view.frame.size.width - PANEL_WIDTH - textLabelSize.width) / 2.0, (SEARCH_BAR_HEIGHT - textLabelSize.height) / 2.0 + STATUS_BAR_HEIGHT, textLabelSize.width, textLabelSize.height);
+            
+            [friendsViewBackground addSubview:friendsLabel];
+            
+            [topBar addSubview:friendsViewBackground];
+            
+            Datastore *sharedDataManager = [Datastore sharedDataManager];
+            UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, friendsViewBackground.frame.size.height, self.view.frame.size.width, HEADER_HEIGHT)];
+            [header setBackgroundColor:UIColorFromRGB(0xf8f8f8)];
+            UILabel *goingOutLabel = [[UILabel alloc] initWithFrame:header.frame];
+            [goingOutLabel setTextColor:UIColorFromRGB(0x8e0528)];
+            UILabel *countLabel = [[UILabel alloc] initWithFrame:CGRectMake(100.0, 0, 50.0, HEADER_HEIGHT)];
+            [countLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
+            goingOutLabel.font = montserratBold;
+            countLabel.font = montserratBold;
+            goingOutLabel.text = @"tethrd";
+            countLabel.text = [NSString stringWithFormat:@"%lu",(unsigned long)[sharedDataManager.tetherFriendsGoingOut count]];
+            textLabelSize = [goingOutLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];
+            CGSize numberLabelSize = [countLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];
+            goingOutLabel.frame = CGRectMake(10.0, (header.frame.size.height - textLabelSize.height) / 2.0 , textLabelSize.width, textLabelSize.height);
+            countLabel.frame = CGRectMake(goingOutLabel.frame.origin.x + goingOutLabel.frame.size.width + PADDING, goingOutLabel.frame.origin.y, numberLabelSize.width, numberLabelSize.height);
+            [header addSubview:goingOutLabel];
+            [header addSubview:countLabel];
+            
+            [topBar addSubview:header];
+
+            return topBar;
         } else {
             Datastore *sharedDataManager = [Datastore sharedDataManager];
             UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, HEADER_HEIGHT)];
@@ -190,19 +230,16 @@
             UILabel *goingOutLabel = [[UILabel alloc] initWithFrame:header.frame];
             [goingOutLabel setTextColor:UIColorFromRGB(0x8e0528)];
             UILabel *countLabel = [[UILabel alloc] initWithFrame:CGRectMake(100.0, 0, 50.0, HEADER_HEIGHT)];
-            [countLabel setTextColor:UIColorFromRGB(0x8e0528)];
+            [countLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
             UIFont *montserratBold = [UIFont fontWithName:@"Montserrat" size:14.0f];
             goingOutLabel.font = montserratBold;
             countLabel.font = montserratBold;
-            if (section == 1) {
-                goingOutLabel.text = @"tethrd";
-                countLabel.text = [NSString stringWithFormat:@"(%lu)",(unsigned long)[sharedDataManager.tetherFriendsGoingOut count]];
-            } else if (section == 2) {
+            if (section == 2) {
                 goingOutLabel.text = @"Going Out";
-                countLabel.text = [NSString stringWithFormat:@"(%lu)",(unsigned long)[sharedDataManager.tetherFriendsNotGoingOut count]];
+                countLabel.text = [NSString stringWithFormat:@"%lu",(unsigned long)[sharedDataManager.tetherFriendsNotGoingOut count]];
             } else {
                 goingOutLabel.text = @"Not Going Out";
-                countLabel.text = [NSString stringWithFormat:@"(%lu)",(unsigned long)[sharedDataManager.tetherFriendsUndecided count]];
+                countLabel.text = [NSString stringWithFormat:@"%lu",(unsigned long)[sharedDataManager.tetherFriendsUndecided count]];
             }
             CGSize textLabelSize = [goingOutLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];
             CGSize numberLabelSize = [countLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];
@@ -224,6 +261,8 @@
     if (tableView == self.friendsGoingOutTableView) {
         if (section == 0) {
             return SEARCH_BAR_HEIGHT;
+        } else if (section == 1) {
+            return SEARCH_BAR_HEIGHT + STATUS_BAR_HEIGHT + HEADER_HEIGHT;
         }
        return HEADER_HEIGHT;
     } else {
@@ -299,7 +338,6 @@
         self.searchBar.delegate = nil;
         [self.searchResultsTableView setHidden:YES];
         Friend *friend = [self.searchResultsArray objectAtIndex:indexPath.row];
-        self.friendsGoingOutTableView.scrollEnabled = YES;
 
         [self hideSearchBar];
         [self.friendsGoingOutTableView scrollsToTop];
@@ -411,7 +449,6 @@
 }
 
 -(void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {
-    self.friendsGoingOutTableView.scrollEnabled = NO;
     self.searchResultsTableView.hidden = NO;
     [self searchFriends:searchBar.text];
 }

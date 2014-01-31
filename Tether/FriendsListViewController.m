@@ -106,7 +106,7 @@
     [self.view addSubview:self.backButtonLarge];
 
     UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:12.0f];
-    self.commitButton = [[UIButton alloc] initWithFrame:CGRectMake(0.0, PADDING, (self.view.frame.size.width - PADDING * 2) / 3.0, SUB_BAR_HEIGHT - PADDING * 2)];
+    self.commitButton = [[UIButton alloc] initWithFrame:CGRectMake(0.0, 0.0, (self.view.frame.size.width - PADDING * 2) / 3.0, SUB_BAR_HEIGHT - PADDING)];
     [self.commitButton setBackgroundColor:[UIColor whiteColor]];
     self.commitButton.titleLabel.font = montserratSmall;
     [self.commitButton addTarget:self
@@ -115,7 +115,7 @@
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     if (sharedDataManager.currentCommitmentPlace) {
         if ([self.place.placeId isEqualToString:sharedDataManager.currentCommitmentPlace.placeId]) {
-            [self.commitButton setTitle:@"tethred" forState:UIControlStateNormal];
+            [self.commitButton setTitle:@"tethrd" forState:UIControlStateNormal];
             [self.commitButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
             self.commitButton.tag = 2;
         } else {
@@ -131,17 +131,17 @@
 
     [self.subBar addSubview:self.commitButton];
     
-    self.inviteButton = [[UIButton alloc] initWithFrame:CGRectMake(self.commitButton.frame.origin.x + self.commitButton.frame.size.width + PADDING, PADDING, (self.view.frame.size.width - PADDING * 2) / 3.0, SUB_BAR_HEIGHT - PADDING * 2)];
+    self.inviteButton = [[UIButton alloc] initWithFrame:CGRectMake(self.commitButton.frame.origin.x + self.commitButton.frame.size.width + PADDING, 0.0, (self.view.frame.size.width - PADDING * 2) / 3.0, SUB_BAR_HEIGHT - PADDING)];
     [self.inviteButton setBackgroundColor:[UIColor whiteColor]];
     [self.inviteButton setImage:[UIImage imageNamed:@"InviteIcon"] forState:UIControlStateNormal];
-    [self.inviteButton setImageEdgeInsets:UIEdgeInsetsMake(4.0, 0, 4.0, 0)];
-    self.inviteButton.imageView.contentMode = UIViewContentModeScaleAspectFit;
+    
+    [self.inviteButton setImageEdgeInsets:UIEdgeInsetsMake(0.0, 0.0, 0.0, 0.0)];
     [self.inviteButton addTarget:self
                           action:@selector(inviteClicked:)
                 forControlEvents:UIControlEventTouchUpInside];
     [self.subBar addSubview:self.inviteButton];
     
-    self.moreInfoButton = [[UIButton alloc] initWithFrame:CGRectMake(self.inviteButton.frame.origin.x + self.inviteButton.frame.size.width + PADDING, PADDING, (self.view.frame.size.width  - PADDING * 2) / 3.0, SUB_BAR_HEIGHT - PADDING * 2)];
+    self.moreInfoButton = [[UIButton alloc] initWithFrame:CGRectMake(self.inviteButton.frame.origin.x + self.inviteButton.frame.size.width + PADDING, 0.0, (self.view.frame.size.width  - PADDING * 2) / 3.0, SUB_BAR_HEIGHT - PADDING)];
     [self.moreInfoButton setBackgroundColor:[UIColor whiteColor]];
     [self.moreInfoButton setTitle:@"more info" forState:UIControlStateNormal];
     [self.moreInfoButton setTitleColor:UIColorFromRGB(0x05528e)  forState:UIControlStateNormal];
@@ -173,6 +173,9 @@
 }
 
 -(void)loadFriendsOfFriends {
+    NSSortDescriptor *nameDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"name" ascending:YES];
+    [self.friendsArray sortUsingDescriptors:[NSArray arrayWithObjects:nameDescriptor, nil]];
+    
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     
     NSMutableArray *allFriendsOfFriends = [[NSMutableArray alloc] init];
@@ -271,7 +274,7 @@
         [self.commitButton setTitle:@"tethr" forState:UIControlStateNormal];
         [self.commitButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
     } else {
-        [self.commitButton setTitle:@"tethred" forState:UIControlStateNormal];
+        [self.commitButton setTitle:@"tethrd" forState:UIControlStateNormal];
         [self.commitButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
     }
 }
@@ -329,6 +332,9 @@
             friend.name = sharedDataManager.name;
             friend.statusMessage = sharedDataManager.statusMessage;
             [self.friendsArray addObject:friend];
+            
+            NSSortDescriptor *nameDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"name" ascending:YES];
+            [self.friendsArray sortUsingDescriptors:[NSArray arrayWithObjects:nameDescriptor, nil]];
             
             [self.numberButton setTitle:[NSString stringWithFormat:@"%d", [self.friendsArray count]] forState:UIControlStateNormal];
         }
