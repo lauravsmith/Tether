@@ -88,7 +88,7 @@
     
     // left panel view button setup
     UIImage *leftPanelButtonImage = [UIImage imageNamed:@"WhiteTriangle"];
-    self.backButton = [[UIButton alloc] initWithFrame:CGRectMake(5.0, (STATUS_BAR_HEIGHT + 57.0) / 2.0, 10.0, 10.0)];
+    self.backButton = [[UIButton alloc] initWithFrame:CGRectMake(5.0, (STATUS_BAR_HEIGHT + 57.0) / 2.0, 7.0, 11.0)];
     [self.backButton setImage:leftPanelButtonImage forState:UIControlStateNormal];
     [self.view addSubview:self.backButton];
     [self.backButton addTarget:self action:@selector(closeFriendsView) forControlEvents:UIControlEventTouchDown];
@@ -372,11 +372,17 @@
 }
 
 -(IBAction)moreInfoClicked:(id)sender {
-    NSString *urlString = [NSString stringWithFormat:@"http://foursquare.com/v/%@", self.place.placeId];
+    NSString *urlString = [NSString stringWithFormat:@"foursquare://venues/%@", self.place.placeId];
+    
     NSURL *url = [NSURL URLWithString:urlString];
     
-    if (![[UIApplication sharedApplication] openURL:url])
-        NSLog(@"%@%@",@"Failed to open url:",[url description]);
+    if ([[UIApplication sharedApplication] canOpenURL:url]) {
+        [[UIApplication sharedApplication] openURL:url];
+    } else {
+        urlString = [NSString stringWithFormat:@"http://foursquare.com/v/%@", self.place.placeId];
+        url = [NSURL URLWithString:urlString];
+        [[UIApplication sharedApplication] openURL:url];
+    }
 }
 
 #pragma mark InviteViewControllerDelegate

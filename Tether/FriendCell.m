@@ -192,8 +192,11 @@
 
 -(void)handleLongPress:(UILongPressGestureRecognizer *)longPress
 {
-    if ([self.delegate respondsToSelector:@selector(showBlockFriendAlertView:)]) {
-        [self.delegate showBlockFriendAlertView:self.friend];
+    Datastore *sharedDatastore = [Datastore sharedDataManager];
+    if (![self.friend.friendID isEqualToString:sharedDatastore.facebookId]) {
+        if ([self.delegate respondsToSelector:@selector(showBlockFriendAlertView:)]) {
+            [self.delegate showBlockFriendAlertView:self.friend];
+        }
     }
 }
 

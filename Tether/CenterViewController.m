@@ -105,8 +105,8 @@
     self.numberButton.tag = 1;
     [self.topBar addSubview:self.numberButton];
     
-    UIImage *triangleImage = [UIImage imageNamed:@"WhiteSmall`"];
-    self.triangleButton = [[UIButton alloc] initWithFrame:CGRectMake(5.0, self.numberButton.frame.origin.y + STATUS_BAR_HEIGHT / 2.0 + 2.0, 6.5, 11.5)];
+    UIImage *triangleImage = [UIImage imageNamed:@"WhiteTriangle"];
+    self.triangleButton = [[UIButton alloc] initWithFrame:CGRectMake(5.0, self.numberButton.frame.origin.y + STATUS_BAR_HEIGHT / 2.0 + 2.0, 7.0, 11.0)];
     [self.triangleButton setImage:triangleImage forState:UIControlStateNormal];
     [self.view addSubview:self.triangleButton];
     self.triangleButton.tag = 1;
@@ -335,7 +335,7 @@
 
 -(void)refreshNotificationsNumber {
     Datastore *sharedDataManager = [Datastore sharedDataManager];
-    self.notificationsLabel.text = [NSString stringWithFormat:@"%d", sharedDataManager.notifications];
+    self.notificationsLabel.text = [NSString stringWithFormat:@"%ld", (long)sharedDataManager.notifications];
     if (sharedDataManager.notifications == 0 || !sharedDataManager.notifications) {
         [self.notificationsLabel setHidden:YES];
     } else {
@@ -577,18 +577,18 @@
         
         pinView = [[TetherAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:@"CustomPinAnnotationView"];
         pinView.canShowCallout = YES;
-        UIImage *pinImage = [UIImage imageNamed:@"LocationIcon"];
+        UIImage *pinImage = [UIImage imageNamed:@"PinIcon"];
         pinView.tag = 1;
         pinView.image = NULL;
         pinView.frame = CGRectMake(0, 0, 40.0, 40.0);
         UIImageView *imageView = [[UIImageView alloc] initWithImage:pinImage];
-        imageView.frame = CGRectMake(0, 0, 40.0, 40.0);
+        imageView.frame = CGRectMake(9.5, 1.0, 21.0, 38.0);
         
         // If an existing pin view was not available, create one.
         UILabel *numberLabel = [[UILabel alloc] init];
         UIFont *helveticaNeueSmall = [UIFont fontWithName:@"HelveticaNeue-Bold" size:10];
         numberLabel.font = helveticaNeueSmall;
-        numberLabel.text = [NSString stringWithFormat:@"%d", [((TetherAnnotation*)annotation).place.friendsCommitted count]];
+        numberLabel.text = [NSString stringWithFormat:@"%lu", (unsigned long)[((TetherAnnotation*)annotation).place.friendsCommitted count]];
         CGSize size = [numberLabel.text sizeWithAttributes:@{NSFontAttributeName:helveticaNeueSmall}];
         numberLabel.frame = CGRectMake((pinView.frame.size.width - size.width) / 2.0, (pinView.frame.size.height - size.height) / 4.0, MIN(size.width, 20), MIN(size.height, 15.0));
         numberLabel.adjustsFontSizeToFitWidth = YES;
@@ -796,13 +796,20 @@
 -(void)layoutTouchEventForAnnotationView:(TetherAnnotationView*)view {
      ((TetherAnnotationView*)view).placeTouchView.userInteractionEnabled = YES;
 
+    UIFont *systemFont = [UIFont systemFontOfSize:18.0];
+    UIFont *subtitleSystemFont = [UIFont systemFontOfSize:14.0];
+    CGSize titleSize = [((TetherAnnotation*)view.annotation).place.name sizeWithAttributes:@{NSFontAttributeName:systemFont}];
+    CGSize subtitleSize = [((TetherAnnotation*)view.annotation).place.address sizeWithAttributes:@{NSFontAttributeName:subtitleSystemFont}];
+    CGFloat width = MAX(titleSize.width,subtitleSize.width) + 40.0;
+    
     [view bringSubviewToFront:view.placeTouchView];
     if (view.frame.origin.x > self.view.frame.size.width / 2.0 ) {
-        CGFloat originRight = view.frame.origin.x +((TetherAnnotationView*)view).placeTouchView.frame.size.width / 2.0 + ((TetherAnnotationView*)view).rightCalloutAccessoryView.frame.size.width + 40.0;
+        CGFloat originRight = view.frame.origin.x + width / 2.0 + ((TetherAnnotationView*)view).rightCalloutAccessoryView.frame.size.width + 40.0;
         if (originRight > self.view.frame.size.width) {
             CGFloat offset = originRight - self.view.frame.size.width;
             CGRect frame = view.placeTouchView.frame;
-            frame.origin.x = - frame.size.width / 2.0 - abs(offset);
+            frame.origin.x = - width / 2.0 - abs(offset) + 40.0;
+            frame.size.width = width;
             view.placeTouchView.frame = frame;
             return;
         }
@@ -810,13 +817,14 @@
         CGFloat originX = view.frame.origin.x - view.placeTouchView.frame.size.width / 2.0 - ((TetherAnnotationView*)view).leftCalloutAccessoryView.frame.size.width;
         if (originX < 0) {
             CGRect frame = view.placeTouchView.frame;
-            frame.origin.x = - frame.size.width / 2.0 + abs(originX);
+            frame.origin.x = - width / 2.0 + abs(originX) + 40.0;
             view.placeTouchView.frame = frame;
             return;
         }
     }
     CGRect frame = view.placeTouchView.frame;
-    frame.origin.x = - frame.size.width / 2.0;
+    frame.origin.x = - width / 2.0 + 40.0;
+    frame.size.width = width;
     view.placeTouchView.frame = frame;
 }
 

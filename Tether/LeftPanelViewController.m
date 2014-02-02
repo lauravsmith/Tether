@@ -184,9 +184,9 @@
             
             return searchBarBackground;
         } else if (section == 1) {
-            UIView *topBar = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width - PANEL_WIDTH, SEARCH_BAR_HEIGHT + STATUS_BAR_HEIGHT + HEADER_HEIGHT)];
+            UIView *topBar = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, SEARCH_BAR_HEIGHT + STATUS_BAR_HEIGHT + HEADER_HEIGHT)];
             
-            UIView *friendsViewBackground = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width - PANEL_WIDTH, SEARCH_BAR_HEIGHT + STATUS_BAR_HEIGHT)];
+            UIView *friendsViewBackground = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, SEARCH_BAR_HEIGHT + STATUS_BAR_HEIGHT)];
             [friendsViewBackground setBackgroundColor:UIColorFromRGB(0x8e0528)];
             
             UILabel *friendsLabel = [[UILabel alloc] init];

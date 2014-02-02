@@ -416,7 +416,7 @@
                         friend.timeLastUpdated = user[kUserTimeLastUpdatedKey];
                         friend.status = [user[kUserStatusKey] boolValue];
                         friend.statusMessage = user[kUserStatusMessageKey];
-                        if (![friend.statusMessage isEqualToString:((Friend*)[self.previousTetherFriendsDictionary objectForKey:friend.friendID]).statusMessage]) {
+                        if (![self.facebookId isEqualToString:sharedDataManager.facebookId] && (![friend.statusMessage isEqualToString:((Friend*)[self.previousTetherFriendsDictionary objectForKey:friend.friendID]).statusMessage])) {
                             self.listsHaveChanged = YES;
                         }
                         
@@ -710,6 +710,10 @@
         _leftPanelViewController.view.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
     }
     
+    if (self.rightPanelViewController) {
+        [self.rightPanelViewController.view removeFromSuperview];
+    }
+    
     [self.view addSubview:self.leftPanelViewController.view];
     
     self.showingLeftPanel = YES;
@@ -732,6 +736,10 @@
         [_rightPanelViewController didMoveToParentViewController:self];
         
         _rightPanelViewController.view.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
+    }
+    
+    if (self.leftPanelViewController) {
+        [self.leftPanelViewController.view removeFromSuperview];
     }
     
     [self.view addSubview:self.rightPanelViewController.view];
@@ -1160,6 +1168,9 @@
                          [self.inviteViewController.view setFrame:CGRectMake( 0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
                      }
                      completion:^(BOOL finished) {
+                         if (self.leftPanelViewController) {
+                             [self.leftPanelViewController hideSearchBar];
+                         }
                      }];
 }
 
@@ -1420,7 +1431,7 @@
         if ([sharedDataManager.currentCommitmentPlace.friendsCommitted containsObject:sharedDataManager.facebookId]) {
             [sharedDataManager.currentCommitmentPlace.friendsCommitted removeObject:sharedDataManager.facebookId];
             sharedDataManager.currentCommitmentPlace.numberCommitments = [sharedDataManager.currentCommitmentPlace.friendsCommitted count];
-            NSLog(@"Removing previous commitment to %@ with %d commitments", sharedDataManager.currentCommitmentPlace.name, [sharedDataManager.currentCommitmentPlace.friendsCommitted count]);
+            NSLog(@"Removing previous commitment to %@ with %lu commitments", sharedDataManager.currentCommitmentPlace.name, (unsigned long)[sharedDataManager.currentCommitmentPlace.friendsCommitted count]);
             sharedDataManager.currentCommitmentPlace.numberCommitments = MAX(0, sharedDataManager.currentCommitmentPlace.numberCommitments - 1);
             [sharedDataManager.placesDictionary setObject:sharedDataManager.currentCommitmentPlace
                                                    forKey:sharedDataManager.currentCommitmentPlace.placeId];

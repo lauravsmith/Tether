@@ -89,7 +89,7 @@
                                           context:nil];
     self.messageHeaderLabel.lineBreakMode = NSLineBreakByWordWrapping;
     self.messageHeaderLabel.numberOfLines = 0;
-    self.messageHeaderLabel.frame = CGRectMake(PANEL_WIDTH, PADDING / 2.0, contentRect.size.width, ceil(contentRect.size.height) + 1.0);
+    self.messageHeaderLabel.frame = CGRectMake(PANEL_WIDTH, PADDING / 2.0, ceil(contentRect.size.width) + 1.0, ceil(contentRect.size.height) + 1.0);
     
     self.messageHeaderLabel.delegate = self;
     

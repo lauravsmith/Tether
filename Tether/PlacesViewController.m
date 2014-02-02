@@ -115,7 +115,7 @@
     self.placesTableViewController.refreshControl = self.refreshControl;
     
     UIImage *triangleImage = [UIImage imageNamed:@"WhiteTriangle"];
-    self.backButton = [[UIButton alloc] initWithFrame:CGRectMake(5.0, (SEARCH_BAR_HEIGHT + STATUS_BAR_HEIGHT + 7.0) / 2.0, 10.0, 10.0)];
+    self.backButton = [[UIButton alloc] initWithFrame:CGRectMake(5.0, (SEARCH_BAR_HEIGHT + STATUS_BAR_HEIGHT + 7.0) / 2.0, 7.0, 11.0)];
     [self.backButton setImage:triangleImage forState:UIControlStateNormal];
     [self.backButton addTarget:self action:@selector(closeListView) forControlEvents:UIControlEventTouchDown];
     [self.view addSubview:self.backButton];
@@ -627,7 +627,7 @@
         [self addDictionaries];
         [self sortPlacesByPopularity];
     }
-    NSLog(@"FINISHED LOADING FOURSQUARE DATA with %d objects", [sharedDataManager.foursquarePlacesDictionary count]);
+    NSLog(@"FINISHED LOADING FOURSQUARE DATA with %lu objects", (unsigned long)[sharedDataManager.foursquarePlacesDictionary count]);
     self.foursquarePlacesDataHasLoaded = YES;
 }
 
@@ -716,7 +716,11 @@
             foursquareImageView.frame = CGRectMake(0, 0, self.view.frame.size.width, SEARCH_RESULTS_CELL_HEIGHT);
             foursquareImageView.contentMode = UIViewContentModeScaleAspectFit;
             UITableViewCell *cell = [[UITableViewCell alloc] init];
-            [cell addSubview:foursquareImageView];
+//            [cell addSubview:foursquareImageView];
+            
+            UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 300.0, SEARCH_RESULTS_CELL_HEIGHT)];
+            label.text = @"Can't find it? Change your city";
+            [cell addSubview:label];
             return cell;
         }
         SearchResultCell *cell = [[SearchResultCell alloc] init];
@@ -739,6 +743,9 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (tableView == self.searchResultsTableView ) {
+        if (indexPath.row >= [self.searchResultsArray count]) {
+            return;
+        }
         SearchResultCell *cell = (SearchResultCell*)[tableView cellForRowAtIndexPath:indexPath];
         Datastore *sharedDataManager = [Datastore sharedDataManager];
         if (![sharedDataManager.foursquarePlacesDictionary objectForKey:cell.place.placeId]) {

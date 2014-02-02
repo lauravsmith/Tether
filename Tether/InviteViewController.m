@@ -138,7 +138,7 @@
     
     // left panel view button setup
     UIImage *triangleImage = [UIImage imageNamed:@"WhiteTriangle"];
-    self.backButton = [[UIButton alloc] initWithFrame:CGRectMake(5.0,  (SEARCH_BAR_HEIGHT + STATUS_BAR_HEIGHT + 7.0) / 2.0, 10.0, 10.0)];
+    self.backButton = [[UIButton alloc] initWithFrame:CGRectMake(5.0,  (SEARCH_BAR_HEIGHT + STATUS_BAR_HEIGHT + 7.0) / 2.0, 7.0, 11.0)];
     [self.backButton setImage:triangleImage forState:UIControlStateNormal];
     [self.view addSubview:self.backButton];
     self.backButton.tag = 1;

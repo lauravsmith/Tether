@@ -110,7 +110,7 @@
                 forControlEvents:UIControlEventTouchUpInside];
     [self layoutCommitButton];
     
-    self.arrowButton.frame = CGRectMake(self.frame.size.width - 30.0, (self.frame.size.height - 10.0) / 2, 10.0, 10.0);
+    self.arrowButton.frame = CGRectMake(self.frame.size.width - 30.0, (self.frame.size.height - 10.0) / 2, 7.0, 11.0);
     self.arrowButton.transform = CGAffineTransformMakeRotation(degreesToRadian(180));
     [self.arrowButton addTarget:self
                                 action:@selector(friendsGoingClicked:)
@@ -132,7 +132,7 @@
 
     Place *p = [sharedDataManager.placesDictionary objectForKey:self.place.placeId];
     if ([p.friendsCommitted count] > 0) {
-        [self.friendsGoingButton setTitle:[NSString stringWithFormat:@"%d", [p.friendsCommitted count]] forState:UIControlStateNormal];
+        [self.friendsGoingButton setTitle:[NSString stringWithFormat:@"%lu", (unsigned long)[p.friendsCommitted count]] forState:UIControlStateNormal];
         size = [self.friendsGoingButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:helveticaNeue}];
         self.friendsGoingButton.frame = CGRectMake(self.frame.size.width - MIN(60.0,size.width) - 33.0, (self.frame.size.height - size.height) / 2, MIN(60.0,size.width), size.height);
         self.friendsGoingButton.titleLabel.adjustsFontSizeToFitWidth = YES;
@@ -140,7 +140,7 @@
         [self.arrowButton setImage:btnImage forState:UIControlStateNormal];
     } else {
         [self.friendsGoingButton setTitle:@"" forState:UIControlStateNormal];
-        [self.arrowButton setImage:[UIImage imageNamed:@"greytriangle"] forState:UIControlStateNormal];
+        [self.arrowButton setImage:[UIImage imageNamed:@"GreyTriangle"] forState:UIControlStateNormal];
     }
     
     self.inviteButton.tag = 0;
@@ -215,11 +215,17 @@
 }
 
 -(IBAction)moreInfoClicked:(id)sender {
-    NSString *urlString = [NSString stringWithFormat:@"http://foursquare.com/v/%@", self.place.placeId];
+    NSString *urlString = [NSString stringWithFormat:@"foursquare://venues/%@", self.place.placeId];
+    
     NSURL *url = [NSURL URLWithString:urlString];
     
-    if (![[UIApplication sharedApplication] openURL:url])
-        NSLog(@"%@%@",@"Failed to open url:",[url description]);
+    if ([[UIApplication sharedApplication] canOpenURL:url]) {
+        [[UIApplication sharedApplication] openURL:url];
+    } else {
+        urlString = [NSString stringWithFormat:@"http://foursquare.com/v/%@", self.place.placeId];
+        url = [NSURL URLWithString:urlString];
+        [[UIApplication sharedApplication] openURL:url];
+    }
 }
 
 @end
