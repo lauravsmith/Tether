@@ -13,6 +13,9 @@
 #import "FriendAtPlaceCell.h"
 #import "FriendLabel.h"
 #import "InviteViewController.h"
+#import "SearchResultCell.h"
+
+#import <AFNetworking/AFHTTPRequestOperationManager.h>
 
 #define CELL_HEIGHT 60.0
 #define LABEL_HEIGHT 40.0
@@ -20,10 +23,12 @@
 #define MAX_MESSAGE_FIELD_HEIGHT 210.0
 #define SEARCH_BAR_HEIGHT 50.0
 #define SEARCH_BAR_WIDTH 270.0
+#define SEARCH_RESULTS_CELL_HEIGHT 60.0
 #define SPINNER_SIZE 30.0
 #define STATUS_BAR_HEIGHT 20.0
 #define TOP_BAR_HEIGHT 70.0
 #define PADDING 10.0
+#define PLUS_ICON_SIZE 35.0
 
 @interface InviteViewController () <UIGestureRecognizerDelegate, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate>
 @property (retain, nonatomic) NSMutableArray *friendSearchResultsArray;
@@ -40,6 +45,10 @@
 @property (retain, nonatomic) UIView *confirmationView;
 @property (retain, nonatomic) UILabel *confirmationLabel;
 @property (retain, nonatomic) UIActivityIndicatorView *activityIndicatorView;
+@property (retain, nonatomic) NSMutableArray *placeSearchResultsArray;
+@property (nonatomic, strong) UITableView *placeSearchResultsTableView;
+@property (nonatomic, strong) UITableViewController *placeSearchResultsTableViewController;
+@property (retain, nonatomic) UIButton *plusButton;
 @end
 
 @implementation InviteViewController
@@ -84,9 +93,13 @@
     self.placeLabel.adjustsFontSizeToFitWidth = YES;
     [self.topBarView addSubview:self.placeLabel];
     [self.view addSubview:self.topBarView];
+    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(placeLabelTapped:)];
+    [self.placeLabel addGestureRecognizer:tap];
+    self.placeLabel.userInteractionEnabled = YES;
     
     self.searchBarBackgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, self.topBarView.frame.size.height, self.view.frame.size.width, SEARCH_BAR_HEIGHT)];
     [self.searchBarBackgroundView setBackgroundColor:UIColorFromRGB(0x8e0528)];
+    [self.searchBarBackgroundView setHidden:YES];
     [self.view addSubview:self.searchBarBackgroundView];
     
     self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake((self.view.frame.size.width - SEARCH_BAR_WIDTH) / 2, self.topBarView.frame.size.height, SEARCH_BAR_WIDTH, SEARCH_BAR_HEIGHT)];
@@ -94,13 +107,18 @@
     self.searchBar.placeholder = @"Search for friends...";
     [self.searchBar setBackgroundImage:[UIImage new]];
     [self.searchBar setTranslucent:YES];
+    [self.searchBar setHidden:YES];
     [self.view addSubview:self.searchBar];
     
-    self.friendsInvitedScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, self.searchBarBackgroundView.frame.origin.y + self.searchBarBackgroundView.frame.size.height, self.view.frame.size.width, PADDING)];
-    [self.friendsInvitedScrollView setBackgroundColor:[UIColor blackColor]];
+    self.friendsInvitedScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, self.topBarView.frame.size.height, self.view.frame.size.width, LABEL_HEIGHT + PADDING * 2)];
     self.friendsInvitedScrollView.showsVerticalScrollIndicator = YES;
     self.friendsInvitedScrollView.indicatorStyle = UIScrollViewIndicatorStyleWhite;
     [self.view addSubview:self.friendsInvitedScrollView];
+    
+    self.plusButton = [[UIButton alloc] initWithFrame:CGRectMake(PADDING, PADDING, 35.0, 35.0)];
+    [self.plusButton setImage:[UIImage imageNamed:@"PlusSign"] forState:UIControlStateNormal];
+    [self.plusButton addTarget:self action:@selector(plusButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
+    [self.friendsInvitedScrollView addSubview:self.plusButton];
     
     self.messageTextView = [[UITextView alloc] initWithFrame:CGRectMake(PADDING, self.friendsInvitedScrollView.frame.origin.y + self.friendsInvitedScrollView.frame.size.height, self.view.frame.size.width - PADDING*2, MAX_MESSAGE_FIELD_HEIGHT)];
     [self.messageTextView setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
@@ -147,14 +165,98 @@
     self.backButtonLarge = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, (self.view.frame.size.width) / 4.0, 50.0)];
     [self.backButtonLarge addTarget:self action:@selector(closeView) forControlEvents:UIControlEventTouchDown];
     [self.view addSubview:self.backButtonLarge];
+    
+    self.placeSearchBar = [[UISearchBar alloc] initWithFrame:CGRectMake((self.topBarView.frame.size.width - SEARCH_BAR_WIDTH) / 2.0, STATUS_BAR_HEIGHT, SEARCH_BAR_WIDTH, SEARCH_BAR_HEIGHT)];
+    self.placeSearchBar.delegate = self;
+    self.placeSearchBar.placeholder = @"Search places...";
+    [self.placeSearchBar setBackgroundImage:[UIImage new]];
+    [self.placeSearchBar setTranslucent:YES];
+    [self.placeSearchBar setHidden:YES];
+    [self.view addSubview:self.placeSearchBar];
+    
+    self.placeSearchResultsArray = [[NSMutableArray alloc] init];
+    
+    self.placeSearchResultsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, self.topBarView.frame.size.height, self.view.frame.size.width, self.view.frame.size.height - self.placeSearchBar.frame.size.height)];
+    self.placeSearchResultsTableView.hidden = YES;
+    [self.placeSearchResultsTableView setDataSource:self];
+    [self.placeSearchResultsTableView setDelegate:self];
+    
+    self.placeSearchResultsTableViewController = [[UITableViewController alloc] init];
+    self.placeSearchResultsTableViewController.tableView = self.placeSearchResultsTableView;
+    [self.placeSearchResultsTableView reloadData];
+    
+    [self.view addSubview:self.placeSearchResultsTableView];
 }
 
--(IBAction)buttonHighlight:(id)sender {
-    [self.sendButton setBackgroundColor:UIColorFromRGB(0x8e0528)];
+-(void)hideSearchFriends {
+    if (self.placeSearchBar.isHidden) {
+        [UIView animateWithDuration:0.1
+                              delay:0.0
+                            options:UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                             [self.searchBarBackgroundView setHidden:YES];
+                             [self.searchBar setHidden:YES];
+                             [self.plusButton setHidden:NO];
+                         } completion:^(BOOL finished) {
+                         }];
+    }
 }
 
--(IBAction)buttonTouchCancel:(id)sender {
-    [self.sendButton setBackgroundColor:[UIColor whiteColor]];
+-(void)setSearchFriends {
+    if (self.placeSearchBar.isHidden) {
+        [UIView animateWithDuration:0.1
+                              delay:0.0
+                            options:UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                [self.searchBarBackgroundView setHidden:NO];
+                [self.searchBar setHidden:NO];
+                [self.plusButton setHidden:YES];
+                [self layoutFriendLabels];
+                [self layoutFriendsInvitedView];
+        } completion:^(BOOL finished) {
+            [self searchBarTextDidBeginEditing:self.searchBar];
+        }];
+    }
+}
+
+-(IBAction)plusButtonTapped:(id)sender {
+    [self setSearchFriends];
+}
+
+-(void)placeLabelTapped:(UIGestureRecognizer*)recognizer {
+    [self setSearchPlaces];
+}
+
+-(void)setSearchPlaces {
+    if (self.searchBar.isHidden) {
+        [self.placeLabel setHidden:YES];
+        [self.placeSearchBar setHidden:NO];
+        [self searchBarTextDidBeginEditing:self.placeSearchBar];
+    }
+}
+
+-(void)hideSearchPlaces {
+    [self.placeLabel setHidden:NO];
+    [self.placeSearchBar setHidden:YES];
+}
+
+-(void)setDestination:(Place*)place {
+    if ([self.friendsInvitedDictionary count] > 0) {
+        [self.sendButton setEnabled:YES];
+    }
+    
+    if (!self.place) {
+        [self layoutPlusIcon];
+    }
+    
+    self.place = place;
+    self.placeLabel.text = place.name;
+    UIFont *montserratLarge = [UIFont fontWithName:@"Montserrat" size:14.0f];
+    self.placeLabel.font = montserratLarge;
+    CGSize size = [self.placeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratLarge}];
+    self.placeLabel.frame = CGRectMake(MAX(LEFT_PADDING, (self.view.frame.size.width - size.width) / 2.0), STATUS_BAR_HEIGHT + PADDING + 4.0, MIN(self.view.frame.size.width - LEFT_PADDING, size.width), size.height);
+    
+    [self hideSearchPlaces];
 }
 
 #pragma mark gesture handlers
@@ -178,12 +280,23 @@
 }
 
 -(void)layoutFriendsInvitedView {
-    self.friendsInvitedScrollView.frame = CGRectMake(0, self.searchBarBackgroundView.frame.origin.y + self.searchBarBackgroundView.frame.size.height, self.view.frame.size.width, MIN(MAX(PADDING,self.friendsInvitedViewHeight), 100));
+    CGRect scrollViewFrame;
+    if (self.searchBar.isHidden) {
+        scrollViewFrame = CGRectMake(0, self.topBarView.frame.size.height, self.view.frame.size.width, MIN(MAX(PADDING,self.friendsInvitedViewHeight), 100));
+    } else {
+        scrollViewFrame = CGRectMake(0, self.topBarView.frame.size.height + MIN(MAX(PLUS_ICON_SIZE + PADDING,self.friendsInvitedViewHeight), 60.0), self.view.frame.size.width, MIN(MAX(PADDING,self.friendsInvitedViewHeight), 60.0));
+    }
+    self.friendsInvitedScrollView.frame = scrollViewFrame;
     self.friendsInvitedScrollView.contentSize = CGSizeMake(self.view.frame.size.width, self.friendsInvitedViewHeight);
     self.friendsInvitedScrollView.contentOffset = CGPointMake(0, self.friendsInvitedViewHeight - self.friendsInvitedScrollView.frame.size.height);
+    
     CGRect frame = self.messageTextView.frame;
     frame.origin.y = self.friendsInvitedScrollView.frame.origin.y + self.friendsInvitedScrollView.frame.size.height;
-    frame.size.height = MAX_MESSAGE_FIELD_HEIGHT - self.friendsInvitedScrollView.frame.size.height + 10.0;
+    if (self.searchBar.isHidden) {
+        frame.size.height = MAX_MESSAGE_FIELD_HEIGHT - self.friendsInvitedScrollView.frame.size.height + self.searchBar.frame.size.height + 10.0;
+    } else {
+        frame.size.height = MAX_MESSAGE_FIELD_HEIGHT - self.friendsInvitedScrollView.frame.size.height + 15.0;
+    }
     self.messageTextView.frame = frame;
     
     self.sendButton.frame = CGRectMake(220.0, self.messageTextView.frame.origin.y + self.messageTextView.frame.size.height - 50.0, 80.0, 40.0);
@@ -191,7 +304,9 @@
 
 -(void)layoutFriendLabels {
     for (UIView *subview in self.friendsInvitedScrollView.subviews) {
-        [subview removeFromSuperview];
+        if (![subview isKindOfClass:[UIImageView class]]) {
+            [subview removeFromSuperview];
+        }
     }
     
     self.friendsInvitedViewHeight = 0.0;
@@ -259,8 +374,32 @@
     [self.friendsInvitedScrollView addSubview:xButton];
 }
 
+-(void)layoutPlusIcon {
+    if (self.friendsInvitedViewHeight == 0) {
+        self.friendsInvitedViewHeight = PLUS_ICON_SIZE + PADDING*2;
+    }
+    
+    if (self.friendsInvitedViewWidth + PLUS_ICON_SIZE + PADDING*2 > self.view.frame.size.width) {
+        self.friendsInvitedViewWidth = 0;
+        self.friendsInvitedViewHeight += PLUS_ICON_SIZE + PADDING;
+    }
+    
+    self.plusButton.frame = CGRectMake(self.friendsInvitedViewWidth + 10.0, self.friendsInvitedViewHeight - (PLUS_ICON_SIZE + PADDING), PLUS_ICON_SIZE, PLUS_ICON_SIZE);
+    self.friendsInvitedViewWidth += PLUS_ICON_SIZE + PADDING;
+    
+    [self.plusButton setHidden:NO];
+    [self.friendsInvitedScrollView addSubview:self.plusButton];
+}
 
 #pragma mark button action handlers
+
+-(IBAction)buttonHighlight:(id)sender {
+    [self.sendButton setBackgroundColor:UIColorFromRGB(0x8e0528)];
+}
+
+-(IBAction)buttonTouchCancel:(id)sender {
+    [self.sendButton setBackgroundColor:[UIColor whiteColor]];
+}
 
 -(IBAction)sendButtonClicked:(id)sender {
     [self.sendButton setBackgroundColor:[UIColor whiteColor]];
@@ -275,6 +414,34 @@
         Friend *friend = [self.friendsInvitedDictionary objectForKey:key];
         [friendsInvited addObject:friend.friendID];
     }
+    
+    NSString * friendListString = @"";
+
+    for (NSString *friendID in friendsInvited) {
+        Friend *friend = [self.friendsInvitedDictionary objectForKey:friendID];
+        if ([friendsInvited indexOfObject:friendID] == 0) {
+            friendListString = [NSString stringWithFormat:@" %@", friend.name];
+        } else if ([friendsInvited indexOfObject:friendID] == [friendsInvited count] - 1) {
+            friendListString = [NSString stringWithFormat:@"%@ and %@", friendListString, friend.name];
+        } else {
+            friendListString = [NSString stringWithFormat:@"%@,%@", friendListString, friend.name];
+        }
+    }
+    
+    friendListString = [NSString stringWithFormat:@"You invited%@ to %@",friendListString, self.place.name];
+    
+    // add notification to be seen in current users activity feed
+    PFObject *receipt = [PFObject objectWithClassName:kNotificationClassKey];
+    [receipt setObject:sharedDataManager.facebookId forKey:kNotificationSenderKey];
+    [receipt setObject:self.place.name forKey:kNotificationPlaceNameKey];
+    [receipt setObject:self.place.placeId forKey:kNotificationPlaceIdKey];
+    [receipt setObject:friendListString forKey:kNotificationMessageHeaderKey];
+    [receipt setObject:self.messageTextView.text forKey:kNotificationMessageContentKey];
+    [receipt setObject:sharedDataManager.facebookId forKey:kNotificationRecipientKey];
+    [receipt setObject:friendsInvited forKey:kNotificationAllRecipientsKey];
+    [receipt setObject:@"receipt" forKey:kNotificationTypeKey];
+    [receipt setObject:self.place.city forKey:kNotificationCityKey];
+    [receipt saveInBackground];
     
     for (id key in self.friendsInvitedDictionary) {
         Friend *friend = [self.friendsInvitedDictionary objectForKey:key];
@@ -308,6 +475,7 @@
             [invitation setObject:friend.friendID forKey:kNotificationRecipientKey];
             [invitation setObject:friendsInvited forKey:kNotificationAllRecipientsKey];
             [invitation setObject:@"invitation" forKey:kNotificationTypeKey];
+            [invitation setObject:self.place.city forKey:kNotificationCityKey];
             [invitation saveInBackground];
             }
         }];
@@ -316,16 +484,19 @@
 }
 
 -(IBAction)removeFriend:(id)sender {
-    UIButton *button = (UIButton *)sender;
-    FriendLabel *label = [self.friendsLabelsDictionary objectForKey:[NSValue valueWithNonretainedObject:button]];
-    [label removeFromSuperview];
-    [self.friendsInvitedDictionary removeObjectForKey:label.friend.friendID];
-    [self.friendsLabelsDictionary removeObjectForKey:[NSValue valueWithNonretainedObject:button]];
-    [self layoutFriendLabels];
-    [self layoutFriendsInvitedView];
-    
-    if ([self.friendsInvitedDictionary count] == 0) {
-        [self.sendButton setEnabled:NO];
+    if (self.searchBar.isHidden) {
+        UIButton *button = (UIButton *)sender;
+        FriendLabel *label = [self.friendsLabelsDictionary objectForKey:[NSValue valueWithNonretainedObject:button]];
+        [label removeFromSuperview];
+        [self.friendsInvitedDictionary removeObjectForKey:label.friend.friendID];
+        [self.friendsLabelsDictionary removeObjectForKey:[NSValue valueWithNonretainedObject:button]];
+        [self layoutFriendLabels];
+        [self layoutPlusIcon];
+        [self layoutFriendsInvitedView];
+        
+        if ([self.friendsInvitedDictionary count] == 0) {
+            [self.sendButton setEnabled:NO];
+        }
     }
 }
 
@@ -383,26 +554,41 @@
 #pragma mark SearchBarDelegate methods
 
 - (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
-    if (searchBar == self.searchBar) {
+    if (searchBar == self.placeSearchBar) {
+        [self.placeSearchBar setShowsCancelButton:YES animated:YES];
+    } else if (searchBar == self.searchBar) {
         [self.searchBar setShowsCancelButton:YES animated:YES];
     }
+    [searchBar becomeFirstResponder];
 }
 
 - (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
     searchBar.text=@"";
-    
     [searchBar setShowsCancelButton:NO animated:YES];
     [searchBar resignFirstResponder];
     
-    if (searchBar == self.searchBar) {
+    if (searchBar == self.placeSearchBar) {
+        self.placeSearchResultsArray = nil;
+        [self.placeSearchResultsTableView reloadData];
+        self.placeSearchResultsTableView.hidden = YES;
+        if (self.place) {
+         [self hideSearchPlaces];
+        }
+    } if (searchBar == self.searchBar) {
         self.friendSearchResultsArray = nil;
         [self.friendSearchResultsTableView reloadData];
         self.friendSearchResultsTableView.hidden = YES;
+        [self hideSearchFriends];
+        [self layoutPlusIcon];
+        [self layoutFriendsInvitedView];
     }
 }
 
 -(void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {
-    if (searchBar == self.searchBar) {
+    if (searchBar == self.placeSearchBar) {
+        self.placeSearchResultsTableView.hidden = NO;
+        [self loadPlacesForSearch:searchBar.text];
+    } else if (searchBar == self.searchBar) {
         self.friendSearchResultsTableView.hidden = NO;
         [self searchFriends:searchBar.text];
     }
@@ -424,33 +610,123 @@
     [self.friendSearchResultsTableView reloadData];
 }
 
+// Search foursquare data call
+- (void)loadPlacesForSearch:(NSString*)search {
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    NSString *urlString1 = @"https://api.foursquare.com/v2/venues/search?near=";
+    NSString *urlString2 = @"&query=";
+    NSString *urlString3 = @"&limit=50&oauth_token=5IQQDYZZ0KJLYNQROEEFAEWR4V400IADTACODH2SYCVBNQ3P&v=20131113";
+    NSString *joinString=[NSString stringWithFormat:@"%@%@%@%@%@%@%@",urlString1,[userDetails objectForKey:@"city"] ,@"%20",[userDetails objectForKey:@"state"],urlString2, search, urlString3];
+    joinString = [joinString stringByReplacingOccurrencesOfString:@" " withString:@"%20"];
+    
+    NSURL *url = [NSURL URLWithString:joinString];
+    
+    NSURLRequest *request = [NSURLRequest requestWithURL:url];
+    AFHTTPRequestOperation *operation = [[AFHTTPRequestOperation alloc]
+                                         initWithRequest:request];
+    operation.responseSerializer = [AFJSONResponseSerializer serializer];
+    [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSDictionary *jsonDict = (NSDictionary *) responseObject;
+        [self processSearchResults:jsonDict];
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Failure");
+    }];
+    [operation start];
+}
+
+- (void)processSearchResults:(NSDictionary *)json {
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    NSDictionary *response = [json objectForKey:@"response"];
+    self.placeSearchResultsArray = [[NSMutableArray alloc] init];
+    NSArray *venues = [response objectForKey:@"venues"];
+    for (NSDictionary *venue in venues) {
+        Place *newPlace = [[Place alloc] init];
+        newPlace.placeId = [venue objectForKey:@"id"];
+        newPlace.name = [venue objectForKey:@"name"];
+        CLLocationCoordinate2D location = CLLocationCoordinate2DMake([(NSString*)[[venue objectForKey:@"location"] objectForKey:@"lat"] doubleValue], [[[venue objectForKey:@"location"] objectForKey:@"lng"] doubleValue]);
+        newPlace.coord = location;
+        newPlace.city = [userDetails objectForKey:@"city"];
+        newPlace.state = [userDetails objectForKey:@"state"];
+        NSDictionary *locationDetails = [venue objectForKey:@"location"];
+        newPlace.address = [locationDetails objectForKey:@"address"];
+        
+        [self.placeSearchResultsArray addObject:newPlace];
+    }
+    [self.placeSearchResultsTableView reloadData];
+}
+
 #pragma mark UITableViewDataSource Methods
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (tableView == self.placeSearchResultsTableView) {
+        return SEARCH_RESULTS_CELL_HEIGHT;
+    } else {
         return CELL_HEIGHT;
+    }
 }
 
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return [self.friendSearchResultsArray count];
+    if (tableView == self.placeSearchResultsTableView) {
+        return [self.placeSearchResultsArray count] + 1;
+    } else {
+        return [self.friendSearchResultsArray count];
+    }
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    FriendAtPlaceCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell"];
-    if (!cell) {
-        cell = [[FriendAtPlaceCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Cell"];
-    }
-//    if ([self.friendSearchResultsArray count] < indexPath.row) {
-        [cell setFriend:[self.friendSearchResultsArray objectAtIndex:indexPath.row]];
-//    }
     
-    return cell;
+    if (tableView == self.placeSearchResultsTableView) {
+        if (indexPath.row == [self.placeSearchResultsArray count]) {
+            UIImageView *foursquareImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"poweredByFoursquare"]];
+            foursquareImageView.frame = CGRectMake(0, 0, self.view.frame.size.width, SEARCH_RESULTS_CELL_HEIGHT);
+            foursquareImageView.contentMode = UIViewContentModeScaleAspectFit;
+            UITableViewCell *cell = [[UITableViewCell alloc] init];
+            [cell addSubview:foursquareImageView];
+            return cell;
+        }
+        SearchResultCell *cell = [[SearchResultCell alloc] init];
+        Place *p = [self.placeSearchResultsArray objectAtIndex:indexPath.row];
+        cell.place = p;
+        UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:18];
+        UIFont *montserratSubLabelFont = [UIFont fontWithName:@"Montserrat" size:12];
+        UILabel *placeNameLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 20.0)];
+        placeNameLabel.text = p.name;
+        placeNameLabel.font = montserrat;
+        [cell addSubview:placeNameLabel];
+        UILabel *placeAddressLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 30.0, self.view.frame.size.width, 15.0)];
+        placeAddressLabel.text = p.address;
+        placeAddressLabel.font = montserratSubLabelFont;
+        [cell addSubview:placeAddressLabel];
+        
+        return cell;
+    } else {
+        FriendAtPlaceCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell"];
+        if (!cell) {
+            cell = [[FriendAtPlaceCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Cell"];
+        }
+        [cell setFriend:[self.friendSearchResultsArray objectAtIndex:indexPath.row]];
+        return cell;
+    }
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    Friend *friend = [self.friendSearchResultsArray objectAtIndex:indexPath.row];
-    [self addFriend:friend];
-    [self searchBarCancelButtonClicked:self.searchBar];
+    if (tableView ==  self.placeSearchResultsTableView) {
+        SearchResultCell *cell = (SearchResultCell*)[tableView cellForRowAtIndexPath:indexPath];
+        Datastore *sharedDataManager = [Datastore sharedDataManager];
+        if (![sharedDataManager.foursquarePlacesDictionary objectForKey:cell.place.placeId]) {
+            [sharedDataManager.foursquarePlacesDictionary setObject:cell.place forKey:cell.place.placeId];
+        }
+        [self searchBarCancelButtonClicked:self.placeSearchBar];
+        [self setDestination:cell.place];
+    } else {
+        Friend *friend = [self.friendSearchResultsArray objectAtIndex:indexPath.row];
+        [self searchBarCancelButtonClicked:self.searchBar];
+        [self addFriend:friend];
+        [self layoutFriendLabels];
+        [self layoutPlusIcon];
+        [self layoutFriendsInvitedView];
+    }
 }
 
 - (void)didReceiveMemoryWarning

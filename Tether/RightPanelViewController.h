@@ -20,5 +20,6 @@
 
 -(void)openPageForPlaceWithId:(id)placeId;
 -(void)goToPlaceInListView:(id)placeId;
+-(void)userChangedLocationToCityName:(NSString*)city;
 
 @end

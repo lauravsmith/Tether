@@ -20,6 +20,7 @@
 @property (retain, nonatomic) NSMutableArray *allRecipients;
 @property (retain, nonatomic) Friend *sender;
 @property (retain, nonatomic) Place *place;
+@property (retain, nonatomic) NSString *city;
 @property (retain, nonatomic) NSString *placeId;
 @property (retain, nonatomic) NSString *placeName;
 @property (retain, nonatomic) NSString *type;

@@ -21,6 +21,7 @@
 @property (retain, nonatomic) UIView *searchBarBackgroundView;
 @property (retain, nonatomic) UIButton *sendButton;
 @property (retain, nonatomic) NSMutableDictionary *friendsInvitedDictionary;
+@property (retain, nonatomic) UISearchBar *placeSearchBar;
 -(void)addFriend:(Friend *)friend;
 -(void)layoutFriendsInvitedView;
 - (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar;
@@ -30,6 +31,10 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section;
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath;
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath;
+-(void)setSearchPlaces;
+-(void)layoutFriendLabels;
+-(void)layoutPlusIcon;
+
 @end
 
 @protocol InviteViewControllerDelegate <NSObject>

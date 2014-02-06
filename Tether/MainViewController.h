@@ -16,4 +16,6 @@
 -(void)showDecisionView;
 -(void)refreshNotificationsNumber;
 -(void)updateNotificationsNumber;
+-(BOOL)shouldShowDecisionView;
+-(void)setupView;
 @end

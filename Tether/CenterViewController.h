@@ -73,4 +73,7 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 -(void)locationSetup;
 -(void)refreshNotificationsNumber;
 - (void)movePanelLeft:(UIGestureRecognizer*)recognizer;
+-(void)setUserLocationToCity:(NSString*)city;
+-(void)addTutorialView;
+-(void)closeTutorial;
 @end

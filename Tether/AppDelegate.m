@@ -152,6 +152,9 @@ fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
 
 - (void)logoutPressed
 {
+    PFUser *user = [PFUser currentUser];
+    [user deleteInBackground];
+    
     [PFUser logOut];
     [self.navController popToRootViewControllerAnimated:YES];
     [self showLoginView];
@@ -173,7 +176,10 @@ fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
 {
     [self.mainViewController pollDatabase];
     [self.mainViewController refreshNotificationsNumber];
-    [self.mainViewController showDecisionView];
+    if ([self.mainViewController shouldShowDecisionView]) {
+        [self.mainViewController setupView];
+        [self.mainViewController showDecisionView];
+    }
     // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
 }
 

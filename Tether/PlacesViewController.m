@@ -21,11 +21,12 @@
 #import <Parse/Parse.h>
 
 #define CELL_HEIGHT 90.0
+#define HEADER_HEIGHT 50.0
 #define SEARCH_RESULTS_CELL_HEIGHT 60.0
 #define SEARCH_BAR_HEIGHT 50.0
 #define SEARCH_BAR_WIDTH 270.0
-#define STATUS_BAR_HEIGHT 20.0
 #define SLIDE_TIMING 0.6
+#define STATUS_BAR_HEIGHT 20.0
 
 @interface PlacesViewController () <InviteViewControllerDelegate, FriendsListViewControllerDelegate, PlaceCellDelegate, UIGestureRecognizerDelegate,UISearchBarDelegate, UITableViewDelegate, UITableViewDataSource>
 
@@ -109,6 +110,8 @@
     self.placesTableViewController = [[UITableViewController alloc] init];
     self.placesTableViewController.tableView = self.placesTableView;
     
+    [self.placesTableView setSeparatorInset:UIEdgeInsetsZero];
+    
     self.refreshControl = [[UIRefreshControl alloc] init];
     self.refreshControl.tintColor = UIColorFromRGB(0x8e0528);
     [self.refreshControl addTarget:self action:@selector(refresh) forControlEvents:UIControlEventValueChanged];
@@ -144,15 +147,11 @@
     [query whereKey:kCommitmentCityKey equalTo:userCity];
     [query whereKey:kCommitmentDateKey greaterThan:lastWeek];
     query.limit = 5000; // is this an appropriate limit?
-    //TODO: Check for same State
     
     NSDate *startTime = [self getStartTime];
 
     [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
         if (!error) {
-//            NSLog(@"QUERY: finding friends commitments for tonight");
-            // The find succeeded. The first 100 objects are available in objects
-//            NSLog(@"Commitments found: %lu",(unsigned long)[objects count]);
             PFGeoPoint *geoPoint;
             NSMutableDictionary *tempDictionary = [[NSMutableDictionary alloc] init];
 
@@ -170,10 +169,8 @@
                     place.numberCommitments = 0;
                     place.numberPastCommitments = 0;
                     place.friendsCommitted = [[NSMutableSet alloc] init];
-//                    NSLog(@"Created place: %@", [object objectForKey:kCommitmentPlaceKey]);
                 } else {
                     place = [tempDictionary objectForKey:[object objectForKey:kCommitmentPlaceIDKey]];
-//                    NSLog(@"Updated place %@", [object objectForKey:kCommitmentPlaceKey]);
                 }
                 
                 NSDate *commitmentTime = [object objectForKey:kCommitmentDateKey];
@@ -226,7 +223,6 @@
                 }
             }
 
-//            NSLog(@"Updated your friends commitments");
             sharedDataManager.popularPlacesDictionary = tempDictionary;
             
             if (self.foursquarePlacesDataHasLoaded) {
@@ -236,7 +232,6 @@
 
             self.friendStatusDetailsHaveLoaded = YES;
         } else {
-            // Log details of the failure
             NSLog(@"Error Querying friends commitments: %@ %@", error, [error userInfo]);
             if (self.foursquarePlacesDataHasLoaded) {
                 [self addDictionaries];
@@ -251,7 +246,6 @@
 }
 
 -(void)addDictionaries {
-//    NSLog(@"Adding dictionaries");
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     sharedDataManager.placesDictionary = [[NSMutableDictionary alloc] init];
     for (id key in sharedDataManager.popularPlacesDictionary) {
@@ -281,12 +275,18 @@
             [self.delegate refreshCommitmentName];
         }
     }
+    
+    if (sharedDataManager.placeIDForNotification && ![sharedDataManager.placeIDForNotification isEqualToString:@""]) {
+        if ([self.delegate respondsToSelector:@selector(openPageForPlaceWithId:)]) {
+            [self.delegate openPageForPlaceWithId:sharedDataManager.placeIDForNotification];
+            sharedDataManager.placeIDForNotification = @"";
+        }
+    }
 }
 
 -(void)sortPlacesByPopularity {
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     [self.placesArray removeAllObjects];
-//    NSLog(@"Sorting places");
     for(id key in sharedDataManager.placesDictionary) {
         [self.placesArray addObject:[sharedDataManager.placesDictionary objectForKey:key]];
     }
@@ -309,7 +309,6 @@
         Place *p = [sharedDataManager.popularPlacesDictionary objectForKey:key];
         if (p) {
             if ([p.friendsCommitted count] > 0) {
-//                NSLog(@"PLACES VIEW: Adding %@ with %d commitments to map", p.name, p.numberCommitments);
                 [self.delegate placeMarkOnMapView:p];
             }
         }
@@ -336,13 +335,13 @@
     NSDateComponents *components = [calendar components:NSYearCalendarUnit|NSMonthCalendarUnit|NSDayCalendarUnit fromDate:now];
     
     // if after 6am, start from today's date
-    if ([hour intValue] > 6) {
-        [components setHour:6.0];
+    if ([hour intValue] > 5) {
+        [components setHour:5.0];
         return [calendar dateFromComponents:components];
     } else { // if before 6am, start from yesterday's date
         NSDateComponents* deltaComps = [[NSDateComponents alloc] init];
         [deltaComps setDay:-1.0];
-        [components setHour:6.0];
+        [components setHour:5.0];
         return [calendar dateByAddingComponents:deltaComps toDate:[calendar dateFromComponents:components] options:0];
     }
 }
@@ -536,6 +535,13 @@
     }
 }
 
+-(void)selectAnnotationForPlace:(Place*)place {
+    if ([self.delegate respondsToSelector:@selector(selectAnnotationForPlace:)]) {
+        [self.delegate selectAnnotationForPlace:place];
+        [self closeListView];
+    }
+}
+
 #pragma mark InviteViewControllerDelegate
 -(void)closeInviteView {
     for (UIViewController *childViewController in self.childViewControllers) {
@@ -674,7 +680,44 @@
     [self.searchResultsTableView reloadData];
 }
 
+- (void)tutorialTapped:(UIGestureRecognizer*)recognizer {
+    [self closeTutorial];
+}
+
+-(void)closeTutorial {
+    [self.userDetails setBool:YES forKey:kUserDefaultsHasSeenTethrTutorialKey];
+    [self.userDetails synchronize];
+    [self.placesTableView reloadData];
+}
+
 #pragma mark UITableViewDataSource Methods
+
+-(CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+    if (tableView == self.placesTableView && ![self.userDetails boolForKey:kUserDefaultsHasSeenTethrTutorialKey]) {
+        return HEADER_HEIGHT;
+    }
+    return 0.0;
+}
+
+-(UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
+    UIView *tutorialView = [[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.frame.size.width, 50.0)];
+    [tutorialView setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
+    UILabel *headerLabel = [[UILabel alloc] init];
+    headerLabel.text = @"Tap a location to tethr to it";
+    UIFont *montserratLabelFont = [UIFont fontWithName:@"Montserrat" size:13];
+    headerLabel.font = montserratLabelFont;
+    [headerLabel setTextColor:UIColorFromRGB(0x8e0528)];
+    CGSize size = [headerLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratLabelFont}];
+    headerLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2.0, (50.0 - size.height) / 2.0, size.width, size.height);
+    [tutorialView addSubview:headerLabel];
+    
+    tutorialView.userInteractionEnabled = YES;
+    UITapGestureRecognizer *tutorialTapGesture =
+    [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tutorialTapped:)];
+    [tutorialView addGestureRecognizer:tutorialTapGesture];
+    
+    return tutorialView;
+}
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (tableView == self.placesTableView) {
@@ -716,11 +759,7 @@
             foursquareImageView.frame = CGRectMake(0, 0, self.view.frame.size.width, SEARCH_RESULTS_CELL_HEIGHT);
             foursquareImageView.contentMode = UIViewContentModeScaleAspectFit;
             UITableViewCell *cell = [[UITableViewCell alloc] init];
-//            [cell addSubview:foursquareImageView];
-            
-            UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 300.0, SEARCH_RESULTS_CELL_HEIGHT)];
-            label.text = @"Can't find it? Change your city";
-            [cell addSubview:label];
+            [cell addSubview:foursquareImageView];
             return cell;
         }
         SearchResultCell *cell = [[SearchResultCell alloc] init];

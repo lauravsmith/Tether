@@ -8,6 +8,7 @@
 
 #import "AppDelegate.h"
 #import "CenterViewController.h"
+#import "Constants.h"
 #import "Datastore.h"
 #import "Place.h"
 #import "TetherAnnotation.h"
@@ -26,6 +27,9 @@
 #define SPINNER_SIZE 30.0
 #define STATUS_BAR_HEIGHT 20.0
 #define TOP_BAR_HEIGHT 70.0
+#define TUTORIAL_HEADER_HEIGHT 50.0
+
+#define degreesToRadian(x) (M_PI * (x) / 180.0)
 
 @interface CenterViewController () <MKMapViewDelegate, CLLocationManagerDelegate>
 @property (retain, nonatomic) NSString * cityLocation;
@@ -35,6 +39,7 @@
 @property (strong, nonatomic) NSTimer * finishLoadingTimer;
 @property (retain, nonatomic) UITapGestureRecognizer * cityTapGesture;
 @property (strong, nonatomic) UIButton *commitmentButton;
+@property (strong, nonatomic) UIView *tutorialView;
 
 @end
 
@@ -236,7 +241,7 @@
         
         UIFont *montserratExtraSmall = [UIFont fontWithName:@"Montserrat" size:10];
         [self.placeButton setTitle:sharedDataManager.currentCommitmentPlace.name forState:UIControlStateNormal];
-        [self.placeNumberButton setTitle:[NSString stringWithFormat:@"%d", [sharedDataManager.currentCommitmentPlace.friendsCommitted count]] forState:UIControlStateNormal];
+        [self.placeNumberButton setTitle:[NSString stringWithFormat:@"%lu", (unsigned long)[sharedDataManager.currentCommitmentPlace.friendsCommitted count]] forState:UIControlStateNormal];
         self.tethrLabel.text = @"tethrd";
         
         CGSize size1 = [self.placeButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratExtraSmall}];
@@ -278,18 +283,91 @@
     NSDateComponents *components = [calendar components:NSYearCalendarUnit|NSMonthCalendarUnit|NSDayCalendarUnit fromDate:now];
     
     // if after 6am, start from today's date
-    if ([hour intValue] > 6) {
-        [components setHour:6.0];
+    if ([hour intValue] > 5) {
+        [components setHour:5.0];
         return [calendar dateFromComponents:components];
     } else { // if before 6am, start from yesterday's date
         NSDateComponents* deltaComps = [[NSDateComponents alloc] init];
         [deltaComps setDay:-1.0];
-        [components setHour:6.0];
+        [components setHour:5.0];
         return [calendar dateByAddingComponents:deltaComps toDate:[calendar dateFromComponents:components] options:0];
     }
 }
 
+-(void)addTutorialView {
+    self.tutorialView = [[UIView alloc] initWithFrame:CGRectMake(0.0, self.topBar.frame.origin.y + self.topBar.frame.size.height, self.view.frame.size.width, TUTORIAL_HEADER_HEIGHT)];
+    [self.tutorialView setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
+    UILabel *tutorialLabel = [[UILabel alloc] init];
+
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    
+    UIImage *arrowImage = [UIImage imageNamed:@"RedTriangle"];
+    UIImageView *arrow = [[UIImageView alloc] init];
+    
+    UIFont *montserratLabelFont = [UIFont fontWithName:@"Montserrat" size:13];
+    tutorialLabel.font = montserratLabelFont;
+    [tutorialLabel setTextColor:UIColorFromRGB(0x8e0528)];
+    
+    if (![userDetails boolForKey:kUserDefaultsHasSeenRefreshTutorialKey]) {
+        tutorialLabel.text = @"Tap to refresh";
+        arrow = [[UIImageView alloc] initWithFrame: CGRectMake((self.view.frame.size.width - 7.0) / 2.0, 2.0, 7.0, 11.0)];
+        CGSize size = [tutorialLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratLabelFont}];
+        tutorialLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2.0, (TUTORIAL_HEADER_HEIGHT - size.height) / 2.0, size.width, size.height);
+        self.tutorialView.tag = 0;
+    } else if (![userDetails boolForKey:kUserDefaultsHasSeenFriendsListTutorialKey]) {
+        tutorialLabel.text = @"See friends in your city";
+        arrow = [[UIImageView alloc] initWithFrame: CGRectMake(self.numberButton.frame.origin.x + 5.0, 2.0, 7.0, 11.0)];
+        CGSize size = [tutorialLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratLabelFont}];
+        tutorialLabel.frame = CGRectMake(10.0, (TUTORIAL_HEADER_HEIGHT - size.height) / 2.0, size.width, size.height);
+        self.tutorialView.tag = 1;
+    } else {
+        tutorialLabel.text = @"Tethr to a location to share your plans";
+        arrow = [[UIImageView alloc] initWithFrame: CGRectMake((self.view.frame.size.width - 7.0) - 18.0, 2.0, 7.0, 11.0)];
+        CGSize size = [tutorialLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratLabelFont}];
+        tutorialLabel.frame = CGRectMake((self.view.frame.size.width - size.width) - 10.0, (TUTORIAL_HEADER_HEIGHT - size.height) / 2.0, size.width, size.height);
+        self.tutorialView.tag = 2;
+    }
+
+    [self.tutorialView addSubview:tutorialLabel];
+    
+    [arrow setImage:arrowImage];
+    arrow.transform = CGAffineTransformMakeRotation(degreesToRadian(90));
+    [self.tutorialView addSubview:arrow];
+    
+    self.tutorialView.userInteractionEnabled = YES;
+    UITapGestureRecognizer *tutorialTapGesture =
+    [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tutorialTapped:)];
+    [self.tutorialView addGestureRecognizer:tutorialTapGesture];
+    [self.view addSubview:self.tutorialView];
+}
+
+-(void)closeTutorial {
+    [UIView animateWithDuration:0.2
+                     animations:^{
+                         self.tutorialView.alpha = 0.0;
+                     } completion:^(BOOL finished) {
+                         [self.tutorialView removeFromSuperview];
+                         NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+                         if (![userDetails boolForKey:kUserDefaultsHasSeenRefreshTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenFriendsListTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenPlaceListTutorialKey]) {
+                             [self addTutorialView];
+                         }
+                     }];
+}
+
 #pragma UIGestureRecognizers
+
+- (void)tutorialTapped:(UIGestureRecognizer*)recognizer {
+     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    if (self.tutorialView.tag == 0) {
+        [userDetails setBool:YES forKey:kUserDefaultsHasSeenRefreshTutorialKey];
+    } else if (self.tutorialView.tag == 1) {
+        [userDetails setBool:YES forKey:kUserDefaultsHasSeenFriendsListTutorialKey];
+    } else {
+        [userDetails setBool:YES forKey:kUserDefaultsHasSeenPlaceListTutorialKey];
+    }
+    [userDetails synchronize];
+    [self closeTutorial];
+}
 
 -(void)swipeUp:(UIGestureRecognizer*)recognizer  {
     if ([self.delegate respondsToSelector:@selector(showSettingsView)]) {
@@ -303,21 +381,6 @@
     }
 }
 
--(IBAction)commitmentClicked:(id)sender {
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
-    TetherAnnotationView * annotationView = [self.placeToAnnotationViewDictionary objectForKey:sharedDataManager.currentCommitmentPlace.placeId];
-    
-    if (annotationView.tag == 1) {
-        [self.mv selectAnnotation:((MKAnnotationView*)annotationView).annotation animated:YES];
-            annotationView.placeTouchView.userInteractionEnabled = YES;
-            annotationView.tag = 0;
-    } else {
-        [self.mv deselectAnnotation:((MKAnnotationView*)annotationView).annotation animated:YES];
-        annotationView.placeTouchView.userInteractionEnabled = NO;
-        annotationView.tag = 1;
-    }
-}
-
 - (void)refreshTapped:(UIGestureRecognizer*)recognizer {
     if ([self.delegate respondsToSelector:@selector(pollDatabase)]) {
         [self.delegate pollDatabase];
@@ -325,6 +388,13 @@
         [self.spinner startAnimating];
         [self performSelector:@selector(refreshComplete) withObject:self.spinner afterDelay:1.0];
         [self updateLocation];
+    }
+    
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    if (![userDetails boolForKey:kUserDefaultsHasSeenRefreshTutorialKey]) {
+        [userDetails setBool:YES forKey:kUserDefaultsHasSeenRefreshTutorialKey];
+        [userDetails synchronize];
+        [self closeTutorial];
     }
 }
 
@@ -420,7 +490,6 @@
                  [userDetails setObject:city forKey:@"city"];
                  [userDetails setObject:state forKey:@"state"];
                  [userDetails synchronize];
-                 NSLog(@"Current City, State: %@,%@", city, state);
              }
              
              if ([self.delegate respondsToSelector:@selector(saveCity:state:)]) {
@@ -430,7 +499,6 @@
              }
              
              NSString *locationString = [NSString stringWithFormat:@"%@, %@", city, state];
-             NSLog(@"SETTING USER LOCATION TO %@", locationString);
              [self setUserLocationToCity:locationString];
              
              if (self.resettingLocation) {
@@ -551,6 +619,21 @@
             default:
                 break;
         }
+    }
+}
+
+-(IBAction)commitmentClicked:(id)sender {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    TetherAnnotationView * annotationView = [self.placeToAnnotationViewDictionary objectForKey:sharedDataManager.currentCommitmentPlace.placeId];
+    
+    if (annotationView.tag == 1) {
+        [self.mv selectAnnotation:((MKAnnotationView*)annotationView).annotation animated:YES];
+        annotationView.placeTouchView.userInteractionEnabled = YES;
+        annotationView.tag = 0;
+    } else {
+        [self.mv deselectAnnotation:((MKAnnotationView*)annotationView).annotation animated:YES];
+        annotationView.placeTouchView.userInteractionEnabled = NO;
+        annotationView.tag = 1;
     }
 }
 

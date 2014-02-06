@@ -21,6 +21,7 @@
 @property (nonatomic, strong) NSMutableAttributedString *text;
 @property (nonatomic, strong) UILabel *timeLabel;
 @property (nonatomic, strong) NSString *time;
+@property (nonatomic, strong) NSString *cityChange;
 @property (nonatomic, strong) UITapGestureRecognizer *changeToDeleteTap;
 @property (nonatomic, strong) UITapGestureRecognizer *deleteTap;
 @property (nonatomic, strong) UITapGestureRecognizer *changeToTimeTap;
@@ -31,5 +32,6 @@
 @protocol NotificationCellDelegate <NSObject>
 
 -(void)goToPlace:(id)placeId;
+-(void)userChangedLocationToCityName:(NSString*)city;
 
 @end

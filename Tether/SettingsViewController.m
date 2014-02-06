@@ -354,7 +354,32 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
         [user setObject:self.statusMessageTextField.text forKey:@"statusMessage"];
         [user saveInBackground];
         NSLog(@"PARSE SAVE: saving status message");
+        [self notifyBestFriendsOfStatusChange];
     }
+}
+
+-(void)notifyBestFriendsOfStatusChange {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    
+    if (![self.statusMessageTextField.text isEqualToString:@""]) {
+        for (NSString *friendID in sharedDataManager.bestFriendSet) {
+            NSString *messageHeader = [NSString stringWithFormat:@"%@ changed her status: \"%@\"",sharedDataManager.name, self.statusMessageTextField.text];
+            if ([sharedDataManager.tetherFriendsNearbyDictionary objectForKey:friendID]) {
+                Friend *friend = [sharedDataManager.tetherFriendsNearbyDictionary objectForKey:friendID];
+                PFObject *statusUpdate = [PFObject objectWithClassName:kNotificationClassKey];
+                [statusUpdate setObject:sharedDataManager.facebookId forKey:kNotificationSenderKey];
+                [statusUpdate setObject:@"" forKey:kNotificationPlaceNameKey];
+                [statusUpdate setObject:@"" forKey:kNotificationPlaceIdKey];
+                [statusUpdate setObject:messageHeader forKey:kNotificationMessageHeaderKey];
+                [statusUpdate setObject:friend.friendID forKey:kNotificationRecipientKey];
+                [statusUpdate setObject:[userDetails objectForKey:kUserDefaultsCityKey] forKey:kNotificationCityKey];
+                [statusUpdate setObject:@"status" forKey:kNotificationTypeKey];
+                [statusUpdate saveInBackground];
+            }
+        }
+    }
+    
 }
 
 #pragma mark UITextField delegate methods
@@ -496,6 +521,15 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     if ([self.delegate respondsToSelector:@selector(closeSettings)]) {
         [self.delegate closeSettings];
     }
+    
+    if ([self.delegate respondsToSelector:@selector(removePreviousCommitment)]) {
+        [self.delegate removePreviousCommitment];
+    }
+    
+    if ([self.delegate respondsToSelector:@selector(removeCommitmentFromDatabase)]) {
+        [self.delegate removeCommitmentFromDatabase];
+    }
+    
     AppDelegate* appDelegate = [UIApplication sharedApplication].delegate;
     [appDelegate logoutPressed];
 }

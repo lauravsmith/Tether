@@ -17,6 +17,8 @@
 
 #import <FacebookSDK/FacebookSDK.h>
 
+#define degreesToRadian(x) (M_PI * (x) / 180.0)
+
 #define BORDER_WIDTH 4.0
 #define BOTTOM_BAR_HEIGHT 60.0
 #define CELL_HEIGHT 60.0
@@ -30,6 +32,7 @@
 #define STATUS_BAR_HEIGHT 20.0
 #define SUB_BAR_HEIGHT 30.0
 #define TOP_BAR_HEIGHT 70.0
+#define TUTORIAL_HEADER_HEIGHT 50.0
 
 @interface FriendsListViewController () <InviteViewControllerDelegate, UIGestureRecognizerDelegate, UITableViewDataSource, UITableViewDelegate>
 @property (retain, nonatomic) UITableView * friendsTableView;
@@ -38,6 +41,7 @@
 @property (retain, nonatomic) UIView * topBar;
 @property (retain, nonatomic) UIView * subBar;
 @property (nonatomic, strong) UILabel *placeLabel;
+@property (nonatomic, strong) UILabel *addressLabel;
 @property (retain, nonatomic) UIButton * commitButton;
 @property (nonatomic, strong) UIButton *inviteButton;
 @property (retain, nonatomic) UIButton * moreInfoButton;
@@ -45,6 +49,8 @@
 @property (retain, nonatomic) UIButton * backButton;
 @property (retain, nonatomic) UIButton *backButtonLarge;
 @property (retain, nonatomic) UIButton *numberButton;
+@property (retain, nonatomic) UIView *tutorialView;
+@property (retain, nonatomic) UIButton *mapButton;
 @end
 
 @implementation FriendsListViewController
@@ -78,13 +84,23 @@
     self.placeLabel = [[UILabel alloc] init];
     self.placeLabel.text = self.place.name;
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
-    CGSize size = [self.placeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
-    self.placeLabel.frame = CGRectMake(MAX(LEFT_PADDING, (self.view.frame.size.width - size.width) / 2.0), STATUS_BAR_HEIGHT + (self.topBar.frame.size.height - STATUS_BAR_HEIGHT - size.height) / 2.0, MIN(self.view.frame.size.width - LEFT_PADDING, size.width), size.height);
     [self.placeLabel setTextColor:[UIColor whiteColor]];
     self.placeLabel.font = montserrat;
     self.placeLabel.adjustsFontSizeToFitWidth = YES;
     [self.topBar addSubview:self.placeLabel];
     [self.view addSubview:self.topBar];
+    
+    self.addressLabel = [[UILabel alloc] init];
+    UIFont *montserratTiny = [UIFont fontWithName:@"Montserrat" size:10.0f];
+    [self.addressLabel setText:self.place.address];
+    [self.addressLabel setFont:montserratTiny];
+    [self.addressLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
+    [self.topBar addSubview:self.addressLabel];
+    
+    CGSize size = [self.placeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
+    CGSize addressLabelSize = [self.addressLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratTiny}];
+    self.placeLabel.frame = CGRectMake(MAX(LEFT_PADDING, (self.view.frame.size.width - size.width) / 2.0), STATUS_BAR_HEIGHT + (self.topBar.frame.size.height - STATUS_BAR_HEIGHT - size.height - addressLabelSize.height) / 2.0, MIN(self.view.frame.size.width - LEFT_PADDING, size.width), size.height);
+    self.addressLabel.frame = CGRectMake(MAX(LEFT_PADDING, (self.view.frame.size.width - addressLabelSize.width) / 2.0), STATUS_BAR_HEIGHT + (self.topBar.frame.size.height - STATUS_BAR_HEIGHT + size.height - addressLabelSize.height) / 2.0, addressLabelSize.width, addressLabelSize.height);
     
     // left panel view button setup
     UIImage *leftPanelButtonImage = [UIImage imageNamed:@"WhiteTriangle"];
@@ -95,7 +111,7 @@
     
     UIFont *helveticaNeueLarge = [UIFont fontWithName:@"HelveticaNeue-Bold" size:30];
     self.numberButton = [[UIButton alloc] init];
-    [self.numberButton setTitle:[NSString stringWithFormat:@"%d", [self.place.friendsCommitted count]] forState:UIControlStateNormal];
+    [self.numberButton setTitle:[NSString stringWithFormat:@"%lu", (unsigned long)[self.place.friendsCommitted count]] forState:UIControlStateNormal];
     self.numberButton.titleLabel.font = helveticaNeueLarge;
     size = [self.numberButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:helveticaNeueLarge}];
     self.numberButton.frame = CGRectMake(self.backButton.frame.origin.x + self.backButton.frame.size.width + 5.0, (self.topBar.frame.size.height - STATUS_BAR_HEIGHT - size.height) / 2 + STATUS_BAR_HEIGHT, MIN(60.0,size.width), size.height);
@@ -106,7 +122,18 @@
     [self.view addSubview:self.backButtonLarge];
 
     UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:12.0f];
-    self.commitButton = [[UIButton alloc] initWithFrame:CGRectMake(0.0, 0.0, (self.view.frame.size.width - PADDING * 2) / 3.0, SUB_BAR_HEIGHT - PADDING)];
+    
+    self.inviteButton = [[UIButton alloc] initWithFrame:CGRectMake(0.0, 0.0, (self.view.frame.size.width - PADDING * 2) / 3.0, SUB_BAR_HEIGHT - PADDING)];
+    [self.inviteButton setBackgroundColor:[UIColor whiteColor]];
+    [self.inviteButton setImage:[UIImage imageNamed:@"InviteIcon"] forState:UIControlStateNormal];
+    
+    [self.inviteButton setImageEdgeInsets:UIEdgeInsetsMake(0.0, 0.0, 0.0, 0.0)];
+    [self.inviteButton addTarget:self
+                          action:@selector(inviteClicked:)
+                forControlEvents:UIControlEventTouchUpInside];
+    [self.subBar addSubview:self.inviteButton];
+    
+    self.commitButton = [[UIButton alloc] initWithFrame:CGRectMake(self.inviteButton.frame.origin.x + self.inviteButton.frame.size.width + PADDING, 0.0, (self.view.frame.size.width - PADDING * 2) / 3.0, SUB_BAR_HEIGHT - PADDING)];
     [self.commitButton setBackgroundColor:[UIColor whiteColor]];
     self.commitButton.titleLabel.font = montserratSmall;
     [self.commitButton addTarget:self
@@ -128,20 +155,9 @@
         [self.commitButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
         self.commitButton.tag = 1;
     }
-
     [self.subBar addSubview:self.commitButton];
     
-    self.inviteButton = [[UIButton alloc] initWithFrame:CGRectMake(self.commitButton.frame.origin.x + self.commitButton.frame.size.width + PADDING, 0.0, (self.view.frame.size.width - PADDING * 2) / 3.0, SUB_BAR_HEIGHT - PADDING)];
-    [self.inviteButton setBackgroundColor:[UIColor whiteColor]];
-    [self.inviteButton setImage:[UIImage imageNamed:@"InviteIcon"] forState:UIControlStateNormal];
-    
-    [self.inviteButton setImageEdgeInsets:UIEdgeInsetsMake(0.0, 0.0, 0.0, 0.0)];
-    [self.inviteButton addTarget:self
-                          action:@selector(inviteClicked:)
-                forControlEvents:UIControlEventTouchUpInside];
-    [self.subBar addSubview:self.inviteButton];
-    
-    self.moreInfoButton = [[UIButton alloc] initWithFrame:CGRectMake(self.inviteButton.frame.origin.x + self.inviteButton.frame.size.width + PADDING, 0.0, (self.view.frame.size.width  - PADDING * 2) / 3.0, SUB_BAR_HEIGHT - PADDING)];
+    self.moreInfoButton = [[UIButton alloc] initWithFrame:CGRectMake(self.commitButton.frame.origin.x + self.commitButton.frame.size.width + PADDING, 0.0, (self.view.frame.size.width  - PADDING * 2) / 3.0, SUB_BAR_HEIGHT - PADDING)];
     [self.moreInfoButton setBackgroundColor:[UIColor whiteColor]];
     [self.moreInfoButton setTitle:@"more info" forState:UIControlStateNormal];
     [self.moreInfoButton setTitleColor:UIColorFromRGB(0x05528e)  forState:UIControlStateNormal];
@@ -166,9 +182,21 @@
     self.friendsOfFriendsArray = [[NSMutableArray alloc] init];
 }
 
+-(void)addMapViewButton {
+    self.mapButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 40.0, (self.topBar.frame.size.height - 20.0 + STATUS_BAR_HEIGHT) / 2.0, 20.0, 20.0)];
+    [self.mapButton setImage:[UIImage imageNamed:@"LocationSpotter"] forState:UIControlStateNormal];
+    [self.mapButton addTarget:self action:@selector(showMapViewAnnotation:) forControlEvents:UIControlEventTouchUpInside];
+    [self.topBar addSubview:self.mapButton];
+}
+
 -(void)closeFriendsView {
     if ([self.delegate respondsToSelector:@selector(closeFriendsView)]) {
         [self.delegate closeFriendsView];
+        NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+        if (![userDetails boolForKey:kUserDefaultsHasSeenPlaceInviteTutorialKey]) {
+            [userDetails setBool:YES forKey:kUserDefaultsHasSeenPlaceInviteTutorialKey];
+            [userDetails synchronize];
+        }
     }
 }
 
@@ -246,8 +274,12 @@
             }];
         }
     }];
+    
+    if ([self.friendsArray count] > 0) {
+        [self addMapViewButton];
+    }
 }
-     
+
 -(NSDate*)getStartTime{
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
     [formatter setDateFormat:@"HH"];
@@ -258,13 +290,13 @@
     NSDateComponents *components = [calendar components:NSYearCalendarUnit|NSMonthCalendarUnit|NSDayCalendarUnit fromDate:now];
     
     // if after 6am, start from today's date
-    if ([hour intValue] > 6) {
-        [components setHour:6.0];
+    if ([hour intValue] > 5) {
+        [components setHour:5.0];
         return [calendar dateFromComponents:components];
     } else { // if before 6am, start from yesterday's date
         NSDateComponents* deltaComps = [[NSDateComponents alloc] init];
         [deltaComps setDay:-1.0];
-        [components setHour:6.0];
+        [components setHour:5.0];
         return [calendar dateByAddingComponents:deltaComps toDate:[calendar dateFromComponents:components] options:0];
     }
 }
@@ -336,7 +368,11 @@
             NSSortDescriptor *nameDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"name" ascending:YES];
             [self.friendsArray sortUsingDescriptors:[NSArray arrayWithObjects:nameDescriptor, nil]];
             
-            [self.numberButton setTitle:[NSString stringWithFormat:@"%d", [self.friendsArray count]] forState:UIControlStateNormal];
+            [self.numberButton setTitle:[NSString stringWithFormat:@"%lu", (unsigned long)[self.friendsArray count]] forState:UIControlStateNormal];
+            
+            if (!self.mapButton) {
+                [self addMapViewButton];
+            }
         }
     } else {
         if ([self.delegate isKindOfClass:[PlacesViewController class]]) {
@@ -362,13 +398,27 @@
         self.commitButton.tag = 1;
         [self layoutCommitButton];
         
-        [self.numberButton setTitle:[NSString stringWithFormat:@"%d", [self.friendsArray count]] forState:UIControlStateNormal];
+        [self.numberButton setTitle:[NSString stringWithFormat:@"%lu", (unsigned long)[self.friendsArray count]] forState:UIControlStateNormal];
+        
+        if ([self.friendsArray count] == 0) {
+            [self.mapButton removeFromSuperview];
+            self.mapButton = nil;
+        }
+    }
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    if ([userDetails boolForKey:kUserDefaultsHasSeenPlaceInviteTutorialKey] && ![userDetails boolForKey:kUserDefaultsHasSeenPlaceTethrTutorialKey]) {
+        [self closeTutorial];
     }
     [self.friendsTableView reloadData];
 }
 
 -(IBAction)inviteClicked:(id)sender {
     [self inviteToPlace:self.place];
+    
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    if (![userDetails boolForKey:kUserDefaultsHasSeenPlaceInviteTutorialKey]) {
+        [self closeTutorial];
+    }
 }
 
 -(IBAction)moreInfoClicked:(id)sender {
@@ -382,6 +432,13 @@
         urlString = [NSString stringWithFormat:@"http://foursquare.com/v/%@", self.place.placeId];
         url = [NSURL URLWithString:urlString];
         [[UIApplication sharedApplication] openURL:url];
+    }
+}
+
+-(IBAction)showMapViewAnnotation:(id)sender {
+    if ([self.delegate respondsToSelector:@selector(selectAnnotationForPlace:)]) {
+        [self.delegate selectAnnotationForPlace:self.place];
+        [self closeFriendsView];
     }
 }
 
@@ -404,6 +461,65 @@
     }
 }
 
+-(void)setupTutorialView {
+    self.tutorialView = [[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.frame.size.width, 50.0)];
+    [self.tutorialView setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
+    UILabel *headerLabel = [[UILabel alloc] init];
+    UIFont *montserratLabelFont = [UIFont fontWithName:@"Montserrat" size:13];
+    headerLabel.font = montserratLabelFont;
+    [headerLabel setTextColor:UIColorFromRGB(0x8e0528)];
+    
+    UIImage *arrowImage = [UIImage imageNamed:@"RedTriangle"];
+    UIImageView *arrow = [[UIImageView alloc] initWithFrame: CGRectMake((self.view.frame.size.width - 7.0) / 2.0, 2.0, 7.0, 11.0)];
+    [arrow setImage:arrowImage];
+    arrow.transform = CGAffineTransformMakeRotation(degreesToRadian(90));
+    
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    if ([userDetails boolForKey:kUserDefaultsHasSeenPlaceInviteTutorialKey]) {
+        self.tutorialView.tag = 1;
+        Datastore *sharedDataManager = [Datastore sharedDataManager];
+        if ([sharedDataManager.currentCommitmentPlace.placeId  isEqualToString:self.place.placeId]) {
+             headerLabel.text = @"Tap to un-tethr here";
+        } else {
+             headerLabel.text = @"Tap to tethr here";
+        }
+        arrow.frame = CGRectMake((self.view.frame.size.width - 7.0) / 2.0, 2.0, 11.0, 7.0);
+        CGSize size = [headerLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratLabelFont}];
+        headerLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2.0, (50.0 - size.height) / 2.0 + 1.0, size.width, size.height);
+    } else {
+        self.tutorialView.tag = 0;
+        headerLabel.text = @"Tap to invite a friend here";
+        arrow.frame = CGRectMake((self.view.frame.size.width) / 6.0 - 5.0, 2.0, 11.0, 7.0);
+        CGSize size = [headerLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratLabelFont}];
+        headerLabel.frame = CGRectMake(10.0, (50.0 - size.height) / 2.0 + 1.0, size.width, size.height);
+    }
+
+    [self.tutorialView addSubview:headerLabel];
+    
+    self.tutorialView.userInteractionEnabled = YES;
+    UITapGestureRecognizer *tutorialTapGesture =
+    [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tutorialTapped:)];
+    [self.tutorialView addGestureRecognizer:tutorialTapGesture];
+    
+    [self.tutorialView addSubview:arrow];
+}
+
+- (void)tutorialTapped:(UIGestureRecognizer*)recognizer {
+    [self closeTutorial];
+}
+
+-(void)closeTutorial {
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    if (self.tutorialView.tag == 0) {
+        [userDetails setBool:YES forKey:kUserDefaultsHasSeenPlaceInviteTutorialKey];
+        [userDetails synchronize];
+        [self.friendsTableView reloadData];
+    } else {
+        [userDetails setBool:YES forKey:kUserDefaultsHasSeenPlaceTethrTutorialKey];
+        [userDetails synchronize];
+        [self.friendsTableView reloadData];
+    }
+}
 
 #pragma mark UITableViewDataSource Methods
 
@@ -413,6 +529,10 @@
 
 -(CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
     if (section == 0) {
+        NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+        if (![userDetails boolForKey:kUserDefaultsHasSeenPlaceInviteTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenPlaceTethrTutorialKey]) {
+            return TUTORIAL_HEADER_HEIGHT;
+        }
         return 0;
     } else {
         return HEADER_HEIGHT;
@@ -429,8 +549,8 @@
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
     [label setFont:montserrat];
     if(section == 0) {
-        NSString *headerString = [NSString stringWithFormat:@"Friends Going Here (%lu)", (unsigned long)[self.friendsArray count]];
-        [label setText:headerString];
+        [self setupTutorialView];
+        return self.tutorialView;
     } else {
         NSString *headerString = [NSString stringWithFormat:@"Friends of Friends Going Here (%lu)", (unsigned long)[self.friendsOfFriendsArray count]];
         [label setText:headerString];

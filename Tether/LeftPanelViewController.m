@@ -7,10 +7,10 @@
 //
 
 #import "CenterViewController.h"
+#import "Constants.h"
 #import "Datastore.h"
 #import "FriendAtPlaceCell.h"
 #import "FriendCell.h"
-#import "FriendInviteViewController.h"
 #import "LeftPanelViewController.h"
 
 #define CELL_HEIGHT 65
@@ -27,6 +27,7 @@
 #define SECOND_TABLE_OFFSET_Y 350.0
 #define STATUS_BAR_HEIGHT 15.0
 #define TABLE_HEIGHT 400.0
+#define TUTORIAL_HEADER_HEIGHT 50.0
 
 @interface LeftPanelViewController ()<UIAlertViewDelegate ,UITableViewDelegate, UITableViewDataSource, FriendCellDelegate, UIScrollViewDelegate, UISearchBarDelegate>
 
@@ -39,6 +40,7 @@
 @property (nonatomic, strong) UITableViewController *searchResultsTableViewController;
 @property (nonatomic, strong) Friend *friendToBlock;
 @property (nonatomic, strong) UIAlertView *blockAlertView;
+@property (nonatomic, strong) UIView *tutorialView;
 
 @end
 
@@ -93,6 +95,46 @@
     [self hideSearchBar];
 }
 
+-(void)addTutorialView {
+    self.tutorialView = [[UIView alloc] initWithFrame:CGRectMake(0.0, self.view.frame.size.height - TUTORIAL_HEADER_HEIGHT, self.view.frame.size.width, TUTORIAL_HEADER_HEIGHT)];
+    [self.tutorialView setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
+    UILabel *tutorialLabel = [[UILabel alloc] init];
+    tutorialLabel.text = @"Tap         to invite a friend to a location";
+    UIFont *montserratLabelFont = [UIFont fontWithName:@"Montserrat" size:13];
+    tutorialLabel.font = montserratLabelFont;
+    [tutorialLabel setTextColor:UIColorFromRGB(0x8e0528)];
+    CGSize size = [tutorialLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratLabelFont}];
+    tutorialLabel.frame = CGRectMake((self.view.frame.size.width - size.width  - PANEL_WIDTH) / 2.0, (TUTORIAL_HEADER_HEIGHT - size.height) / 2.0, size.width, size.height);
+    [self.tutorialView addSubview:tutorialLabel];
+    
+    UIImageView *inviteImageView = [[UIImageView alloc] initWithFrame:CGRectMake(tutorialLabel.frame.origin.x + 30.0, tutorialLabel.frame.origin.y - 2.0, 20.0, 20.0)];
+    [inviteImageView setImage:[UIImage imageNamed:@"InviteIcon"]];
+    [inviteImageView setBackgroundColor:[UIColor whiteColor]];
+    inviteImageView.layer.cornerRadius = 6.0;
+    [self.tutorialView addSubview:inviteImageView];
+    
+    self.tutorialView.userInteractionEnabled = YES;
+    UITapGestureRecognizer *tutorialTapGesture =
+    [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tutorialTapped:)];
+    [self.tutorialView addGestureRecognizer:tutorialTapGesture];
+    [self.view addSubview:self.tutorialView];
+}
+
+- (void)tutorialTapped:(UIGestureRecognizer*)recognizer {
+        [self closeTutorial];
+}
+
+-(void)closeTutorial {
+    [UIView animateWithDuration:0.2
+                     animations:^{
+                         self.tutorialView.alpha = 0.0;
+                     } completion:^(BOOL finished) {
+                         [self.tutorialView removeFromSuperview];
+                         NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+                         [userDetails setBool:YES forKey:kUserDefaultsHasSeenFriendInviteTutorialKey];
+                     }];
+}
+
 -(void)updateFriendsList {
     NSSortDescriptor *nameDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"name" ascending:YES];
     Datastore *sharedDataManager = [Datastore sharedDataManager];
@@ -143,6 +185,9 @@
 
 -(void)hideSearchBar {
     if ([self.searchBar.text isEqualToString:@""]) {
+        if (!self.searchResultsTableView.isHidden) {
+            [self searchBarCancelButtonClicked:self.searchBar];
+        }
        [self.friendsGoingOutTableView setContentOffset:CGPointMake(0.0, SEARCH_BAR_HEIGHT) animated:YES];
     }
 }
@@ -193,10 +238,11 @@
             [friendsLabel setTextColor:[UIColor whiteColor]];
             UIFont *montserratBold = [UIFont fontWithName:@"Montserrat" size:14.0f];
             friendsLabel.font = montserratBold;
-            friendsLabel.text = @"Friends";
+            NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+            friendsLabel.text = [NSString stringWithFormat:@"Friends in %@", [userDetails objectForKey:@"city"]];
             
             CGSize textLabelSize = [friendsLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];
-            friendsLabel.frame = CGRectMake((self.view.frame.size.width - PANEL_WIDTH - textLabelSize.width) / 2.0, (SEARCH_BAR_HEIGHT - textLabelSize.height) / 2.0 + STATUS_BAR_HEIGHT, textLabelSize.width, textLabelSize.height);
+            friendsLabel.frame = CGRectMake((self.view.frame.size.width - PANEL_WIDTH - textLabelSize.width) / 2.0, (SEARCH_BAR_HEIGHT - textLabelSize.height) / 2.0 + STATUS_BAR_HEIGHT, MIN(textLabelSize.width, self.view.frame.size.width - PANEL_WIDTH), textLabelSize.height);
             
             [friendsViewBackground addSubview:friendsLabel];
             
@@ -376,6 +422,11 @@
 -(void)inviteFriend:(Friend *)friend {
     if ([self.delegate respondsToSelector:@selector(inviteFriend:)]) {
         [self.delegate inviteFriend:friend];
+        
+        NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+        if (![userDefaults boolForKey:kUserDefaultsHasSeenFriendInviteTutorialKey]) {
+            [self closeTutorial];
+        }
     }
 }
 

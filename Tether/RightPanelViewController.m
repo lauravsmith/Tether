@@ -93,6 +93,7 @@
         [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
             if (!error) {
                 sharedDataManager.todaysNotificationsArray = [[NSMutableArray alloc] init];
+                sharedDataManager.bestFriendSet = [[NSMutableSet alloc] init];
                 self.notificationsArray = [[NSMutableArray alloc] init];
                 for (PFObject *invitation in objects) {
                     Notification *notification = [[Notification alloc] init];
@@ -131,9 +132,15 @@
                             place = [sharedDataManager.placesDictionary objectForKey:notification.placeId];
                             notification.place = place;
                             notification.placeName = place.name;
-                        } else if ([invitation objectForKey:@"placeName"]) {
-                            notification.placeName = [invitation objectForKey:@"placeName"];
                         }
+                    }
+                    
+                    if ([invitation objectForKey:@"placeName"]) {
+                        notification.placeName = [invitation objectForKey:@"placeName"];
+                    }
+                    
+                    if ([invitation objectForKey:@"city"]) {
+                        notification.city = [invitation objectForKey:@"city"];
                     }
                     
                     if ([invitation objectForKey:@"allRecipients"]) {
@@ -148,10 +155,15 @@
                             }
                         }
                     }
-                    [self.notificationsArray addObject:notification];
+                    if ([notification.type isEqualToString:@"invitation"] || [notification.type isEqualToString:@"acceptance"] || [notification.type isEqualToString:@"status"] || [notification.type isEqualToString:@"newUser"] || [notification.type isEqualToString:@"receipt"]) {
+                         [self.notificationsArray addObject:notification];
+                    }
 
-                    if ([notification.type isEqualToString:@"invitation"] && [today compare:notification.time] == NSOrderedAscending) {
-                        [sharedDataManager.todaysNotificationsArray addObject:notification];
+                    if ([notification.type isEqualToString:@"invitation"]) {
+                        [sharedDataManager.bestFriendSet addObject:notification.sender.friendID];
+                        if ([today compare:notification.time] == NSOrderedAscending) {
+                            [sharedDataManager.todaysNotificationsArray addObject:notification];
+                        }
                     }
                 }
             }
@@ -172,13 +184,13 @@
     NSDateComponents *components = [calendar components:NSYearCalendarUnit|NSMonthCalendarUnit|NSDayCalendarUnit fromDate:now];
     
     // if after 6am, start from today's date
-    if ([hour intValue] > 6) {
-        [components setHour:6.0];
+    if ([hour intValue] > 5) {
+        [components setHour:5.0];
         return [calendar dateFromComponents:components];
     } else { // if before 6am, start from yesterday's date
         NSDateComponents* deltaComps = [[NSDateComponents alloc] init];
         [deltaComps setDay:-1.0];
-        [components setHour:6.0];
+        [components setHour:5.0];
         return [calendar dateByAddingComponents:deltaComps toDate:[calendar dateFromComponents:components] options:0];
     }
 }
@@ -230,7 +242,8 @@
 #pragma mark NotificationCellDelegate Methods
 
 -(void)goToPlace:(id)placeId {
-    if ([self.delegate respondsToSelector:@selector(goToPlaceInListView:)]) {
+    
+    if ([self.delegate respondsToSelector:@selector(openPageForPlaceWithId:)]) {
         [self.delegate openPageForPlaceWithId:placeId];
     }
 }
@@ -242,6 +255,12 @@
 
     [self confirmDelete];
     [self performSelector:@selector(refresh) withObject:self.refreshControl afterDelay:2.0f];
+}
+
+-(void)userChangedLocationToCityName:(NSString*)city {
+    if([self.delegate respondsToSelector:@selector(userChangedLocationToCityName:)]) {
+        [self.delegate userChangedLocationToCityName:city];
+    }
 }
 
 #pragma mark UITableViewDataSource Methods
@@ -268,18 +287,18 @@
 
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    if ([self.notificationsArray count] > 0) {
-        return [self.notificationsArray count] + 1;
-    } else {
-        return 0;
-    }
+    return [self.notificationsArray count] + 1;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.row == [self.notificationsArray count]) {
         UITableViewCell *cell = [[UITableViewCell alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.frame.size.width - PANEL_WIDTH, CELL_HEIGHT)];
         UILabel *clearNotificationsLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, cell.frame.size.width, cell.frame.size.height)];
-        clearNotificationsLabel.text = @"Clear notifications";
+        clearNotificationsLabel.text = @"Clear activity feed";
+        if ([self.notificationsArray count] == 0) {
+            clearNotificationsLabel.text = @"Activity feed";
+        }
+        
         [clearNotificationsLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
         UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:20.0f];
         [clearNotificationsLabel setFont:montserrat];
@@ -310,7 +329,7 @@
 }
 
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.row == [self.notificationsArray count]) {
+    if (indexPath.row == [self.notificationsArray count] && [self.notificationsArray count] > 0) {
         [self deleteNotifications];
     }
 }

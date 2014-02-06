@@ -123,7 +123,7 @@
     
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     
-    UIFont *helveticaNeue = [UIFont fontWithName:@"HelveticaNeue" size:30.0f];
+    UIFont *helveticaNeue = [UIFont fontWithName:@"HelveticaNeue-Bold" size:30.0f];
     [self.friendsGoingButton addTarget:self
                                 action:@selector(friendsGoingClicked:)
                       forControlEvents:UIControlEventTouchUpInside];
@@ -131,8 +131,8 @@
     self.friendsGoingButton.titleLabel.font = helveticaNeue;
 
     Place *p = [sharedDataManager.placesDictionary objectForKey:self.place.placeId];
-    if ([p.friendsCommitted count] > 0) {
-        [self.friendsGoingButton setTitle:[NSString stringWithFormat:@"%lu", (unsigned long)[p.friendsCommitted count]] forState:UIControlStateNormal];
+    if ([p.friendsCommitted count] > 0 || self.commitButton.tag == 2) {
+        [self.friendsGoingButton setTitle:[NSString stringWithFormat:@"%lu", (unsigned long)MAX(1, [p.friendsCommitted count])] forState:UIControlStateNormal];
         size = [self.friendsGoingButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:helveticaNeue}];
         self.friendsGoingButton.frame = CGRectMake(self.frame.size.width - MIN(60.0,size.width) - 33.0, (self.frame.size.height - size.height) / 2, MIN(60.0,size.width), size.height);
         self.friendsGoingButton.titleLabel.adjustsFontSizeToFitWidth = YES;

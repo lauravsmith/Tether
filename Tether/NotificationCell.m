@@ -18,7 +18,7 @@
 #define PROFILE_PICTURE_CORNER_RADIUS 14.0
 #define PROFILE_PICTURE_SIZE 28.0
 
-@interface NotificationCell () <TTTAttributedLabelDelegate>
+@interface NotificationCell () <TTTAttributedLabelDelegate, UIAlertViewDelegate>
 
 @end
 
@@ -28,7 +28,7 @@
 {
     self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
     if (self) {
-        self.profileView = [[FBProfilePictureView alloc] initWithFrame: CGRectMake(PADDING, (CELL_HEIGHT - PROFILE_PICTURE_SIZE) / 2.0, PROFILE_PICTURE_SIZE, PROFILE_PICTURE_SIZE)];
+        self.profileView = [[FBProfilePictureView alloc] initWithFrame: CGRectMake(PADDING, PADDING - 1.0, PROFILE_PICTURE_SIZE, PROFILE_PICTURE_SIZE)];
         [self addSubview:self.profileView];
         self.messageHeaderLabel = [[TTTAttributedLabel alloc] init];
         [self addSubview:self.messageHeaderLabel];
@@ -49,13 +49,13 @@
     
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:12.0f];
     [self.messageHeaderLabel setFont:montserrat];
-    if ([self.notification.type isEqualToString:@"acceptance"]) {
+    if([self.notification.type isEqualToString:@"newUser"]) {
         self.text = [[NSMutableAttributedString alloc] initWithString:self.notification.messageHeader];
         self.messageHeaderLabel.text = self.notification.messageHeader;
-    } else {
+    } else if([self.notification.type isEqualToString:@"invitation"]) {
         NSString *friendListString = [[NSString alloc] init];
         if ([self.notification.allRecipients count] > 10.0) {
-            friendListString = [NSString stringWithFormat:@" and %d other friends", [self.notification.allRecipients count]];
+            friendListString = [NSString stringWithFormat:@" and %lu other friends", (unsigned long)[self.notification.allRecipients count]];
         } else {
             for (Friend *friend in self.notification.allRecipients) {
                 if ([self.notification.allRecipients indexOfObject:friend] == [self.notification.allRecipients count] - 1) {
@@ -73,6 +73,9 @@
             self.messageHeaderLabel.text = [NSString stringWithFormat:@"%@ : \n%@", messageHeader, self.notification.message];
         }
         self.text = [[NSMutableAttributedString alloc] initWithString:self.messageHeaderLabel.text];
+    } else {
+        self.text = [[NSMutableAttributedString alloc] initWithString:self.notification.messageHeader];
+        self.messageHeaderLabel.text = self.notification.messageHeader;
     }
     
     // add font and color attributes
@@ -153,9 +156,33 @@
 - (void)attributedLabel:(TTTAttributedLabel *)label didSelectLinkWithURL:(NSURL *)url {
     if ([[url scheme] hasPrefix:@"action"]) {
         if ([[url host] hasPrefix:@"show-place"]) {
-            if ([self.delegate respondsToSelector:@selector(goToPlace:)]) {
-                [self.delegate goToPlace:self.notification.placeId];
+            NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+            if ([self.notification.city isEqualToString:[userDetails objectForKey:@"city"]] || !self.notification.city) {
+                    if ([self.delegate respondsToSelector:@selector(goToPlace:)]) {
+                        [self.delegate goToPlace:self.notification.placeId];
+                    }
+                    return;
+            } else {
+                self.cityChange = self.notification.city;
+                UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:[NSString stringWithFormat:@"%@ is located in %@", self.notification.placeName, self.notification.city]
+                                                                    message:[NSString stringWithFormat:@"Would you like to change your city to %@?", self.notification.city]
+                                                                   delegate:self
+                                                          cancelButtonTitle:@"Stay here"
+                                                          otherButtonTitles:@"Change", nil];
+                [alertView show];
             }
+        }
+    }
+}
+
+#pragma mark UIAlertViewDelegate
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if (buttonIndex == 1) {
+        if([self.delegate respondsToSelector:@selector(userChangedLocationToCityName:)]) {
+            [self.delegate userChangedLocationToCityName:self.cityChange];
+            Datastore *sharedDataManager = [Datastore sharedDataManager];
+            sharedDataManager.placeIDForNotification = self.notification.placeId;
         }
     }
 }

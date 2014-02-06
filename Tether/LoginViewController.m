@@ -95,6 +95,8 @@
         } else if (user.isNew) {
             NSLog(@"User with facebook signed up and logged in!");
             [self loginPerformed:YES];
+            NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+            [userDetails setBool:YES forKey:@"isNew"];
         } else {
             NSLog(@"User with facebook logged in!");
             [self loginPerformed:YES];

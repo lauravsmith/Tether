@@ -11,8 +11,8 @@
 #import "Constants.h"
 #import "DecisionViewController.h"
 #import "Friend.h"
-#import "FriendInviteViewController.h"
 #import "FriendsListViewController.h"
+#import "InviteViewController.h"
 #import "LeftPanelViewController.h"
 #import "Datastore.h"
 #import "MainViewController.h"
@@ -46,7 +46,7 @@
 @property (nonatomic, strong) PlacesViewController *placesViewController;
 @property (nonatomic, strong) RightPanelViewController *rightPanelViewController;
 @property (nonatomic, strong) FriendsListViewController *friendsListViewController;
-@property (nonatomic, strong) FriendInviteViewController *inviteViewController;
+@property (nonatomic, strong) InviteViewController *inviteViewController;
 @property (nonatomic, assign) BOOL showingRightPanel;
 @property (nonatomic, assign) BOOL showingLeftPanel;
 @property (nonatomic, assign) BOOL showingDecisionView;
@@ -453,6 +453,11 @@
                 if ([self.rightPanelViewController.notificationsArray count] == 0) {
                     [self loadNotifications];
                 }
+                
+                if ([userDetails boolForKey:@"isNew"]) {
+                    [self notifyFriendsInCity];
+                }
+                
             } else {
                 // The network was inaccessible and we have no cached data for r
                 // this query.
@@ -461,6 +466,48 @@
             }
         }];
     }
+}
+
+-(void)notifyFriendsInCity {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    
+    for (id key in sharedDataManager.tetherFriendsNearbyDictionary) {
+        Friend *friend = [sharedDataManager.tetherFriendsNearbyDictionary objectForKey:key];
+        PFQuery *friendQuery = [PFUser query];
+        [friendQuery whereKey:kUserFacebookIDKey equalTo:friend.friendID];
+        
+        [friendQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+            if (!error) {
+                // Create our Installation query
+                PFUser * user = [objects objectAtIndex:0];
+                PFQuery *pushQuery = [PFInstallation query];
+                [pushQuery whereKey:@"owner" equalTo:user]; //change this to use friends installation
+                NSString *messageHeader = [NSString stringWithFormat:@"Your Facebook friend %@ just joined tethr", sharedDataManager.name];
+                NSDictionary *data = [NSDictionary dictionaryWithObjectsAndKeys:
+                                      messageHeader, @"alert",
+                                      @"Increment", @"badge",
+                                      nil];
+                
+                // Send push notification to query
+                PFPush *push = [[PFPush alloc] init];
+                [push setQuery:pushQuery]; // Set our Installation query
+                [push setData:data];
+                [push sendPushInBackground];
+                
+                PFObject *notification = [PFObject objectWithClassName:kNotificationClassKey];
+                [notification setObject:sharedDataManager.facebookId forKey:kNotificationSenderKey];
+                [notification setObject:messageHeader forKey:kNotificationMessageHeaderKey];
+                [notification setObject:friend.friendID forKey:kNotificationRecipientKey];
+                [notification setObject:[userDetails objectForKey:kUserDefaultsCityKey] forKey:kNotificationCityKey];
+                [notification setObject:@"newUser" forKey:kNotificationTypeKey];
+                [notification setObject:@"" forKey:kNotificationPlaceNameKey];
+                [notification setObject:@"" forKey:kNotificationPlaceIdKey];
+                [notification saveInBackground];
+            }
+        }];
+    }
+    [userDetails setBool:NO forKey:@"isNew"];
 }
 
 -(void)sortTetherFriends {
@@ -542,13 +589,13 @@
     NSDateComponents *components = [calendar components:NSYearCalendarUnit|NSMonthCalendarUnit|NSDayCalendarUnit fromDate:now];
     
     // if after 6am, start from today's date
-    if ([hour intValue] > 6) {
-        [components setHour:6.0];
+    if ([hour intValue] > 5) {
+        [components setHour:5.0];
         return [calendar dateFromComponents:components];
     } else { // if before 6am, start from yesterday's date
         NSDateComponents* deltaComps = [[NSDateComponents alloc] init];
         [deltaComps setDay:-1.0];
-        [components setHour:6.0];
+        [components setHour:5.0];
         return [calendar dateByAddingComponents:deltaComps toDate:[calendar dateFromComponents:components] options:0];
     }
 }
@@ -558,68 +605,69 @@
 
 - (void)setupView
 {
-    if (self.centerViewController) {
-        [self.centerViewController.view removeFromSuperview];
-        [self.centerViewController removeFromParentViewController];
+    if (!self.showingDecisionView) {
+        for (UIView *subview in [self.view subviews]) {
+            [subview removeFromSuperview];
+        }
+        
+        // setup center view
+        self.centerViewController = [[CenterViewController alloc] init];
+        self.centerViewController.view.tag = CENTER_TAG;
+        self.centerViewController.delegate = self;
+        self.centerViewController.placeToAnnotationDictionary = [[NSMutableDictionary alloc] init];
+        self.centerViewController.placeToAnnotationViewDictionary = [[NSMutableDictionary alloc] init];
+        
+        Datastore *sharedDataManager = [Datastore sharedDataManager];
+        
+        [self.view addSubview:self.centerViewController.view];
+        [self addChildViewController:_centerViewController];
+        [_centerViewController didMoveToParentViewController:self];
+        
+        if (!self.centerViewController.userProfilePictureView && sharedDataManager.facebookId) {
+            self.centerViewController.userProfilePictureView = [[FBProfilePictureView alloc] initWithProfileID:(NSString *)sharedDataManager.facebookId pictureCropping:FBProfilePictureCroppingSquare];
+            self.centerViewController.userProfilePictureView.layer.cornerRadius = 14.0;
+            self.centerViewController.userProfilePictureView.clipsToBounds = YES;
+            [self.centerViewController.userProfilePictureView.layer setBorderColor:[[UIColor whiteColor] CGColor]];
+            self.centerViewController.userProfilePictureView.frame = CGRectMake(self.view.frame.size.width - 28.0 - (self.centerViewController.bottomBar.frame.size.height - 28.0) / 2.0, (self.centerViewController.bottomBar.frame.size.height - 28.0) / 2.0, 28.0, 28.0);
+            self.centerViewController.userProfilePictureView.tag = 1;
+            UITapGestureRecognizer *userProfileTapGesture =
+            [[UITapGestureRecognizer alloc] initWithTarget:self.centerViewController action:@selector(movePanelLeft:)];
+            [self.centerViewController.userProfilePictureView addGestureRecognizer:userProfileTapGesture];
+            [self.centerViewController.bottomBar addSubview:self.centerViewController.userProfilePictureView];
+            [self.centerViewController.bottomBar addSubview:self.centerViewController.settingsButtonLarge];
+            [self.centerViewController.bottomBar bringSubviewToFront:self.centerViewController.notificationsLabel];
+        }
+        
+        [self setupGestures];
+        
+        // define the view for the left panel view controller
+        self.leftPanelViewController = [[LeftPanelViewController alloc] init];
+        self.leftPanelViewController.view.tag = LEFT_PANEL_TAG;
+        self.leftPanelViewController.delegate = self;
+        
+        // define the view for the left panel view controller
+        self.rightPanelViewController = [[RightPanelViewController alloc] init];
+        self.rightPanelViewController.delegate = self;
+        self.rightPanelViewController.view.tag = RIGHT_PANEL_TAG;
+        
+        self.placesViewController = [[PlacesViewController alloc] init];
+        self.placesViewController.delegate = self;
+        
+        //reset Datastore values associated with a specific day
+        sharedDataManager.todaysNotificationsArray = [[NSMutableArray alloc] init];
+        sharedDataManager.currentCommitmentPlace = nil;
+        sharedDataManager.currentCommitmentParseObject = nil;
+        sharedDataManager.tetherFriendsGoingOut = [[NSMutableArray alloc] init];
+        sharedDataManager.tetherFriendsNotGoingOut = [[NSMutableArray alloc] init];
+        sharedDataManager.tetherFriendsUndecided = [[NSMutableArray alloc] init];
+        
+        [self.centerViewController layoutCurrentCommitment];
+        [self.centerViewController layoutNumberButton];
+        [self updateNotificationsNumber];
+        
+        // check if user has input status today
+        [self showDecisionView];
     }
-    
-    // setup center view
-    self.centerViewController = [[CenterViewController alloc] init];
-    self.centerViewController.view.tag = CENTER_TAG;
-    self.centerViewController.delegate = self;
-    self.centerViewController.placeToAnnotationDictionary = [[NSMutableDictionary alloc] init];
-    self.centerViewController.placeToAnnotationViewDictionary = [[NSMutableDictionary alloc] init];
-    
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
-    
-    [self.view addSubview:self.centerViewController.view];
-    [self addChildViewController:_centerViewController];
-    [_centerViewController didMoveToParentViewController:self];
-    
-    if (!self.centerViewController.userProfilePictureView && sharedDataManager.facebookId) {
-        self.centerViewController.userProfilePictureView = [[FBProfilePictureView alloc] initWithProfileID:(NSString *)sharedDataManager.facebookId pictureCropping:FBProfilePictureCroppingSquare];
-        self.centerViewController.userProfilePictureView.layer.cornerRadius = 14.0;
-        self.centerViewController.userProfilePictureView.clipsToBounds = YES;
-        [self.centerViewController.userProfilePictureView.layer setBorderColor:[[UIColor whiteColor] CGColor]];
-        self.centerViewController.userProfilePictureView.frame = CGRectMake(self.view.frame.size.width - 28.0 - (self.centerViewController.bottomBar.frame.size.height - 28.0) / 2.0, (self.centerViewController.bottomBar.frame.size.height - 28.0) / 2.0, 28.0, 28.0);
-        self.centerViewController.userProfilePictureView.tag = 1;
-        UITapGestureRecognizer *userProfileTapGesture =
-        [[UITapGestureRecognizer alloc] initWithTarget:self.centerViewController action:@selector(movePanelLeft:)];
-        [self.centerViewController.userProfilePictureView addGestureRecognizer:userProfileTapGesture];
-        [self.centerViewController.bottomBar addSubview:self.centerViewController.userProfilePictureView];
-        [self.centerViewController.bottomBar addSubview:self.centerViewController.settingsButtonLarge];
-        [self.centerViewController.bottomBar bringSubviewToFront:self.centerViewController.notificationsLabel];
-    }
-    
-    [self setupGestures];
-    
-    // define the view for the left panel view controller
-    self.leftPanelViewController = [[LeftPanelViewController alloc] init];
-    self.leftPanelViewController.view.tag = LEFT_PANEL_TAG;
-    self.leftPanelViewController.delegate = self;
-    
-    // define the view for the left panel view controller
-    self.rightPanelViewController = [[RightPanelViewController alloc] init];
-    self.rightPanelViewController.delegate = self;
-    self.rightPanelViewController.view.tag = RIGHT_PANEL_TAG;
-    
-    self.placesViewController = [[PlacesViewController alloc] init];
-    self.placesViewController.delegate = self;
-    
-    //reset Datastore values associated with a specific day
-    sharedDataManager.todaysNotificationsArray = [[NSMutableArray alloc] init];
-    sharedDataManager.currentCommitmentPlace = nil;
-    sharedDataManager.currentCommitmentParseObject = nil;
-    sharedDataManager.tetherFriendsGoingOut = [[NSMutableArray alloc] init];
-    sharedDataManager.tetherFriendsNotGoingOut = [[NSMutableArray alloc] init];
-    sharedDataManager.tetherFriendsUndecided = [[NSMutableArray alloc] init];
-    
-    [self.centerViewController layoutCurrentCommitment];
-    [self.centerViewController layoutNumberButton];
-    [self updateNotificationsNumber];
-    
-    // check if user has input status today
-    [self showDecisionView];
 }
 
 -(BOOL)shouldShowDecisionView {
@@ -639,10 +687,10 @@
         self.decisionViewController = [[DecisionViewController alloc] init];
         self.decisionViewController.delegate = self;
         [self.decisionViewController addProfileImageView];
+        self.showingDecisionView = YES;
         [self.view addSubview:self.decisionViewController.view];
         [self addChildViewController:_decisionViewController];
         [_decisionViewController didMoveToParentViewController:self];
-        self.showingDecisionView = YES;
     } else if ([self shouldShowDecisionView] && self.showingDecisionView) {
         [self.view bringSubviewToFront:self.decisionViewController.view];
     }
@@ -883,6 +931,13 @@
                              [self resetMainView];
                          }];
     }
+    
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    if (![userDetails boolForKey:kUserDefaultsHasSeenPlaceListTutorialKey]) {
+        [userDetails setBool:YES forKey:kUserDefaultsHasSeenPlaceListTutorialKey];
+        [userDetails synchronize];
+        [self.centerViewController closeTutorial];
+    }
 }
 
 -(void)showListViewNoReset {
@@ -911,6 +966,7 @@
 
 - (void)movePanelRight // to show left panel
 {
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     if (!self.centerViewController.listViewOpen) {
         self.centerViewController.dragging = YES;
         UIView *childView = [self getLeftView];
@@ -923,6 +979,10 @@
                             options:UIViewAnimationOptionBeginFromCurrentState
                          animations:^{
                              _centerViewController.view.frame = CGRectMake(self.view.frame.size.width - PANEL_WIDTH, 0, self.view.frame.size.width, self.view.frame.size.height);
+                             Datastore *sharedDataManager = [Datastore sharedDataManager];
+                             if (![userDetails boolForKey:kUserDefaultsHasSeenFriendInviteTutorialKey] && [sharedDataManager.tetherFriendsNearbyDictionary count] > 0) {
+                                 [self.leftPanelViewController addTutorialView];
+                             }
                          }
                          completion:^(BOOL finished) {
                              _centerViewController.numberButton.tag = 0;
@@ -935,6 +995,12 @@
                              [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(closePanel:)];
                              [self.centerViewController.view addGestureRecognizer:mapTapGesture];
                          }];
+    }
+    
+    if (![userDetails boolForKey:kUserDefaultsHasSeenFriendsListTutorialKey]) {
+        [userDetails setBool:YES forKey:kUserDefaultsHasSeenFriendsListTutorialKey];
+        [userDetails synchronize];
+        [self.centerViewController closeTutorial];
     }
 }
 
@@ -1036,34 +1102,35 @@
     if ([sharedDataManager.placesDictionary objectForKey:placeId]) {
         Place *place;
         place = [sharedDataManager.placesDictionary objectForKey:placeId];
-                self.friendsListViewController = [[FriendsListViewController alloc] init];
-                self.friendsListViewController.delegate = self;
-                NSMutableSet *friends = [[NSMutableSet alloc] init];
-                for (id friendId in place.friendsCommitted) {
-                    if ([sharedDataManager.tetherFriendsDictionary objectForKey:friendId]) {
-                        Friend *friend = [sharedDataManager.tetherFriendsDictionary objectForKey:friendId];
-                        [friends addObject:friend];
-                    }
-                }
-                self.friendsListViewController.friendsArray = [[friends allObjects] mutableCopy];
-                self.friendsListViewController.place = place;
-                [self.friendsListViewController loadFriendsOfFriends];
-                [self.friendsListViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
-                [self.view addSubview:self.friendsListViewController.view];
-                [self addChildViewController:self.friendsListViewController];
-                [self.friendsListViewController didMoveToParentViewController:self.centerViewController];
-                
-                [UIView animateWithDuration:SLIDE_TIMING
-                                      delay:0.0
-                     usingSpringWithDamping:1.0
-                      initialSpringVelocity:1.0
-                                    options:UIViewAnimationOptionBeginFromCurrentState
-                                 animations:^{
-                                     [self.friendsListViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
-                                 }
-                                 completion:^(BOOL finished) {
-                                 }];
+        self.friendsListViewController = [[FriendsListViewController alloc] init];
+        self.friendsListViewController.delegate = self;
+        NSMutableSet *friends = [[NSMutableSet alloc] init];
+        for (id friendId in place.friendsCommitted) {
+            if ([sharedDataManager.tetherFriendsDictionary objectForKey:friendId]) {
+                Friend *friend = [sharedDataManager.tetherFriendsDictionary objectForKey:friendId];
+                [friends addObject:friend];
+            }
+        }
+        self.friendsListViewController.friendsArray = [[friends allObjects] mutableCopy];
+        self.friendsListViewController.place = place;
+        [self.friendsListViewController loadFriendsOfFriends];
+        [self.friendsListViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+        [self.view addSubview:self.friendsListViewController.view];
+        [self addChildViewController:self.friendsListViewController];
+        [self.friendsListViewController didMoveToParentViewController:self.centerViewController];
+        
+        [UIView animateWithDuration:SLIDE_TIMING
+                              delay:0.0
+             usingSpringWithDamping:1.0
+              initialSpringVelocity:1.0
+                            options:UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                             [self.friendsListViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                         }
+                         completion:^(BOOL finished) {
+                         }];
     } else {
+        // TODO: fetch place from foursquare
         self.centerViewController.dragging = NO;
         [self showListViewNoReset];
     }
@@ -1098,6 +1165,10 @@
     if (self.settingsViewController) {
         self.settingsViewController.goingOutSwitch.on = choice;
     }
+    
+    if (![userDetails boolForKey:kUserDefaultsHasSeenRefreshTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenFriendsListTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenPlaceListTutorialKey]) {
+        [self.centerViewController addTutorialView];
+    }
 }
 
 #pragma mark SettingsViewControllerDelegate
@@ -1116,6 +1187,22 @@
                          [self.settingsViewController removeFromParentViewController];
                          self.listsHaveChanged = YES;
                      }];
+}
+
+-(void)userChangedLocationToCityName:(NSString*)city{
+    CLGeocoder *geo = [[CLGeocoder alloc] init];
+    [geo geocodeAddressString:city completionHandler:^(NSArray *placemarks, NSError *error) {
+        if (!error) {
+            if ([placemarks count] > 0) {
+                CLPlacemark *placemark = [placemarks objectAtIndex:0];
+                CLLocation *location = placemark.location;
+                NSLog(@"setting user coordinates from city name to %f %f", location.coordinate.latitude, location.coordinate.longitude);
+                [self userChangedLocationInSettings:location];
+            }
+        } else {
+            NSLog(@"Error: %@", error);
+        }
+    }];
 }
 
 -(void)userChangedLocationInSettings:(CLLocation*)newLocation{
@@ -1150,11 +1237,21 @@
 }
 
 -(void)inviteFriend:(Friend *)friend {
-    self.inviteViewController = [[FriendInviteViewController alloc] init];
+    self.inviteViewController = [[InviteViewController alloc] init];
     self.inviteViewController.delegate = self;
-    [self.inviteViewController.view setBackgroundColor:[UIColor blackColor]];
-    [self.inviteViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
-    [self.inviteViewController addFriend:friend];
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    if (sharedDataManager.currentCommitmentPlace) {
+        self.inviteViewController.place = sharedDataManager.currentCommitmentPlace;
+        [self.inviteViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+        [self.inviteViewController addFriend:friend];
+        [self.inviteViewController layoutPlusIcon];
+    } else {
+        [self.inviteViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+        [self.inviteViewController setSearchPlaces];
+        [self.inviteViewController searchBarCancelButtonClicked:self.inviteViewController.placeSearchBar];
+        [self.inviteViewController addFriend:friend];
+    }
+
     [self.view addSubview:self.inviteViewController.view];
     [self addChildViewController:self.inviteViewController];
     [self.inviteViewController didMoveToParentViewController:self];
@@ -1212,7 +1309,6 @@
     }
     [self.centerViewController.placeToAnnotationDictionary  setObject:annotation forKey:place.placeId];
     if ([place.friendsCommitted count] > 0) {
-//        NSLog(@"MAIN VIEW: Adding annotation with %d commitments", [place.friendsCommitted count]);
         [self.centerViewController.mv addAnnotation:annotation];
     }
     self.committingToPlace = NO;
@@ -1231,7 +1327,20 @@
         if ([self.centerViewController.annotationsArray containsObject:annotation]) {
             [self.centerViewController.annotationsArray removeObject:annotation];
         }
-//        NSLog(@"MAIN VIEW: Removed annotation for %@", place.name);
+    }
+}
+
+-(void)selectAnnotationForPlace:(Place*)place {
+    [self movePanelToOriginalPosition];
+    if ([self.centerViewController.placeToAnnotationViewDictionary objectForKey:place.placeId]) {
+        TetherAnnotationView *annotationView = [self.centerViewController.placeToAnnotationViewDictionary objectForKey:place.placeId];
+        if (!annotationView.isSelected) {
+            annotationView.tag = 1;
+            [self.centerViewController.mv selectAnnotation:((MKAnnotationView*)annotationView).annotation animated:YES];
+            annotationView.placeTouchView.userInteractionEnabled = YES;
+            annotationView.tag = 0;
+        }
+
     }
 }
 
@@ -1336,6 +1445,11 @@
                 self.settingsViewController.goingOutSwitch.on = YES;
             }
             
+            if (![userDetails boolForKey:kUserDefaultsHasSeenTethrTutorialKey]) {
+                [userDetails setBool:YES forKey:kUserDefaultsHasSeenTethrTutorialKey];
+                [userDetails synchronize];
+            }
+            
             self.committingToPlace = YES;
             [commitment saveEventually:^(BOOL succeeded, NSError *error) {
                 if (!error) {
@@ -1418,6 +1532,7 @@
                 [invitation setObject:place.placeId forKey:kNotificationPlaceIdKey];
                 [invitation setObject:messageHeader forKey:kNotificationMessageHeaderKey];
                 [invitation setObject:friend.friendID forKey:kNotificationRecipientKey];
+                [invitation setObject:place.city forKey:kNotificationCityKey];
                 [invitation setObject:@"acceptance" forKey:kNotificationTypeKey];
                 [invitation saveInBackground];
            }

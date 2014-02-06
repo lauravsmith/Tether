@@ -13,6 +13,13 @@ NSString *const kUserDefaultsCityKey             = @"city";
 NSString *const kUserDefaultsStateKey            = @"state";
 NSString *const kUserDefaultsStatusKey           = @"status";
 NSString *const kUserDefaultsTimeLastUpdatedKey  = @"timeLastUpdated";
+NSString *const kUserDefaultsHasSeenTethrTutorialKey = @"hasSeenTethrTutorial";
+NSString *const kUserDefaultsHasSeenPlaceInviteTutorialKey = @"hasSeenPlaceInviteTutorial";
+NSString *const kUserDefaultsHasSeenPlaceTethrTutorialKey = @"hasSeenPlaceTethrTutorial";
+NSString *const kUserDefaultsHasSeenFriendInviteTutorialKey= @"hasSeenFriendInviteTutorial";
+NSString *const kUserDefaultsHasSeenRefreshTutorialKey = @"hasSeenRefreshTutorial";
+NSString *const kUserDefaultsHasSeenFriendsListTutorialKey= @"hasSeenFriendsListTutorial";
+NSString *const kUserDefaultsHasSeenPlaceListTutorialKey= @"hasSeenPlaceListTutorial";
 
 #pragma mark - User Class
 NSString *const kUserDisplayNameKey     = @"displayName";
@@ -47,3 +54,4 @@ NSString *const kNotificationMessageContentKey = @"message";
 NSString *const kNotificationRecipientKey = @"recipientID";
 NSString *const kNotificationAllRecipientsKey = @"allRecipients";
 NSString *const kNotificationTypeKey = @"type";
+NSString *const kNotificationCityKey = @"city";

@@ -11,6 +11,13 @@ extern NSString *const kUserDefaultsCityKey;
 extern NSString *const kUserDefaultsStateKey;
 extern NSString *const kUserDefaultsStatusKey;
 extern NSString *const kUserDefaultsTimeLastUpdatedKey;
+extern NSString *const kUserDefaultsHasSeenTethrTutorialKey;
+extern NSString *const kUserDefaultsHasSeenPlaceInviteTutorialKey;
+extern NSString *const kUserDefaultsHasSeenFriendInviteTutorialKey;
+extern NSString *const kUserDefaultsHasSeenPlaceTethrTutorialKey;
+extern NSString *const kUserDefaultsHasSeenRefreshTutorialKey;
+extern NSString *const kUserDefaultsHasSeenFriendsListTutorialKey;
+extern NSString *const kUserDefaultsHasSeenPlaceListTutorialKey;
 
 #pragma mark - PFObject User Class
 extern NSString *const kUserDisplayNameKey;
@@ -45,3 +52,4 @@ extern NSString *const kNotificationMessageContentKey;
 extern NSString *const kNotificationRecipientKey;
 extern NSString *const kNotificationAllRecipientsKey;
 extern NSString *const kNotificationTypeKey;
+extern NSString *const kNotificationCityKey;

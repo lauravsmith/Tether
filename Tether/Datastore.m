@@ -30,6 +30,8 @@
 @synthesize notifications;
 @synthesize todaysNotificationsArray;
 @synthesize blockedList;
+@synthesize bestFriendSet;
+@synthesize placeIDForNotification;
 
 #pragma mark Singleton Methods
 

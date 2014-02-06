@@ -15,6 +15,7 @@
 @property (nonatomic, retain) NSMutableArray *friendsArray;
 @property (nonatomic, retain) Place *place;
 -(void)loadFriendsOfFriends;
+
 @end
 
 @protocol FriendsListViewControllerDelegate <NSObject>
@@ -23,5 +24,6 @@
 -(void)commitToPlace:(Place *)place;
 -(void)removePreviousCommitment;
 -(void)removeCommitmentFromDatabase;
+-(void)selectAnnotationForPlace:(Place*)place;
 
 @end

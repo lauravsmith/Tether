@@ -41,5 +41,7 @@
 -(void)removePlaceMarkFromMapView:(Place*)place;
 -(void)sortFriendsList;
 -(void)pollDatabase;
+-(void)openPageForPlaceWithId:(id)placeId;
+-(void)selectAnnotationForPlace:(Place*)place;
 
 @end
