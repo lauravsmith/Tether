@@ -63,11 +63,11 @@
         self.arrowButton = [[UIButton alloc] init];
         [self addSubview:self.arrowButton];
         self.inviteButton = [[UIButton alloc] init];
-        [self addSubview:self.inviteButton];
+//        [self addSubview:self.inviteButton];
         self.inviteButtonLarge = [[UIButton alloc] init];
         [self addSubview:self.inviteButtonLarge];
         self.moreInfoButton = [[UIButton alloc] init];
-        [self addSubview:self.moreInfoButton];
+//        [self addSubview:self.moreInfoButton];
     }
     return self;
 }
@@ -144,7 +144,7 @@
     }
     
     self.inviteButton.tag = 0;
-    self.inviteButton.frame = CGRectMake(90.0, self.frame.size.height - 24.0, 20.0, 20.0);
+    self.inviteButton.frame = CGRectMake(90.0, self.commitButton.frame.origin.y + self.commitButton.frame.size.height - 20.0, 20.0, 20.0);
     [self.inviteButton setImage:[UIImage imageNamed:@"InviteIcon"] forState:UIControlStateNormal];
     self.inviteButton.imageView.contentMode = UIViewContentModeScaleAspectFit;
     [self.inviteButton addTarget:self
@@ -180,10 +180,7 @@
 -(IBAction)commitClicked:(id)sender {
     if (self.commitButton.tag == 1) {
         if([self.delegate respondsToSelector:@selector(commitToPlace:)]) {
-            NSLog(@"CONTENT VIEW: commiting to %@", self.place.name);
             [self.delegate commitToPlace:self.place];
-            self.commitButton.tag = 2;
-            [self layoutCommitButton];
         }
     } else {
         if([self.delegate respondsToSelector:@selector(removePreviousCommitment)]) {
@@ -192,9 +189,6 @@
         if ([self.delegate respondsToSelector:@selector(removeCommitmentFromDatabase)]) {
             [self.delegate removeCommitmentFromDatabase];
         }
-        
-        self.commitButton.tag = 1;
-        [self layoutCommitButton];
     }
 }
 

@@ -26,6 +26,7 @@
 #define SEARCH_BAR_HEIGHT 50.0
 #define SEARCH_BAR_WIDTH 270.0
 #define SLIDE_TIMING 0.6
+#define SPINNER_SIZE 30.0
 #define STATUS_BAR_HEIGHT 20.0
 
 @interface PlacesViewController () <InviteViewControllerDelegate, FriendsListViewControllerDelegate, PlaceCellDelegate, UIGestureRecognizerDelegate,UISearchBarDelegate, UITableViewDelegate, UITableViewDataSource>
@@ -43,6 +44,9 @@
 @property (nonatomic, strong) UITableViewController *searchResultsTableViewController;
 @property (nonatomic, strong) UIRefreshControl *refreshControl;
 @property (assign, nonatomic) bool openingInviteView;
+@property (retain, nonatomic) UIView *confirmationView;
+@property (retain, nonatomic) UIActivityIndicatorView *activityIndicatorView;
+@property (retain, nonatomic) FriendsListViewController *friendsListViewController;
 
 @end
 
@@ -295,6 +299,10 @@
     NSSortDescriptor *numberCommitmentsDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"numberCommitments" ascending:NO];
     NSSortDescriptor *numberPastCommitmentsDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"numberPastCommitments" ascending:NO];
     [self.placesArray sortUsingDescriptors:[NSArray arrayWithObjects:numberCommitmentsDescriptor, numberPastCommitmentsDescriptor, nil]];
+    if ([self.delegate respondsToSelector:@selector(dismissConfirmation)]) {
+        [self.delegate dismissConfirmation];
+    }
+    
     [self.placesTableView reloadData];
     if (self.disableSort && sharedDataManager.currentCommitmentPlace) {
         [self scrollToPlaceWithId:sharedDataManager.currentCommitmentPlace.placeId];
@@ -396,7 +404,7 @@
     CGPoint velocity = [(UIPanGestureRecognizer*)sender velocityInView:[sender view]];
     
     if([(UIPanGestureRecognizer*)sender state] == UIGestureRecognizerStateEnded) {
-        if(velocity.x > 0) {
+        if(velocity.x > 0 && !self.friendsListViewController) {
             [self closeListView];
         }
     }
@@ -432,10 +440,10 @@
     if ([self.delegate respondsToSelector:@selector(canUpdatePlaces:)]) {
         [self.delegate canUpdatePlaces:NO];
     }
-    Place *place = placeCell.place;
     Datastore *sharedDataManager = [Datastore sharedDataManager];
-    FriendsListViewController *friendsListViewController = [[FriendsListViewController alloc] init];
-    friendsListViewController.delegate = self;
+    Place *place =  [sharedDataManager.placesDictionary objectForKey:placeCell.place.placeId];
+    self.friendsListViewController = [[FriendsListViewController alloc] init];
+    self.friendsListViewController.delegate = self;
     NSMutableSet *friends = [[NSMutableSet alloc] init];
     for (id friendId in place.friendsCommitted) {
         if ([sharedDataManager.tetherFriendsDictionary objectForKey:friendId]) {
@@ -443,13 +451,14 @@
             [friends addObject:friend];
         }
     }
-    friendsListViewController.friendsArray = [[friends allObjects] mutableCopy];
-    friendsListViewController.place = placeCell.place;
-    [friendsListViewController loadFriendsOfFriends];
-    [friendsListViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
-    [self.view addSubview:friendsListViewController.view];
-    [self addChildViewController:friendsListViewController];
-    [friendsListViewController didMoveToParentViewController:self];
+
+    self.friendsListViewController.friendsArray = [[friends allObjects] mutableCopy];
+    self.friendsListViewController.place = placeCell.place;
+    [self.friendsListViewController loadFriendsOfFriends];
+    [self.friendsListViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+    [self.view addSubview:self.friendsListViewController.view];
+    [self addChildViewController:self.friendsListViewController];
+    [self.friendsListViewController didMoveToParentViewController:self];
     
     [UIView animateWithDuration:SLIDE_TIMING
                           delay:0.0
@@ -457,7 +466,7 @@
           initialSpringVelocity:1.0
                         options:UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
-                         [friendsListViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                         [self.friendsListViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
                      }
                      completion:^(BOOL finished) {
                          [self searchBarCancelButtonClicked:self.searchBar];
@@ -470,6 +479,7 @@
         InviteViewController *inviteViewController = [[InviteViewController alloc] init];
         inviteViewController.delegate = self;
         inviteViewController.place = place;
+        [inviteViewController layoutPlusIcon];
         [inviteViewController.view setBackgroundColor:[UIColor blackColor]];
         [inviteViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
         [self.view addSubview:inviteViewController.view];
@@ -492,20 +502,19 @@
 }
 
 -(void)closeFriendsView {
-    for (UIViewController *childViewController in self.childViewControllers) {
         [UIView animateWithDuration:SLIDE_TIMING
                               delay:0.0
              usingSpringWithDamping:1.0
               initialSpringVelocity:1.0
                             options:UIViewAnimationOptionBeginFromCurrentState
                          animations:^{
-                             [childViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                             [self.friendsListViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
                          }
                          completion:^(BOOL finished) {
-                             [childViewController.view removeFromSuperview];
-                             [childViewController removeFromParentViewController];
+                             [self.friendsListViewController.view removeFromSuperview];
+                             [self.friendsListViewController removeFromParentViewController];
+                             self.friendsListViewController = nil;
                          }];
-    }
 }
 
 -(void)setCellForPlace:(Place*)place tethered:(BOOL)tethered {
@@ -589,9 +598,24 @@
 
 // Intial foursquare data call
 - (void)loadPlaces {
+    NSString *city = [self.userDetails objectForKey:@"city"];
+    NSString *state = [self.userDetails objectForKey:@"state"];
+    // check if city name contains illegal characters
+    NSCharacterSet * set = [[NSCharacterSet characterSetWithCharactersInString:@"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLKMNOPQRSTUVWXYZ0123456789"] invertedSet];
+    
+    if ([city rangeOfCharacterFromSet:set].location != NSNotFound) {
+        NSLog(@"This string contains illegal characters");
+        
+        city = [self removeIllegalCharactersFromString:city];
+    }
+    
+    if ([state rangeOfCharacterFromSet:set].location != NSNotFound) {
+        state = [self removeIllegalCharactersFromString:state];
+    }
+    
     NSString *urlString1 = @"https://api.foursquare.com/v2/venues/search?near=";
     NSString *urlString2 = @"&categoryId=4d4b7105d754a06376d81259&limit=100&oauth_token=5IQQDYZZ0KJLYNQROEEFAEWR4V400IADTACODH2SYCVBNQ3P&v=20131113";
-    NSString *joinString=[NSString stringWithFormat:@"%@%@%@%@%@",urlString1,[self.userDetails objectForKey:@"city"] ,@"%20",[self.userDetails objectForKey:@"state"],urlString2];
+    NSString *joinString=[NSString stringWithFormat:@"%@%@%@%@%@",urlString1, city,@"%20",state,urlString2];
     joinString = [joinString stringByReplacingOccurrencesOfString:@" " withString:@"%20"];
     
     NSURL *url = [NSURL URLWithString:joinString];
@@ -604,9 +628,20 @@
         NSDictionary *jsonDict = (NSDictionary *) responseObject;
         [self process:jsonDict];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"Failure");
+        NSLog(@"Error loading places %@ %@", error, [error userInfo]);
     }];
     [operation start];
+}
+
+-(NSString*)removeIllegalCharactersFromString:(NSString*)string {
+    NSData *asciiEncoded = [string dataUsingEncoding:NSASCIIStringEncoding
+                             allowLossyConversion:YES];
+    
+    // take the data object and recreate a string using the lossy conversion
+    NSString *other = [[NSString alloc] initWithData:asciiEncoded
+                                            encoding:NSASCIIStringEncoding];
+
+    return other;
 }
 
 - (void)process:(NSDictionary *)json {

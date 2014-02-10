@@ -43,8 +43,6 @@
 		47064CC1183DA00D00E9228A /* CenterViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 47064CBF183DA00D00E9228A /* CenterViewController.m */; };
 		47064CC4183DA01B00E9228A /* LeftPanelViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 47064CC3183DA01B00E9228A /* LeftPanelViewController.m */; };
 		47064CC5183DA01B00E9228A /* LeftPanelViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 47064CC3183DA01B00E9228A /* LeftPanelViewController.m */; };
-		47064CCE183DB14C00E9228A /* Gear.png in Resources */ = {isa = PBXBuildFile; fileRef = 47064CCB183DB14C00E9228A /* Gear.png */; };
-		47064CCF183DB14C00E9228A /* Gear.png in Resources */ = {isa = PBXBuildFile; fileRef = 47064CCB183DB14C00E9228A /* Gear.png */; };
 		47064CD9183DBAE300E9228A /* Champagne&LimousinesBoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 47064CD4183DBAE300E9228A /* Champagne&LimousinesBoldItalic.ttf */; };
 		47064CDA183DBAE300E9228A /* Champagne&LimousinesBoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 47064CD4183DBAE300E9228A /* Champagne&LimousinesBoldItalic.ttf */; };
 		47064CDB183DBAE300E9228A /* Champagne&LimousinesBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 47064CD5183DBAE300E9228A /* Champagne&LimousinesBold.ttf */; };
@@ -90,6 +88,9 @@
 		47695BEE1898B68E00EFC4E0 /* SearchIcon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 47695BEC1898B68E00EFC4E0 /* SearchIcon@2x.png */; };
 		47695BEF1898B68E00EFC4E0 /* SearchIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 47695BED1898B68E00EFC4E0 /* SearchIcon.png */; };
 		47760C1F18A323E400E644B6 /* LocationSpotter.png in Resources */ = {isa = PBXBuildFile; fileRef = 47760C1E18A323E400E644B6 /* LocationSpotter.png */; };
+		477E0F2A18A96E01000AD69B /* Gear@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 477E0F2818A96E01000AD69B /* Gear@2x.png */; };
+		477E0F2B18A96E01000AD69B /* Gear.png in Resources */ = {isa = PBXBuildFile; fileRef = 477E0F2918A96E01000AD69B /* Gear.png */; };
+		477E0F2F18A997D2000AD69B /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 477E0F2E18A997D2000AD69B /* Icon.png */; };
 		478C4BFF18482B78004C6BD0 /* SettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 478C4BFE18482B78004C6BD0 /* SettingsViewController.m */; };
 		4790C4401889B0F100DB9759 /* HelveticaInseratLTStd-Roman.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3F11889B0F100DB9759 /* HelveticaInseratLTStd-Roman.otf */; };
 		4790C4411889B0F100DB9759 /* HelveticaLTStd-Blk.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3F21889B0F100DB9759 /* HelveticaLTStd-Blk.otf */; };
@@ -242,7 +243,6 @@
 		47064CBF183DA00D00E9228A /* CenterViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CenterViewController.m; sourceTree = "<group>"; };
 		47064CC2183DA01B00E9228A /* LeftPanelViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LeftPanelViewController.h; sourceTree = "<group>"; };
 		47064CC3183DA01B00E9228A /* LeftPanelViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LeftPanelViewController.m; sourceTree = "<group>"; };
-		47064CCB183DB14C00E9228A /* Gear.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Gear.png; sourceTree = "<group>"; };
 		47064CD4183DBAE300E9228A /* Champagne&LimousinesBoldItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Champagne&LimousinesBoldItalic.ttf"; sourceTree = "<group>"; };
 		47064CD5183DBAE300E9228A /* Champagne&LimousinesBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Champagne&LimousinesBold.ttf"; sourceTree = "<group>"; };
 		47064CD6183DBAE300E9228A /* Champagne&LimousinesItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Champagne&LimousinesItalic.ttf"; sourceTree = "<group>"; };
@@ -291,6 +291,9 @@
 		47695BEC1898B68E00EFC4E0 /* SearchIcon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "SearchIcon@2x.png"; sourceTree = "<group>"; };
 		47695BED1898B68E00EFC4E0 /* SearchIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = SearchIcon.png; sourceTree = "<group>"; };
 		47760C1E18A323E400E644B6 /* LocationSpotter.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = LocationSpotter.png; sourceTree = "<group>"; };
+		477E0F2818A96E01000AD69B /* Gear@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Gear@2x.png"; sourceTree = "<group>"; };
+		477E0F2918A96E01000AD69B /* Gear.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Gear.png; sourceTree = "<group>"; };
+		477E0F2E18A997D2000AD69B /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
 		478C4BFD18482B78004C6BD0 /* SettingsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SettingsViewController.h; sourceTree = "<group>"; };
 		478C4BFE18482B78004C6BD0 /* SettingsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SettingsViewController.m; sourceTree = "<group>"; };
 		4790C3F11889B0F100DB9759 /* HelveticaInseratLTStd-Roman.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaInseratLTStd-Roman.otf"; sourceTree = "<group>"; };
@@ -588,6 +591,9 @@
 		47064CC6183DB11D00E9228A /* Images */ = {
 			isa = PBXGroup;
 			children = (
+				477E0F2E18A997D2000AD69B /* Icon.png */,
+				477E0F2818A96E01000AD69B /* Gear@2x.png */,
+				477E0F2918A96E01000AD69B /* Gear.png */,
 				4749ECA818A41BA700700696 /* PlusSign.png */,
 				47760C1E18A323E400E644B6 /* LocationSpotter.png */,
 				470537BE189F084E005C7E41 /* RedTriangle@2x.png */,
@@ -611,7 +617,6 @@
 				47460FFB188216A20067545B /* BlackTexture.png */,
 				47BB2C5E187E27B100BB40F5 /* LocationIcon.png */,
 				47BB2C5C187E208C00BB40F5 /* LineNavigator.png */,
-				47064CCB183DB14C00E9228A /* Gear.png */,
 			);
 			name = Images;
 			sourceTree = "<group>";
@@ -828,6 +833,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				477E0F2B18A96E01000AD69B /* Gear.png in Resources */,
 				4790C4881889B0F100DB9759 /* HelveticaNeueLTStd-XBlkCnO.otf in Resources */,
 				4790C45C1889B0F100DB9759 /* HelveticaNeueLTStd-BdOu.otf in Resources */,
 				4790C4861889B0F100DB9759 /* HelveticaNeueLTStd-UltLtIt.otf in Resources */,
@@ -838,7 +844,6 @@
 				47460FFA188079BE0067545B /* OFL.txt in Resources */,
 				4790C47A1889B0F100DB9759 /* HelveticaNeueLTStd-Roman.otf in Resources */,
 				4790C4491889B0F100DB9759 /* HelveticaLTStd-Comp.otf in Resources */,
-				47064CCE183DB14C00E9228A /* Gear.png in Resources */,
 				4790C44D1889B0F100DB9759 /* HelveticaLTStd-Fractions.otf in Resources */,
 				470537BF189F084E005C7E41 /* RedTriangle@2x.png in Resources */,
 				4790C4551889B0F100DB9759 /* HelveticaLTStd-UltraComp.otf in Resources */,
@@ -887,6 +892,7 @@
 				470537BB189F05FD005C7E41 /* PinIcon.png in Resources */,
 				471594C21899E460007DF8AE /* DividerSettings.png in Resources */,
 				47064CE1183DBAE300E9228A /* readme.txt in Resources */,
+				477E0F2A18A96E01000AD69B /* Gear@2x.png in Resources */,
 				470537BD189F0848005C7E41 /* WhiteTriangle@2x.png in Resources */,
 				4702442318576BFD001C19AC /* README.md in Resources */,
 				4790C4891889B0F100DB9759 /* HelveticaRoundedLTStd-Bd.otf in Resources */,
@@ -895,6 +901,7 @@
 				4790C4681889B0F100DB9759 /* HelveticaNeueLTStd-HvCn.otf in Resources */,
 				470C80D3189751FF003F06C4 /* KaufmannStd.otf in Resources */,
 				4790C4781889B0F100DB9759 /* HelveticaNeueLTStd-MdExO.otf in Resources */,
+				477E0F2F18A997D2000AD69B /* Icon.png in Resources */,
 				4790C46E1889B0F100DB9759 /* HelveticaNeueLTStd-Lt.otf in Resources */,
 				47064CDF183DBAE300E9228A /* Champagne&Limousines.ttf in Resources */,
 				4790C4671889B0F100DB9759 /* HelveticaNeueLTStd-Hv.otf in Resources */,
@@ -957,7 +964,6 @@
 				47064CE0183DBAE300E9228A /* Champagne&Limousines.ttf in Resources */,
 				47064CAF183D9E3800E9228A /* InfoPlist.strings in Resources */,
 				47064CDA183DBAE300E9228A /* Champagne&LimousinesBoldItalic.ttf in Resources */,
-				47064CCF183DB14C00E9228A /* Gear.png in Resources */,
 				47064CDE183DBAE300E9228A /* Champagne&LimousinesItalic.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

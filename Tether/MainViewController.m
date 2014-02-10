@@ -34,6 +34,7 @@
 #define RIGHT_PANEL_TAG 3
 #define CORNER_RADIUS 4.0
 #define SLIDE_TIMING 0.6
+#define SPINNER_SIZE 30.0
 #define PANEL_WIDTH 45.0
 #define POLLING_INTERVAL 20
 
@@ -65,6 +66,8 @@
 @property (nonatomic, strong) PFUser *currentUser;
 @property (nonatomic, strong) NSMutableDictionary *previousTetherFriendsDictionary;
 @property (nonatomic, assign) BOOL listsHaveChanged;
+@property (retain, nonatomic) UIView *confirmationView;
+@property (retain, nonatomic) UIActivityIndicatorView *activityIndicatorView;
 
 @end
 
@@ -215,6 +218,44 @@
 
 -(void)updateNotificationsNumber {
     [self.centerViewController refreshNotificationsNumber];
+}
+
+-(void)confirmTetheringToPlace:(Place*)place {
+    self.confirmationView = [[UIView alloc] init];
+    [self.confirmationView setBackgroundColor:[UIColor whiteColor]];
+    self.confirmationView.alpha = 0.8;
+    self.confirmationView.layer.cornerRadius = 10.0;
+    
+    UILabel *confirmationLabel = [[UILabel alloc] init];
+    confirmationLabel.text = [NSString stringWithFormat:@"Tethring to %@", place.name];
+    confirmationLabel.textColor = UIColorFromRGB(0x8e0528);
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
+    confirmationLabel.font = montserrat;
+    CGSize size = [confirmationLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
+    self.confirmationView.frame = CGRectMake((self.view.frame.size.width - MAX(200.0,size.width)) / 2.0, (self.view.frame.size.height - 100.0) / 2.0, MAX(200.0,size.width), 100.0);
+    confirmationLabel.frame = CGRectMake((self.confirmationView.frame.size.width - size.width) / 2.0, (self.confirmationView.frame.size.height - size.height) / 2.0, size.width, size.height);
+    [self.confirmationView addSubview:confirmationLabel];
+    
+    [self.view addSubview:self.confirmationView];
+    
+    self.activityIndicatorView = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake((self.confirmationView.frame.size.width - SPINNER_SIZE) / 2.0, confirmationLabel.frame.origin.y + confirmationLabel.frame.size.height + 2.0, SPINNER_SIZE, SPINNER_SIZE)];
+    self.activityIndicatorView.color = UIColorFromRGB(0x8e0528);
+    [self.confirmationView addSubview:self.activityIndicatorView];
+    [self.activityIndicatorView startAnimating];
+    
+    self.view.userInteractionEnabled = NO;
+}
+
+-(void)dismissConfirmation {
+    [UIView animateWithDuration:0.2
+                          delay:0.5
+                        options:UIViewAnimationOptionAllowAnimatedContent animations:^{
+                            self.confirmationView.alpha = 0.2;
+                        } completion:^(BOOL finished) {
+                            [self.activityIndicatorView stopAnimating];
+                            [self.confirmationView removeFromSuperview];
+                            self.view.userInteractionEnabled = YES;
+                        }];
 }
 
 #pragma mark load user facebook information
@@ -446,9 +487,7 @@
                 
                 [self sortTetherFriends];
                 
-                if (self.canUpdatePlaces) {
-                    [self.placesViewController getFriendsCommitments];
-                }
+                [self.placesViewController getFriendsCommitments];
                 
                 if ([self.rightPanelViewController.notificationsArray count] == 0) {
                     [self loadNotifications];
@@ -520,11 +559,17 @@
     for (id key in sharedDataManager.tetherFriendsNearbyDictionary) {
         Friend *friend = [sharedDataManager.tetherFriendsNearbyDictionary objectForKey:key];
         if (friend) {
-            if (([startTime compare:friend.timeLastUpdated] == NSOrderedDescending || !friend.status) && ![sharedDataManager.friendsToPlacesMap objectForKey:friend.friendID]) {
+            if ((([startTime compare:friend.timeLastUpdated] == NSOrderedDescending || !friend.status) && ![sharedDataManager.friendsToPlacesMap objectForKey:friend.friendID]) || !friend.timeLastUpdated) {
                 friend.placeId = @"";
                 [tempFriendsUndecidedSet addObject:friend];
             } else {
-                if (friend) {
+                if ([friend.friendID isEqualToString:sharedDataManager.facebookId]) {
+                    if (sharedDataManager.currentCommitmentPlace && ![sharedDataManager.currentCommitmentPlace.placeId isEqualToString:@""]) {
+                        [tempFriendsGoingOutSet addObject:friend];
+                    } else {
+                        [tempFriendsNotGoingOutSet addObject:friend];
+                    }
+                } else {
                     if (friend.placeId && ![friend.placeId isEqualToString:@""]) {
                         [tempFriendsGoingOutSet addObject:friend];
                     } else {
@@ -1166,7 +1211,7 @@
         self.settingsViewController.goingOutSwitch.on = choice;
     }
     
-    if (![userDetails boolForKey:kUserDefaultsHasSeenRefreshTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenFriendsListTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenPlaceListTutorialKey]) {
+    if (![userDetails boolForKey:kUserDefaultsHasSeenRefreshTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenFriendsListTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenPlaceListTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenCityChangeTutorialKey]) {
         [self.centerViewController addTutorialView];
     }
 }
@@ -1250,6 +1295,7 @@
         [self.inviteViewController setSearchPlaces];
         [self.inviteViewController searchBarCancelButtonClicked:self.inviteViewController.placeSearchBar];
         [self.inviteViewController addFriend:friend];
+        [self.inviteViewController layoutPlusIcon];
     }
 
     [self.view addSubview:self.inviteViewController.view];
@@ -1379,7 +1425,9 @@
 
 -(void)commitToPlace:(Place *)place {
     self.committingToPlace = YES;
+    [self confirmTetheringToPlace:place];
     Datastore *sharedDataManager = [Datastore sharedDataManager];
+    [self handleLocalCommitmentToPlace:place];
     
     if (sharedDataManager.currentCommitmentPlace) {
         [self removePreviousCommitment];
@@ -1455,7 +1503,6 @@
                 if (!error) {
                     NSLog(@"PARSE SAVE: saved your new commitment");
                     sharedDataManager.currentCommitmentParseObject = commitment;
-                    [self handleLocalCommitmentToPlace:place];
                     self.committingToPlace = NO;
                     self.listsHaveChanged = YES;
                     [self pollDatabase];
@@ -1488,6 +1535,7 @@
         }
 
         sharedDataManager.currentCommitmentPlace = p;
+        [sharedDataManager.placesDictionary setObject:p forKey:p.placeId];
         
         [self.placesViewController setCellForPlace:p tethered:YES];
         
@@ -1566,6 +1614,7 @@
             if (!error) {
                 NSLog(@"PARSE DELETE: Removed previous commitment from database");
                 sharedDataManager.currentCommitmentParseObject = nil;
+                self.listsHaveChanged = YES;
                 [self pollDatabase];
             } else {
                 NSLog(@"PARSE DELETE Error: %@ %@", error, [error userInfo]);

@@ -20,7 +20,7 @@
 #define CELL_HEIGHT 60.0
 #define LABEL_HEIGHT 40.0
 #define LEFT_PADDING 35.0
-#define MAX_MESSAGE_FIELD_HEIGHT 210.0
+#define MAX_MESSAGE_FIELD_HEIGHT 165.0
 #define SEARCH_BAR_HEIGHT 50.0
 #define SEARCH_BAR_WIDTH 270.0
 #define SEARCH_RESULTS_CELL_HEIGHT 60.0
@@ -97,12 +97,12 @@
     [self.placeLabel addGestureRecognizer:tap];
     self.placeLabel.userInteractionEnabled = YES;
     
-    self.searchBarBackgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, self.topBarView.frame.size.height, self.view.frame.size.width, SEARCH_BAR_HEIGHT)];
+    self.searchBarBackgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0.0, self.view.frame.size.width, SEARCH_BAR_HEIGHT)];
     [self.searchBarBackgroundView setBackgroundColor:UIColorFromRGB(0x8e0528)];
     [self.searchBarBackgroundView setHidden:YES];
     [self.view addSubview:self.searchBarBackgroundView];
     
-    self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake((self.view.frame.size.width - SEARCH_BAR_WIDTH) / 2, self.topBarView.frame.size.height, SEARCH_BAR_WIDTH, SEARCH_BAR_HEIGHT)];
+    self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake((self.topBarView.frame.size.width - SEARCH_BAR_WIDTH) / 2.0, STATUS_BAR_HEIGHT, SEARCH_BAR_WIDTH, SEARCH_BAR_HEIGHT)];
     self.searchBar.delegate = self;
     self.searchBar.placeholder = @"Search for friends...";
     [self.searchBar setBackgroundImage:[UIImage new]];
@@ -120,7 +120,7 @@
     [self.plusButton addTarget:self action:@selector(plusButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
     [self.friendsInvitedScrollView addSubview:self.plusButton];
     
-    self.messageTextView = [[UITextView alloc] initWithFrame:CGRectMake(PADDING, self.friendsInvitedScrollView.frame.origin.y + self.friendsInvitedScrollView.frame.size.height, self.view.frame.size.width - PADDING*2, MAX_MESSAGE_FIELD_HEIGHT)];
+    self.messageTextView = [[UITextView alloc] initWithFrame:CGRectMake(PADDING, self.friendsInvitedScrollView.frame.origin.y + self.friendsInvitedScrollView.frame.size.height, self.view.frame.size.width - PADDING*2, MAX_MESSAGE_FIELD_HEIGHT / 568.0 * self.view.frame.size.height)];
     [self.messageTextView setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
     [self.messageTextView setTextColor:[UIColor whiteColor]];
     UIFont *montserratBold = [UIFont fontWithName:@"Montserrat-Bold" size:20];
@@ -144,7 +144,7 @@
     
     self.friendSearchResultsArray = [[NSMutableArray alloc] init];
     
-    self.friendSearchResultsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, self.searchBarBackgroundView.frame.origin.y + self.searchBarBackgroundView.frame.size.height, self.view.frame.size.width, self.view.frame.size.height - self.searchBarBackgroundView.frame.size.height)];
+    self.friendSearchResultsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, self.topBarView.frame.size.height, self.view.frame.size.width, self.view.frame.size.height - self.searchBar.frame.size.height)];
     [self.friendSearchResultsTableView setDataSource:self];
     [self.friendSearchResultsTableView setDelegate:self];
     [self.friendSearchResultsTableView setHidden:YES];
@@ -189,38 +189,26 @@
 }
 
 -(void)hideSearchFriends {
-    if (self.placeSearchBar.isHidden) {
-        [UIView animateWithDuration:0.1
-                              delay:0.0
-                            options:UIViewAnimationOptionBeginFromCurrentState
-                         animations:^{
-                             [self.searchBarBackgroundView setHidden:YES];
-                             [self.searchBar setHidden:YES];
-                             [self.plusButton setHidden:NO];
-                         } completion:^(BOOL finished) {
-                         }];
-    }
+     [self.searchBarBackgroundView setHidden:YES];
+     [self.searchBar setHidden:YES];
+     [self.plusButton setHidden:NO];
 }
 
 -(void)setSearchFriends {
-    if (self.placeSearchBar.isHidden) {
-        [UIView animateWithDuration:0.1
-                              delay:0.0
-                            options:UIViewAnimationOptionBeginFromCurrentState
-                         animations:^{
-                [self.searchBarBackgroundView setHidden:NO];
-                [self.searchBar setHidden:NO];
-                [self.plusButton setHidden:YES];
-                [self layoutFriendLabels];
-                [self layoutFriendsInvitedView];
-        } completion:^(BOOL finished) {
-            [self searchBarTextDidBeginEditing:self.searchBar];
-        }];
-    }
+     if (!self.place) {
+        [self.placeSearchBar setHidden:YES];
+     }
+    [self.searchBarBackgroundView setHidden:NO];
+    [self.searchBar setHidden:NO];
+    [self.plusButton setHidden:YES];
+    [self layoutFriendLabels];
+    [self layoutFriendsInvitedView];
+    [self searchBarTextDidBeginEditing:self.searchBar];
 }
 
 -(IBAction)plusButtonTapped:(id)sender {
     [self setSearchFriends];
+    NSLog(@"%f", self.view.frame.size.height);
 }
 
 -(void)placeLabelTapped:(UIGestureRecognizer*)recognizer {
@@ -229,6 +217,7 @@
 
 -(void)setSearchPlaces {
     if (self.searchBar.isHidden) {
+         [self.topBarView bringSubviewToFront:self.placeSearchBar];
         [self.placeLabel setHidden:YES];
         [self.placeSearchBar setHidden:NO];
         [self searchBarTextDidBeginEditing:self.placeSearchBar];
@@ -243,10 +232,6 @@
 -(void)setDestination:(Place*)place {
     if ([self.friendsInvitedDictionary count] > 0) {
         [self.sendButton setEnabled:YES];
-    }
-    
-    if (!self.place) {
-        [self layoutPlusIcon];
     }
     
     self.place = place;
@@ -280,23 +265,13 @@
 }
 
 -(void)layoutFriendsInvitedView {
-    CGRect scrollViewFrame;
-    if (self.searchBar.isHidden) {
-        scrollViewFrame = CGRectMake(0, self.topBarView.frame.size.height, self.view.frame.size.width, MIN(MAX(PADDING,self.friendsInvitedViewHeight), 100));
-    } else {
-        scrollViewFrame = CGRectMake(0, self.topBarView.frame.size.height + MIN(MAX(PLUS_ICON_SIZE + PADDING,self.friendsInvitedViewHeight), 60.0), self.view.frame.size.width, MIN(MAX(PADDING,self.friendsInvitedViewHeight), 60.0));
-    }
-    self.friendsInvitedScrollView.frame = scrollViewFrame;
+    self.friendsInvitedScrollView.frame = CGRectMake(0, self.topBarView.frame.size.height, self.view.frame.size.width, MIN(MAX(PADDING*2 + LABEL_HEIGHT,self.friendsInvitedViewHeight), 100));
     self.friendsInvitedScrollView.contentSize = CGSizeMake(self.view.frame.size.width, self.friendsInvitedViewHeight);
     self.friendsInvitedScrollView.contentOffset = CGPointMake(0, self.friendsInvitedViewHeight - self.friendsInvitedScrollView.frame.size.height);
     
     CGRect frame = self.messageTextView.frame;
     frame.origin.y = self.friendsInvitedScrollView.frame.origin.y + self.friendsInvitedScrollView.frame.size.height;
-    if (self.searchBar.isHidden) {
-        frame.size.height = MAX_MESSAGE_FIELD_HEIGHT - self.friendsInvitedScrollView.frame.size.height + self.searchBar.frame.size.height + 10.0;
-    } else {
-        frame.size.height = MAX_MESSAGE_FIELD_HEIGHT - self.friendsInvitedScrollView.frame.size.height + 15.0;
-    }
+    frame.size.height = MAX_MESSAGE_FIELD_HEIGHT / 568.0 * self.view.frame.size.height - self.friendsInvitedScrollView.frame.size.height + self.searchBar.frame.size.height + 10.0;
     self.messageTextView.frame = frame;
     
     self.sendButton.frame = CGRectMake(220.0, self.messageTextView.frame.origin.y + self.messageTextView.frame.size.height - 50.0, 80.0, 40.0);
@@ -579,6 +554,9 @@
         [self.friendSearchResultsTableView reloadData];
         self.friendSearchResultsTableView.hidden = YES;
         [self hideSearchFriends];
+        if (!self.place) {
+            [self.placeSearchBar setHidden:NO];
+        }
         [self layoutPlusIcon];
         [self layoutFriendsInvitedView];
     }

@@ -364,7 +364,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     
     if (![self.statusMessageTextField.text isEqualToString:@""]) {
         for (NSString *friendID in sharedDataManager.bestFriendSet) {
-            NSString *messageHeader = [NSString stringWithFormat:@"%@ changed her status: \"%@\"",sharedDataManager.name, self.statusMessageTextField.text];
+            NSString *messageHeader = [NSString stringWithFormat:@"%@ changed their status: \"%@\"",sharedDataManager.name, self.statusMessageTextField.text];
             if ([sharedDataManager.tetherFriendsNearbyDictionary objectForKey:friendID]) {
                 Friend *friend = [sharedDataManager.tetherFriendsNearbyDictionary objectForKey:friendID];
                 PFObject *statusUpdate = [PFObject objectWithClassName:kNotificationClassKey];

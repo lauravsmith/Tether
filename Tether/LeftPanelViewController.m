@@ -96,28 +96,30 @@
 }
 
 -(void)addTutorialView {
-    self.tutorialView = [[UIView alloc] initWithFrame:CGRectMake(0.0, self.view.frame.size.height - TUTORIAL_HEADER_HEIGHT, self.view.frame.size.width, TUTORIAL_HEADER_HEIGHT)];
-    [self.tutorialView setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
-    UILabel *tutorialLabel = [[UILabel alloc] init];
-    tutorialLabel.text = @"Tap         to invite a friend to a location";
-    UIFont *montserratLabelFont = [UIFont fontWithName:@"Montserrat" size:13];
-    tutorialLabel.font = montserratLabelFont;
-    [tutorialLabel setTextColor:UIColorFromRGB(0x8e0528)];
-    CGSize size = [tutorialLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratLabelFont}];
-    tutorialLabel.frame = CGRectMake((self.view.frame.size.width - size.width  - PANEL_WIDTH) / 2.0, (TUTORIAL_HEADER_HEIGHT - size.height) / 2.0, size.width, size.height);
-    [self.tutorialView addSubview:tutorialLabel];
-    
-    UIImageView *inviteImageView = [[UIImageView alloc] initWithFrame:CGRectMake(tutorialLabel.frame.origin.x + 30.0, tutorialLabel.frame.origin.y - 2.0, 20.0, 20.0)];
-    [inviteImageView setImage:[UIImage imageNamed:@"InviteIcon"]];
-    [inviteImageView setBackgroundColor:[UIColor whiteColor]];
-    inviteImageView.layer.cornerRadius = 6.0;
-    [self.tutorialView addSubview:inviteImageView];
-    
-    self.tutorialView.userInteractionEnabled = YES;
-    UITapGestureRecognizer *tutorialTapGesture =
-    [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tutorialTapped:)];
-    [self.tutorialView addGestureRecognizer:tutorialTapGesture];
-    [self.view addSubview:self.tutorialView];
+    if  (![[self.view subviews] containsObject:self.tutorialView]) {
+        self.tutorialView = [[UIView alloc] initWithFrame:CGRectMake(0.0, self.view.frame.size.height - TUTORIAL_HEADER_HEIGHT, self.view.frame.size.width, TUTORIAL_HEADER_HEIGHT)];
+        [self.tutorialView setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
+        UILabel *tutorialLabel = [[UILabel alloc] init];
+        tutorialLabel.text = @"Tap         to invite a friend to a location";
+        UIFont *montserratLabelFont = [UIFont fontWithName:@"Montserrat" size:13];
+        tutorialLabel.font = montserratLabelFont;
+        [tutorialLabel setTextColor:UIColorFromRGB(0x8e0528)];
+        CGSize size = [tutorialLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratLabelFont}];
+        tutorialLabel.frame = CGRectMake((self.view.frame.size.width - size.width  - PANEL_WIDTH) / 2.0, (TUTORIAL_HEADER_HEIGHT - size.height) / 2.0, size.width, size.height);
+        [self.tutorialView addSubview:tutorialLabel];
+        
+        UIImageView *inviteImageView = [[UIImageView alloc] initWithFrame:CGRectMake(tutorialLabel.frame.origin.x + 30.0, tutorialLabel.frame.origin.y - 2.0, 20.0, 20.0)];
+        [inviteImageView setImage:[UIImage imageNamed:@"InviteIcon"]];
+        [inviteImageView setBackgroundColor:[UIColor whiteColor]];
+        inviteImageView.layer.cornerRadius = 6.0;
+        [self.tutorialView addSubview:inviteImageView];
+        
+        self.tutorialView.userInteractionEnabled = YES;
+        UITapGestureRecognizer *tutorialTapGesture =
+        [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tutorialTapped:)];
+        [self.tutorialView addGestureRecognizer:tutorialTapGesture];
+        [self.view addSubview:self.tutorialView];
+    }
 }
 
 - (void)tutorialTapped:(UIGestureRecognizer*)recognizer {

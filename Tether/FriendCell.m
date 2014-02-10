@@ -76,6 +76,7 @@
 
     UIFont *montserratBold = [UIFont fontWithName:@"Montserrat" size:14.0f];
     CGSize size = [self.friendNameLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];
+
     self.friendNameLabel.frame = CGRectMake(NAME_LABEL_OFFSET_X, self.friendProfilePictureView.frame.origin.y, MIN(size.width, MAX_LABEL_WIDTH), size.height);
     self.friendNameLabel.adjustsFontSizeToFitWidth = YES;
     [self.friendNameLabel setTextColor:UIColorFromRGB(0x8e0528)];
@@ -84,9 +85,11 @@
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     if (self.friend) {
         if (self.friend.placeId != NULL) {
-            if ([sharedDataManager.placesDictionary objectForKey:self.friend.placeId]) {
-                Place *place = [sharedDataManager.placesDictionary objectForKey:self.friend.placeId];
-                [self.placeButton setTitle:place.name forState:UIControlStateNormal];
+            if ([sharedDataManager.friendsToPlacesMap objectForKey:self.friend.friendID]) {
+                if ([sharedDataManager.placesDictionary objectForKey:self.friend.placeId]) {
+                    Place *place = [sharedDataManager.placesDictionary objectForKey:self.friend.placeId];
+                    [self.placeButton setTitle:place.name forState:UIControlStateNormal];
+                }
             }
         } else {
             [self.placeButton setTitle:@"" forState:UIControlStateNormal];
@@ -120,7 +123,7 @@
     
     self.inviteButton.tag = 0;
     if (self.friend && ![self.friend.friendID isEqualToString:sharedDataManager.facebookId]) {
-        self.inviteButton.frame = CGRectMake(self.frame.size.width - PANEL_WIDTH - 35.0, self.friendNameLabel.frame.origin.y, 20, 20);
+        self.inviteButton.frame = CGRectMake(self.frame.size.width - PANEL_WIDTH - 35.0, self.friendNameLabel.frame.origin.y + 2.0, 20, 20);
     } else {
         self.inviteButton.frame = CGRectMake(0, 0, 0, 0);
     }
@@ -149,6 +152,7 @@
 - (void)setFriend:(Friend *)friend {
     _friend = friend;
     self.friendNameLabel.text = friend.name;
+    
     self.friendID = friend.friendID;
     self.friendProfilePictureView = [[FBProfilePictureView alloc] initWithProfileID:(NSString *)self.friendID pictureCropping:FBProfilePictureCroppingSquare];
     

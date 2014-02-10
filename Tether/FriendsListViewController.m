@@ -51,6 +51,8 @@
 @property (retain, nonatomic) UIButton *numberButton;
 @property (retain, nonatomic) UIView *tutorialView;
 @property (retain, nonatomic) UIButton *mapButton;
+@property (retain, nonatomic) UIButton *mapButtonLarge;
+@property (retain, nonatomic) InviteViewController *inviteViewController;
 @end
 
 @implementation FriendsListViewController
@@ -187,6 +189,10 @@
     [self.mapButton setImage:[UIImage imageNamed:@"LocationSpotter"] forState:UIControlStateNormal];
     [self.mapButton addTarget:self action:@selector(showMapViewAnnotation:) forControlEvents:UIControlEventTouchUpInside];
     [self.topBar addSubview:self.mapButton];
+    
+    self.mapButtonLarge = [[UIButton alloc] initWithFrame:CGRectMake(self.mapButton.frame.origin.x - 20.0, 0.0, 60.0, TOP_BAR_HEIGHT)];
+   [self.mapButtonLarge addTarget:self action:@selector(showMapViewAnnotation:) forControlEvents:UIControlEventTouchUpInside];
+    [self.topBar addSubview:self.mapButtonLarge];
 }
 
 -(void)closeFriendsView {
@@ -312,14 +318,14 @@
 }
 
 -(void)inviteToPlace:(Place *)place {
-    InviteViewController *inviteViewController = [[InviteViewController alloc] init];
-    inviteViewController.delegate = self;
-    inviteViewController.place = place;
-    [inviteViewController.view setBackgroundColor:[UIColor blackColor]];
-    [inviteViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
-    [self.view addSubview:inviteViewController.view];
-    [self addChildViewController:inviteViewController];
-    [inviteViewController didMoveToParentViewController:self];
+    self.inviteViewController = [[InviteViewController alloc] init];
+    self.inviteViewController.delegate = self;
+    self.inviteViewController.place = place;
+    [self.inviteViewController.view setBackgroundColor:[UIColor blackColor]];
+    [self.inviteViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+    [self.view addSubview:self.inviteViewController.view];
+    [self addChildViewController:self.inviteViewController];
+    [self.inviteViewController didMoveToParentViewController:self];
     
     [UIView animateWithDuration:SLIDE_TIMING
                           delay:0.0
@@ -327,7 +333,7 @@
           initialSpringVelocity:SLIDE_TIMING
                         options:UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
-                         [inviteViewController.view setFrame:CGRectMake( 0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                         [self.inviteViewController.view setFrame:CGRectMake( 0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
                      }
                      completion:^(BOOL finished) {
                      }];
@@ -341,7 +347,7 @@
     CGPoint velocity = [(UIPanGestureRecognizer*)sender velocityInView:[sender view]];
     
     if([(UIPanGestureRecognizer*)sender state] == UIGestureRecognizerStateEnded) {
-        if(velocity.x > 0) {
+        if(velocity.x > 0 && !self.inviteViewController) {
             [self closeFriendsView];
         }
     }
@@ -355,24 +361,8 @@
         if([self.delegate respondsToSelector:@selector(commitToPlace:)]) {
             NSLog(@"CONTENT VIEW: commiting to %@", self.place.name);
             [self.delegate commitToPlace:self.place];
-            self.commitButton.tag = 2;
-            [self layoutCommitButton];
             
-            Friend *friend = [[Friend alloc] init];
-            friend = [[Friend alloc] init];
-            friend.friendID = sharedDataManager.facebookId;
-            friend.name = sharedDataManager.name;
-            friend.statusMessage = sharedDataManager.statusMessage;
-            [self.friendsArray addObject:friend];
-            
-            NSSortDescriptor *nameDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"name" ascending:YES];
-            [self.friendsArray sortUsingDescriptors:[NSArray arrayWithObjects:nameDescriptor, nil]];
-            
-            [self.numberButton setTitle:[NSString stringWithFormat:@"%lu", (unsigned long)[self.friendsArray count]] forState:UIControlStateNormal];
-            
-            if (!self.mapButton) {
-                [self addMapViewButton];
-            }
+            [self performSelector:@selector(showCommitment) withObject:self afterDelay:1.0];
         }
     } else {
         if ([self.delegate isKindOfClass:[PlacesViewController class]]) {
@@ -412,6 +402,29 @@
     [self.friendsTableView reloadData];
 }
 
+-(void)showCommitment {
+    self.commitButton.tag = 2;
+    [self layoutCommitButton];
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    
+    Friend *friend = [[Friend alloc] init];
+    friend = [[Friend alloc] init];
+    friend.friendID = sharedDataManager.facebookId;
+    friend.name = sharedDataManager.name;
+    friend.statusMessage = sharedDataManager.statusMessage;
+    [self.friendsArray addObject:friend];
+    
+    NSSortDescriptor *nameDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"name" ascending:YES];
+    [self.friendsArray sortUsingDescriptors:[NSArray arrayWithObjects:nameDescriptor, nil]];
+    
+    [self.numberButton setTitle:[NSString stringWithFormat:@"%lu", (unsigned long)[self.friendsArray count]] forState:UIControlStateNormal];
+    
+    if (!self.mapButton) {
+        [self addMapViewButton];
+    }
+    [self.friendsTableView reloadData];
+}
+
 -(IBAction)inviteClicked:(id)sender {
     [self inviteToPlace:self.place];
     
@@ -445,20 +458,19 @@
 #pragma mark InviteViewControllerDelegate
 
 -(void)closeInviteView {
-    for (UIViewController *childViewController in self.childViewControllers) {
         [UIView animateWithDuration:SLIDE_TIMING
                               delay:0.0
              usingSpringWithDamping:1.0
               initialSpringVelocity:1.0
                             options:UIViewAnimationOptionBeginFromCurrentState
                          animations:^{
-                             [childViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                             [self.inviteViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
                          }
                          completion:^(BOOL finished) {
-                             [childViewController.view removeFromSuperview];
-                             [childViewController removeFromParentViewController];
+                             [self.inviteViewController.view removeFromSuperview];
+                             [self.inviteViewController removeFromParentViewController];
+                             self.inviteViewController = nil;
                          }];
-    }
 }
 
 -(void)setupTutorialView {

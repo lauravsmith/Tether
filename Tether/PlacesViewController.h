@@ -22,7 +22,6 @@
 -(void)sortPlacesByPopularity;
 -(void)openPageForPlaceWithId:(id)placeId;
 -(void)setCellForPlace:(Place*)place tethered:(BOOL)tethered;
-
 @end
 
 @protocol PlacesViewControllerDelegate <NSObject>
@@ -43,5 +42,6 @@
 -(void)pollDatabase;
 -(void)openPageForPlaceWithId:(id)placeId;
 -(void)selectAnnotationForPlace:(Place*)place;
+-(void)dismissConfirmation;
 
 @end

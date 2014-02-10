@@ -18,6 +18,7 @@ extern NSString *const kUserDefaultsHasSeenPlaceTethrTutorialKey;
 extern NSString *const kUserDefaultsHasSeenRefreshTutorialKey;
 extern NSString *const kUserDefaultsHasSeenFriendsListTutorialKey;
 extern NSString *const kUserDefaultsHasSeenPlaceListTutorialKey;
+extern NSString *const kUserDefaultsHasSeenCityChangeTutorialKey;
 
 #pragma mark - PFObject User Class
 extern NSString *const kUserDisplayNameKey;

@@ -226,7 +226,6 @@
 }
 
 -(void)layoutCurrentCommitment {
-    UIFont *helvetica = [UIFont fontWithName:@"HelveticaNeueLTStd-UltLt" size:25];
     UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:14];
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
@@ -242,7 +241,6 @@
         UIFont *montserratExtraSmall = [UIFont fontWithName:@"Montserrat" size:10];
         [self.placeButton setTitle:sharedDataManager.currentCommitmentPlace.name forState:UIControlStateNormal];
         [self.placeNumberButton setTitle:[NSString stringWithFormat:@"%lu", (unsigned long)[sharedDataManager.currentCommitmentPlace.friendsCommitted count]] forState:UIControlStateNormal];
-        self.tethrLabel.text = @"tethrd";
         
         CGSize size1 = [self.placeButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratExtraSmall}];
         CGSize size2 = [self.placeNumberButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratSmall}];
@@ -263,14 +261,9 @@
             self.cityButton.titleLabel.font = montserratExtraSmall;
         }
         
-        self.tethrLabel.text = @"tethr";
-        
         CGSize size = [self.cityButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratExtraSmall}];
         self.cityButton.frame = CGRectMake((self.view.frame.size.width - size.width) / 2, (self.bottomBar.frame.size.height - size.height) / 2.0, MIN(300.0, size.width), size.height);
     }
-    
-    CGSize size = [self.tethrLabel.text sizeWithAttributes:@{NSFontAttributeName:helvetica}];
-    self.tethrLabel.frame = CGRectMake((self.topBar.frame.size.width - size.width) / 2, (self.topBar.frame.size.height - size.height  + STATUS_BAR_HEIGHT) / 2+ 5.0, size.width, size.height);
 }
 
 -(NSDate*)getStartTime{
@@ -308,30 +301,43 @@
     tutorialLabel.font = montserratLabelFont;
     [tutorialLabel setTextColor:UIColorFromRGB(0x8e0528)];
     
-    if (![userDetails boolForKey:kUserDefaultsHasSeenRefreshTutorialKey]) {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    if (![userDetails boolForKey:kUserDefaultsHasSeenCityChangeTutorialKey] && [sharedDataManager.tetherFriendsNearbyDictionary count] <= 1) {
+        self.tutorialView.frame = CGRectMake(0.0, self.view.frame.size.height - self.bottomBar.frame.size.height - TUTORIAL_HEADER_HEIGHT, self.view.frame.size.width, TUTORIAL_HEADER_HEIGHT);
+        tutorialLabel.text = @"Change cities to see friends in different areas";
+        CGSize size = [tutorialLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratLabelFont}];
+        tutorialLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2.0, (TUTORIAL_HEADER_HEIGHT - size.height) / 2.0, size.width, size.height);
+        self.tutorialView.tag = 0;
+        arrow = [[UIImageView alloc] initWithFrame: CGRectMake(self.settingsButton.frame.size.width / 2.0 + 3.0, self.bottomBar.frame.size.height - 10.0, 7.0, 11.0)];
+        [arrow setImage:arrowImage];
+        arrow.transform = CGAffineTransformMakeRotation(degreesToRadian(270));
+    } else if (![userDetails boolForKey:kUserDefaultsHasSeenRefreshTutorialKey]) {
         tutorialLabel.text = @"Tap to refresh";
         arrow = [[UIImageView alloc] initWithFrame: CGRectMake((self.view.frame.size.width - 7.0) / 2.0, 2.0, 7.0, 11.0)];
         CGSize size = [tutorialLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratLabelFont}];
         tutorialLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2.0, (TUTORIAL_HEADER_HEIGHT - size.height) / 2.0, size.width, size.height);
-        self.tutorialView.tag = 0;
+        self.tutorialView.tag = 1;
+        [arrow setImage:arrowImage];
+        arrow.transform = CGAffineTransformMakeRotation(degreesToRadian(90));
     } else if (![userDetails boolForKey:kUserDefaultsHasSeenFriendsListTutorialKey]) {
-        tutorialLabel.text = @"See friends in your city";
+        tutorialLabel.text = @"See what friends in your city are doing";
         arrow = [[UIImageView alloc] initWithFrame: CGRectMake(self.numberButton.frame.origin.x + 5.0, 2.0, 7.0, 11.0)];
         CGSize size = [tutorialLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratLabelFont}];
         tutorialLabel.frame = CGRectMake(10.0, (TUTORIAL_HEADER_HEIGHT - size.height) / 2.0, size.width, size.height);
-        self.tutorialView.tag = 1;
+        self.tutorialView.tag = 2;
+        [arrow setImage:arrowImage];
+        arrow.transform = CGAffineTransformMakeRotation(degreesToRadian(90));
     } else {
-        tutorialLabel.text = @"Tethr to a location to share your plans";
+        tutorialLabel.text = @"tethr to a location to share your plans";
         arrow = [[UIImageView alloc] initWithFrame: CGRectMake((self.view.frame.size.width - 7.0) - 18.0, 2.0, 7.0, 11.0)];
         CGSize size = [tutorialLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratLabelFont}];
         tutorialLabel.frame = CGRectMake((self.view.frame.size.width - size.width) - 10.0, (TUTORIAL_HEADER_HEIGHT - size.height) / 2.0, size.width, size.height);
-        self.tutorialView.tag = 2;
+        self.tutorialView.tag = 3;
+        [arrow setImage:arrowImage];
+        arrow.transform = CGAffineTransformMakeRotation(degreesToRadian(90));
     }
 
     [self.tutorialView addSubview:tutorialLabel];
-    
-    [arrow setImage:arrowImage];
-    arrow.transform = CGAffineTransformMakeRotation(degreesToRadian(90));
     [self.tutorialView addSubview:arrow];
     
     self.tutorialView.userInteractionEnabled = YES;
@@ -348,7 +354,7 @@
                      } completion:^(BOOL finished) {
                          [self.tutorialView removeFromSuperview];
                          NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-                         if (![userDetails boolForKey:kUserDefaultsHasSeenRefreshTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenFriendsListTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenPlaceListTutorialKey]) {
+                         if (![userDetails boolForKey:kUserDefaultsHasSeenRefreshTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenFriendsListTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenPlaceListTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenCityChangeTutorialKey]) {
                              [self addTutorialView];
                          }
                      }];
@@ -359,8 +365,10 @@
 - (void)tutorialTapped:(UIGestureRecognizer*)recognizer {
      NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     if (self.tutorialView.tag == 0) {
-        [userDetails setBool:YES forKey:kUserDefaultsHasSeenRefreshTutorialKey];
+        [userDetails setBool:YES forKey:kUserDefaultsHasSeenCityChangeTutorialKey];
     } else if (self.tutorialView.tag == 1) {
+        [userDetails setBool:YES forKey:kUserDefaultsHasSeenRefreshTutorialKey];
+    } else if (self.tutorialView.tag == 2) {
         [userDetails setBool:YES forKey:kUserDefaultsHasSeenFriendsListTutorialKey];
     } else {
         [userDetails setBool:YES forKey:kUserDefaultsHasSeenPlaceListTutorialKey];
@@ -557,6 +565,13 @@
 {
     if ([self.delegate respondsToSelector:@selector(showSettingsView)]) {
         [self.delegate showSettingsView];
+    }
+    
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    if (![userDetails boolForKey:kUserDefaultsHasSeenCityChangeTutorialKey]) {
+        [userDetails setBool:YES forKey:kUserDefaultsHasSeenCityChangeTutorialKey];
+        [userDetails synchronize];
+        [self closeTutorial];
     }
 }
 

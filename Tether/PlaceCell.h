@@ -23,6 +23,7 @@
 @protocol PlaceCellDelegate <NSObject>
 
 -(void)commitToPlace:(Place *)place fromCell:(PlaceCell*)cell;
+//-(void)confirmTethering;
 -(void)removePreviousCommitment;
 -(void)removeCommitmentFromDatabase;
 -(void)showFriendsViewFromCell:(PlaceCell*)placeCell;
