@@ -321,7 +321,6 @@
     self.inviteViewController = [[InviteViewController alloc] init];
     self.inviteViewController.delegate = self;
     self.inviteViewController.place = place;
-    [self.inviteViewController.view setBackgroundColor:[UIColor blackColor]];
     [self.inviteViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
     [self.view addSubview:self.inviteViewController.view];
     [self addChildViewController:self.inviteViewController];
@@ -426,7 +425,9 @@
 }
 
 -(IBAction)inviteClicked:(id)sender {
-    [self inviteToPlace:self.place];
+    if (!self.inviteViewController) {
+        [self inviteToPlace:self.place];   
+    }
     
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     if (![userDetails boolForKey:kUserDefaultsHasSeenPlaceInviteTutorialKey]) {

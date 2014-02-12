@@ -24,9 +24,6 @@
 @property (nonatomic, strong) UIButton *friendsGoingButtonLarge;
 @property (nonatomic, strong) UIButton *arrowButton;
 @property (nonatomic, strong) UILabel *addressLabel;
-@property (nonatomic, strong) UIButton *inviteButton;
-@property (nonatomic, strong) UIButton *inviteButtonLarge;
-@property (nonatomic, strong) UIButton *moreInfoButton;
 
 - (void)prepareForReuse;
 -(void)layoutCommitButton;
@@ -62,12 +59,6 @@
         [self addSubview:self.friendsGoingButtonLarge];
         self.arrowButton = [[UIButton alloc] init];
         [self addSubview:self.arrowButton];
-        self.inviteButton = [[UIButton alloc] init];
-//        [self addSubview:self.inviteButton];
-        self.inviteButtonLarge = [[UIButton alloc] init];
-        [self addSubview:self.inviteButtonLarge];
-        self.moreInfoButton = [[UIButton alloc] init];
-//        [self addSubview:self.moreInfoButton];
     }
     return self;
 }
@@ -92,16 +83,6 @@
     self.addressLabel.frame = CGRectMake(self.placeNameLabel.frame.origin.x, self.placeNameLabel.frame.origin.y + self.placeNameLabel.frame.size.height + 2.0, size.width, size.height);
     [self.addressLabel setFont:montserratSmall];
     [self.addressLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
-    
-    UIFont *montserratExtraSmall = [UIFont fontWithName:@"Montserrat" size:8.0f];
-    [self.moreInfoButton setTitle:@"more info" forState:UIControlStateNormal];
-    [self.moreInfoButton setTitleColor:UIColorFromRGB(0x05528e)  forState:UIControlStateNormal];
-    self.moreInfoButton.titleLabel.font = montserratExtraSmall;
-    size = [self.moreInfoButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratExtraSmall}];
-    self.moreInfoButton.frame = CGRectMake(self.placeNameLabel.frame.origin.x + self.placeNameLabel.frame.size.width + 5.0, self.placeNameLabel.frame.origin.y + self.placeNameLabel.frame.size.height - size.height, size.width, size.height);
-    [self.moreInfoButton addTarget:self
-                          action:@selector(moreInfoClicked:)
-                forControlEvents:UIControlEventTouchUpInside];
     
     [self.commitButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
     self.commitButton.titleLabel.font = montserrat;
@@ -142,19 +123,6 @@
         [self.friendsGoingButton setTitle:@"" forState:UIControlStateNormal];
         [self.arrowButton setImage:[UIImage imageNamed:@"GreyTriangle"] forState:UIControlStateNormal];
     }
-    
-    self.inviteButton.tag = 0;
-    self.inviteButton.frame = CGRectMake(90.0, self.commitButton.frame.origin.y + self.commitButton.frame.size.height - 20.0, 20.0, 20.0);
-    [self.inviteButton setImage:[UIImage imageNamed:@"InviteIcon"] forState:UIControlStateNormal];
-    self.inviteButton.imageView.contentMode = UIViewContentModeScaleAspectFit;
-    [self.inviteButton addTarget:self
-                          action:@selector(inviteClicked:)
-                forControlEvents:UIControlEventTouchUpInside];
-    
-    self.inviteButtonLarge.frame = CGRectMake(self.inviteButton.frame.origin.x, self.inviteButton.frame.origin.y, 60.0, 60.0);
-    [self.inviteButtonLarge addTarget:self
-                          action:@selector(inviteClicked:)
-                forControlEvents:UIControlEventTouchUpInside];
 }
 
 - (void)setPlace:(Place *)place {
@@ -192,33 +160,9 @@
     }
 }
 
--(IBAction)inviteClicked:(id)sender {
-    if (self.inviteButton.tag == 0) {
-        if ([self.delegate respondsToSelector:@selector(inviteToPlace:)]) {
-            [self.delegate inviteToPlace:self.place];
-        }
-    } else {
-        self.inviteButton.tag = 0;
-    }
-}
-
 -(IBAction)friendsGoingClicked:(id)sender {
     if ([self.delegate respondsToSelector:@selector(showFriendsView)]) {
         [self.delegate showFriendsView];
-    }
-}
-
--(IBAction)moreInfoClicked:(id)sender {
-    NSString *urlString = [NSString stringWithFormat:@"foursquare://venues/%@", self.place.placeId];
-    
-    NSURL *url = [NSURL URLWithString:urlString];
-    
-    if ([[UIApplication sharedApplication] canOpenURL:url]) {
-        [[UIApplication sharedApplication] openURL:url];
-    } else {
-        urlString = [NSString stringWithFormat:@"http://foursquare.com/v/%@", self.place.placeId];
-        url = [NSURL URLWithString:urlString];
-        [[UIApplication sharedApplication] openURL:url];
     }
 }
 

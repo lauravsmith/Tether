@@ -68,6 +68,7 @@
 @property (nonatomic, assign) BOOL listsHaveChanged;
 @property (retain, nonatomic) UIView *confirmationView;
 @property (retain, nonatomic) UIActivityIndicatorView *activityIndicatorView;
+@property (nonatomic, assign) BOOL openingPlacePage;
 
 @end
 
@@ -232,8 +233,9 @@
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
     confirmationLabel.font = montserrat;
     CGSize size = [confirmationLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
-    self.confirmationView.frame = CGRectMake((self.view.frame.size.width - MAX(200.0,size.width)) / 2.0, (self.view.frame.size.height - 100.0) / 2.0, MAX(200.0,size.width), 100.0);
-    confirmationLabel.frame = CGRectMake((self.confirmationView.frame.size.width - size.width) / 2.0, (self.confirmationView.frame.size.height - size.height) / 2.0, size.width, size.height);
+    self.confirmationView.frame = CGRectMake((self.view.frame.size.width - MAX(200.0,size.width)) / 2.0, (self.view.frame.size.height - 100.0) / 2.0, MIN(self.view.frame.size.width,MAX(200.0,size.width)), 100.0);
+    confirmationLabel.frame = CGRectMake((self.confirmationView.frame.size.width - size.width) / 2.0, (self.confirmationView.frame.size.height - size.height) / 2.0, MIN(size.width, self.view.frame.size.width), size.height);
+    confirmationLabel.adjustsFontSizeToFitWidth = YES;
     [self.confirmationView addSubview:confirmationLabel];
     
     [self.view addSubview:self.confirmationView];
@@ -408,10 +410,13 @@
         if (![sharedDataManager.blockedList containsObject:friend.friendID]) {
             [sharedDataManager.blockedList addObject:friend.friendID];
         }
+        [sharedDataManager.tetherFriendsDictionary removeObjectForKey:friend.friendID];
     } else {
         [sharedDataManager.blockedList removeObject:friend.friendID];
+        friend.blocked = NO;
+        [sharedDataManager.tetherFriendsDictionary setObject:friend forKey:friend.friendID];
     }
-
+    
     [self.currentUser setObject:sharedDataManager.blockedList forKey:kUserBlockedListKey];
     [self.currentUser saveEventually];
     [self pollDatabase];
@@ -482,6 +487,10 @@
                             [sharedDataManager.tetherFriendsDictionary setObject:friend forKey:friend.friendID];
                             [sharedDataManager.tetherFriends addObject:friend.friendID];
                         }
+                    } else {
+                        if ([sharedDataManager.tetherFriendsDictionary objectForKey:user[kUserFacebookIDKey]]) {
+                            [sharedDataManager.tetherFriendsDictionary setObject:Nil forKey:user[kUserFacebookIDKey]];
+                        }
                     }
                 }
                 
@@ -491,6 +500,10 @@
                 
                 if ([self.rightPanelViewController.notificationsArray count] == 0) {
                     [self loadNotifications];
+                }
+                
+                if (!sharedDataManager.hasUpdatedFriends) {
+                    [self saveTethrFriends];
                 }
                 
                 if ([userDetails boolForKey:@"isNew"]) {
@@ -505,6 +518,20 @@
             }
         }];
     }
+}
+
+-(void)saveTethrFriends {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    NSMutableArray *tetherFriends = [[NSMutableArray alloc] init];
+    for (id key in sharedDataManager.tetherFriendsDictionary) {
+        Friend *friend = [sharedDataManager.tetherFriendsDictionary objectForKey:key];
+        [tetherFriends addObject:friend.friendID];
+    }
+    
+    [self.currentUser setObject:tetherFriends forKey:@"tethrFriends"];
+    [self.currentUser saveEventually];
+    
+    sharedDataManager.hasUpdatedFriends = YES;
 }
 
 -(void)notifyFriendsInCity {
@@ -1005,6 +1032,7 @@
                              [self.placesViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
                          }
                          completion:^(BOOL finished) {
+                              self.openingPlacePage = NO;
                          }];
     }
 }
@@ -1025,7 +1053,7 @@
                          animations:^{
                              _centerViewController.view.frame = CGRectMake(self.view.frame.size.width - PANEL_WIDTH, 0, self.view.frame.size.width, self.view.frame.size.height);
                              Datastore *sharedDataManager = [Datastore sharedDataManager];
-                             if (![userDetails boolForKey:kUserDefaultsHasSeenFriendInviteTutorialKey] && [sharedDataManager.tetherFriendsNearbyDictionary count] > 0) {
+                             if ((![userDetails boolForKey:kUserDefaultsHasSeenFriendInviteTutorialKey] && [sharedDataManager.tetherFriendsNearbyDictionary count] > 0)) {
                                  [self.leftPanelViewController addTutorialView];
                              }
                          }
@@ -1144,40 +1172,45 @@
 
 -(void)openPageForPlaceWithId:(id)placeId {
     Datastore *sharedDataManager = [Datastore sharedDataManager];
-    if ([sharedDataManager.placesDictionary objectForKey:placeId]) {
-        Place *place;
-        place = [sharedDataManager.placesDictionary objectForKey:placeId];
-        self.friendsListViewController = [[FriendsListViewController alloc] init];
-        self.friendsListViewController.delegate = self;
-        NSMutableSet *friends = [[NSMutableSet alloc] init];
-        for (id friendId in place.friendsCommitted) {
-            if ([sharedDataManager.tetherFriendsDictionary objectForKey:friendId]) {
-                Friend *friend = [sharedDataManager.tetherFriendsDictionary objectForKey:friendId];
-                [friends addObject:friend];
+    if (!self.openingPlacePage) {
+        self.openingPlacePage = YES;
+        if ([sharedDataManager.placesDictionary objectForKey:placeId]) {
+            Place *place;
+            place = [sharedDataManager.placesDictionary objectForKey:placeId];
+            self.friendsListViewController = [[FriendsListViewController alloc] init];
+            self.friendsListViewController.delegate = self;
+            NSMutableSet *friends = [[NSMutableSet alloc] init];
+            for (id friendId in place.friendsCommitted) {
+                if ([sharedDataManager.tetherFriendsDictionary objectForKey:friendId]) {
+                    Friend *friend = [sharedDataManager.tetherFriendsDictionary objectForKey:friendId];
+                    [friends addObject:friend];
+                }
             }
+            self.friendsListViewController.friendsArray = [[friends allObjects] mutableCopy];
+            self.friendsListViewController.place = place;
+            [self.friendsListViewController loadFriendsOfFriends];
+            [self.friendsListViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+            [self.view addSubview:self.friendsListViewController.view];
+            [self addChildViewController:self.friendsListViewController];
+            [self.friendsListViewController didMoveToParentViewController:self.centerViewController];
+            
+
+            [UIView animateWithDuration:SLIDE_TIMING
+                                  delay:0.0
+                 usingSpringWithDamping:1.0
+                  initialSpringVelocity:1.0
+                                options:UIViewAnimationOptionBeginFromCurrentState
+                             animations:^{
+                                 [self.friendsListViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                             }
+                             completion:^(BOOL finished) {
+                                 self.openingPlacePage = NO;
+                             }];
+        } else {
+            // TODO: fetch place from foursquare
+            self.centerViewController.dragging = NO;
+            [self showListViewNoReset];
         }
-        self.friendsListViewController.friendsArray = [[friends allObjects] mutableCopy];
-        self.friendsListViewController.place = place;
-        [self.friendsListViewController loadFriendsOfFriends];
-        [self.friendsListViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
-        [self.view addSubview:self.friendsListViewController.view];
-        [self addChildViewController:self.friendsListViewController];
-        [self.friendsListViewController didMoveToParentViewController:self.centerViewController];
-        
-        [UIView animateWithDuration:SLIDE_TIMING
-                              delay:0.0
-             usingSpringWithDamping:1.0
-              initialSpringVelocity:1.0
-                            options:UIViewAnimationOptionBeginFromCurrentState
-                         animations:^{
-                             [self.friendsListViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
-                         }
-                         completion:^(BOOL finished) {
-                         }];
-    } else {
-        // TODO: fetch place from foursquare
-        self.centerViewController.dragging = NO;
-        [self showListViewNoReset];
     }
 }
 
@@ -1194,6 +1227,7 @@
             self.decisionViewController = nil;
             self.showingDecisionView = NO;
             self.decisionViewController.view.alpha = 1.0;
+            [self pollDatabase];
         }];
 
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];

@@ -88,9 +88,11 @@
 		47695BEE1898B68E00EFC4E0 /* SearchIcon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 47695BEC1898B68E00EFC4E0 /* SearchIcon@2x.png */; };
 		47695BEF1898B68E00EFC4E0 /* SearchIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 47695BED1898B68E00EFC4E0 /* SearchIcon.png */; };
 		47760C1F18A323E400E644B6 /* LocationSpotter.png in Resources */ = {isa = PBXBuildFile; fileRef = 47760C1E18A323E400E644B6 /* LocationSpotter.png */; };
+		4776517E18AA615A00768D57 /* ManageFriendsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4776517D18AA615A00768D57 /* ManageFriendsViewController.m */; };
+		4776518118AA691300768D57 /* ManageFriendCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 4776518018AA691300768D57 /* ManageFriendCell.m */; };
+		4776518318AAF0E300768D57 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 4776518218AAF0E300768D57 /* Icon.png */; };
 		477E0F2A18A96E01000AD69B /* Gear@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 477E0F2818A96E01000AD69B /* Gear@2x.png */; };
 		477E0F2B18A96E01000AD69B /* Gear.png in Resources */ = {isa = PBXBuildFile; fileRef = 477E0F2918A96E01000AD69B /* Gear.png */; };
-		477E0F2F18A997D2000AD69B /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 477E0F2E18A997D2000AD69B /* Icon.png */; };
 		478C4BFF18482B78004C6BD0 /* SettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 478C4BFE18482B78004C6BD0 /* SettingsViewController.m */; };
 		4790C4401889B0F100DB9759 /* HelveticaInseratLTStd-Roman.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3F11889B0F100DB9759 /* HelveticaInseratLTStd-Roman.otf */; };
 		4790C4411889B0F100DB9759 /* HelveticaLTStd-Blk.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3F21889B0F100DB9759 /* HelveticaLTStd-Blk.otf */; };
@@ -291,9 +293,13 @@
 		47695BEC1898B68E00EFC4E0 /* SearchIcon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "SearchIcon@2x.png"; sourceTree = "<group>"; };
 		47695BED1898B68E00EFC4E0 /* SearchIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = SearchIcon.png; sourceTree = "<group>"; };
 		47760C1E18A323E400E644B6 /* LocationSpotter.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = LocationSpotter.png; sourceTree = "<group>"; };
+		4776517C18AA615A00768D57 /* ManageFriendsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ManageFriendsViewController.h; sourceTree = "<group>"; };
+		4776517D18AA615A00768D57 /* ManageFriendsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ManageFriendsViewController.m; sourceTree = "<group>"; };
+		4776517F18AA691300768D57 /* ManageFriendCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ManageFriendCell.h; sourceTree = "<group>"; };
+		4776518018AA691300768D57 /* ManageFriendCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ManageFriendCell.m; sourceTree = "<group>"; };
+		4776518218AAF0E300768D57 /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
 		477E0F2818A96E01000AD69B /* Gear@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Gear@2x.png"; sourceTree = "<group>"; };
 		477E0F2918A96E01000AD69B /* Gear.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Gear.png; sourceTree = "<group>"; };
-		477E0F2E18A997D2000AD69B /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
 		478C4BFD18482B78004C6BD0 /* SettingsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SettingsViewController.h; sourceTree = "<group>"; };
 		478C4BFE18482B78004C6BD0 /* SettingsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SettingsViewController.m; sourceTree = "<group>"; };
 		4790C3F11889B0F100DB9759 /* HelveticaInseratLTStd-Roman.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaInseratLTStd-Roman.otf"; sourceTree = "<group>"; };
@@ -448,6 +454,8 @@
 		47059D8B1842E18A00CEC50E /* View */ = {
 			isa = PBXGroup;
 			children = (
+				4705F1281859298F0095F8B1 /* SearchResultCell.h */,
+				4705F1291859298F0095F8B1 /* SearchResultCell.m */,
 				47E73EB7187B92C4009CA44A /* TetherAnnotationView.h */,
 				47E73EB8187B92C4009CA44A /* TetherAnnotationView.m */,
 				472392A81864D304000D0C7E /* NotificationCell.h */,
@@ -460,6 +468,8 @@
 				47E73EBE187C499A009CA44A /* FriendAtPlaceCell.m */,
 				47BB2C55187E074100BB40F5 /* FriendLabel.h */,
 				47BB2C56187E074100BB40F5 /* FriendLabel.m */,
+				4776517F18AA691300768D57 /* ManageFriendCell.h */,
+				4776518018AA691300768D57 /* ManageFriendCell.m */,
 			);
 			name = View;
 			sourceTree = "<group>";
@@ -467,6 +477,10 @@
 		4705F9B01847C8BA00910EE1 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				472392B31867D08C000D0C7E /* Constants.h */,
+				472392B41867D08C000D0C7E /* Constants.m */,
+				470981A9184D7DD100779FC8 /* TetherAnnotation.h */,
+				470981AA184D7DD100779FC8 /* TetherAnnotation.m */,
 				47059D8C18444CBE00CEC50E /* Friend.h */,
 				4702441418575E14001C19AC /* ILGeoNamesLookup.h */,
 				4702441518575E14001C19AC /* ILGeoNamesLookup.m */,
@@ -541,16 +555,6 @@
 				47064CC6183DB11D00E9228A /* Images */,
 				47064C9D183D9E3800E9228A /* Images.xcassets */,
 				47064C8C183D9E3800E9228A /* Supporting Files */,
-				470981A9184D7DD100779FC8 /* TetherAnnotation.h */,
-				470981AA184D7DD100779FC8 /* TetherAnnotation.m */,
-				4705F1281859298F0095F8B1 /* SearchResultCell.h */,
-				4705F1291859298F0095F8B1 /* SearchResultCell.m */,
-				47065F1A185AA8BC0047A564 /* RightPanelViewController.h */,
-				47065F1B185AA8BC0047A564 /* RightPanelViewController.m */,
-				47194F3418639AF900E114F5 /* InviteViewController.h */,
-				47194F3518639AF900E114F5 /* InviteViewController.m */,
-				472392B31867D08C000D0C7E /* Constants.h */,
-				472392B41867D08C000D0C7E /* Constants.m */,
 			);
 			path = Tether;
 			sourceTree = "<group>";
@@ -591,7 +595,7 @@
 		47064CC6183DB11D00E9228A /* Images */ = {
 			isa = PBXGroup;
 			children = (
-				477E0F2E18A997D2000AD69B /* Icon.png */,
+				4776518218AAF0E300768D57 /* Icon.png */,
 				477E0F2818A96E01000AD69B /* Gear@2x.png */,
 				477E0F2918A96E01000AD69B /* Gear.png */,
 				4749ECA818A41BA700700696 /* PlusSign.png */,
@@ -637,6 +641,10 @@
 		470A33AB184029DF006E48F9 /* Controller */ = {
 			isa = PBXGroup;
 			children = (
+				47065F1A185AA8BC0047A564 /* RightPanelViewController.h */,
+				47065F1B185AA8BC0047A564 /* RightPanelViewController.m */,
+				47194F3418639AF900E114F5 /* InviteViewController.h */,
+				47194F3518639AF900E114F5 /* InviteViewController.m */,
 				4705F12B185940B60095F8B1 /* FriendsListViewController.h */,
 				4705F12C185940B60095F8B1 /* FriendsListViewController.m */,
 				470A33A8184029CE006E48F9 /* LoginViewController.h */,
@@ -653,6 +661,8 @@
 				478C4BFE18482B78004C6BD0 /* SettingsViewController.m */,
 				47FB08D7184970CA00A07908 /* PlacesViewController.h */,
 				47FB08D8184970CA00A07908 /* PlacesViewController.m */,
+				4776517C18AA615A00768D57 /* ManageFriendsViewController.h */,
+				4776517D18AA615A00768D57 /* ManageFriendsViewController.m */,
 			);
 			name = Controller;
 			sourceTree = "<group>";
@@ -901,7 +911,7 @@
 				4790C4681889B0F100DB9759 /* HelveticaNeueLTStd-HvCn.otf in Resources */,
 				470C80D3189751FF003F06C4 /* KaufmannStd.otf in Resources */,
 				4790C4781889B0F100DB9759 /* HelveticaNeueLTStd-MdExO.otf in Resources */,
-				477E0F2F18A997D2000AD69B /* Icon.png in Resources */,
+				4776518318AAF0E300768D57 /* Icon.png in Resources */,
 				4790C46E1889B0F100DB9759 /* HelveticaNeueLTStd-Lt.otf in Resources */,
 				47064CDF183DBAE300E9228A /* Champagne&Limousines.ttf in Resources */,
 				4790C4671889B0F100DB9759 /* HelveticaNeueLTStd-Hv.otf in Resources */,
@@ -1022,6 +1032,7 @@
 				47FB08D9184970CA00A07908 /* PlacesViewController.m in Sources */,
 				47FCE5271853E7A20030B1E1 /* Datastore.m in Sources */,
 				47E73EB9187B92C4009CA44A /* TetherAnnotationView.m in Sources */,
+				4776518118AA691300768D57 /* ManageFriendCell.m in Sources */,
 				47064C9C183D9E3800E9228A /* ViewController.m in Sources */,
 				47C7B6C1184AC7BB00358BE1 /* PlaceCell.m in Sources */,
 				47065F1C185AA8BC0047A564 /* RightPanelViewController.m in Sources */,
@@ -1037,6 +1048,7 @@
 				4705F12D185940B60095F8B1 /* FriendsListViewController.m in Sources */,
 				47064CC0183DA00D00E9228A /* CenterViewController.m in Sources */,
 				47FB08D61849701400A07908 /* Place.m in Sources */,
+				4776517E18AA615A00768D57 /* ManageFriendsViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

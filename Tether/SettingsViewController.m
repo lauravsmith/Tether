@@ -9,11 +9,13 @@
 #import "AppDelegate.h"
 #import "Constants.h"
 #import "Datastore.h"
+#import "ManageFriendsViewController.h"
 #import "SettingsViewController.h"
 #import "TethrTextField.h"
 
 #define PADDING 15.0
 #define PROFILE_IMAGE_VIEW_SIZE 80.0
+#define SLIDE_TIMING 0.6
 #define STATUS_BAR_HEIGHT 20.0
 #define STATUS_MESSAGE_LENGTH 35.0
 #define TABLE_VIEW_HEIGHT 277.0
@@ -22,7 +24,7 @@
 
 static NSString *kGeoNamesAccountName = @"lsmit87";
 
-@interface SettingsViewController () <ILGeoNamesLookupDelegate, UITextFieldDelegate, UITableViewDelegate, UITableViewDataSource>
+@interface SettingsViewController () <ILGeoNamesLookupDelegate, ManageFriendsViewControllerDelegate, UITextFieldDelegate, UITableViewDelegate, UITableViewDataSource>
 
 @property (retain, nonatomic) TethrTextField *statusMessageTextField;
 @property (retain, nonatomic) UIButton * doneButton;
@@ -42,6 +44,8 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 @property (retain, nonatomic) UIButton * cancelSearchButton;
 @property (retain, nonatomic) UIActivityIndicatorView * activityIndicator;
 @property (retain, nonatomic) UIButton * inviteFriendsButton;
+@property (retain, nonatomic) UIButton * arrowButton;
+@property (retain, nonatomic) ManageFriendsViewController *manageVC;
 
 @end
 
@@ -130,7 +134,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.setLocationSwitch.transform = CGAffineTransformMakeScale(0.60, 0.60);
     self.setLocationSwitch.frame = CGRectMake(self.noLabel.frame.origin.x + self.noLabel.frame.size.width + 2.0, self.noLabel.frame.origin.y, 0, 0);
     [self.setLocationSwitch setOnTintColor:UIColorFromRGB(0xD6D6D6)];
-    [self.setLocationSwitch addTarget:self action:@selector(locationSwitchChange:) forControlEvents:UIControlEventValueChanged];
+    [self.setLocationSwitch addTarget:self action:@selector(switchChange:) forControlEvents:UIControlEventValueChanged];
     [self.view addSubview:self.setLocationSwitch];
     [self.setLocationSwitch setOn:[userDetails boolForKey:@"useCurrentLocation"]];
     NSLog(@"Switch is: %d", [self.setLocationSwitch isOn]);
@@ -205,7 +209,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.goingOutSwitch.transform = CGAffineTransformMakeScale(0.60, 0.60);
     self.goingOutSwitch.frame = CGRectMake(noLabel2.frame.origin.x + noLabel2.frame.size.width + 2.0, noLabel2.frame.origin.y, 0, 0);
     [self.goingOutSwitch setOnTintColor:UIColorFromRGB(0xD6D6D6)];
-    [self.goingOutSwitch addTarget:self action:@selector(locationSwitchChange:) forControlEvents:UIControlEventValueChanged];
+    [self.goingOutSwitch addTarget:self action:@selector(switchChange:) forControlEvents:UIControlEventValueChanged];
     [self.view addSubview:self.goingOutSwitch];
     self.goingOutSwitch.on = [userDetails boolForKey:@"status"];
     
@@ -220,6 +224,35 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [blackLineImageView3 setImage:[UIImage imageNamed:@"DividerSettings"]];
     [self.view addSubview:blackLineImageView3];
     
+    UIButton *manageButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 20.0, self.view.frame.size.height - 20.0, 20.0, 20.0)];
+    [manageButton setTitle:@"Manage friends" forState:UIControlStateNormal];
+    manageButton.titleLabel.font = montserrat;
+    size = [manageButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName: montserrat}];
+    manageButton.frame = CGRectMake(PADDING, blackLineImageView3.frame.origin.y + PADDING, size.width, size.height);
+    [manageButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [manageButton addTarget:self action:@selector(showManage:) forControlEvents:UIControlEventTouchUpInside];
+    
+    [self.view addSubview:manageButton];
+    
+    UIImageView *blackLineImageView4 = [[UIImageView alloc] initWithFrame:CGRectMake(0.0, manageButton.frame.origin.y + manageButton.frame.size.height + PADDING, self.view.frame.size.width, 4.0)];
+    [blackLineImageView4 setImage:[UIImage imageNamed:@"DividerSettings"]];
+    [self.view addSubview:blackLineImageView4];
+    
+    UIButton *manageButtonLarge = [[UIButton alloc] initWithFrame:CGRectMake(0.0, blackLineImageView3.frame.origin.y, self.view.frame.size.width, blackLineImageView4.frame.origin.y - blackLineImageView3.frame.origin.y)];
+    [manageButtonLarge addTarget:self action:@selector(showManage:) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:manageButtonLarge];
+    
+    [self.view addSubview:manageButton];
+    
+    self.arrowButton = [[UIButton alloc] init];
+    [self.arrowButton setImage:[UIImage imageNamed:@"WhiteTriangle"] forState:UIControlStateNormal];
+    self.arrowButton.frame = CGRectMake(self.view.frame.size.width - 30.0, blackLineImageView3.frame.origin.y - blackLineImageView3.frame.size.height + (blackLineImageView4.frame.origin.y - blackLineImageView3.frame.origin.y) / 2, 7.0, 11.0);
+    self.arrowButton.transform = CGAffineTransformMakeRotation(degreesToRadian(180));
+    [self.arrowButton addTarget:self
+                         action:@selector(showManage:)
+               forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:self.arrowButton];
+    
     self.logoutButton = [[UIButton alloc] init];
     [self.logoutButton setTitle:@"Logout" forState:UIControlStateNormal];
     [self.logoutButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
@@ -227,7 +260,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     UIFont *montserratBold = [UIFont fontWithName:@"Montserrat-Bold" size:28];
     self.logoutButton.titleLabel.font = montserratBold;
     size = [self.logoutButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];
-    self.logoutButton.frame = CGRectMake((self.view.frame.size.width - size.width) / 2.0, blackLineImageView3.frame.origin.y + blackLineImageView3.frame.size.height + size.height - PADDING, size.width, size.height);
+    self.logoutButton.frame = CGRectMake((self.view.frame.size.width - size.width) / 2.0, blackLineImageView4.frame.origin.y + PADDING / 2.0, size.width, size.height);
     [self.logoutButton addTarget:self action:@selector(logoutButtonWasPressed:) forControlEvents:UIControlEventTouchDown];
     [self.view addSubview:self.logoutButton];
     
@@ -468,7 +501,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 
 #pragma switch methods
 
-- (void)locationSwitchChange:(UISwitch *)theSwitch {
+- (void)switchChange:(UISwitch *)theSwitch {
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     if (theSwitch == self.setLocationSwitch) {
         [userDetails setBool:theSwitch.on forKey:@"useCurrentLocation"];
@@ -496,6 +529,10 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
             if ([self.delegate respondsToSelector:@selector(removeCommitmentFromDatabase)]) {
                 [self.delegate removeCommitmentFromDatabase];
             }
+        } else {
+            if ([self.delegate respondsToSelector:@selector(pollDatabase)]) {
+                [self.delegate pollDatabase];
+            }
         }
         
         NSLog(@"PARSE SAVE: updating status");
@@ -503,6 +540,28 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 }
 
 #pragma mark button action methods
+
+- (IBAction)showManage:(id)sender {
+    self.manageVC = [[ManageFriendsViewController alloc] init];
+    self.manageVC.delegate = self;
+    
+    [self addChildViewController:self.manageVC];
+    [self.manageVC didMoveToParentViewController:self];
+    [self.manageVC.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+    [self.view addSubview:self.manageVC.view];
+    
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.manageVC.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                     }];
+}
+
 - (IBAction)handleCloseSettings:(id)sender {
     if ([self.delegate respondsToSelector:@selector(closeSettings)]) {
         [self.delegate closeSettings];
@@ -553,6 +612,29 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     return params;
 }
 
+#pragma mark ManageFriendsViewControllerDelegate
+
+-(void)blockFriend:(Friend*)friend block:(BOOL)block {
+    if ([self.delegate respondsToSelector:@selector(blockFriend:block:)]) {
+        [self.delegate blockFriend:friend block:block];
+    }
+}
+
+-(void)closeManageFriendsView {
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.manageVC.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                         [self.manageVC.view removeFromSuperview];
+                         [self.manageVC removeFromParentViewController];
+                     }];
+}
+
 #pragma mark -
 #pragma mark Table view data source
 
@@ -565,7 +647,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     // Return the number of rows in the section.
     
-    return [self.searchResults count];
+    return [self.searchResults count] + 1;
 }
 
 
@@ -579,7 +661,13 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier];
     }
     
-    // Configure the cell...
+    if (indexPath.row == [self.searchResults count]) {
+        cell.isAccessibilityElement = YES;
+        cell.textLabel.text = @"";
+        cell.detailTextLabel.text =@"Powered by geonames.org";
+        return cell;
+    }
+
 	NSDictionary	*geoname = [self.searchResults objectAtIndex:indexPath.row];
 	if(geoname) {
 		NSString	*name = [geoname objectForKey:kILGeoNamesNameKey];

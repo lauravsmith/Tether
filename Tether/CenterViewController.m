@@ -68,6 +68,19 @@
     self.mv.delegate = self;
     [self.view addSubview:self.mv];
     
+    UIView *legalView = nil;
+    
+    for (UIView *subview in self.mv.subviews) {
+        if ([subview isKindOfClass:[UILabel class]]) {
+            legalView = subview;
+            [subview removeFromSuperview];
+            break;
+        }
+    }
+    legalView.frame = CGRectMake(150, self.view.frame.size.height - TOP_BAR_HEIGHT - BOTTOM_BAR_HEIGHT - legalView.frame.size.height
+                                 , legalView.frame.size.width, legalView.frame.size.height);
+    [self.mv  addSubview:legalView];
+    
     // top bar setup
     self.topBar = [[UIView alloc] initWithFrame:CGRectMake(0, 0.0, self.view.frame.size.width,TOP_BAR_HEIGHT)];
     self.topBar.layer.backgroundColor = UIColorFromRGB(0x8e0528).CGColor;
@@ -301,8 +314,7 @@
     tutorialLabel.font = montserratLabelFont;
     [tutorialLabel setTextColor:UIColorFromRGB(0x8e0528)];
     
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
-    if (![userDetails boolForKey:kUserDefaultsHasSeenCityChangeTutorialKey] && [sharedDataManager.tetherFriendsNearbyDictionary count] <= 1) {
+    if (![userDetails boolForKey:kUserDefaultsHasSeenCityChangeTutorialKey]) {
         self.tutorialView.frame = CGRectMake(0.0, self.view.frame.size.height - self.bottomBar.frame.size.height - TUTORIAL_HEADER_HEIGHT, self.view.frame.size.width, TUTORIAL_HEADER_HEIGHT);
         tutorialLabel.text = @"Change cities to see friends in different areas";
         CGSize size = [tutorialLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratLabelFont}];
@@ -462,6 +474,18 @@
     
     MKCoordinateRegion adjustedRegion = [self.mv regionThatFits:MKCoordinateRegionMakeWithDistance(userCoord, 8000, 8000)];
     [self.mv setRegion:adjustedRegion animated:NO];
+    
+    // change position of legal link
+    UIView *legalView = nil;
+    
+    for (UIView *subview in self.mv.subviews) {
+        if ([subview isKindOfClass:[UILabel class]]) {
+            legalView = subview;
+            break;
+        }
+    }
+    legalView.frame = CGRectMake(0.0, self.view.frame.size.height - TOP_BAR_HEIGHT - BOTTOM_BAR_HEIGHT - legalView.frame.size.height
+                                 , legalView.frame.size.width, legalView.frame.size.height);
 }
 
 -(void)setCityFromCLLocation:(CLLocation *)location

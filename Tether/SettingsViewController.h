@@ -32,5 +32,7 @@
 -(void)userChangedSettingsToUseCurrentLocation;
 -(void)removePreviousCommitment;
 -(void)removeCommitmentFromDatabase;
+-(void)pollDatabase;
+-(void)blockFriend:(Friend*)friend block:(BOOL)block;
 
 @end

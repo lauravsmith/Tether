@@ -12,6 +12,7 @@
 #import <FacebookSDK/FacebookSDK.h>
 
 #define NAME_LABEL_OFFSET_X 70.0
+#define PANEL_WIDTH 45.0
 #define PROFILE_PICTURE_CORNER_RADIUS 22.0
 #define PROFILE_PICTURE_OFFSET_X 10.0
 #define PROFILE_PICTURE_SIZE 45.0
@@ -54,7 +55,8 @@
     
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
     CGSize size = [self.friendNameLabel.text sizeWithAttributes:@{NSFontAttributeName: montserrat}];
-    self.friendNameLabel.frame = CGRectMake(NAME_LABEL_OFFSET_X, (self.frame.size.height - size.height) / 2.0, size.width, size.height);
+    self.friendNameLabel.frame = CGRectMake(NAME_LABEL_OFFSET_X, (self.frame.size.height - size.height) / 2.0, MIN(self.frame.size.width - NAME_LABEL_OFFSET_X - PANEL_WIDTH,size.width), size.height);
+    self.friendNameLabel.adjustsFontSizeToFitWidth = YES;
     [self.friendNameLabel setTextColor:UIColorFromRGB(0x8e0528)];
     [self.friendNameLabel setFont:montserrat];
     

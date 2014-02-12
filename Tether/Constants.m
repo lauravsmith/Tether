@@ -21,6 +21,7 @@ NSString *const kUserDefaultsHasSeenRefreshTutorialKey = @"hasSeenRefreshTutoria
 NSString *const kUserDefaultsHasSeenFriendsListTutorialKey= @"hasSeenFriendsListTutorial";
 NSString *const kUserDefaultsHasSeenPlaceListTutorialKey= @"hasSeenPlaceListTutorial";
 NSString *const kUserDefaultsHasSeenCityChangeTutorialKey= @"hasSeenCityChangeTutorial";
+NSString *const kUserDefaultsHasSeenBlockTutorialKey= @"hasSeenBlockTutorial";
 
 #pragma mark - User Class
 NSString *const kUserDisplayNameKey     = @"displayName";

@@ -118,51 +118,51 @@
                         if ([sharedDataManager.tetherFriendsDictionary objectForKey:friendId]) {
                             friend = [sharedDataManager.tetherFriendsDictionary objectForKey:friendId];
                             notification.sender = friend;
-                        }
-                    }
-                    
-                    if (invitation.createdAt) {
-                        notification.time = invitation.createdAt;
-                    }
-                    
-                    if ([invitation objectForKey:@"placeId"]) {
-                        notification.placeId = [invitation objectForKey:@"placeId"];
-                        Place *place = [[Place alloc] init];
-                        if ([sharedDataManager.placesDictionary objectForKey:notification.placeId]) {
-                            place = [sharedDataManager.placesDictionary objectForKey:notification.placeId];
-                            notification.place = place;
-                            notification.placeName = place.name;
-                        }
-                    }
-                    
-                    if ([invitation objectForKey:@"placeName"]) {
-                        notification.placeName = [invitation objectForKey:@"placeName"];
-                    }
-                    
-                    if ([invitation objectForKey:@"city"]) {
-                        notification.city = [invitation objectForKey:@"city"];
-                    }
-                    
-                    if ([invitation objectForKey:@"allRecipients"]) {
-                        NSMutableArray *recipientIds = [invitation objectForKey:@"allRecipients"];
-                        notification.allRecipients = [[NSMutableArray alloc] init];
-                        for (id recipientId in recipientIds) {
-                            if (![recipientId isEqualToString:sharedDataManager.facebookId] &&
-                                [sharedDataManager.tetherFriendsDictionary objectForKey:recipientId]) {
-                                Friend *friend = [[Friend alloc] init];
-                                friend = [sharedDataManager.tetherFriendsDictionary objectForKey:recipientId];
-                                [notification.allRecipients addObject:friend];
+                            
+                            if (invitation.createdAt) {
+                                notification.time = invitation.createdAt;
                             }
-                        }
-                    }
-                    if ([notification.type isEqualToString:@"invitation"] || [notification.type isEqualToString:@"acceptance"] || [notification.type isEqualToString:@"status"] || [notification.type isEqualToString:@"newUser"] || [notification.type isEqualToString:@"receipt"]) {
-                         [self.notificationsArray addObject:notification];
-                    }
-
-                    if ([notification.type isEqualToString:@"invitation"]) {
-                        [sharedDataManager.bestFriendSet addObject:notification.sender.friendID];
-                        if ([today compare:notification.time] == NSOrderedAscending) {
-                            [sharedDataManager.todaysNotificationsArray addObject:notification];
+                            
+                            if ([invitation objectForKey:@"placeId"]) {
+                                notification.placeId = [invitation objectForKey:@"placeId"];
+                                Place *place = [[Place alloc] init];
+                                if ([sharedDataManager.placesDictionary objectForKey:notification.placeId]) {
+                                    place = [sharedDataManager.placesDictionary objectForKey:notification.placeId];
+                                    notification.place = place;
+                                    notification.placeName = place.name;
+                                }
+                            }
+                            
+                            if ([invitation objectForKey:@"placeName"]) {
+                                notification.placeName = [invitation objectForKey:@"placeName"];
+                            }
+                            
+                            if ([invitation objectForKey:@"city"]) {
+                                notification.city = [invitation objectForKey:@"city"];
+                            }
+                            
+                            if ([invitation objectForKey:@"allRecipients"]) {
+                                NSMutableArray *recipientIds = [invitation objectForKey:@"allRecipients"];
+                                notification.allRecipients = [[NSMutableArray alloc] init];
+                                for (id recipientId in recipientIds) {
+                                    if (![recipientId isEqualToString:sharedDataManager.facebookId] &&
+                                        [sharedDataManager.tetherFriendsDictionary objectForKey:recipientId]) {
+                                        Friend *friend = [[Friend alloc] init];
+                                        friend = [sharedDataManager.tetherFriendsDictionary objectForKey:recipientId];
+                                        [notification.allRecipients addObject:friend];
+                                    }
+                                }
+                            }
+                            if ([notification.type isEqualToString:@"invitation"] || [notification.type isEqualToString:@"acceptance"] || [notification.type isEqualToString:@"status"] || [notification.type isEqualToString:@"newUser"] || [notification.type isEqualToString:@"receipt"]) {
+                                [self.notificationsArray addObject:notification];
+                            }
+                            
+                            if ([notification.type isEqualToString:@"invitation"]) {
+                                [sharedDataManager.bestFriendSet addObject:notification.sender.friendID];
+                                if ([today compare:notification.time] == NSOrderedAscending) {
+                                    [sharedDataManager.todaysNotificationsArray addObject:notification];
+                                }
+                            }
                         }
                     }
                 }
@@ -242,7 +242,6 @@
 #pragma mark NotificationCellDelegate Methods
 
 -(void)goToPlace:(id)placeId {
-    
     if ([self.delegate respondsToSelector:@selector(openPageForPlaceWithId:)]) {
         [self.delegate openPageForPlaceWithId:placeId];
     }

@@ -32,6 +32,7 @@
 @synthesize blockedList;
 @synthesize bestFriendSet;
 @synthesize placeIDForNotification;
+@synthesize hasUpdatedFriends;
 
 #pragma mark Singleton Methods
 

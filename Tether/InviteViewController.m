@@ -30,7 +30,7 @@
 #define PADDING 10.0
 #define PLUS_ICON_SIZE 35.0
 
-@interface InviteViewController () <UIGestureRecognizerDelegate, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate>
+@interface InviteViewController () <UIGestureRecognizerDelegate, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UITextViewDelegate>
 @property (retain, nonatomic) NSMutableArray *friendSearchResultsArray;
 @property (nonatomic, strong) UITableView *friendSearchResultsTableView;
 @property (nonatomic, strong) UITableViewController *friendSearchResultsTableViewController;
@@ -77,11 +77,8 @@
     
     self.topBarView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, TOP_BAR_HEIGHT)];
     [self.topBarView setBackgroundColor:UIColorFromRGB(0x8e0528)];
-    
-    UIImage *backgroundImage = [UIImage imageNamed:@"BlackTexture"];
-    UIImageView *backgroundImageView = [[UIImageView alloc] initWithImage:backgroundImage];
-    backgroundImageView.frame = CGRectMake(0, self.topBarView.frame.size.height, self.view.frame.size.width, self.view.frame.size.height);
-    [self.view addSubview:backgroundImageView];
+
+    [self.view setBackgroundColor:[UIColor whiteColor]];
     
     self.placeLabel = [[UILabel alloc] init];
     self.placeLabel.text = self.place.name;
@@ -120,15 +117,24 @@
     [self.plusButton addTarget:self action:@selector(plusButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
     [self.friendsInvitedScrollView addSubview:self.plusButton];
     
-    self.messageTextView = [[UITextView alloc] initWithFrame:CGRectMake(PADDING, self.friendsInvitedScrollView.frame.origin.y + self.friendsInvitedScrollView.frame.size.height, self.view.frame.size.width - PADDING*2, MAX_MESSAGE_FIELD_HEIGHT / 568.0 * self.view.frame.size.height)];
-    [self.messageTextView setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
-    [self.messageTextView setTextColor:[UIColor whiteColor]];
-    UIFont *montserratBold = [UIFont fontWithName:@"Montserrat-Bold" size:20];
-    [self.messageTextView setFont:montserratBold];
+    self.messageTextView = [[UITextView alloc] initWithFrame:CGRectMake(0, self.friendsInvitedScrollView.frame.origin.y + self.friendsInvitedScrollView.frame.size.height, self.view.frame.size.width, self.view.frame.size.height - self.friendsInvitedScrollView.frame.origin.y - self.friendsInvitedScrollView.frame.size.height - 216.0)];
+    self.messageTextView.delegate = self;
+    self.messageTextView.tag = 0;
+    [self.messageTextView setBackgroundColor:UIColorFromRGB(0xf8f8f8)];
+    [self.messageTextView setFont:montserratLarge];
     [self.messageTextView setEditable:YES];
+    self.messageTextView.textColor = UIColorFromRGB(0xc8c8c8);
+    self.messageTextView.text = @"Compose a message";
+    [self.messageTextView setReturnKeyType:UIReturnKeyDone];
+    
+    self.messageTextView.layer.masksToBounds = NO;
+    self.messageTextView.layer.shadowOffset = CGSizeMake(0.0, -1);
+    self.messageTextView.layer.shadowRadius = 0.5f;
+    self.messageTextView.layer.shadowOpacity = 0.2f;
+    
     [self.view addSubview:self.messageTextView];
     
-    self.sendButton = [[UIButton alloc] initWithFrame:CGRectMake(220.0, self.messageTextView.frame.origin.y + self.messageTextView.frame.size.height - 50.0, 80.0, 40.0)];
+    self.sendButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 80.0 - PADDING, self.view.frame.size.height - 220.0 - 40.0 - PADDING, 80.0, 40.0)];
     [self.sendButton addTarget:self action:@selector(sendButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
     [self.sendButton setTitle:@"Send" forState:UIControlStateNormal];
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:18.0];
@@ -271,10 +277,10 @@
     
     CGRect frame = self.messageTextView.frame;
     frame.origin.y = self.friendsInvitedScrollView.frame.origin.y + self.friendsInvitedScrollView.frame.size.height;
-    frame.size.height = MAX_MESSAGE_FIELD_HEIGHT / 568.0 * self.view.frame.size.height - self.friendsInvitedScrollView.frame.size.height + self.searchBar.frame.size.height + 10.0;
+    frame.size.height = self.view.frame.size.height - self.friendsInvitedScrollView.frame.origin.y - self.friendsInvitedScrollView.frame.size.height - 216.0;
     self.messageTextView.frame = frame;
     
-    self.sendButton.frame = CGRectMake(220.0, self.messageTextView.frame.origin.y + self.messageTextView.frame.size.height - 50.0, 80.0, 40.0);
+    self.sendButton.frame = CGRectMake(220.0, self.view.frame.size.height - 220.0 - 40.0 - PADDING, 80.0, 40.0);
 }
 
 -(void)layoutFriendLabels {
@@ -299,12 +305,12 @@
     }
     FriendLabel *friendLabel = [[FriendLabel alloc] init];
     friendLabel.friend = friend;
-    [friendLabel setTextColor:[UIColor whiteColor]];
+    [friendLabel setTextColor:[UIColor blackColor]];
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14];
     friendLabel.font = montserrat;
     CGSize friendLabelSize = [friend.name sizeWithAttributes:@{NSFontAttributeName: montserrat}];
     friendLabel.text = [NSString stringWithFormat:@"  %@", friend.name];
-    [friendLabel setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
+    [friendLabel setBackgroundColor:UIColorFromRGB(0xf8f8f8)];
     friendLabel.layer.cornerRadius = 2.0;
     friendLabel.frame = CGRectMake(0, 0, friendLabelSize.width + 20.0, LABEL_HEIGHT);
 
@@ -705,6 +711,43 @@
         [self layoutPlusIcon];
         [self layoutFriendsInvitedView];
     }
+}
+
+- (BOOL) textViewShouldBeginEditing:(UITextView *)textView
+{
+    if (self.messageTextView.tag == 0) {
+        self.messageTextView.text = @"";
+        self.messageTextView.textColor = [UIColor blackColor];
+        self.messageTextView.tag = 1;
+    }
+    
+    return YES;
+}
+
+-(void) textViewDidChange:(UITextView *)textView
+{
+    if(self.messageTextView.text.length == 0){
+        self.messageTextView.textColor = UIColorFromRGB(0xc8c8c8);
+        self.messageTextView.text = @"Compose a message";
+        [self.messageTextView resignFirstResponder];
+        self.messageTextView.tag = 0;
+    }
+}
+
+- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
+    
+    if([text isEqualToString:@"\n"]) {
+        [textView resignFirstResponder];
+        if(self.messageTextView.text.length == 0){
+            self.messageTextView.textColor = UIColorFromRGB(0xc8c8c8);
+            self.messageTextView.text = @"Compose a message";
+            [self.messageTextView resignFirstResponder];
+            self.messageTextView.tag = 0;
+        }
+        return NO;
+    }
+    
+    return YES;
 }
 
 - (void)didReceiveMemoryWarning

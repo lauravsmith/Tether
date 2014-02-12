@@ -7,6 +7,7 @@
 //
 
 #import "CenterViewController.h"
+#import "Constants.h"
 #import "Datastore.h"
 #import "Friend.h"
 #import "FriendCell.h"
@@ -186,22 +187,8 @@
 {
     self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
     if (self) {
-        UILongPressGestureRecognizer *lpgr = [[UILongPressGestureRecognizer alloc]
-                                              initWithTarget:self action:@selector(handleLongPress:)];
-        lpgr.minimumPressDuration = 0.5; //seconds
-        [self addGestureRecognizer:lpgr];
     }
     return self;
-}
-
--(void)handleLongPress:(UILongPressGestureRecognizer *)longPress
-{
-    Datastore *sharedDatastore = [Datastore sharedDataManager];
-    if (![self.friend.friendID isEqualToString:sharedDatastore.facebookId]) {
-        if ([self.delegate respondsToSelector:@selector(showBlockFriendAlertView:)]) {
-            [self.delegate showBlockFriendAlertView:self.friend];
-        }
-    }
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated
