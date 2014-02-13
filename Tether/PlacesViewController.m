@@ -9,6 +9,7 @@
 #import "CenterViewController.h"
 #import "Constants.h"
 #import "Datastore.h"
+#import "Flurry.h"
 #import "Friend.h"
 #import "FriendsListViewController.h"
 #import "InviteViewController.h"
@@ -593,7 +594,6 @@
 
 -(void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {
     self.searchResultsTableView.hidden = NO;
-    [self loadPlacesForSearch:searchBar.text];
 }
 
 // Intial foursquare data call
@@ -613,9 +613,15 @@
         state = [self removeIllegalCharactersFromString:state];
     }
     
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    [formatter setDateFormat:@"YYYYMMdd"];
+    NSString *today = [formatter stringFromDate:[NSDate date]];
+    NSLog(@"%@",today);
+    
     NSString *urlString1 = @"https://api.foursquare.com/v2/venues/search?near=";
-    NSString *urlString2 = @"&categoryId=4d4b7105d754a06376d81259&limit=100&oauth_token=5IQQDYZZ0KJLYNQROEEFAEWR4V400IADTACODH2SYCVBNQ3P&v=20131113";
-    NSString *joinString=[NSString stringWithFormat:@"%@%@%@%@%@",urlString1, city,@"%20",state,urlString2];
+    NSString *urlString2 = @"&categoryId=4d4b7105d754a06376d81259&limit=100&client_id=VLMUFMIAUWTTEVXXFQEQNKFDMCOFYEHTZU1U53IPQCI1PONX&client_secret=RH1CZUW0WWVM5LIEGZNFLU133YZX1ZMESAJ4PWNSDDSFMGYS&v=";
+    
+    NSString *joinString=[NSString stringWithFormat:@"%@%@%@%@%@%@",urlString1, city,@"%20",state,urlString2, today];
     joinString = [joinString stringByReplacingOccurrencesOfString:@" " withString:@"%20"];
     
     NSURL *url = [NSURL URLWithString:joinString];
@@ -627,6 +633,7 @@
     [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSDictionary *jsonDict = (NSDictionary *) responseObject;
         [self process:jsonDict];
+        [Flurry logEvent:@"Foursquare_Loading_Places"];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error loading places %@ %@", error, [error userInfo]);
     }];
@@ -674,10 +681,14 @@
 
 // Search foursquare data call
 - (void)loadPlacesForSearch:(NSString*)search {
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    [formatter setDateFormat:@"YYYYMMdd"];
+    NSString *today = [formatter stringFromDate:[NSDate date]];
+    
     NSString *urlString1 = @"https://api.foursquare.com/v2/venues/search?near=";
     NSString *urlString2 = @"&query=";
-    NSString *urlString3 = @"&limit=50&oauth_token=5IQQDYZZ0KJLYNQROEEFAEWR4V400IADTACODH2SYCVBNQ3P&v=20131113";
-    NSString *joinString=[NSString stringWithFormat:@"%@%@%@%@%@%@%@",urlString1,[self.userDetails objectForKey:@"city"] ,@"%20",[self.userDetails objectForKey:@"state"],urlString2, search, urlString3];
+    NSString *urlString3 = @"&limit=50&client_id=VLMUFMIAUWTTEVXXFQEQNKFDMCOFYEHTZU1U53IPQCI1PONX&client_secret=RH1CZUW0WWVM5LIEGZNFLU133YZX1ZMESAJ4PWNSDDSFMGYS&v=";
+    NSString *joinString=[NSString stringWithFormat:@"%@%@%@%@%@%@%@%@",urlString1,[self.userDetails objectForKey:@"city"] ,@"%20",[self.userDetails objectForKey:@"state"],urlString2, search, urlString3, today];
     joinString = [joinString stringByReplacingOccurrencesOfString:@" " withString:@"%20"];
     
     NSURL *url = [NSURL URLWithString:joinString];
@@ -689,6 +700,9 @@
     [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSDictionary *jsonDict = (NSDictionary *) responseObject;
         [self processSearchResults:jsonDict];
+        
+        [Flurry logEvent:@"Foursquare_User_Search"];
+        
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Failure");
     }];
@@ -837,6 +851,7 @@
                 [self removeCommitmentFromDatabase];
             } else {
                 [self commitToPlace:cell.place fromCell:cell];
+                [Flurry logEvent:@"Tethrd_by_tapping_cell"];
             }
         [tableView deselectRowAtIndexPath:indexPath animated:YES];
     }

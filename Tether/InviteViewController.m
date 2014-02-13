@@ -9,6 +9,7 @@
 #import "CenterViewController.h"
 #import "Constants.h"
 #import "Datastore.h"
+#import "Flurry.h"
 #import "Friend.h"
 #import "FriendAtPlaceCell.h"
 #import "FriendLabel.h"
@@ -28,7 +29,7 @@
 #define STATUS_BAR_HEIGHT 20.0
 #define TOP_BAR_HEIGHT 70.0
 #define PADDING 10.0
-#define PLUS_ICON_SIZE 35.0
+#define PLUS_ICON_SIZE 23.0
 
 @interface InviteViewController () <UIGestureRecognizerDelegate, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UITextViewDelegate>
 @property (retain, nonatomic) NSMutableArray *friendSearchResultsArray;
@@ -109,10 +110,9 @@
     
     self.friendsInvitedScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, self.topBarView.frame.size.height, self.view.frame.size.width, LABEL_HEIGHT + PADDING * 2)];
     self.friendsInvitedScrollView.showsVerticalScrollIndicator = YES;
-    self.friendsInvitedScrollView.indicatorStyle = UIScrollViewIndicatorStyleWhite;
     [self.view addSubview:self.friendsInvitedScrollView];
     
-    self.plusButton = [[UIButton alloc] initWithFrame:CGRectMake(PADDING, PADDING, 35.0, 35.0)];
+    self.plusButton = [[UIButton alloc] initWithFrame:CGRectMake(PADDING, PADDING + (LABEL_HEIGHT - PLUS_ICON_SIZE) / 2.0, PLUS_ICON_SIZE, PLUS_ICON_SIZE)];
     [self.plusButton setImage:[UIImage imageNamed:@"PlusSign"] forState:UIControlStateNormal];
     [self.plusButton addTarget:self action:@selector(plusButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
     [self.friendsInvitedScrollView addSubview:self.plusButton];
@@ -365,7 +365,7 @@
         self.friendsInvitedViewHeight += PLUS_ICON_SIZE + PADDING;
     }
     
-    self.plusButton.frame = CGRectMake(self.friendsInvitedViewWidth + 10.0, self.friendsInvitedViewHeight - (PLUS_ICON_SIZE + PADDING), PLUS_ICON_SIZE, PLUS_ICON_SIZE);
+    self.plusButton.frame = CGRectMake(self.friendsInvitedViewWidth + 10.0, self.friendsInvitedViewHeight - (LABEL_HEIGHT + PLUS_ICON_SIZE) / 2.0 - PADDING, PLUS_ICON_SIZE, PLUS_ICON_SIZE);
     self.friendsInvitedViewWidth += PLUS_ICON_SIZE + PADDING;
     
     [self.plusButton setHidden:NO];
@@ -571,11 +571,14 @@
 -(void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {
     if (searchBar == self.placeSearchBar) {
         self.placeSearchResultsTableView.hidden = NO;
-        [self loadPlacesForSearch:searchBar.text];
     } else if (searchBar == self.searchBar) {
         self.friendSearchResultsTableView.hidden = NO;
         [self searchFriends:searchBar.text];
     }
+}
+
+- (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar {
+    [self loadPlacesForSearch:searchBar.text];
 }
 
 -(void)searchFriends:(NSString*)searchText {
@@ -596,11 +599,15 @@
 
 // Search foursquare data call
 - (void)loadPlacesForSearch:(NSString*)search {
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    [formatter setDateFormat:@"YYYYMMdd"];
+    NSString *today = [formatter stringFromDate:[NSDate date]];
+    
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     NSString *urlString1 = @"https://api.foursquare.com/v2/venues/search?near=";
     NSString *urlString2 = @"&query=";
-    NSString *urlString3 = @"&limit=50&oauth_token=5IQQDYZZ0KJLYNQROEEFAEWR4V400IADTACODH2SYCVBNQ3P&v=20131113";
-    NSString *joinString=[NSString stringWithFormat:@"%@%@%@%@%@%@%@",urlString1,[userDetails objectForKey:@"city"] ,@"%20",[userDetails objectForKey:@"state"],urlString2, search, urlString3];
+    NSString *urlString3 = @"&limit=50&client_id=VLMUFMIAUWTTEVXXFQEQNKFDMCOFYEHTZU1U53IPQCI1PONX&client_secret=RH1CZUW0WWVM5LIEGZNFLU133YZX1ZMESAJ4PWNSDDSFMGYS&v=";
+    NSString *joinString=[NSString stringWithFormat:@"%@%@%@%@%@%@%@%@",urlString1,[userDetails objectForKey:@"city"] ,@"%20",[userDetails objectForKey:@"state"],urlString2, search, urlString3, today];
     joinString = [joinString stringByReplacingOccurrencesOfString:@" " withString:@"%20"];
     
     NSURL *url = [NSURL URLWithString:joinString];
@@ -612,6 +619,7 @@
     [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSDictionary *jsonDict = (NSDictionary *) responseObject;
         [self processSearchResults:jsonDict];
+        [Flurry logEvent:@"Foursquare_User_Search_Invite"];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Failure");
     }];

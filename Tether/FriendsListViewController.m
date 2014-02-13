@@ -9,6 +9,7 @@
 #import "CenterViewController.h"
 #import "Constants.h"
 #import "Datastore.h"
+#import "Flurry.h"
 #import "Friend.h"
 #import "FriendAtPlaceCell.h"
 #import "FriendsListViewController.h"
@@ -182,6 +183,8 @@
     self.friendsTableViewController.tableView = self.friendsTableView;
     
     self.friendsOfFriendsArray = [[NSMutableArray alloc] init];
+    
+    [Flurry logEvent:@"User_viewed_place_specific_page"];
 }
 
 -(void)addMapViewButton {
@@ -333,6 +336,7 @@
                         options:UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
                          [self.inviteViewController.view setFrame:CGRectMake( 0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                         [Flurry logEvent:@"User_views_invite_page_from_place_specific_page"];
                      }
                      completion:^(BOOL finished) {
                      }];
@@ -362,6 +366,7 @@
             [self.delegate commitToPlace:self.place];
             
             [self performSelector:@selector(showCommitment) withObject:self afterDelay:1.0];
+            [Flurry logEvent:@"Tethrd_from_place_specific_page"];
         }
     } else {
         if ([self.delegate isKindOfClass:[PlacesViewController class]]) {

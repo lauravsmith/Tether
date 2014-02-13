@@ -8,7 +8,9 @@
 
 #import "AppDelegate.h"
 #import "CenterViewController.h"
+#import "Constants.h"
 #import "Datastore.h"
+#import "Flurry.h"
 #import "LoginViewController.h"
 #import "MainViewController.h"
 
@@ -25,6 +27,9 @@ NSString *const SessionStateChangedNotification =
                   clientKey:@"1hyOM9UX4azldMphJE46K3RYbvTtucpPDF6KzrP7"];
 
     [PFAnalytics trackAppOpenedWithLaunchOptions:launchOptions];
+    
+    [Flurry setCrashReportingEnabled:YES];
+    [Flurry startSession:@"XBW8J7SD3MGFWXX24V3H"];
 
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     self.mainViewController = [[MainViewController alloc] init];
@@ -152,12 +157,13 @@ fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
 
 - (void)logoutPressed
 {
-    PFUser *user = [PFUser currentUser];
-    [user deleteInBackground];
     
-    [PFUser logOut];
     [self.navController popToRootViewControllerAnimated:YES];
     [self showLoginView];
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    [userDetails setBool:YES forKey:@"loggedOut"];
+    PFUser *user = [PFUser currentUser];
+    [user deleteInBackground];
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application

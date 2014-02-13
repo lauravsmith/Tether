@@ -8,6 +8,7 @@
 
 #import "AppDelegate.h"
 #import "CenterViewController.h"
+#import "Constants.h"
 #import "LoginViewController.h"
 #import <Parse/Parse.h>
 
@@ -81,7 +82,7 @@
 -(void)login {
     [PFFacebookUtils initializeFacebook];
     
-    NSArray *permissionsArray = @[ @"user_about_me", @"user_relationships", @"user_birthday", @"user_location"];
+    NSArray *permissionsArray = @[@"user_about_me", @"user_relationships", @"user_birthday", @"user_location"];
     
     // Login PFUser using Facebook
     [PFFacebookUtils logInWithPermissions:permissionsArray block:^(PFUser *user, NSError *error) {
@@ -96,7 +97,11 @@
             NSLog(@"User with facebook signed up and logged in!");
             [self loginPerformed:YES];
             NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-            [userDetails setBool:YES forKey:@"isNew"];
+            if (![userDetails boolForKey:@"loggedOut"]) {
+                [userDetails setBool:YES forKey:@"isNew"];
+            } else {
+                [userDetails setBool:NO forKey:kUserDefaultsStatusKey];
+            }
         } else {
             NSLog(@"User with facebook logged in!");
             [self loginPerformed:YES];

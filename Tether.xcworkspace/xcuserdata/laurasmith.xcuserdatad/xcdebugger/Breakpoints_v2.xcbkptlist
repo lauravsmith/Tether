@@ -95,12 +95,12 @@
                   symbolName = "-[ManageFriendsViewController searchFriends:]"
                   moduleName = "Tethr"
                   urlString = "file:///Users/laurasmith/Documents/Git/Tether/Tether/ManageFriendsViewController.m"
-                  timestampString = "413859665.01505"
+                  timestampString = "413944193.503377"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "197"
-                  endingLineNumber = "197"
-                  offsetFromSymbolStart = "258">
+                  startingLineNumber = "198"
+                  endingLineNumber = "198"
+                  offsetFromSymbolStart = "231">
                </Location>
                <Location
                   shouldBeEnabled = "Yes"
@@ -109,12 +109,12 @@
                   symbolName = "-[ManageFriendsViewController searchFriends:]"
                   moduleName = "Tethr"
                   urlString = "file:///Users/laurasmith/Documents/Git/Tether/Tether/ManageFriendsViewController.m"
-                  timestampString = "413859665.015241"
+                  timestampString = "413944193.503725"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "197"
-                  endingLineNumber = "197"
-                  offsetFromSymbolStart = "868">
+                  startingLineNumber = "198"
+                  endingLineNumber = "198"
+                  offsetFromSymbolStart = "969">
                </Location>
             </Locations>
          </BreakpointContent>
@@ -125,28 +125,12 @@
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "Tether/FriendCell.m"
-            timestampString = "413856013.537074"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "88"
-            endingLineNumber = "88"
-            landmarkName = "-layoutSubviews"
-            landmarkType = "5">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
             filePath = "Tether/InviteViewController.m"
-            timestampString = "413859836.415278"
+            timestampString = "413944287.60084"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "729"
-            endingLineNumber = "729"
+            startingLineNumber = "737"
+            endingLineNumber = "737"
             landmarkName = "-textViewDidChange:"
             landmarkType = "5">
          </BreakpointContent>
@@ -158,12 +142,44 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Tether/InviteViewController.m"
-            timestampString = "413859836.415278"
+            timestampString = "413944287.60084"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "718"
-            endingLineNumber = "718"
+            startingLineNumber = "726"
+            endingLineNumber = "726"
             landmarkName = "-textViewShouldBeginEditing:"
+            landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Tether/LoginViewController.m"
+            timestampString = "413921604.391586"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "103"
+            endingLineNumber = "103"
+            landmarkName = "-login"
+            landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Tether/InviteViewController.m"
+            timestampString = "413944287.60084"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "369"
+            endingLineNumber = "369"
+            landmarkName = "-layoutPlusIcon"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>

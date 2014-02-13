@@ -6,8 +6,9 @@
 //  Copyright (c) 2013 Laura Smith. All rights reserved.
 //
 
-#import "Datastore.h"
 #import "CenterViewController.h"
+#import "Datastore.h"
+#import "Flurry.h"
 #import "Place.h"
 #import "PlaceCell.h"
 
@@ -149,6 +150,7 @@
     if (self.commitButton.tag == 1) {
         if([self.delegate respondsToSelector:@selector(commitToPlace:)]) {
             [self.delegate commitToPlace:self.place];
+            [Flurry logEvent:@"Tethrd_by_tapping_tethr_button_on_cell"];
         }
     } else {
         if([self.delegate respondsToSelector:@selector(removePreviousCommitment)]) {

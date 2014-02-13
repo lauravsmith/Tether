@@ -397,7 +397,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     
     if (![self.statusMessageTextField.text isEqualToString:@""]) {
         for (NSString *friendID in sharedDataManager.bestFriendSet) {
-            NSString *messageHeader = [NSString stringWithFormat:@"%@ changed their status: \"%@\"",sharedDataManager.name, self.statusMessageTextField.text];
+            NSString *messageHeader = [NSString stringWithFormat:@"%@: \"%@\"",sharedDataManager.name, self.statusMessageTextField.text];
             if ([sharedDataManager.tetherFriendsNearbyDictionary objectForKey:friendID]) {
                 Friend *friend = [sharedDataManager.tetherFriendsNearbyDictionary objectForKey:friendID];
                 PFObject *statusUpdate = [PFObject objectWithClassName:kNotificationClassKey];
@@ -499,7 +499,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     // Dispose of any resources that can be recreated.
 }
 
-#pragma switch methods
+#pragma mark switch methods
 
 - (void)switchChange:(UISwitch *)theSwitch {
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
@@ -519,6 +519,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
         
         PFUser *user = [PFUser currentUser];
         [user setObject:[NSNumber numberWithBool:theSwitch.on] forKey:kUserStatusKey];
+        [user setObject:[NSDate date] forKey:kUserTimeLastUpdatedKey];
         [user saveInBackground];
         
         Datastore *sharedDataManager = [Datastore sharedDataManager];

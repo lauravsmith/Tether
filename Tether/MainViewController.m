@@ -10,6 +10,7 @@
 #import "CenterViewController.h"
 #import "Constants.h"
 #import "DecisionViewController.h"
+#import "Flurry.h"
 #import "Friend.h"
 #import "FriendsListViewController.h"
 #import "InviteViewController.h"
@@ -354,11 +355,18 @@
                 [self.centerViewController.bottomBar addSubview:self.centerViewController.userProfilePictureView];
                 [self.centerViewController.bottomBar addSubview:self.centerViewController.settingsButtonLarge];
                 [self.centerViewController.bottomBar bringSubviewToFront:self.centerViewController.notificationsLabel];
+                
+                self.settingsViewController = [[SettingsViewController alloc] init];
+                self.settingsViewController.delegate = self;
+                self.settingsViewController.userProfilePictureView = [[FBProfilePictureView alloc] initWithProfileID:facebookId pictureCropping:FBProfilePictureCroppingSquare];
+                
+                [Flurry setUserID:facebookId];
             }
             
             NSString *gender = result[@"gender"];
             if (gender && [gender length] != 0) {
                 [self.currentUser setObject:gender forKey:kUserGenderKey];
+                [Flurry setGender:gender];
             }
             
             NSString *relationshipStatus = result[@"relationship_status"];
@@ -366,7 +374,6 @@
                 [self.currentUser setObject:relationshipStatus forKey:@"relationshipStatus"];
             }
             
-//            NSLog(@"PARSE SAVE: setting your user facebook details");
             [self.currentUser saveEventually];
             
             if ([self.currentUser objectForKey:kUserStatusMessageKey]) {
@@ -540,38 +547,40 @@
     
     for (id key in sharedDataManager.tetherFriendsNearbyDictionary) {
         Friend *friend = [sharedDataManager.tetherFriendsNearbyDictionary objectForKey:key];
-        PFQuery *friendQuery = [PFUser query];
-        [friendQuery whereKey:kUserFacebookIDKey equalTo:friend.friendID];
-        
-        [friendQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
-            if (!error) {
-                // Create our Installation query
-                PFUser * user = [objects objectAtIndex:0];
-                PFQuery *pushQuery = [PFInstallation query];
-                [pushQuery whereKey:@"owner" equalTo:user]; //change this to use friends installation
-                NSString *messageHeader = [NSString stringWithFormat:@"Your Facebook friend %@ just joined tethr", sharedDataManager.name];
-                NSDictionary *data = [NSDictionary dictionaryWithObjectsAndKeys:
-                                      messageHeader, @"alert",
-                                      @"Increment", @"badge",
-                                      nil];
-                
-                // Send push notification to query
-                PFPush *push = [[PFPush alloc] init];
-                [push setQuery:pushQuery]; // Set our Installation query
-                [push setData:data];
-                [push sendPushInBackground];
-                
-                PFObject *notification = [PFObject objectWithClassName:kNotificationClassKey];
-                [notification setObject:sharedDataManager.facebookId forKey:kNotificationSenderKey];
-                [notification setObject:messageHeader forKey:kNotificationMessageHeaderKey];
-                [notification setObject:friend.friendID forKey:kNotificationRecipientKey];
-                [notification setObject:[userDetails objectForKey:kUserDefaultsCityKey] forKey:kNotificationCityKey];
-                [notification setObject:@"newUser" forKey:kNotificationTypeKey];
-                [notification setObject:@"" forKey:kNotificationPlaceNameKey];
-                [notification setObject:@"" forKey:kNotificationPlaceIdKey];
-                [notification saveInBackground];
-            }
-        }];
+        if (![friend.friendID isEqualToString:sharedDataManager.facebookId]) {
+            PFQuery *friendQuery = [PFUser query];
+            [friendQuery whereKey:kUserFacebookIDKey equalTo:friend.friendID];
+            
+            [friendQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+                if (!error) {
+                    // Create our Installation query
+                    PFUser * user = [objects objectAtIndex:0];
+                    PFQuery *pushQuery = [PFInstallation query];
+                    [pushQuery whereKey:@"owner" equalTo:user]; //change this to use friends installation
+                    NSString *messageHeader = [NSString stringWithFormat:@"Your Facebook friend %@ just joined tethr", sharedDataManager.name];
+                    NSDictionary *data = [NSDictionary dictionaryWithObjectsAndKeys:
+                                          messageHeader, @"alert",
+                                          @"Increment", @"badge",
+                                          nil];
+                    
+                    // Send push notification to query
+                    PFPush *push = [[PFPush alloc] init];
+                    [push setQuery:pushQuery]; // Set our Installation query
+                    [push setData:data];
+                    [push sendPushInBackground];
+                    
+                    PFObject *notification = [PFObject objectWithClassName:kNotificationClassKey];
+                    [notification setObject:sharedDataManager.facebookId forKey:kNotificationSenderKey];
+                    [notification setObject:messageHeader forKey:kNotificationMessageHeaderKey];
+                    [notification setObject:friend.friendID forKey:kNotificationRecipientKey];
+                    [notification setObject:[userDetails objectForKey:kUserDefaultsCityKey] forKey:kNotificationCityKey];
+                    [notification setObject:@"newUser" forKey:kNotificationTypeKey];
+                    [notification setObject:@"" forKey:kNotificationPlaceNameKey];
+                    [notification setObject:@"" forKey:kNotificationPlaceIdKey];
+                    [notification saveInBackground];
+                }
+            }];
+        }
     }
     [userDetails setBool:NO forKey:@"isNew"];
 }
@@ -976,6 +985,7 @@
                             [self.settingsViewController.view setFrame:CGRectMake( 0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
                      }
                      completion:^(BOOL finished) {
+                          [Flurry logEvent:@"User_views_Settings_Page"];
                      }];
 }
 
@@ -1001,6 +1011,7 @@
                          }
                          completion:^(BOOL finished) {
                              [self resetMainView];
+                             [Flurry logEvent:@"User_views_Places_list_page"];
                          }];
     }
     
@@ -1067,6 +1078,8 @@
                              UITapGestureRecognizer *mapTapGesture =
                              [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(closePanel:)];
                              [self.centerViewController.view addGestureRecognizer:mapTapGesture];
+                             
+                             [Flurry logEvent:@"User_views_Friends_List"];
                          }];
     }
     
@@ -1117,6 +1130,8 @@
                                  UITapGestureRecognizer *mapTapGesture =
                                  [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(closePanel:)];
                                  [self.centerViewController.view addGestureRecognizer:mapTapGesture];
+                                 
+                                  [Flurry logEvent:@"User_views_activity_feed"];
                              }];
         }
     } else {
@@ -1248,6 +1263,18 @@
     if (![userDetails boolForKey:kUserDefaultsHasSeenRefreshTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenFriendsListTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenPlaceListTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenCityChangeTutorialKey]) {
         [self.centerViewController addTutorialView];
     }
+    
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    [formatter setDateFormat:@"YYMMddhh"];
+    
+    NSString *stringFromDate = [formatter stringFromDate:[NSDate date]];
+    NSString *choiceString = choice ? @"YES" : @"NO";
+    NSDictionary *decisionParams =
+    [NSDictionary dictionaryWithObjectsAndKeys:
+     @"Decision", choiceString, @"Date", stringFromDate,
+     nil];
+    
+    [Flurry logEvent:@"User_Input_Decision_Page" withParameters:decisionParams];
 }
 
 #pragma mark SettingsViewControllerDelegate
@@ -1293,6 +1320,8 @@
     }
     self.centerViewController.resettingLocation = YES;
     [self.centerViewController setCityFromCLLocation:newLocation];
+    
+    [Flurry logEvent:@"User_changed_city"];
 }
 
 -(void)userChangedSettingsToUseCurrentLocation {
@@ -1511,21 +1540,16 @@
 
             
             NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-            BOOL status = [userDetails boolForKey:kUserDefaultsStatusKey];
-            NSDate *timeLastUpdated = [userDetails objectForKey:kUserDefaultsTimeLastUpdatedKey];
+            [userDetails setBool:YES forKey:kUserDefaultsStatusKey];
+            [userDetails setObject:[NSDate date] forKey:kUserDefaultsTimeLastUpdatedKey];
+            [userDetails synchronize];
             
-            if (!status || [[self getStartTime] compare:timeLastUpdated] == NSOrderedDescending) {
-                [userDetails setBool:YES forKey:kUserDefaultsStatusKey];
-                [userDetails setObject:[NSDate date] forKey:kUserDefaultsTimeLastUpdatedKey];
-                [userDetails synchronize];
-                
-                PFUser *user = [PFUser currentUser];
-                [user setObject:[NSNumber numberWithBool:YES] forKey:kUserStatusKey];
-                [user setObject:[NSDate date] forKey:kUserTimeLastUpdatedKey];
-                [user saveInBackground];
-                
-                self.settingsViewController.goingOutSwitch.on = YES;
-            }
+            PFUser *user = [PFUser currentUser];
+            [user setObject:[NSNumber numberWithBool:YES] forKey:kUserStatusKey];
+            [user setObject:[NSDate date] forKey:kUserTimeLastUpdatedKey];
+            [user saveInBackground];
+            
+            self.settingsViewController.goingOutSwitch.on = YES;
             
             if (![userDetails boolForKey:kUserDefaultsHasSeenTethrTutorialKey]) {
                 [userDetails setBool:YES forKey:kUserDefaultsHasSeenTethrTutorialKey];
@@ -1540,8 +1564,17 @@
                     self.committingToPlace = NO;
                     self.listsHaveChanged = YES;
                     [self pollDatabase];
+                    
+                    NSDictionary *commitmentParams =
+                    [NSDictionary dictionaryWithObjectsAndKeys:
+                     @"Place", place.name,
+                     @"City", place.city,
+                     nil];
+                    
+                    [Flurry logEvent:@"Tethrd" withParameters:commitmentParams];
                 } else {
                     NSLog(@"Committing Error: %@ %@", error, [error userInfo]);
+                    [Flurry logError:@"Error_committing" message:nil error:error];
                 }
             }];
             

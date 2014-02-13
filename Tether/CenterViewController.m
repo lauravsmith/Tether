@@ -10,6 +10,7 @@
 #import "CenterViewController.h"
 #import "Constants.h"
 #import "Datastore.h"
+#import "Flurry.h"
 #import "Place.h"
 #import "TetherAnnotation.h"
 #import "TetherAnnotationView.h"
@@ -416,6 +417,8 @@
         [userDetails synchronize];
         [self closeTutorial];
     }
+    
+    [Flurry logEvent:@"Refresh_clicked"];
 }
 
 -(void)refreshComplete {
@@ -580,6 +583,11 @@
     
     [self.locationManager stopUpdatingLocation];
     [self.locationManager startMonitoringSignificantLocationChanges];
+    
+    [Flurry setLatitude:self.userCoordinates.coordinate.latitude
+              longitude:self.userCoordinates.coordinate.longitude
+     horizontalAccuracy:self.userCoordinates.horizontalAccuracy
+       verticalAccuracy:self.userCoordinates.verticalAccuracy];
 }
 
 #pragma mark -

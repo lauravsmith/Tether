@@ -11,6 +11,7 @@
 #import "Datastore.h"
 #import "FriendAtPlaceCell.h"
 #import "FriendCell.h"
+#import "Flurry.h"
 #import "LeftPanelViewController.h"
 
 #define CELL_HEIGHT 65
@@ -417,6 +418,8 @@
             [self closeTutorial];
         }
     }
+    
+     [Flurry logEvent:@"User_views_invite_page_from_friend_list"];
 }
 
 #pragma mark UIScrollView Delegate methods
