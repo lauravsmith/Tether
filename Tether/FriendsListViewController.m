@@ -102,7 +102,7 @@
     
     CGSize size = [self.placeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
     CGSize addressLabelSize = [self.addressLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratTiny}];
-    self.placeLabel.frame = CGRectMake(MAX(LEFT_PADDING, (self.view.frame.size.width - size.width) / 2.0), STATUS_BAR_HEIGHT + (self.topBar.frame.size.height - STATUS_BAR_HEIGHT - size.height - addressLabelSize.height) / 2.0, MIN(self.view.frame.size.width - LEFT_PADDING, size.width), size.height);
+    self.placeLabel.frame = CGRectMake(MAX(LEFT_PADDING, (self.view.frame.size.width - size.width) / 2.0), STATUS_BAR_HEIGHT + (self.topBar.frame.size.height - STATUS_BAR_HEIGHT - size.height - addressLabelSize.height) / 2.0, MIN(self.view.frame.size.width - LEFT_PADDING*2, size.width), size.height);
     self.addressLabel.frame = CGRectMake(MAX(LEFT_PADDING, (self.view.frame.size.width - addressLabelSize.width) / 2.0), STATUS_BAR_HEIGHT + (self.topBar.frame.size.height - STATUS_BAR_HEIGHT + size.height - addressLabelSize.height) / 2.0, addressLabelSize.width, addressLabelSize.height);
     
     // left panel view button setup
@@ -184,7 +184,7 @@
     
     self.friendsOfFriendsArray = [[NSMutableArray alloc] init];
     
-    [Flurry logEvent:@"User_viewed_place_specific_page"];
+    [Flurry logEvent:@"User_views_place_specific_page"];
 }
 
 -(void)addMapViewButton {
@@ -570,12 +570,21 @@
         [self setupTutorialView];
         return self.tutorialView;
     } else {
-        NSString *headerString = [NSString stringWithFormat:@"Friends of Friends Going Here (%lu)", (unsigned long)[self.friendsOfFriendsArray count]];
+        NSString *headerString = @"Friends of Friends Going Here ";
         [label setText:headerString];
     }
     CGSize size = [label.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
     label.frame = CGRectMake(10.0, (view.frame.size.height - size.height) / 2.0, size.width, size.height);
     [view addSubview:label];
+    
+    UILabel *countLabel = [[UILabel alloc] initWithFrame:CGRectMake(100.0, 0, 50.0, HEADER_HEIGHT)];
+    [countLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
+    countLabel.font = montserrat;
+    countLabel.text = [NSString stringWithFormat:@"%lu",(unsigned long)[self.friendsOfFriendsArray count]];
+    CGSize numberLabelSize = [countLabel.text sizeWithAttributes:@{NSFontAttributeName: montserrat}];
+    countLabel.frame = CGRectMake(label.frame.origin.x + label.frame.size.width + PADDING, label.frame.origin.y, numberLabelSize.width, numberLabelSize.height);
+    [view addSubview:countLabel];
+    
     return view;
 }
 

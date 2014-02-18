@@ -9,32 +9,37 @@
 #import "AppDelegate.h"
 #import "Constants.h"
 #import "Datastore.h"
+#import "Flurry.h"
 #import "ManageFriendsViewController.h"
 #import "SettingsViewController.h"
 #import "TethrTextField.h"
 
+#import "UIImage+ImageEffects.h"
+
 #define PADDING 15.0
 #define PROFILE_IMAGE_VIEW_SIZE 80.0
+#define SEGMENT_HEIGHT 45.0
 #define SLIDE_TIMING 0.6
 #define STATUS_BAR_HEIGHT 20.0
 #define STATUS_MESSAGE_LENGTH 35.0
 #define TABLE_VIEW_HEIGHT 277.0
+#define TOP_BAR_HEIGHT 70.0
 
 #define degreesToRadian(x) (M_PI * (x) / 180.0)
 
 static NSString *kGeoNamesAccountName = @"lsmit87";
 
-@interface SettingsViewController () <ILGeoNamesLookupDelegate, ManageFriendsViewControllerDelegate, UITextFieldDelegate, UITableViewDelegate, UITableViewDataSource>
+@interface SettingsViewController () <ILGeoNamesLookupDelegate, ManageFriendsViewControllerDelegate, UITextFieldDelegate, UITableViewDelegate, UITableViewDataSource, NSURLConnectionDataDelegate>
 
-@property (retain, nonatomic) TethrTextField *statusMessageTextField;
+@property (retain, nonatomic) UITextField *statusMessageTextField;
 @property (retain, nonatomic) UIButton * doneButton;
 @property (retain, nonatomic) UIButton * largeDoneButton;
 @property (retain, nonatomic) UIView * topBarView;
 @property (retain, nonatomic) UITextField *cityTextField;
 @property (retain, nonatomic) UIButton * logoutButton;
+@property (retain, nonatomic) UIButton * largeLogoutButton;
 @property (retain, nonatomic) UISwitch * setLocationSwitch;
 @property (retain, nonatomic) UILabel * defaultCityLabel;
-@property (retain, nonatomic) UILabel * locationSwitchLabel;
 @property (retain, nonatomic) UILabel * goingOutLabel;
 @property (retain, nonatomic) UILabel * yesLabel;
 @property (retain, nonatomic) UILabel * noLabel;
@@ -46,6 +51,8 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 @property (retain, nonatomic) UIButton * inviteFriendsButton;
 @property (retain, nonatomic) UIButton * arrowButton;
 @property (retain, nonatomic) ManageFriendsViewController *manageVC;
+@property (retain, nonatomic) UIView *backgroundView;
+@property (retain, nonatomic) UILabel *dotLabel;
 
 @end
 
@@ -70,14 +77,24 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     
-    UIImage *backgroundImage = [UIImage imageNamed:@"BlackTexture"];
-    UIImageView *backgroundImageView = [[UIImageView alloc] initWithImage:backgroundImage];
-    backgroundImageView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
-    [self.view addSubview:backgroundImageView];
+    self.backgroundView = [[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.frame.size.width, self.view.frame.size.height)];
+    [self.backgroundView setBackgroundColor:[UIColor whiteColor]];
+    [self.view addSubview:self.backgroundView];
+    
+    self.topBarView = [[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.frame.size.width, TOP_BAR_HEIGHT)];
+    [self.topBarView setBackgroundColor:[UIColor whiteColor]];
+    [self.topBarView setHidden:YES];
+    
+    self.topBarView.layer.masksToBounds = NO;
+    self.topBarView.layer.shadowOffset = CGSizeMake(0.0, 2.0);
+    self.topBarView.layer.shadowRadius = 5;
+    self.topBarView.layer.shadowOpacity = 0.8;
+    
+    [self.view addSubview:self.topBarView];
     
     UITapGestureRecognizer *closeKeyBoardTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissKeyboard)];
-    backgroundImageView.userInteractionEnabled = YES;
-    [backgroundImageView addGestureRecognizer:closeKeyBoardTap];
+    self.backgroundView.userInteractionEnabled = YES;
+    [self.backgroundView addGestureRecognizer:closeKeyBoardTap];
     
     UISwipeGestureRecognizer * swipeDown = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swipeDown:)];
     [swipeDown setDirection:(UISwipeGestureRecognizerDirectionDown)];
@@ -86,85 +103,97 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [self addProfileImageView];
     
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14];
-    self.statusMessageTextField = [[TethrTextField alloc] initWithFrame:CGRectMake(PADDING, self.userProfilePictureView.frame.origin.y + self.userProfilePictureView.frame.size.height + PADDING, self.view.frame.size.width - PADDING * 2, 25.0)];
+    self.statusMessageTextField = [[UITextField alloc] init];
     self.statusMessageTextField.delegate = self;
-    self.statusMessageTextField.layer.cornerRadius = 2.0;
-    self.statusMessageTextField.placeholder = @"Enter a status message";
-    [self.statusMessageTextField setBackgroundColor:[UIColor whiteColor]];
-    [self.statusMessageTextField setTextColor:UIColorFromRGB(0xc8c8c8)];
+    self.statusMessageTextField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Enter a status message" attributes:@{NSForegroundColorAttributeName:UIColorFromRGB(0x1d1d1d)}];
+    [self.statusMessageTextField setBackgroundColor:[UIColor clearColor]];
+    [self.statusMessageTextField setTextColor:UIColorFromRGB(0x1d1d1d)];
     [self.statusMessageTextField setFont:montserrat];
     Datastore *sharedDataManager = [Datastore sharedDataManager];
-    if (sharedDataManager.statusMessage) {
+    CGSize statusMessageSize;
+    if (sharedDataManager.statusMessage && ![sharedDataManager.statusMessage isEqualToString:@""]) {
         self.statusMessageTextField.text = sharedDataManager.statusMessage;
+        statusMessageSize = [sharedDataManager.statusMessage sizeWithAttributes:@{NSFontAttributeName: montserrat}];
+    } else {
+        statusMessageSize = [@"Enter a status message" sizeWithAttributes:@{NSFontAttributeName: montserrat}];
     }
+    self.statusMessageTextField.frame = CGRectMake((self.view.frame.size.width - statusMessageSize.width) / 2.0, self.userProfilePictureView.frame.origin.y + self.userProfilePictureView.frame.size.height + PADDING + 2.0, statusMessageSize.width, statusMessageSize.height);
+    self.statusMessageTextField.delegate = self;
     [self.view addSubview:self.statusMessageTextField];
     
-    UIImageView *blackLineImageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, self.statusMessageTextField.frame.origin.y + self.statusMessageTextField.frame.size.height + PADDING, self.view.frame.size.width, 4.0)];
-    [blackLineImageView setImage:[UIImage imageNamed:@"DividerSettings"]];
-    [self.view addSubview:blackLineImageView];
+    UIView *whiteView = [[UIView alloc] initWithFrame:CGRectMake(0.0, 220.0, self.view.frame.size.width, self.view.frame.size.height - 220.0)];
+    [whiteView setBackgroundColor:[UIColor whiteColor]];
+    [self.view addSubview:whiteView];
+    
+    UITapGestureRecognizer *closeKeyBoardTap2 = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissKeyboard)];
+    whiteView.userInteractionEnabled = YES;
+    [whiteView addGestureRecognizer:closeKeyBoardTap2];
+    
+    UIView *segment2 = [[UIView alloc] initWithFrame:CGRectMake(0.0, SEGMENT_HEIGHT, self.view.frame.size.width, SEGMENT_HEIGHT)];
+    [segment2 setBackgroundColor:UIColorFromRGB(0xf8f8f8)];
+    [whiteView addSubview:segment2];
     
     self.defaultCityLabel = [[UILabel alloc] init];
-    self.defaultCityLabel.text = @"Default City";
+    self.defaultCityLabel.text = @"Use current location?";
     self.defaultCityLabel.font = montserrat;
-    self.defaultCityLabel.textColor = [UIColor whiteColor];
+    self.defaultCityLabel.textColor = UIColorFromRGB(0x1d1d1d);
     CGSize textLabelSize = [self.defaultCityLabel.text sizeWithAttributes:@{NSFontAttributeName: montserrat}];
-    self.defaultCityLabel.frame = CGRectMake(PADDING, blackLineImageView.frame.origin.y + PADDING, textLabelSize.width, textLabelSize.height);
-    [self.view addSubview:self.defaultCityLabel];
-    
-    self.locationSwitchLabel = [[UILabel alloc] init];
-    self.locationSwitchLabel.text = @"Use current location?";
-    UIFont *subheadingFont = [UIFont fontWithName:@"Montserrat" size:10];
-    self.locationSwitchLabel.font = subheadingFont;
-    self.locationSwitchLabel.textColor = [UIColor whiteColor];
-    CGSize locationSwitchLabelSize = [self.locationSwitchLabel.text sizeWithAttributes:@{NSFontAttributeName: subheadingFont}];
-    self.locationSwitchLabel.frame = 
-    CGRectMake(PADDING, self.defaultCityLabel.frame.origin.y + self.defaultCityLabel.frame.size.height, locationSwitchLabelSize.width, locationSwitchLabelSize.height);
-    [self.view addSubview:self.locationSwitchLabel];
+    self.defaultCityLabel.frame = CGRectMake(PADDING, (SEGMENT_HEIGHT - textLabelSize.height) / 2.0, textLabelSize.width, textLabelSize.height);
+    [segment2 addSubview:self.defaultCityLabel];
     
     self.noLabel = [[UILabel alloc] init];
     self.noLabel.text = @"No";
     UIFont *switchLabelFont = [UIFont fontWithName:@"Montserrat" size:16];
     self.noLabel.font = switchLabelFont;
-    self.noLabel.textColor = [UIColor whiteColor];
+    self.noLabel.textColor = UIColorFromRGB(0x1d1d1d);
     CGSize noLabelSize = [self.noLabel.text sizeWithAttributes:@{NSFontAttributeName: switchLabelFont}];
-    self.noLabel.frame = CGRectMake(PADDING, self.locationSwitchLabel.frame.origin.y + self.locationSwitchLabel.frame.size.height + PADDING, noLabelSize.width, noLabelSize.height);
-    [self.view addSubview:self.noLabel];
+    self.noLabel.frame = CGRectMake(self.view.frame.size.width - 105.0, (SEGMENT_HEIGHT - noLabelSize.height) / 2.0, noLabelSize.width, noLabelSize.height);
+    [segment2 addSubview:self.noLabel];
     
     self.setLocationSwitch = [[UISwitch alloc] init];
     self.setLocationSwitch.transform = CGAffineTransformMakeScale(0.60, 0.60);
     self.setLocationSwitch.frame = CGRectMake(self.noLabel.frame.origin.x + self.noLabel.frame.size.width + 2.0, self.noLabel.frame.origin.y, 0, 0);
-    [self.setLocationSwitch setOnTintColor:UIColorFromRGB(0xD6D6D6)];
+    [self.setLocationSwitch setOnTintColor:[UIColor whiteColor]];
+    [self.setLocationSwitch setThumbTintColor:UIColorFromRGB(0x8e0528)];
     [self.setLocationSwitch addTarget:self action:@selector(switchChange:) forControlEvents:UIControlEventValueChanged];
-    [self.view addSubview:self.setLocationSwitch];
+    [segment2 addSubview:self.setLocationSwitch];
     [self.setLocationSwitch setOn:[userDetails boolForKey:@"useCurrentLocation"]];
     NSLog(@"Switch is: %d", [self.setLocationSwitch isOn]);
     
     self.yesLabel = [[UILabel alloc] init];
     self.yesLabel.text = @"Yes";
     self.yesLabel.font = switchLabelFont;
-    self.yesLabel.textColor = [UIColor whiteColor];
+    self.yesLabel.textColor = UIColorFromRGB(0x1d1d1d);
     CGSize yesLabelSize = [self.yesLabel.text sizeWithAttributes:@{NSFontAttributeName: switchLabelFont}];
-    self.yesLabel.frame = CGRectMake(self.setLocationSwitch.frame.origin.x + 35.0, self.locationSwitchLabel.frame.origin.y + self.locationSwitchLabel.frame.size.height + PADDING, yesLabelSize.width, yesLabelSize.height);
-    [self.view addSubview:self.yesLabel];
+    self.yesLabel.frame = CGRectMake(self.setLocationSwitch.frame.origin.x + 35.0, (SEGMENT_HEIGHT - yesLabelSize.height) / 2.0, yesLabelSize.width, yesLabelSize.height);
+    [segment2 addSubview:self.yesLabel];
     
     //city search
-    self.cityTextField = [[UITextField  alloc] initWithFrame:CGRectMake(PADDING, self.setLocationSwitch.frame.origin.y + self.setLocationSwitch.frame.size.height, self.view.frame.size.width - PADDING*2, 25.0)];
+    self.cityTextField = [[UITextField  alloc] init];
     self.cityTextField.delegate = self;
     NSString *location = [NSString stringWithFormat:@"%@, %@",[userDetails objectForKey:@"city"], [userDetails objectForKey:@"state"]];
     self.cityTextField.text = [location uppercaseString];
     self.cityTextField.placeholder = @"Search by city name";
     UIFont *textViewFont = [UIFont fontWithName:@"Montserrat" size:16];
     self.cityTextField.font = textViewFont;
-    self.cityTextField.textColor = UIColorFromRGB(0xc8c8c8);
+    CGSize cityLabelSize = [self.cityTextField.text sizeWithAttributes:@{NSFontAttributeName: textViewFont}];
+    self.cityTextField.frame = CGRectMake((self.view.frame.size.width - cityLabelSize.width) / 2.0, 184.0, cityLabelSize.width, cityLabelSize.height);
+    self.cityTextField.textColor = UIColorFromRGB(0x1d1d1d);
     self.cityTextField.layer.cornerRadius = 2.0;
-    [self.cityTextField setBackgroundColor:[UIColor whiteColor]];
+    [self.cityTextField setBackgroundColor:[UIColor clearColor]];
     [self.view addSubview:self.cityTextField];
     self.cityTextField.enabled = !self.setLocationSwitch.on;
     self.cityTextField .clearButtonMode = UITextFieldViewModeWhileEditing;
     [self.cityTextField addTarget:self action:@selector(textFieldDidChange:) forControlEvents:UIControlEventEditingChanged];
-    [self.cityTextField setLeftView:[[UIView alloc] initWithFrame:CGRectMake(0, 0, 10, 20)]];
-    [self.cityTextField setLeftViewMode:UITextFieldViewModeAlways];
     self.cityTextField.tag = 1;
+    
+    self.dotLabel = [[UILabel alloc] init];
+    self.dotLabel.text = @".";
+    self.dotLabel.font = montserrat;
+    textLabelSize = [self.dotLabel.text  sizeWithAttributes:@{NSFontAttributeName: montserrat}];
+    self.dotLabel.frame = CGRectMake((self.view.frame.size.width - textLabelSize.width) / 2.0, (self.statusMessageTextField.frame.origin.y - self.statusMessageTextField.frame.size.height / 2.0 + self.cityTextField.frame.origin.y) / 2.0, textLabelSize.width, textLabelSize.height);
+    [self.dotLabel setTextColor:UIColorFromRGB(0x1d1d1d)];
+    [self.view addSubview:self.dotLabel];
     
     //pull city search results from geonames.org
     self.geocoder = [[ILGeoNamesLookup alloc] initWithUserID:kGeoNamesAccountName];
@@ -173,7 +202,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.cancelSearchButton = [[UIButton alloc] init];
     [self.cancelSearchButton addTarget:self action:@selector(cancelSearchButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
     [self.cancelSearchButton setBackgroundColor:[UIColor clearColor]];
-    [self.cancelSearchButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [self.cancelSearchButton setTitleColor:UIColorFromRGB(0x1d1d1d) forState:UIControlStateNormal];
     [self.cancelSearchButton setTitle:@"Cancel" forState:UIControlStateNormal];
     UIFont *cancelButtonFont = [UIFont fontWithName:@"Montserrat" size:12];
     CGSize size = [self.cancelSearchButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName: cancelButtonFont}];
@@ -182,92 +211,86 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.cancelSearchButton.hidden = YES;
     [self.view addSubview:self.cancelSearchButton];
     
-    self.activityIndicator = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake((self.view.frame.size.width - 50.0) / 2.0, self.defaultCityLabel.frame.origin.y + self.defaultCityLabel.frame.size.height , 50.0, 50.0)];
+    self.activityIndicator = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake((self.view.frame.size.width - 50.0) / 2.0, TOP_BAR_HEIGHT, 50.0, 50.0)];
+    [self.activityIndicator setColor:[UIColor blackColor]];
     [self.view addSubview:self.activityIndicator];
-    
-    UIImageView *blackLineImageView2 = [[UIImageView alloc] initWithFrame:CGRectMake(0.0, self.cityTextField.frame.origin.y + self.cityTextField.frame.size.height + PADDING, self.view.frame.size.width, 4.0)];
-    [blackLineImageView2 setImage:[UIImage imageNamed:@"DividerSettings"]];
-    [self.view addSubview:blackLineImageView2];
     
     self.goingOutLabel = [[UILabel alloc] init];
     self.goingOutLabel.text = @"Going out?";
     self.goingOutLabel.font = montserrat;
-    self.goingOutLabel.textColor = [UIColor whiteColor];
+    self.goingOutLabel.textColor = UIColorFromRGB(0x1d1d1d);
     size = [self.goingOutLabel.text sizeWithAttributes:@{NSFontAttributeName: montserrat}];
     self.goingOutLabel.frame =
-    CGRectMake(PADDING, blackLineImageView2.frame.origin.y + blackLineImageView2.frame.size.height + PADDING, size.width, size.height);
-    [self.view addSubview:self.goingOutLabel];
+    CGRectMake(PADDING, (SEGMENT_HEIGHT - size.height) / 2.0, size.width, size.height);
+    [whiteView addSubview:self.goingOutLabel];
     
     UILabel *noLabel2 = [[UILabel alloc] init];
     noLabel2.text = @"No";
     noLabel2.font = switchLabelFont;
-    noLabel2.textColor = [UIColor whiteColor];
-    noLabel2.frame = CGRectMake(PADDING, self.goingOutLabel.frame.origin.y + self.goingOutLabel.frame.size.height + PADDING, noLabelSize.width, noLabelSize.height);
-    [self.view addSubview:noLabel2];
+    noLabel2.textColor = UIColorFromRGB(0x1d1d1d);
+    noLabel2.frame = CGRectMake(self.view.frame.size.width - 105.0, self.goingOutLabel.frame.origin.y, noLabelSize.width, noLabelSize.height);
+    [whiteView addSubview:noLabel2];
     
     self.goingOutSwitch = [[UISwitch alloc] init];
     self.goingOutSwitch.transform = CGAffineTransformMakeScale(0.60, 0.60);
     self.goingOutSwitch.frame = CGRectMake(noLabel2.frame.origin.x + noLabel2.frame.size.width + 2.0, noLabel2.frame.origin.y, 0, 0);
-    [self.goingOutSwitch setOnTintColor:UIColorFromRGB(0xD6D6D6)];
+    [self.goingOutSwitch setOnTintColor:UIColorFromRGB(0xf8f8f8)];
+    [self.goingOutSwitch setThumbTintColor:UIColorFromRGB(0x8e0528)];
     [self.goingOutSwitch addTarget:self action:@selector(switchChange:) forControlEvents:UIControlEventValueChanged];
-    [self.view addSubview:self.goingOutSwitch];
+    [whiteView addSubview:self.goingOutSwitch];
     self.goingOutSwitch.on = [userDetails boolForKey:@"status"];
     
     UILabel *yesLabel2 = [[UILabel alloc] init];
     yesLabel2.text = @"Yes";
     yesLabel2.font = switchLabelFont;
-    yesLabel2.textColor = [UIColor whiteColor];
-    yesLabel2.frame = CGRectMake(self.goingOutSwitch.frame.origin.x + 35.0, self.goingOutLabel.frame.origin.y + self.goingOutLabel.frame.size.height + PADDING, yesLabelSize.width, yesLabelSize.height);
-    [self.view addSubview:yesLabel2];
+    yesLabel2.textColor = UIColorFromRGB(0x1d1d1d);
+    yesLabel2.frame = CGRectMake(self.goingOutSwitch.frame.origin.x + 35.0, self.goingOutLabel.frame.origin.y, yesLabelSize.width, yesLabelSize.height);
+    [whiteView addSubview:yesLabel2];
     
-    UIImageView *blackLineImageView3 = [[UIImageView alloc] initWithFrame:CGRectMake(0.0, noLabel2.frame.origin.y + noLabel2.frame.size.height + PADDING, self.view.frame.size.width, 4.0)];
-    [blackLineImageView3 setImage:[UIImage imageNamed:@"DividerSettings"]];
-    [self.view addSubview:blackLineImageView3];
-    
-    UIButton *manageButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 20.0, self.view.frame.size.height - 20.0, 20.0, 20.0)];
+    UIButton *manageButton = [[UIButton alloc] init];
     [manageButton setTitle:@"Manage friends" forState:UIControlStateNormal];
     manageButton.titleLabel.font = montserrat;
     size = [manageButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName: montserrat}];
-    manageButton.frame = CGRectMake(PADDING, blackLineImageView3.frame.origin.y + PADDING, size.width, size.height);
-    [manageButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    manageButton.frame = CGRectMake(PADDING, segment2.frame.origin.y + SEGMENT_HEIGHT + (SEGMENT_HEIGHT - size.height) / 2.0, size.width, size.height);
+    [manageButton setTitleColor:UIColorFromRGB(0x1d1d1d) forState:UIControlStateNormal];
     [manageButton addTarget:self action:@selector(showManage:) forControlEvents:UIControlEventTouchUpInside];
+    [whiteView addSubview:manageButton];
     
-    [self.view addSubview:manageButton];
-    
-    UIImageView *blackLineImageView4 = [[UIImageView alloc] initWithFrame:CGRectMake(0.0, manageButton.frame.origin.y + manageButton.frame.size.height + PADDING, self.view.frame.size.width, 4.0)];
-    [blackLineImageView4 setImage:[UIImage imageNamed:@"DividerSettings"]];
-    [self.view addSubview:blackLineImageView4];
-    
-    UIButton *manageButtonLarge = [[UIButton alloc] initWithFrame:CGRectMake(0.0, blackLineImageView3.frame.origin.y, self.view.frame.size.width, blackLineImageView4.frame.origin.y - blackLineImageView3.frame.origin.y)];
+    UIButton *manageButtonLarge = [[UIButton alloc] initWithFrame:CGRectMake(0.0, segment2.frame.origin.y + segment2.frame.size.height, self.view.frame.size.width, SEGMENT_HEIGHT)];
     [manageButtonLarge addTarget:self action:@selector(showManage:) forControlEvents:UIControlEventTouchUpInside];
-    [self.view addSubview:manageButtonLarge];
-    
-    [self.view addSubview:manageButton];
+    [whiteView addSubview:manageButtonLarge];
     
     self.arrowButton = [[UIButton alloc] init];
-    [self.arrowButton setImage:[UIImage imageNamed:@"WhiteTriangle"] forState:UIControlStateNormal];
-    self.arrowButton.frame = CGRectMake(self.view.frame.size.width - 30.0, blackLineImageView3.frame.origin.y - blackLineImageView3.frame.size.height + (blackLineImageView4.frame.origin.y - blackLineImageView3.frame.origin.y) / 2, 7.0, 11.0);
+    [self.arrowButton setImage:[UIImage imageNamed:@"BlackTriangle"] forState:UIControlStateNormal];
+    self.arrowButton.frame = CGRectMake(self.view.frame.size.width - 11.0 - PADDING, segment2.frame.origin.y + SEGMENT_HEIGHT + (SEGMENT_HEIGHT - 7.0) / 2.0, 7.0, 11.0);
     self.arrowButton.transform = CGAffineTransformMakeRotation(degreesToRadian(180));
     [self.arrowButton addTarget:self
                          action:@selector(showManage:)
                forControlEvents:UIControlEventTouchUpInside];
-    [self.view addSubview:self.arrowButton];
+    [whiteView addSubview:self.arrowButton];
     
+    UIView *greyView = [[UIView alloc] initWithFrame:CGRectMake(0.0, SEGMENT_HEIGHT * 3.0, self.view.frame.size.width, whiteView.frame.size.height - SEGMENT_HEIGHT*3)];
+    [greyView setBackgroundColor:UIColorFromRGB(0xf8f8f8)];
+    [whiteView addSubview:greyView];
+    
+    UIFont *montserratLarge = [UIFont fontWithName:@"Montserrat" size:16];
     self.logoutButton = [[UIButton alloc] init];
     [self.logoutButton setTitle:@"Logout" forState:UIControlStateNormal];
-    [self.logoutButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [self.logoutButton setTitleColor:UIColorFromRGB(0x1d1d1d) forState:UIControlStateNormal];
     [self.logoutButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateHighlighted];
-    UIFont *montserratBold = [UIFont fontWithName:@"Montserrat-Bold" size:28];
-    self.logoutButton.titleLabel.font = montserratBold;
-    size = [self.logoutButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];
-    self.logoutButton.frame = CGRectMake((self.view.frame.size.width - size.width) / 2.0, blackLineImageView4.frame.origin.y + PADDING / 2.0, size.width, size.height);
+    self.logoutButton.titleLabel.font = montserratLarge;
+    size = [self.logoutButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratLarge}];
+    self.logoutButton.frame = CGRectMake(self.view.frame.size.width - size.width - PADDING, self.view.frame.size.height - size.height - PADDING, size.width, size.height);
     [self.logoutButton addTarget:self action:@selector(logoutButtonWasPressed:) forControlEvents:UIControlEventTouchDown];
     [self.view addSubview:self.logoutButton];
     
-    UIFont *montserratLarge = [UIFont fontWithName:@"Montserrat" size:16];
+    self.largeLogoutButton = [[UIButton alloc] initWithFrame:CGRectMake(0.0, self.logoutButton.frame.origin.y - PADDING, self.view.frame.size.width / 2.0, self.view.frame.size.height - self.logoutButton.frame.origin.y)];
+    [self.largeLogoutButton addTarget:self action:@selector(logoutButtonWasPressed:) forControlEvents:UIControlEventTouchDown];
+    [self.view addSubview:self.largeLogoutButton];
+
     self.doneButton = [[UIButton alloc] init];
     [self.doneButton setTitle:@"Done" forState:UIControlStateNormal];
-    [self.doneButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [self.doneButton setTitleColor:UIColorFromRGB(0x1d1d1d) forState:UIControlStateNormal];
     [self.doneButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateHighlighted];
     [self.doneButton addTarget:self action:@selector(handleCloseSettings:) forControlEvents:UIControlEventTouchDown];
     self.doneButton.titleLabel.font = montserratLarge;
@@ -279,7 +302,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [self.largeDoneButton addTarget:self action:@selector(handleCloseSettings:) forControlEvents:UIControlEventTouchDown];
     [self.view addSubview:self.largeDoneButton];
     
-    self.searchResultsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, STATUS_BAR_HEIGHT + PADDING*2 + self.statusMessageTextField.frame.size.height, self.view.frame.size.width, TABLE_VIEW_HEIGHT)];
+    self.searchResultsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, TOP_BAR_HEIGHT, self.view.frame.size.width, TABLE_VIEW_HEIGHT)];
     [self.searchResultsTableView setBackgroundColor:[UIColor whiteColor]];
     [self.searchResultsTableView setDataSource:self];
     [self.searchResultsTableView setDelegate:self];
@@ -291,6 +314,36 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.searchResultsTableViewController = [[UITableViewController alloc] init];
     self.searchResultsTableViewController.tableView = self.searchResultsTableView;
     [self.searchResultsTableView reloadData];
+    
+    NSURL *profilePictureURL = [NSURL URLWithString:[NSString stringWithFormat:@"https://graph.facebook.com/%@/picture?type=large", sharedDataManager.facebookId]];
+    NSURLRequest *profilePictureURLRequest = [NSURLRequest requestWithURL:profilePictureURL cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:10.0f]; // Facebook profile picture cache policy: Expires in 2 weeks
+    [NSURLConnection connectionWithRequest:profilePictureURLRequest delegate:self];
+}
+
+-(void)connectionDidFinishLoading:(NSURLConnection *)connection {
+    NSLog(@"connection loaded");
+}
+
+- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
+    UIImage *profileImage = [UIImage imageWithData:data];
+    UIImage *blurredImage = [profileImage applyBlurWithRadius:1.0 tintColor:nil saturationDeltaFactor:0.8 maskImage:nil];
+    UIImageView *profileImageView = [[UIImageView alloc] initWithImage:blurredImage];
+    profileImageView.frame = CGRectMake(-20.0, -40.0, self.view.frame.size.width + 40.0, 350.0);
+    profileImageView.contentMode = UIViewContentModeScaleAspectFill;
+    profileImageView.alpha = 0.8;
+    
+    BOOL isDark = [self isDarkImage:blurredImage];
+    
+    if (isDark) {
+        [self.statusMessageTextField setTextColor:[UIColor whiteColor]];
+        self.statusMessageTextField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Enter a status message" attributes:@{NSForegroundColorAttributeName:[UIColor whiteColor]}];
+        [self.cityTextField setTextColor:[UIColor whiteColor]];
+        [self.dotLabel setTextColor:[UIColor whiteColor]];
+    }
+
+    [self.view addSubview:profileImageView];
+    [self.view sendSubviewToBack:profileImageView];
+    [self.view sendSubviewToBack:self.backgroundView];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -306,7 +359,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.userProfilePictureView.layer.cornerRadius = 12.0;
     self.userProfilePictureView.clipsToBounds = YES;
     [self.userProfilePictureView.layer setBorderColor:[[UIColor whiteColor] CGColor]];
-    self.userProfilePictureView.frame = CGRectMake((self.view.frame.size.width - PROFILE_IMAGE_VIEW_SIZE) / 2.0 , STATUS_BAR_HEIGHT + PADDING, PROFILE_IMAGE_VIEW_SIZE, PROFILE_IMAGE_VIEW_SIZE);
+    self.userProfilePictureView.frame = CGRectMake((self.view.frame.size.width - PROFILE_IMAGE_VIEW_SIZE - 3) / 2.0 , STATUS_BAR_HEIGHT + PADDING, PROFILE_IMAGE_VIEW_SIZE, PROFILE_IMAGE_VIEW_SIZE);
     // mask test
     UIImage *maskingImage = [UIImage imageNamed:@"LocationIcon"];
     CALayer *maskingLayer = [CALayer layer];
@@ -318,7 +371,42 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     maskingLayer.frame = frame;
     [maskingLayer setContents:(id)[maskingImage CGImage]];
     [self.userProfilePictureView.layer setMask:maskingLayer];
+    
     [self.view addSubview:self.userProfilePictureView];
+}
+
+-(BOOL) isDarkImage:(UIImage*)inputImage{
+    BOOL isDark = FALSE;
+    if (inputImage) {
+        
+        //    CFDataRef imageData = CGDataProviderCopyData(CGImageGetDataProvider(inputImage.CGImage));
+        
+        CFMutableDataRef imageData = CFDataCreateMutableCopy(0, 0, CGDataProviderCopyData(CGImageGetDataProvider(inputImage.CGImage)));
+        
+        const UInt8 *pixels = CFDataGetBytePtr(imageData);
+        
+        int darkPixels = 0;
+        
+        int length = CFDataGetLength(imageData);
+        int const darkPixelThreshold = (inputImage.size.width*inputImage.size.height)*.45;
+        
+        for(int i=0; i<length; i+=4)
+        {
+            int r = pixels[i];
+            int g = pixels[i+1];
+            int b = pixels[i+2];
+            
+            //luminance calculation gives more weight to r and b for human eyes
+            float luminance = (0.299*r + 0.587*g + 0.114*b);
+            if (luminance<150) darkPixels ++;
+        }
+        
+        if (darkPixels >= darkPixelThreshold)
+            isDark = YES;
+        
+        CFRelease(imageData);
+    }
+    return isDark;
 }
 
 - (NSMutableArray *)searchResults
@@ -333,22 +421,15 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [self.searchResults removeAllObjects];
     self.searchResultsTableView.hidden = YES;
     [self.searchResultsTableView reloadData];
-    
-    self.locationSwitchLabel.hidden = NO;
-    self.setLocationSwitch.hidden = NO;
-    self.yesLabel.hidden = NO;
-    self.noLabel.hidden = NO;
-    self.cancelSearchButton.hidden = YES;
-    self.userProfilePictureView.hidden = NO;
-    self.defaultCityLabel.hidden = NO;
-    self.statusMessageTextField.hidden = NO;
+
+    [self.topBarView setHidden:YES];
+    [self.cancelSearchButton setHidden:YES];
     
     [UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
-                         CGRect frame = self.cityTextField.frame;
-                         frame.origin.y = self.setLocationSwitch.frame.origin.y + self.setLocationSwitch.frame.size.height;
-                         frame.size.width = self.view.frame.size.width - PADDING*2;
-                         self.cityTextField.frame = frame;
+                         UIFont *textViewFont = [UIFont fontWithName:@"Montserrat" size:16];
+                         CGSize cityLabelSize = [self.cityTextField.text sizeWithAttributes:@{NSFontAttributeName: textViewFont}];
+                         self.cityTextField.frame = CGRectMake((self.view.frame.size.width - cityLabelSize.width) / 2.0, 185.0, cityLabelSize.width, cityLabelSize.height);
                      }
                      completion:^(BOOL finished) {
                          if (finished) {
@@ -363,12 +444,25 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     NSString *location = [NSString stringWithFormat:@"%@, %@",[userDetails objectForKey:@"city"], [userDetails objectForKey:@"state"]];
     self.cityTextField.text = [location uppercaseString];
+    
+    UIFont *textViewFont = [UIFont fontWithName:@"Montserrat" size:16];
+    CGSize cityLabelSize = [self.cityTextField.text sizeWithAttributes:@{NSFontAttributeName: textViewFont}];
+    self.cityTextField.frame = CGRectMake((self.view.frame.size.width - cityLabelSize.width) / 2.0, 185.0, cityLabelSize.width, cityLabelSize.height);
+    
     self.view.userInteractionEnabled = YES;
 }
 
 -(void)dismissKeyboard {
     if ([self.statusMessageTextField isFirstResponder]) {
         [self.statusMessageTextField resignFirstResponder];
+        CGSize statusMessageSize;
+        UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14];
+        if (![self.statusMessageTextField.text isEqualToString:@""]) {
+            statusMessageSize = [self.statusMessageTextField.text sizeWithAttributes:@{NSFontAttributeName: montserrat}];
+        } else {
+            statusMessageSize = [@"Enter a status message" sizeWithAttributes:@{NSFontAttributeName: montserrat}];
+        }
+        self.statusMessageTextField.frame = CGRectMake((self.view.frame.size.width - statusMessageSize.width) / 2.0, self.userProfilePictureView.frame.origin.y + self.userProfilePictureView.frame.size.height + PADDING*2, statusMessageSize.width, statusMessageSize.height);
     }
 }
 
@@ -386,9 +480,22 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
         PFUser *user = [PFUser currentUser];
         [user setObject:self.statusMessageTextField.text forKey:@"statusMessage"];
         [user saveInBackground];
+        NSDictionary *statusParams = [NSDictionary dictionaryWithObjectsAndKeys:
+         @"Status", sharedDataManager.statusMessage,
+         nil];
+        [Flurry logEvent:@"user_updated_status" withParameters:statusParams];
         NSLog(@"PARSE SAVE: saving status message");
         [self notifyBestFriendsOfStatusChange];
     }
+    
+    CGSize statusMessageSize;
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14];
+    if (![self.statusMessageTextField.text isEqualToString:@""]) {
+        statusMessageSize = [self.statusMessageTextField.text sizeWithAttributes:@{NSFontAttributeName: montserrat}];
+    } else {
+        statusMessageSize = [@"Enter a status message" sizeWithAttributes:@{NSFontAttributeName: montserrat}];
+    }
+    self.statusMessageTextField.frame = CGRectMake((self.view.frame.size.width - statusMessageSize.width) / 2.0, self.userProfilePictureView.frame.origin.y + self.userProfilePictureView.frame.size.height + PADDING*2, statusMessageSize.width, statusMessageSize.height);
 }
 
 -(void)notifyBestFriendsOfStatusChange {
@@ -422,9 +529,18 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
         [UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionBeginFromCurrentState
                          animations:^{
                              CGRect frame = self.cityTextField.frame;
+                             frame.origin.x = PADDING;
                              frame.origin.y = STATUS_BAR_HEIGHT + PADDING;
-                             frame.size.width = frame.size.width - self.cancelSearchButton.frame.size.width - PADDING;
+                             frame.size.width = self.view.frame.size.width - PADDING*2 - self.cancelSearchButton.frame.size.width;
                              self.cityTextField.frame = frame;
+                             [self.view bringSubviewToFront:self.topBarView];
+                             [self.view bringSubviewToFront:self.cityTextField];
+                             [self.view bringSubviewToFront:self.cancelSearchButton];
+                             [self.view bringSubviewToFront:self.searchResultsTableView];
+                             [self.view bringSubviewToFront:self.activityIndicator];
+                             [self.topBarView setHidden:NO];
+                             
+                             [self.cityTextField setTextColor:UIColorFromRGB(0x1d1d1d)];
                          }
                          completion:^(BOOL finished) {
                              if (finished) {
@@ -433,17 +549,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
                                  self.cityTextField.tag = 2;
                              }
                          }];
-        
         self.cityTextField.text = @"";
-        self.locationSwitchLabel.hidden = YES;
-        self.setLocationSwitch.hidden = YES;
-        self.yesLabel.hidden = YES;
-        self.noLabel.hidden = YES;
-        self.userProfilePictureView.hidden = YES;
-        self.defaultCityLabel.hidden = YES;
-        self.statusMessageTextField.hidden = YES;
-    } else if (textField == self.statusMessageTextField) {
-        
     }
 }
 
@@ -473,6 +579,10 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     if (textField == self.cityTextField) {
         return YES;
     } else {
+        CGRect frame = self.statusMessageTextField.frame;
+        frame.size.width = self.view.frame.size.width;
+        self.statusMessageTextField.frame = frame;
+        
         NSUInteger newLength = [textField.text length] + [string length] - range.length;
         return (newLength > STATUS_MESSAGE_LENGTH) ? NO : YES;
     }
@@ -665,7 +775,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     if (indexPath.row == [self.searchResults count]) {
         cell.isAccessibilityElement = YES;
         cell.textLabel.text = @"";
-        cell.detailTextLabel.text =@"Powered by geonames.org";
+        cell.detailTextLabel.text =@"Powered by GeoNames";
         return cell;
     }
 

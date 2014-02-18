@@ -57,3 +57,18 @@ NSString *const kNotificationRecipientKey = @"recipientID";
 NSString *const kNotificationAllRecipientsKey = @"allRecipients";
 NSString *const kNotificationTypeKey = @"type";
 NSString *const kNotificationCityKey = @"city";
+
+#pragma mark - CityPlaceSearch Class
+NSString *const kCityPlaceSearchClassKey = @"CityPlaceSearch";
+NSString *const kCityPlaceSearchCityKey = @"city";
+NSString *const kCityPlaceSearchStateKey = @"state";
+NSString *const kCityPlaceSearchDateKey = @"date";
+
+#pragma mark - Place Class
+NSString *const kPlaceClassKey = @"Place";
+NSString *const kPlaceSearchKey =  @"placeSearchObjectId";
+NSString *const kPlaceCityKey = @"city";
+NSString *const kPlaceStateKey =  @"state";
+NSString *const kPlaceCoordinateKey = @"coordinate";
+NSString *const kPlaceNameKey = @"name";
+NSString *const kPlaceAddressKey = @"address";

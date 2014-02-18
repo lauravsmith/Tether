@@ -55,3 +55,18 @@ extern NSString *const kNotificationRecipientKey;
 extern NSString *const kNotificationAllRecipientsKey;
 extern NSString *const kNotificationTypeKey;
 extern NSString *const kNotificationCityKey;
+
+#pragma mark - CityPlaceSearch Class
+extern NSString *const kCityPlaceSearchClassKey;
+extern NSString *const kCityPlaceSearchCityKey;
+extern NSString *const kCityPlaceSearchStateKey;
+extern NSString *const kCityPlaceSearchDateKey;
+
+#pragma mark - Place Class
+extern NSString *const kPlaceClassKey;
+extern NSString *const kPlaceSearchKey;
+extern NSString *const kPlaceCityKey;
+extern NSString *const kPlaceStateKey;
+extern NSString *const kPlaceCoordinateKey;
+extern NSString *const kPlaceNameKey;
+extern NSString *const kPlaceAddressKey;

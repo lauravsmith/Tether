@@ -95,7 +95,7 @@
                   symbolName = "-[ManageFriendsViewController searchFriends:]"
                   moduleName = "Tethr"
                   urlString = "file:///Users/laurasmith/Documents/Git/Tether/Tether/ManageFriendsViewController.m"
-                  timestampString = "413944193.503377"
+                  timestampString = "414435604.193307"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "198"
@@ -109,7 +109,7 @@
                   symbolName = "-[ManageFriendsViewController searchFriends:]"
                   moduleName = "Tethr"
                   urlString = "file:///Users/laurasmith/Documents/Git/Tether/Tether/ManageFriendsViewController.m"
-                  timestampString = "413944193.503725"
+                  timestampString = "414435604.193679"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "198"
@@ -126,11 +126,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Tether/InviteViewController.m"
-            timestampString = "413944287.60084"
+            timestampString = "414395043.99358"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "737"
-            endingLineNumber = "737"
+            startingLineNumber = "759"
+            endingLineNumber = "759"
             landmarkName = "-textViewDidChange:"
             landmarkType = "5">
          </BreakpointContent>
@@ -142,28 +142,48 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Tether/InviteViewController.m"
-            timestampString = "413944287.60084"
+            timestampString = "414395043.99358"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "726"
-            endingLineNumber = "726"
+            startingLineNumber = "748"
+            endingLineNumber = "748"
             landmarkName = "-textViewShouldBeginEditing:"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.ExceptionBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            scope = "0"
+            stopOnStyle = "0">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.ExceptionBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            scope = "0"
+            stopOnStyle = "0">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "Tether/LoginViewController.m"
-            timestampString = "413921604.391586"
+            filePath = "Tether/PlacesViewController.m"
+            timestampString = "414173799.062673"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "103"
-            endingLineNumber = "103"
-            landmarkName = "-login"
+            startingLineNumber = "380"
+            endingLineNumber = "380"
+            landmarkName = "-openPageForPlaceWithId:"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
@@ -173,13 +193,61 @@
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "Tether/InviteViewController.m"
-            timestampString = "413944287.60084"
+            filePath = "FbGraphAPI/FbGraphResponse.m"
+            timestampString = "414259748.12644"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "369"
-            endingLineNumber = "369"
-            landmarkName = "-layoutPlusIcon"
+            startingLineNumber = "50"
+            endingLineNumber = "50"
+            landmarkName = "-dealloc"
+            landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FbGraphAPI/FbGraphResponse.m"
+            timestampString = "414259753.576492"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "54"
+            endingLineNumber = "54"
+            landmarkName = "-dealloc"
+            landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FbGraphAPI/FbGraph.m"
+            timestampString = "414259769.769312"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "99"
+            endingLineNumber = "99"
+            landmarkName = "-doGraphGet:withGetVars:"
+            landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "FbGraphAPI/FbGraph.m"
+            timestampString = "414259788.610319"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "96"
+            endingLineNumber = "96"
+            landmarkName = "-doGraphGet:withGetVars:"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>

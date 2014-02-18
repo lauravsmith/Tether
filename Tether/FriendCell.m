@@ -134,7 +134,7 @@
                           action:@selector(inviteClicked:)
                 forControlEvents:UIControlEventTouchUpInside];
     self.inviteButton.contentMode = UIViewContentModeScaleAspectFit;
-    self.inviteButtonLarge.frame = CGRectMake(self.inviteButton.frame.origin.x, self.inviteButton.frame.origin.y, 60.0, 60.0);
+    self.inviteButtonLarge.frame = CGRectMake(self.inviteButton.frame.origin.x - 10.0, 0.0, 60.0, self.frame.size.height);
     [self.inviteButtonLarge addTarget:self
                                action:@selector(inviteClicked:)
                      forControlEvents:UIControlEventTouchUpInside];

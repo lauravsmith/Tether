@@ -82,7 +82,6 @@
         self.addRemoveLabel.tag = 1;
     }
     [self.addRemoveLabel setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [self.addRemoveLabel setAlpha:0.85];
     self.addRemoveLabel.titleLabel.font = montserrat;
     self.addRemoveLabel.layer.cornerRadius = 5.0;
     size = [self.addRemoveLabel.titleLabel.text sizeWithAttributes:@{NSFontAttributeName: montserrat}];
@@ -118,7 +117,7 @@
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     if (![userDetails boolForKey:kUserDefaultsHasSeenBlockTutorialKey]) {
         UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:nil
-                                                            message:[NSString stringWithFormat:@"%@ will not be able to view your future activity on tethr", self.friend.name]
+                                                            message:[NSString stringWithFormat:@"%@ will not be able to view your activity on tethr", self.friend.name]
                                                            delegate:self
                                                   cancelButtonTitle:@"Okay"
                                                   otherButtonTitles:nil];

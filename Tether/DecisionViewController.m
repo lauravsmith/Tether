@@ -53,12 +53,12 @@
     [self.view addSubview:self.topBar];
     
     self.tethrLabel = [[UILabel alloc] init];
-    UIFont *helvetica = [UIFont fontWithName:@"HelveticaNeueLTStd-UltLt" size:25];
-    self.tethrLabel.font = helvetica;
+    UIFont *mission = [UIFont fontWithName:@"MissionGothic-BlackItalic" size:22];
+    self.tethrLabel.font = mission;
     self.tethrLabel.text = @"tethr";
     [self.tethrLabel setTextColor:[UIColor whiteColor]];
-    CGSize size = [self.tethrLabel.text sizeWithAttributes:@{NSFontAttributeName:helvetica}];
-    self.tethrLabel.frame = CGRectMake((self.topBar.frame.size.width - size.width) / 2, (self.topBar.frame.size.height - size.height +STATUS_BAR_HEIGHT) / 2 + 5.0, size.width, size.height);
+    CGSize size = [self.tethrLabel.text sizeWithAttributes:@{NSFontAttributeName:mission}];
+    self.tethrLabel.frame = CGRectMake((self.topBar.frame.size.width - size.width) / 2, (self.topBar.frame.size.height - size.height + STATUS_BAR_HEIGHT) / 2, size.width, size.height);
     [self.topBar addSubview:self.tethrLabel];
     
     UIFont *helveticaNeueLarge = [UIFont fontWithName:@"HelveticaNeue-Bold" size:30];
@@ -122,7 +122,7 @@
 -(void)layoutNumberLabel {
     UIFont *helveticaNeue = [UIFont fontWithName:@"HelveticaNeue-Bold" size:30];
     CGSize size = [self.numberLabel.text sizeWithAttributes:@{NSFontAttributeName:helveticaNeue}];
-    self.numberLabel.frame = CGRectMake(PADDING, self.tethrLabel.frame.origin.y - STATUS_BAR_HEIGHT / 2.0 - 1.0, size.width, size.height);
+    self.numberLabel.frame = CGRectMake(PADDING, STATUS_BAR_HEIGHT + (TOP_BAR_HEIGHT - STATUS_BAR_HEIGHT - size.height) / 2.0, size.width, size.height);
     [self.topBar addSubview:self.numberLabel];
 }
 

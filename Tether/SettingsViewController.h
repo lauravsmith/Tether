@@ -18,10 +18,12 @@
 
 @property (nonatomic, weak) id<SettingsViewControllerDelegate> delegate;
 @property (nonatomic, strong) FBProfilePictureView *userProfilePictureView;
+@property (nonatomic, strong) FBProfilePictureView *backgroundUserProfilePictureView;
 @property (retain, nonatomic) NSString * city;
 @property (nonatomic, retain) ILGeoNamesLookup *geocoder;
 @property (retain, nonatomic) UISwitch * goingOutSwitch;
 -(void)resettingNewLocationHasFinished;
+-(void)addProfileImageView;
 
 @end
 

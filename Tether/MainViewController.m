@@ -332,7 +332,7 @@
                 [self.currentUser setObject:firstName forKey:@"firstName"];
             }
             
-            NSDate *birthday = result[@"birthday"];
+            NSString *birthday = result[@"birthday"];
             if (birthday) {
                 [self.currentUser setObject:birthday forKey:@"birthday"];
             }
@@ -347,10 +347,11 @@
                 self.centerViewController.userProfilePictureView.layer.cornerRadius = 14.0;
                 self.centerViewController.userProfilePictureView.clipsToBounds = YES;
                 [self.centerViewController.userProfilePictureView.layer setBorderColor:[[UIColor whiteColor] CGColor]];
-               self.centerViewController.userProfilePictureView.frame = CGRectMake(self.view.frame.size.width - 28.0 - (self.centerViewController.bottomBar.frame.size.height - 28.0) / 2.0, (self.centerViewController.bottomBar.frame.size.height - 28.0) / 2.0, 28.0, 28.0);
+               self.centerViewController.userProfilePictureView.frame = CGRectMake(7.0, (self.centerViewController.bottomBar.frame.size.height - 28.0) / 2.0, 28.0, 28.0);
+                
                 self.centerViewController.userProfilePictureView.tag = 1;
                 UITapGestureRecognizer *userProfileTapGesture =
-                [[UITapGestureRecognizer alloc] initWithTarget:self.centerViewController action:@selector(movePanelLeft:)];
+                [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(showSettingsView)];
                 [self.centerViewController.userProfilePictureView addGestureRecognizer:userProfileTapGesture];
                 [self.centerViewController.bottomBar addSubview:self.centerViewController.userProfilePictureView];
                 [self.centerViewController.bottomBar addSubview:self.centerViewController.settingsButtonLarge];
@@ -366,7 +367,7 @@
             NSString *gender = result[@"gender"];
             if (gender && [gender length] != 0) {
                 [self.currentUser setObject:gender forKey:kUserGenderKey];
-                [Flurry setGender:gender];
+                [Flurry setGender:[gender lowercaseString]];
             }
             
             NSString *relationshipStatus = result[@"relationship_status"];
@@ -709,10 +710,10 @@
             self.centerViewController.userProfilePictureView.layer.cornerRadius = 14.0;
             self.centerViewController.userProfilePictureView.clipsToBounds = YES;
             [self.centerViewController.userProfilePictureView.layer setBorderColor:[[UIColor whiteColor] CGColor]];
-            self.centerViewController.userProfilePictureView.frame = CGRectMake(self.view.frame.size.width - 28.0 - (self.centerViewController.bottomBar.frame.size.height - 28.0) / 2.0, (self.centerViewController.bottomBar.frame.size.height - 28.0) / 2.0, 28.0, 28.0);
+            self.centerViewController.userProfilePictureView.frame = CGRectMake(7.0, (self.centerViewController.bottomBar.frame.size.height - 28.0) / 2.0, 28.0, 28.0);
             self.centerViewController.userProfilePictureView.tag = 1;
             UITapGestureRecognizer *userProfileTapGesture =
-            [[UITapGestureRecognizer alloc] initWithTarget:self.centerViewController action:@selector(movePanelLeft:)];
+            [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(showSettingsView)];
             [self.centerViewController.userProfilePictureView addGestureRecognizer:userProfileTapGesture];
             [self.centerViewController.bottomBar addSubview:self.centerViewController.userProfilePictureView];
             [self.centerViewController.bottomBar addSubview:self.centerViewController.settingsButtonLarge];
@@ -1280,13 +1281,13 @@
 #pragma mark SettingsViewControllerDelegate
 
 -(void)closeSettings {
-    [UIView animateWithDuration:SLIDE_TIMING*1.2
+    [UIView animateWithDuration:SLIDE_TIMING
                           delay:0.0
          usingSpringWithDamping:1.0
           initialSpringVelocity:1.0
                         options:UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
-                            [self.settingsViewController.view setFrame:CGRectMake( 0.0f, self.view.frame.size.height, self.view.frame.size.width, self.view.frame.size.height)];
+                            [self.settingsViewController.view setFrame:CGRectMake(0.0f, self.view.frame.size.height + 40.0, self.view.frame.size.width, self.view.frame.size.height)];
                      }
                      completion:^(BOOL finished) {
                          [self.settingsViewController.view removeFromSuperview];
@@ -1482,6 +1483,7 @@
             [sharedDataManager.friendsToPlacesMap setObject:placeId forKey:friendId];
             [sharedDataManager.tetherFriendsNearbyDictionary setObject:currentFriend forKey:friendId];
             self.shouldSortFriendsList = YES;
+            self.listsHaveChanged = YES;
         }
     }
 }
@@ -1550,11 +1552,6 @@
             [user saveInBackground];
             
             self.settingsViewController.goingOutSwitch.on = YES;
-            
-            if (![userDetails boolForKey:kUserDefaultsHasSeenTethrTutorialKey]) {
-                [userDetails setBool:YES forKey:kUserDefaultsHasSeenTethrTutorialKey];
-                [userDetails synchronize];
-            }
             
             self.committingToPlace = YES;
             [commitment saveEventually:^(BOOL succeeded, NSError *error) {

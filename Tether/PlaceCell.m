@@ -135,15 +135,19 @@
 
 -(void)layoutCommitButton {
     if (self.commitButton.tag == 1) {
-        [self.commitButton setTitle:@"tethr" forState:UIControlStateNormal];
-        [self.commitButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
+        [self.commitButton setTitle:@"  tethr  " forState:UIControlStateNormal];
+        [self.commitButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [self.commitButton setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
     } else {
-        [self.commitButton setTitle:@"tethrd" forState:UIControlStateNormal];
-        [self.commitButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+        [self.commitButton setTitle:@"  tethrd  " forState:UIControlStateNormal];
+        [self.commitButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [self.commitButton setBackgroundColor:UIColorFromRGB(0x8e0528)];
     }
+
+    self.commitButton.layer.cornerRadius = 9.0;
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
     CGSize size = [self.commitButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
-    self.commitButton.frame = CGRectMake(self.placeNameLabel.frame.origin.x, self.frame.size.height - size.height - 5.0, size.width, size.height);
+    self.commitButton.frame = CGRectMake(self.placeNameLabel.frame.origin.x, self.frame.size.height - size.height - 5.0 - 10.0, size.width, size.height);
 }
 
 -(IBAction)commitClicked:(id)sender {

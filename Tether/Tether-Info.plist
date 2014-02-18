@@ -57,6 +57,10 @@
 		<string>MontserratBold.ttf</string>
 		<string>HelveticaNeueLTStd-UltLt.otf</string>
 		<string>KaufmannStd.otf</string>
+		<string>MissionGothicBlackItalic.otf</string>
+		<string>MissionGothicBoldItalic.otf</string>
+		<string>MissionGothicBlack.otf</string>
+		<string>MissionGothicBold.otf</string>
 	</array>
 	<key>UIBackgroundModes</key>
 	<array>

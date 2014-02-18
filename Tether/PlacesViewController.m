@@ -245,7 +245,7 @@
         }
     }];
     if (!self.foursquarePlacesDataHasLoaded) {
-        [self loadPlaces];
+        [self loadStoredPlaces];
     }
     }
 }
@@ -596,6 +596,165 @@
     self.searchResultsTableView.hidden = NO;
 }
 
+-(void)loadStoredPlaces {
+    NSString *city = [self.userDetails objectForKey:@"city"];
+    NSString *state = [self.userDetails objectForKey:@"state"];
+    
+    PFQuery *query = [PFQuery queryWithClassName:kCityPlaceSearchClassKey];
+    [query whereKey:kCityPlaceSearchCityKey equalTo:city];
+    [query whereKey:kCityPlaceSearchStateKey equalTo:state];
+    
+    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+        if (!error) {
+            PFObject *cityPlaceSearch;
+            if ([objects count] > 0) {
+                cityPlaceSearch = [objects objectAtIndex:0];
+                NSDate *placeSearchTime = [cityPlaceSearch objectForKey:kCityPlaceSearchDateKey];
+                NSDate *previousMonth = [self getPreviousMonthTime];
+                if (placeSearchTime != nil &&
+                    [previousMonth compare:placeSearchTime] == NSOrderedAscending) {
+                    // get stored places
+                    [self loadStoredPlacesFromSearchObject:cityPlaceSearch];
+                } else {
+                    //delete all places associated with this search
+                    //load places from foursquare
+                    NSLog(@"no stored places");
+                    [self deleteSavedPlaceSearchObject:cityPlaceSearch];
+                    [self loadPlaces];
+                }
+            } else {
+                // load places from foursquare
+                [self loadPlaces];
+            }
+        } else {
+            [self loadPlaces];
+        }
+    }];
+}
+
+-(void)loadStoredPlacesFromSearchObject:(PFObject*)object {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    PFQuery *query = [PFQuery queryWithClassName:kPlaceClassKey];
+    [query whereKey:kPlaceSearchKey equalTo:object.objectId];
+    
+    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+        if (!error) {
+            if ([objects count] > 30) {
+                for (PFObject *placeObject in objects) {
+                    Place *newPlace = [[Place alloc] init];
+                    newPlace.placeId = [placeObject objectForKey:@"placeId"];
+                    newPlace.name = [placeObject objectForKey:kPlaceNameKey];
+                    newPlace.city = [placeObject objectForKey:kPlaceCityKey];
+                    newPlace.state = [self.userDetails objectForKey:kPlaceStateKey];
+                    newPlace.address = [placeObject objectForKey:kPlaceAddressKey];
+                    PFGeoPoint *geoPoint = [placeObject objectForKey:kPlaceCoordinateKey];
+                    newPlace.coord = CLLocationCoordinate2DMake(geoPoint.latitude, geoPoint.longitude);
+                    
+                    if (![sharedDataManager.foursquarePlacesDictionary objectForKey:newPlace.placeId]) {
+                        [sharedDataManager.foursquarePlacesDictionary setObject:newPlace forKey:newPlace.placeId];
+                    }
+                }
+                
+                if (self.friendStatusDetailsHaveLoaded) {
+                    [self addDictionaries];
+                    [self sortPlacesByPopularity];
+                }
+                NSLog(@"FINISHED LOADING FOURSQUARE DATA FROM PARSE DATASTORE with %lu objects", (unsigned long)[sharedDataManager.foursquarePlacesDictionary count]);
+                self.foursquarePlacesDataHasLoaded = YES;
+            } else {
+                [self loadPlaces];
+            }
+        } else {
+            //load places from foursquare
+            [self loadPlaces];
+        }
+    }];
+}
+
+-(NSDate*)getPreviousMonthTime{
+    NSDate *today = [[NSDate alloc] init];
+    NSCalendar *calendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
+    NSDateComponents *offsetComponents = [[NSDateComponents alloc] init];
+    [offsetComponents setMonth:-1]; // note that I'm setting it to -1
+    NSDate *previousMonth= [calendar dateByAddingComponents:offsetComponents toDate:today options:0];
+    return previousMonth;
+}
+
+-(void)saveFoursquareSearch {
+    NSString *city = [self.userDetails objectForKey:@"city"];
+    NSString *state = [self.userDetails objectForKey:@"state"];
+    
+    // delete old objects ?
+    PFObject *placeSearch = [PFObject objectWithClassName:kCityPlaceSearchClassKey];
+    [placeSearch setObject:[NSDate date] forKey:kCityPlaceSearchDateKey];
+    [placeSearch setObject:city forKey:kCityPlaceSearchCityKey];
+    [placeSearch setObject:state forKey:kCityPlaceSearchStateKey];
+    [placeSearch saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+        if (!error) {
+            NSString *cityPlaceSearchObjectId = [placeSearch objectId];
+            Datastore *sharedDataManager = [Datastore sharedDataManager];
+            
+            for (id key in sharedDataManager.foursquarePlacesDictionary) {
+                Place *place = [sharedDataManager.foursquarePlacesDictionary objectForKey:key];
+                PFObject *placeObject = [PFObject objectWithClassName:kPlaceClassKey];
+                
+                if (place.placeId) {
+                    [placeObject setObject:place.placeId forKey:@"placeId"];
+                }
+                
+                if (cityPlaceSearchObjectId) {
+                    [placeObject setObject:cityPlaceSearchObjectId forKey:kPlaceSearchKey];
+                }
+                
+                if (place.name) {
+                    [placeObject setObject:place.name forKey:kPlaceNameKey];
+                }
+                
+                if (place.address) {
+                    [placeObject setObject:place.address forKey:kPlaceAddressKey];
+                }
+                
+                if (city) {
+                    [placeObject setObject:city forKey:kPlaceCityKey];
+                }
+                
+                if (state) {
+                    [placeObject setObject:state forKey:kPlaceStateKey];
+                }
+                
+                if (place.coord.latitude) {
+                    [placeObject setObject:[PFGeoPoint geoPointWithLatitude:place.coord.latitude
+                                                                  longitude:place.coord.longitude] forKey:kPlaceCoordinateKey];
+                }
+                
+                [placeObject saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+                    if (error) {
+                        NSLog(@"Place save Error: %@ %@", error, [error userInfo]);
+                    }
+                }];
+            }
+        } else {
+
+        }
+    }];
+
+
+}
+
+-(void)deleteSavedPlaceSearchObject:(PFObject*)object {
+    PFQuery *query = [PFQuery queryWithClassName:kPlaceClassKey];
+    [query whereKey:kPlaceSearchKey equalTo:object.objectId];
+    
+    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+        if (!error) {
+            for (PFObject *placeObject in objects) {
+                [placeObject deleteInBackground];
+            }
+            [object deleteInBackground];
+        }
+    }];
+}
+
 // Intial foursquare data call
 - (void)loadPlaces {
     NSString *city = [self.userDetails objectForKey:@"city"];
@@ -670,13 +829,15 @@
             [sharedDataManager.foursquarePlacesDictionary setObject:newPlace forKey:newPlace.placeId];
         }
     }
-    
+    //TODO: save cityPlaceSearch
     if (self.friendStatusDetailsHaveLoaded) {
         [self addDictionaries];
         [self sortPlacesByPopularity];
     }
     NSLog(@"FINISHED LOADING FOURSQUARE DATA with %lu objects", (unsigned long)[sharedDataManager.foursquarePlacesDictionary count]);
     self.foursquarePlacesDataHasLoaded = YES;
+    
+    [self saveFoursquareSearch];
 }
 
 // Search foursquare data call
@@ -700,11 +861,10 @@
     [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSDictionary *jsonDict = (NSDictionary *) responseObject;
         [self processSearchResults:jsonDict];
-        
         [Flurry logEvent:@"Foursquare_User_Search"];
-        
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Failure");
+        [self localSearchWithSearch:search];
     }];
     [operation start];
 }
@@ -726,6 +886,19 @@
         
         [self.searchResultsArray addObject:newPlace];
     }
+    [self.searchResultsTableView reloadData];
+}
+
+-(void)localSearchWithSearch:(NSString*)search {
+    self.searchResultsArray = [[NSMutableArray alloc] init];
+    for (Place *place in self.placesArray) {
+        if (place.name ) {
+            if ([[place.name lowercaseString] rangeOfString:[search lowercaseString]].location != NSNotFound) {
+                [self.searchResultsArray addObject:place];
+            }
+        }
+    }
+    
     [self.searchResultsTableView reloadData];
 }
 
@@ -752,7 +925,7 @@
     UIView *tutorialView = [[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.frame.size.width, 50.0)];
     [tutorialView setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
     UILabel *headerLabel = [[UILabel alloc] init];
-    headerLabel.text = @"Tap a location to tethr to it";
+    headerLabel.text = @"Tap a location to see who is going";
     UIFont *montserratLabelFont = [UIFont fontWithName:@"Montserrat" size:13];
     headerLabel.font = montserratLabelFont;
     [headerLabel setTextColor:UIColorFromRGB(0x8e0528)];
@@ -844,16 +1017,16 @@
         [self scrollToPlaceWithId:cell.place.placeId];
         [self searchBarCancelButtonClicked:self.searchBar];
     } else {
-            PlaceCell *cell = (PlaceCell*)[tableView cellForRowAtIndexPath:indexPath];
-            Datastore *sharedDataManager = [Datastore sharedDataManager];
-            if ([cell.place.placeId isEqualToString:sharedDataManager.currentCommitmentPlace.placeId]) {
-                [self removePreviousCommitment];
-                [self removeCommitmentFromDatabase];
-            } else {
-                [self commitToPlace:cell.place fromCell:cell];
-                [Flurry logEvent:@"Tethrd_by_tapping_cell"];
-            }
+        PlaceCell *cell = (PlaceCell*)[tableView cellForRowAtIndexPath:indexPath];
+        [self showFriendsViewFromCell:cell];
         [tableView deselectRowAtIndexPath:indexPath animated:YES];
+        
+        NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+        if (![userDetails boolForKey:kUserDefaultsHasSeenTethrTutorialKey]) {
+            [userDetails setBool:YES forKey:kUserDefaultsHasSeenTethrTutorialKey];
+            [userDetails synchronize];
+            [self.placesTableView reloadData];
+        }
     }
     
     return;

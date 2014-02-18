@@ -112,8 +112,12 @@
     self.friendsInvitedScrollView.showsVerticalScrollIndicator = YES;
     [self.view addSubview:self.friendsInvitedScrollView];
     
-    self.plusButton = [[UIButton alloc] initWithFrame:CGRectMake(PADDING, PADDING + (LABEL_HEIGHT - PLUS_ICON_SIZE) / 2.0, PLUS_ICON_SIZE, PLUS_ICON_SIZE)];
+    self.plusButton = [[UIButton alloc] initWithFrame:CGRectMake(0.0, 0.0, LABEL_HEIGHT + PADDING, LABEL_HEIGHT + PADDING*2)];
     [self.plusButton setImage:[UIImage imageNamed:@"PlusSign"] forState:UIControlStateNormal];
+    
+    double imageInsetX = (self.plusButton.frame.size.width - PLUS_ICON_SIZE) / 2.0;
+    double imageInsetY = (self.plusButton.frame.size.height - PLUS_ICON_SIZE) / 2.0;
+    self.plusButton.imageEdgeInsets = UIEdgeInsetsMake(imageInsetY, imageInsetX, imageInsetY, imageInsetX);
     [self.plusButton addTarget:self action:@selector(plusButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
     [self.friendsInvitedScrollView addSubview:self.plusButton];
     
@@ -290,6 +294,7 @@
         }
     }
     
+    [self.friendsInvitedScrollView setBackgroundColor:[UIColor whiteColor]];
     self.friendsInvitedViewHeight = 0.0;
     self.friendsInvitedViewWidth = 0.0;
     
@@ -348,6 +353,7 @@
     
     friendLabel.frame = CGRectMake(self.friendsInvitedViewWidth + 10.0, self.friendsInvitedViewHeight - (LABEL_HEIGHT + PADDING), friendLabel.frame.size.width, LABEL_HEIGHT);
     self.friendsInvitedViewWidth += friendLabel.frame.size.width + PADDING;
+    [friendLabel setBackgroundColor:UIColorFromRGB(0xf8f8f8)];
     [self.friendsInvitedScrollView addSubview:friendLabel];
     
     UIButton *xButton = [self.removeLabelButtonsDictionary objectForKey:friendLabel.friend.friendID];
@@ -357,15 +363,18 @@
 
 -(void)layoutPlusIcon {
     if (self.friendsInvitedViewHeight == 0) {
-        self.friendsInvitedViewHeight = PLUS_ICON_SIZE + PADDING*2;
+        self.friendsInvitedViewHeight = LABEL_HEIGHT + PADDING*2;
     }
     
     if (self.friendsInvitedViewWidth + PLUS_ICON_SIZE + PADDING*2 > self.view.frame.size.width) {
         self.friendsInvitedViewWidth = 0;
-        self.friendsInvitedViewHeight += PLUS_ICON_SIZE + PADDING;
+        self.friendsInvitedViewHeight += LABEL_HEIGHT + PADDING;
     }
     
-    self.plusButton.frame = CGRectMake(self.friendsInvitedViewWidth + 10.0, self.friendsInvitedViewHeight - (LABEL_HEIGHT + PLUS_ICON_SIZE) / 2.0 - PADDING, PLUS_ICON_SIZE, PLUS_ICON_SIZE);
+    self.plusButton.frame = CGRectMake(self.friendsInvitedViewWidth, self.friendsInvitedViewHeight - LABEL_HEIGHT - PADDING*2, LABEL_HEIGHT + PADDING, LABEL_HEIGHT + PADDING*2);
+    double imageInsetX = (self.plusButton.frame.size.width - PLUS_ICON_SIZE) / 2.0;
+    double imageInsetY = (self.plusButton.frame.size.height - PLUS_ICON_SIZE) / 2.0;
+    self.plusButton.imageEdgeInsets = UIEdgeInsetsMake(imageInsetY, imageInsetX, imageInsetY, imageInsetX);
     self.friendsInvitedViewWidth += PLUS_ICON_SIZE + PADDING;
     
     [self.plusButton setHidden:NO];
@@ -410,6 +419,10 @@
     }
     
     friendListString = [NSString stringWithFormat:@"You invited%@ to %@",friendListString, self.place.name];
+    
+    if([self.messageTextView.text isEqualToString:@"Compose a message"]) {
+        self.messageTextView.text = @"";
+    }
     
     // add notification to be seen in current users activity feed
     PFObject *receipt = [PFObject objectWithClassName:kNotificationClassKey];
@@ -461,6 +474,15 @@
             }
         }];
     }
+    
+    NSDictionary *inviteParams = [NSDictionary dictionaryWithObjectsAndKeys:
+                                  @"NumberFriends", [NSString stringWithFormat:@"%lu",(unsigned long)[friendsInvited count]],
+                                  @"Message", self.messageTextView.text,
+                                  @"City", self.place.city,
+                                  @"Place", self.place.name,
+     nil];
+    
+    [Flurry logEvent:@"User_Sent_Invite" withParameters:inviteParams];
     [self confirmInvitationsSent];
 }
 

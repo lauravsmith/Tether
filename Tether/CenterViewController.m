@@ -99,12 +99,12 @@
     [self.topBar addSubview:self.leftPanelButtonLarge];
     
     self.tethrLabel = [[UILabel alloc] init];
-    UIFont *helvetica = [UIFont fontWithName:@"HelveticaNeueLTStd-UltLt" size:25];
-    self.tethrLabel.font = helvetica;
+    UIFont *mission = [UIFont fontWithName:@"MissionGothic-BlackItalic" size:22];
+    self.tethrLabel.font = mission;
     self.tethrLabel.text = @"tethr";
     [self.tethrLabel setTextColor:[UIColor whiteColor]];
-    CGSize size = [self.tethrLabel.text sizeWithAttributes:@{NSFontAttributeName:helvetica}];
-    self.tethrLabel.frame = CGRectMake((self.topBar.frame.size.width - size.width) / 2, (self.topBar.frame.size.height - size.height + STATUS_BAR_HEIGHT) / 2 + 5.0, size.width, size.height);
+    CGSize size = [self.tethrLabel.text sizeWithAttributes:@{NSFontAttributeName:mission}];
+    self.tethrLabel.frame = CGRectMake((self.topBar.frame.size.width - size.width) / 2, (self.topBar.frame.size.height - size.height + STATUS_BAR_HEIGHT) / 2, size.width, size.height);
     self.tethrLabel.userInteractionEnabled = YES;
     UITapGestureRecognizer *refreshTapGesture =
     [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(refreshTapped:)];
@@ -118,14 +118,14 @@
     [self.numberButton setTitleColor:[UIColor grayColor] forState:UIControlStateHighlighted];
     UIFont *helveticaNeueLarge = [UIFont fontWithName:@"HelveticaNeue-Bold" size:30];
     size = [self.numberButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:helveticaNeueLarge}];
-    self.numberButton.frame = CGRectMake(PADDING, self.tethrLabel.frame.origin.y - STATUS_BAR_HEIGHT / 2.0 - 1.0, size.width, size.height);
+    self.numberButton.frame = CGRectMake(PADDING, STATUS_BAR_HEIGHT + (TOP_BAR_HEIGHT - STATUS_BAR_HEIGHT - size.height) / 2.0, size.width, size.height);
     self.numberButton.titleLabel.font = helveticaNeueLarge;
     [self.numberButton addTarget:self action:@selector(btnMovePanelRight:) forControlEvents:UIControlEventTouchUpInside];
     self.numberButton.tag = 1;
     [self.topBar addSubview:self.numberButton];
     
     UIImage *triangleImage = [UIImage imageNamed:@"WhiteTriangle"];
-    self.triangleButton = [[UIButton alloc] initWithFrame:CGRectMake(5.0, self.numberButton.frame.origin.y + STATUS_BAR_HEIGHT / 2.0 + 2.0, 7.0, 11.0)];
+    self.triangleButton = [[UIButton alloc] initWithFrame:CGRectMake(5.0, 38.5, 7.0, 11.0)];
     [self.triangleButton setImage:triangleImage forState:UIControlStateNormal];
     [self.view addSubview:self.triangleButton];
     self.triangleButton.tag = 1;
@@ -138,7 +138,7 @@
     [self.topBar addSubview:self.spinner];
     
     // list view search glass button setup
-    self.listViewButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 35.0, self.numberButton.frame.origin.y + 5.0, 21.0, 25.0)];
+    self.listViewButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 35.0, self.tethrLabel.frame.origin.y + 5.0, 20.0, 20.0)];
     [self.listViewButton setImage:[UIImage imageNamed:@"SearchIcon"] forState:UIControlStateNormal];
     self.listViewButton.imageView.contentMode = UIViewContentModeScaleAspectFit;
     [self.listViewButton addTarget:self action:@selector(showListView) forControlEvents:UIControlEventTouchDown];
@@ -161,23 +161,22 @@
     self.bottomBar.userInteractionEnabled = YES;
     [self.view addGestureRecognizer:swipeUp];
     
-    self.settingsButton = [[UIButton alloc] initWithFrame:CGRectMake(7.0, (self.bottomBar.frame.size.height - 31.0) / 2.0, 30.0, 30.0)];
-    [self.settingsButton setImage:[UIImage imageNamed:@"Gear"] forState:UIControlStateNormal];
-    self.settingsButton.contentMode = UIViewContentModeScaleAspectFit;
-    [self.settingsButton addTarget:self action:@selector(settingsPressed:) forControlEvents:UIControlEventTouchUpInside];
-    [self.bottomBar addSubview:self.settingsButton];
-    
     // large background button to increase touch surface area
     self.settingsButtonLarge = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, self.bottomBar.frame.size.width / 4.0, self.bottomBar.frame.size.height)];
     [self.settingsButtonLarge addTarget:self action:@selector(settingsPressed:) forControlEvents:UIControlEventTouchDown];
     
     // notifications button to open right panel setup
+    self.notificationsButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 37.0, (self.bottomBar.frame.size.height - 40.0) / 2.0, 30.0, 40.0)];
+    [self.notificationsButton addTarget:self action:@selector(btnMovePanelLeft:) forControlEvents:UIControlEventTouchUpInside];
+    [self.notificationsButton setImage:[UIImage imageNamed:@"Bell"] forState:UIControlStateNormal];
+    [self.bottomBar addSubview:self.notificationsButton];
+    
     self.notificationsButtonLarge = [[UIButton alloc] initWithFrame:CGRectMake(self.bottomBar.frame.size.width - self.bottomBar.frame.size.width / 4.0, 0.0, self.bottomBar.frame.size.width / 4.0, self.bottomBar.frame.size.height)];
     [self.notificationsButtonLarge addTarget:self action:@selector(btnMovePanelLeft:) forControlEvents:UIControlEventTouchUpInside];
     self.notificationsButtonLarge.tag = 1;
     [self.bottomBar addSubview:self.notificationsButtonLarge];
 
-    self.notificationsLabel = [[UILabel alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 40.0, 8.0, 10.0, 10.0)];
+    self.notificationsLabel = [[UILabel alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 20.0, 8.0, 10.0, 10.0)];
     self.notificationsLabel.layer.cornerRadius = 5.0;
     [self.notificationsLabel setBackgroundColor:UIColorFromRGB(0x8e0528)];
     [self.notificationsLabel setTextColor:[UIColor whiteColor]];
@@ -233,7 +232,7 @@
 -(void)layoutNumberButton {
     UIFont *helveticaNeue = [UIFont fontWithName:@"HelveticaNeue-Bold" size:30];
     CGSize size = [self.numberButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:helveticaNeue}];
-    self.numberButton.frame = CGRectMake(PADDING, self.tethrLabel.frame.origin.y - STATUS_BAR_HEIGHT / 2.0 - 1.0, size.width, size.height);
+    self.numberButton.frame = CGRectMake(PADDING, STATUS_BAR_HEIGHT + (TOP_BAR_HEIGHT - STATUS_BAR_HEIGHT - size.height) / 2.0, size.width, size.height);
     self.numberButton.tag = 1;
     [self.topBar addSubview:self.numberButton];
     [self refreshComplete];
@@ -259,7 +258,7 @@
         CGSize size1 = [self.placeButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratExtraSmall}];
         CGSize size2 = [self.placeNumberButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratSmall}];
         
-        self.placeButton.frame = CGRectMake(MAX(self.settingsButton.frame.origin.x + self.settingsButton.frame.size.width, (self.view.frame.size.width - size1.width) / 2), (self.bottomBar.frame.size.height - size1.height + size2.height) / 2.0, MIN(267.0, size1.width), size1.height);
+        self.placeButton.frame = CGRectMake(MAX(self.userProfilePictureView.frame.origin.x + self.userProfilePictureView.frame.size.width, (self.view.frame.size.width - size1.width) / 2), (self.bottomBar.frame.size.height - size1.height + size2.height) / 2.0, MIN(267.0, size1.width), size1.height);
         
         self.placeNumberButton.frame = CGRectMake((self.view.frame.size.width - size2.width) / 2, (self.bottomBar.frame.size.height - size1.height - size2.height) / 2.0, size2.width, size2.height);
     } else {
@@ -321,7 +320,7 @@
         CGSize size = [tutorialLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratLabelFont}];
         tutorialLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2.0, (TUTORIAL_HEADER_HEIGHT - size.height) / 2.0, size.width, size.height);
         self.tutorialView.tag = 0;
-        arrow = [[UIImageView alloc] initWithFrame: CGRectMake(self.settingsButton.frame.size.width / 2.0 + 3.0, self.bottomBar.frame.size.height - 10.0, 7.0, 11.0)];
+        arrow = [[UIImageView alloc] initWithFrame: CGRectMake(17.0, self.bottomBar.frame.size.height - 10.0, 7.0, 11.0)];
         [arrow setImage:arrowImage];
         arrow.transform = CGAffineTransformMakeRotation(degreesToRadian(270));
     } else if (![userDetails boolForKey:kUserDefaultsHasSeenRefreshTutorialKey]) {

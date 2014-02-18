@@ -339,8 +339,7 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (tableView == self.friendsGoingOutTableView) {
         Datastore *sharedDataManager = [Datastore sharedDataManager];
-        FriendCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell"];
-        cell = [[FriendCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Cell"];
+        FriendCell *cell = [[FriendCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Cell"];
         cell.delegate = self;
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
         
