@@ -51,7 +51,6 @@
         [self addSubview:self.friendNameLabel];
         self.placeButton = [[UIButton alloc] init];
         [self addSubview:self.placeButton];
-        self.layer.delegate = self;
         self.showingStatusMessage = NO;
         self.inviteButton = [[UIButton alloc] init];
         [self addSubview:self.inviteButton];
@@ -85,13 +84,12 @@
     
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     if (self.friend) {
-        if (self.friend.placeId != NULL) {
             if ([sharedDataManager.friendsToPlacesMap objectForKey:self.friend.friendID]) {
-                if ([sharedDataManager.placesDictionary objectForKey:self.friend.placeId]) {
-                    Place *place = [sharedDataManager.placesDictionary objectForKey:self.friend.placeId];
+                NSString *placeId = [sharedDataManager.friendsToPlacesMap objectForKey:self.friend.friendID];
+                if ([sharedDataManager.placesDictionary objectForKey:placeId]) {
+                    Place *place = [sharedDataManager.placesDictionary objectForKey:placeId];
                     [self.placeButton setTitle:place.name forState:UIControlStateNormal];
                 }
-            }
         } else {
             [self.placeButton setTitle:@"" forState:UIControlStateNormal];
         }

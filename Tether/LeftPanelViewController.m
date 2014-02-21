@@ -255,7 +255,7 @@
             [countLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
             goingOutLabel.font = montserratBold;
             countLabel.font = montserratBold;
-            goingOutLabel.text = @"tethrd";
+            goingOutLabel.text = @"tethred";
             countLabel.text = [NSString stringWithFormat:@"%lu",(unsigned long)[sharedDataManager.tetherFriendsGoingOut count]];
             textLabelSize = [goingOutLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];
             CGSize numberLabelSize = [countLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];

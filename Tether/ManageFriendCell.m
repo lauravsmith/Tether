@@ -54,6 +54,7 @@
 }
 
 - (void)prepareForReuse {
+    self.friendProfilePictureView = nil;
     [self layoutSubviews];
 }
 

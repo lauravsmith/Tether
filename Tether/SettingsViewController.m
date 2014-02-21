@@ -462,7 +462,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
         } else {
             statusMessageSize = [@"Enter a status message" sizeWithAttributes:@{NSFontAttributeName: montserrat}];
         }
-        self.statusMessageTextField.frame = CGRectMake((self.view.frame.size.width - statusMessageSize.width) / 2.0, self.userProfilePictureView.frame.origin.y + self.userProfilePictureView.frame.size.height + PADDING*2, statusMessageSize.width, statusMessageSize.height);
+        self.statusMessageTextField.frame = CGRectMake((self.view.frame.size.width - statusMessageSize.width) / 2.0, self.userProfilePictureView.frame.origin.y + self.userProfilePictureView.frame.size.height + PADDING + 2.0, statusMessageSize.width, statusMessageSize.height);
     }
 }
 
@@ -495,7 +495,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     } else {
         statusMessageSize = [@"Enter a status message" sizeWithAttributes:@{NSFontAttributeName: montserrat}];
     }
-    self.statusMessageTextField.frame = CGRectMake((self.view.frame.size.width - statusMessageSize.width) / 2.0, self.userProfilePictureView.frame.origin.y + self.userProfilePictureView.frame.size.height + PADDING*2, statusMessageSize.width, statusMessageSize.height);
+    self.statusMessageTextField.frame = CGRectMake((self.view.frame.size.width - statusMessageSize.width) / 2.0, self.userProfilePictureView.frame.origin.y + self.userProfilePictureView.frame.size.height + PADDING + 2.0, statusMessageSize.width, statusMessageSize.height);
 }
 
 -(void)notifyBestFriendsOfStatusChange {
@@ -809,6 +809,10 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 #pragma mark Table view delegate
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (indexPath.row == [self.searchResults count]) {
+        [tableView deselectRowAtIndexPath:indexPath animated:YES];
+        return;
+    }
 	[NSObject cancelPreviousPerformRequestsWithTarget:self];
 	[self.geocoder cancel];
 	

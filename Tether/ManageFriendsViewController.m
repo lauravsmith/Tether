@@ -151,10 +151,7 @@
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    ManageFriendCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell"];
-    if (!cell) {
-        cell = [[ManageFriendCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Cell"];
-    }
+    ManageFriendCell *cell = [[ManageFriendCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Cell"];
     cell.delegate = self;
     [cell setFriend:[self.friendsSearchArray objectAtIndex:indexPath.row]];
     cell.selectionStyle = UITableViewCellSelectionStyleNone;

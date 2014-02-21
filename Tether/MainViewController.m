@@ -988,6 +988,13 @@
                      completion:^(BOOL finished) {
                           [Flurry logEvent:@"User_views_Settings_Page"];
                      }];
+    
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    if (![userDetails boolForKey:kUserDefaultsHasSeenCityChangeTutorialKey]) {
+        [userDetails setBool:YES forKey:kUserDefaultsHasSeenCityChangeTutorialKey];
+        [userDetails synchronize];
+        [self.centerViewController closeTutorial];
+    }
 }
 
 -(void)showListView
@@ -1270,18 +1277,20 @@
     
     NSString *stringFromDate = [formatter stringFromDate:[NSDate date]];
     NSString *choiceString = choice ? @"YES" : @"NO";
-    NSDictionary *decisionParams =
-    [NSDictionary dictionaryWithObjectsAndKeys:
-     @"Decision", choiceString, @"Date", stringFromDate,
-     nil];
-    
-    [Flurry logEvent:@"User_Input_Decision_Page" withParameters:decisionParams];
+    if (choiceString && stringFromDate) {
+        NSDictionary *decisionParams =
+        [NSDictionary dictionaryWithObjectsAndKeys:
+         @"Decision", choiceString, @"Date", stringFromDate,
+         nil];
+        
+        [Flurry logEvent:@"User_Input_Decision_Page" withParameters:decisionParams];
+    }
 }
 
 #pragma mark SettingsViewControllerDelegate
 
 -(void)closeSettings {
-    [UIView animateWithDuration:SLIDE_TIMING
+    [UIView animateWithDuration:SLIDE_TIMING*1.2
                           delay:0.0
          usingSpringWithDamping:1.0
           initialSpringVelocity:1.0
@@ -1626,7 +1635,7 @@
                 PFUser * user = [objects objectAtIndex:0];
                 PFQuery *pushQuery = [PFInstallation query];
                 [pushQuery whereKey:@"owner" equalTo:user]; //change this to use friends installation
-                NSString *messageHeader = [NSString stringWithFormat:@"%@ tethrd to %@", sharedDataManager.name, place.name];
+                NSString *messageHeader = [NSString stringWithFormat:@"%@ tethred to %@", sharedDataManager.name, place.name];
                 NSDictionary *data = [NSDictionary dictionaryWithObjectsAndKeys:
                                       messageHeader, @"alert",
                                       @"Increment", @"badge",

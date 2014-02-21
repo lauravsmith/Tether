@@ -138,8 +138,8 @@
     [self.topBar addSubview:self.spinner];
     
     // list view search glass button setup
-    self.listViewButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 35.0, self.tethrLabel.frame.origin.y + 5.0, 20.0, 20.0)];
-    [self.listViewButton setImage:[UIImage imageNamed:@"SearchIcon"] forState:UIControlStateNormal];
+    self.listViewButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 40.0, self.tethrLabel.frame.origin.y, 33.0, 28.0)];
+    [self.listViewButton setImage:[UIImage imageNamed:@"LineNavigator"] forState:UIControlStateNormal];
     self.listViewButton.imageView.contentMode = UIViewContentModeScaleAspectFit;
     [self.listViewButton addTarget:self action:@selector(showListView) forControlEvents:UIControlEventTouchDown];
     [self.topBar addSubview:self.listViewButton];
@@ -583,10 +583,14 @@
     [self.locationManager stopUpdatingLocation];
     [self.locationManager startMonitoringSignificantLocationChanges];
     
-    [Flurry setLatitude:self.userCoordinates.coordinate.latitude
-              longitude:self.userCoordinates.coordinate.longitude
-     horizontalAccuracy:self.userCoordinates.horizontalAccuracy
-       verticalAccuracy:self.userCoordinates.verticalAccuracy];
+    if (self.userCoordinates) {
+        if (self.userCoordinates.coordinate.latitude != 0.0) {
+            [Flurry setLatitude:self.userCoordinates.coordinate.latitude
+                      longitude:self.userCoordinates.coordinate.longitude
+             horizontalAccuracy:self.userCoordinates.horizontalAccuracy
+               verticalAccuracy:self.userCoordinates.verticalAccuracy];
+        }
+    }
 }
 
 #pragma mark -
@@ -596,13 +600,6 @@
 {
     if ([self.delegate respondsToSelector:@selector(showSettingsView)]) {
         [self.delegate showSettingsView];
-    }
-    
-    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-    if (![userDetails boolForKey:kUserDefaultsHasSeenCityChangeTutorialKey]) {
-        [userDetails setBool:YES forKey:kUserDefaultsHasSeenCityChangeTutorialKey];
-        [userDetails synchronize];
-        [self closeTutorial];
     }
 }
 

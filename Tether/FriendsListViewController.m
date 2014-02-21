@@ -145,7 +145,7 @@
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     if (sharedDataManager.currentCommitmentPlace) {
         if ([self.place.placeId isEqualToString:sharedDataManager.currentCommitmentPlace.placeId]) {
-            [self.commitButton setTitle:@"tethrd" forState:UIControlStateNormal];
+            [self.commitButton setTitle:@"tethred" forState:UIControlStateNormal];
             [self.commitButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
             self.commitButton.tag = 2;
         } else {
@@ -315,7 +315,7 @@
         [self.commitButton setTitle:@"tethr" forState:UIControlStateNormal];
         [self.commitButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
     } else {
-        [self.commitButton setTitle:@"tethrd" forState:UIControlStateNormal];
+        [self.commitButton setTitle:@"tethred" forState:UIControlStateNormal];
         [self.commitButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
     }
 }
