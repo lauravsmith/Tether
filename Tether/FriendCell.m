@@ -11,6 +11,7 @@
 #import "Datastore.h"
 #import "Friend.h"
 #import "FriendCell.h"
+#import "TethrButton.h"
 
 #define MAX_LABEL_WIDTH 150.0
 #define NAME_LABEL_OFFSET_X 70.0
@@ -30,8 +31,8 @@
 @property (nonatomic, strong) FBProfilePictureView *friendProfilePictureView;
 @property (nonatomic, strong) UILabel *statusLabel;
 @property (nonatomic, assign) BOOL showingStatusMessage;
-@property (nonatomic, strong) UIButton *inviteButton;
-@property (nonatomic, strong) UIButton *inviteButtonLarge;
+@property (nonatomic, strong) TethrButton *inviteButton;
+@property (nonatomic, strong) TethrButton *inviteButtonLarge;
 - (void)prepareForReuse;
 @end
 
@@ -52,10 +53,10 @@
         self.placeButton = [[UIButton alloc] init];
         [self addSubview:self.placeButton];
         self.showingStatusMessage = NO;
-        self.inviteButton = [[UIButton alloc] init];
-        [self addSubview:self.inviteButton];
-        self.inviteButtonLarge = [[UIButton alloc] init];
+        self.inviteButtonLarge = [[TethrButton alloc] init];
         [self addSubview:self.inviteButtonLarge];
+        self.inviteButton = [[TethrButton alloc] init];
+        [self addSubview:self.inviteButton];
     }
     return self;
 }
@@ -121,18 +122,23 @@
     [self addSubview:self.statusLabel];
     
     self.inviteButton.tag = 0;
+    UIFont *missionGothic = [UIFont fontWithName:@"MissionGothic-BoldItalic" size:11.0f];
+    [self.inviteButton setTitle:@"invite" forState:UIControlStateNormal];
+    self.inviteButton.titleLabel.font = missionGothic;
+    size = [self.inviteButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName: missionGothic}];
     if (self.friend && ![self.friend.friendID isEqualToString:sharedDataManager.facebookId]) {
-        self.inviteButton.frame = CGRectMake(self.frame.size.width - PANEL_WIDTH - 35.0, self.friendNameLabel.frame.origin.y + 2.0, 20, 20);
+        self.inviteButton.frame = CGRectMake(self.frame.size.width - PANEL_WIDTH - size.width - 10.0, self.friendNameLabel.frame.origin.y, size.width, size.height + 8.0);
     } else {
         self.inviteButton.frame = CGRectMake(0, 0, 0, 0);
     }
-    [self.inviteButton setImage:[UIImage imageNamed:@"InviteIcon"] forState:UIControlStateNormal];
-    self.inviteButton.imageView.contentMode = UIViewContentModeScaleAspectFit;
+    [self.inviteButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
     [self.inviteButton addTarget:self
                           action:@selector(inviteClicked:)
                 forControlEvents:UIControlEventTouchUpInside];
     self.inviteButton.contentMode = UIViewContentModeScaleAspectFit;
-    self.inviteButtonLarge.frame = CGRectMake(self.inviteButton.frame.origin.x - 10.0, 0.0, 60.0, self.frame.size.height);
+    self.inviteButtonLarge.frame = CGRectMake(self.inviteButton.frame.origin.x - 20.0, 0.0, 70.0, self.frame.size.height);
+    [self.inviteButtonLarge setNormalColor:[UIColor clearColor]];
+    [self.inviteButtonLarge setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
     [self.inviteButtonLarge addTarget:self
                                action:@selector(inviteClicked:)
                      forControlEvents:UIControlEventTouchUpInside];

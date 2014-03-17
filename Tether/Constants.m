@@ -16,11 +16,9 @@ NSString *const kUserDefaultsTimeLastUpdatedKey  = @"timeLastUpdated";
 NSString *const kUserDefaultsHasSeenTethrTutorialKey = @"hasSeenTethrTutorial";
 NSString *const kUserDefaultsHasSeenPlaceInviteTutorialKey = @"hasSeenPlaceInviteTutorial";
 NSString *const kUserDefaultsHasSeenPlaceTethrTutorialKey = @"hasSeenPlaceTethrTutorial";
-NSString *const kUserDefaultsHasSeenFriendInviteTutorialKey= @"hasSeenFriendInviteTutorial";
 NSString *const kUserDefaultsHasSeenRefreshTutorialKey = @"hasSeenRefreshTutorial";
 NSString *const kUserDefaultsHasSeenFriendsListTutorialKey= @"hasSeenFriendsListTutorial";
 NSString *const kUserDefaultsHasSeenPlaceListTutorialKey= @"hasSeenPlaceListTutorial";
-NSString *const kUserDefaultsHasSeenCityChangeTutorialKey= @"hasSeenCityChangeTutorial";
 NSString *const kUserDefaultsHasSeenBlockTutorialKey= @"hasSeenBlockTutorial";
 
 #pragma mark - User Class

@@ -9,6 +9,7 @@
 #import "ViewController.h"
 
 @interface MainViewController : ViewController
+@property (nonatomic, strong) CenterViewController *centerViewController;
 @property (strong, nonatomic) NSMutableDictionary *friendsDictionary;
 -(void)pollDatabase;
 -(void)movePanelLeft;

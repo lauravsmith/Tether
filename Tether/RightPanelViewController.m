@@ -85,6 +85,7 @@
     NSLog(@"PARSE QUERY: POLLING NOTIFICATIONS");
     
     PFQuery *query = [PFQuery queryWithClassName:kNotificationClassKey];
+    query.limit = 5000;
     
     if (sharedDataManager.facebookId) {
         NSDate *today = [self getStartTime];

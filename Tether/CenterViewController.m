@@ -36,7 +36,6 @@
 @property (retain, nonatomic) NSString * cityLocation;
 @property (retain, nonatomic) UIView * topBar;
 @property (assign, nonatomic) bool mapHasAdjusted;
-@property (strong, nonatomic) CLLocationManager * locationManager;
 @property (strong, nonatomic) NSTimer * finishLoadingTimer;
 @property (retain, nonatomic) UITapGestureRecognizer * cityTapGesture;
 @property (strong, nonatomic) UIButton *commitmentButton;
@@ -138,7 +137,9 @@
     [self.topBar addSubview:self.spinner];
     
     // list view search glass button setup
-    self.listViewButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 40.0, self.tethrLabel.frame.origin.y, 33.0, 28.0)];
+    self.listViewButton = [[TethrButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 40.0, self.tethrLabel.frame.origin.y, 33.0, 28.0)];
+    [self.listViewButton setNormalColor:[UIColor clearColor]];
+    [self.listViewButton setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
     [self.listViewButton setImage:[UIImage imageNamed:@"LineNavigator"] forState:UIControlStateNormal];
     self.listViewButton.imageView.contentMode = UIViewContentModeScaleAspectFit;
     [self.listViewButton addTarget:self action:@selector(showListView) forControlEvents:UIControlEventTouchDown];
@@ -166,7 +167,9 @@
     [self.settingsButtonLarge addTarget:self action:@selector(settingsPressed:) forControlEvents:UIControlEventTouchDown];
     
     // notifications button to open right panel setup
-    self.notificationsButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 37.0, (self.bottomBar.frame.size.height - 40.0) / 2.0, 30.0, 40.0)];
+    self.notificationsButton = [[TethrButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 37.0, (self.bottomBar.frame.size.height - 40.0) / 2.0, 30.0, 40.0)];
+    [self.notificationsButton setNormalColor:[UIColor clearColor]];
+    [self.notificationsButton setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
     [self.notificationsButton addTarget:self action:@selector(btnMovePanelLeft:) forControlEvents:UIControlEventTouchUpInside];
     [self.notificationsButton setImage:[UIImage imageNamed:@"Bell"] forState:UIControlStateNormal];
     [self.bottomBar addSubview:self.notificationsButton];
@@ -223,6 +226,10 @@
     [self setNeedsStatusBarAppearanceUpdate];
 }
 
+-(void)movePanelEdge:(id)sender {
+    NSLog(@"Edge swipe Map");
+}
+
 -(void)setNeedsStatusBarAppearanceUpdate {
     self.topBar.frame = CGRectMake(0, 0.0, self.view.frame.size.width,TOP_BAR_HEIGHT);
     self.bottomBar.frame = CGRectMake(0, self.view.frame.size.height - BOTTOM_BAR_HEIGHT, self.view.frame.size.width, BOTTOM_BAR_HEIGHT);
@@ -271,8 +278,11 @@
         NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
         if ([userDetails objectForKey:@"city"]) {
             [self.cityButton setTitle:[NSString stringWithFormat:@"%@",[userDetails objectForKey:@"city"]] forState:UIControlStateNormal];
-            self.cityButton.titleLabel.font = montserratExtraSmall;
+        } else if (![CLLocationManager locationServicesEnabled] || [CLLocationManager authorizationStatus] == kCLAuthorizationStatusDenied) {
+            [self.cityButton setTitle:@"Enter your city" forState:UIControlStateNormal];
         }
+        
+        self.cityButton.titleLabel.font = montserratExtraSmall;
         
         CGSize size = [self.cityButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratExtraSmall}];
         self.cityButton.frame = CGRectMake((self.view.frame.size.width - size.width) / 2, (self.bottomBar.frame.size.height - size.height) / 2.0, MIN(300.0, size.width), size.height);
@@ -314,16 +324,7 @@
     tutorialLabel.font = montserratLabelFont;
     [tutorialLabel setTextColor:UIColorFromRGB(0x8e0528)];
     
-    if (![userDetails boolForKey:kUserDefaultsHasSeenCityChangeTutorialKey]) {
-        self.tutorialView.frame = CGRectMake(0.0, self.view.frame.size.height - self.bottomBar.frame.size.height - TUTORIAL_HEADER_HEIGHT, self.view.frame.size.width, TUTORIAL_HEADER_HEIGHT);
-        tutorialLabel.text = @"Change cities to see friends in different areas";
-        CGSize size = [tutorialLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratLabelFont}];
-        tutorialLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2.0, (TUTORIAL_HEADER_HEIGHT - size.height) / 2.0, size.width, size.height);
-        self.tutorialView.tag = 0;
-        arrow = [[UIImageView alloc] initWithFrame: CGRectMake(17.0, self.bottomBar.frame.size.height - 10.0, 7.0, 11.0)];
-        [arrow setImage:arrowImage];
-        arrow.transform = CGAffineTransformMakeRotation(degreesToRadian(270));
-    } else if (![userDetails boolForKey:kUserDefaultsHasSeenRefreshTutorialKey]) {
+    if (![userDetails boolForKey:kUserDefaultsHasSeenRefreshTutorialKey]) {
         tutorialLabel.text = @"Tap to refresh";
         arrow = [[UIImageView alloc] initWithFrame: CGRectMake((self.view.frame.size.width - 7.0) / 2.0, 2.0, 7.0, 11.0)];
         CGSize size = [tutorialLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratLabelFont}];
@@ -366,7 +367,7 @@
                      } completion:^(BOOL finished) {
                          [self.tutorialView removeFromSuperview];
                          NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-                         if (![userDetails boolForKey:kUserDefaultsHasSeenRefreshTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenFriendsListTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenPlaceListTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenCityChangeTutorialKey]) {
+                         if (![userDetails boolForKey:kUserDefaultsHasSeenRefreshTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenFriendsListTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenPlaceListTutorialKey]) {
                              [self addTutorialView];
                          }
                      }];
@@ -376,9 +377,7 @@
 
 - (void)tutorialTapped:(UIGestureRecognizer*)recognizer {
      NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-    if (self.tutorialView.tag == 0) {
-        [userDetails setBool:YES forKey:kUserDefaultsHasSeenCityChangeTutorialKey];
-    } else if (self.tutorialView.tag == 1) {
+    if (self.tutorialView.tag == 1) {
         [userDetails setBool:YES forKey:kUserDefaultsHasSeenRefreshTutorialKey];
     } else if (self.tutorialView.tag == 2) {
         [userDetails setBool:YES forKey:kUserDefaultsHasSeenFriendsListTutorialKey];
@@ -437,7 +436,8 @@
 
 -(void)locationSetup {
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-    if ([userDetails boolForKey:@"useCurrentLocation"] || ![userDetails objectForKey:@"city"] || ![userDetails objectForKey:@"state"]) {
+    
+    if (([userDetails boolForKey:@"useCurrentLocation"] || ![userDetails objectForKey:@"city"] || ![userDetails objectForKey:@"state"]) && ([CLLocationManager locationServicesEnabled] && [CLLocationManager authorizationStatus] != kCLAuthorizationStatusDenied)) {
         [self.locationManager startUpdatingLocation];
         if (![userDetails objectForKey:@"city"] || ![userDetails objectForKey:@"state"]) {
             [userDetails setBool:YES forKey:@"useCurrentLocation"];
@@ -448,8 +448,17 @@
         NSString *state = [userDetails objectForKey:@"state"];
         NSString *locationString = [NSString stringWithFormat:@"%@, %@", city, state];
         NSLog(@"%@", locationString);
-        [self setUserLocationToCity:locationString];
+        if (city != NULL && state != NULL) {
+            [self setUserLocationToCity:locationString];
+        } else if ((![CLLocationManager locationServicesEnabled] || [CLLocationManager authorizationStatus] == kCLAuthorizationStatusDenied)){
+            [userDetails setBool:NO forKey:@"useCurrentLocation"];
+            [userDetails synchronize];
+        }
     }
+}
+
+-(void)locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error {
+    NSLog(@"User has not allowed location services %@", [error description]);
 }
 
 -(void)restartTimer {

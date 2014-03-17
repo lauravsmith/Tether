@@ -11,6 +11,7 @@
 #import "Flurry.h"
 #import "Place.h"
 #import "PlaceCell.h"
+#import "TethrButton.h"
 
 #define degreesToRadian(x) (M_PI * (x) / 180.0)
 
@@ -20,11 +21,12 @@
 @property (nonatomic, weak) id<PlaceCellContentViewDelegate> delegate;
 @property (nonatomic, strong) Place *place;
 @property (nonatomic, strong) UILabel *placeNameLabel;
-@property (nonatomic, strong) UIButton *commitButton;
+@property (nonatomic, strong) TethrButton *commitButton;
 @property (nonatomic, strong) UIButton *friendsGoingButton;
 @property (nonatomic, strong) UIButton *friendsGoingButtonLarge;
 @property (nonatomic, strong) UIButton *arrowButton;
 @property (nonatomic, strong) UILabel *addressLabel;
+@property (retain, nonatomic) UIImageView *pinImageView;
 
 - (void)prepareForReuse;
 -(void)layoutCommitButton;
@@ -49,7 +51,7 @@
         self.placeNameLabel = [[UILabel alloc] init];
         self.placeNameLabel.contentMode = UIViewContentModeScaleAspectFill;
         [self addSubview:self.placeNameLabel];
-        self.commitButton = [[UIButton alloc] init];
+        self.commitButton = [[TethrButton alloc] init];
         self.commitButton.tag = 1;
         [self addSubview:self.commitButton];
         self.addressLabel = [[UILabel alloc] init];
@@ -72,24 +74,51 @@
     [super layoutSubviews];
     
     [self.placeNameLabel setTextColor:UIColorFromRGB(0x8e0528)];
+    [self.placeNameLabel setLineBreakMode:NSLineBreakByWordWrapping];
+    self.placeNameLabel.numberOfLines = 0;
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
-    CGSize size = [self.placeNameLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
-    self.placeNameLabel.frame = CGRectMake(10.0, 10.0, MIN(self.frame.size.width - 150.0, size.width), size.height);
-    self.placeNameLabel.adjustsFontSizeToFitWidth = YES;
+    
+    CGRect textRect = [self.placeNameLabel.text boundingRectWithSize:CGSizeMake(150.0, self.bounds.size.height)
+                                         options:NSStringDrawingUsesLineFragmentOrigin
+                                      attributes:@{NSFontAttributeName:montserrat}
+                                         context:nil];
+    
+    CGSize size = textRect.size;
+    self.placeNameLabel.textAlignment = NSTextAlignmentCenter;
     [self.placeNameLabel setFont:montserrat];
     
     UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:10.0f];
     [self.addressLabel setText:self.place.address];
-    size = [self.addressLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratSmall}];
-    self.addressLabel.frame = CGRectMake(self.placeNameLabel.frame.origin.x, self.placeNameLabel.frame.origin.y + self.placeNameLabel.frame.size.height + 2.0, size.width, size.height);
+    
+    CGRect textRectAddress = [self.addressLabel.text boundingRectWithSize:CGSizeMake(150.0, self.bounds.size.height)
+                                                             options:NSStringDrawingUsesLineFragmentOrigin
+                                                          attributes:@{NSFontAttributeName:montserratSmall}
+                                                             context:nil];
+    CGSize sizeAddress = textRectAddress.size;
+    
+    [self.placeNameLabel setFrame:CGRectMake((self.bounds.size.width - size.width) / 2.0, (self.bounds.size.height - size.height - sizeAddress.height) / 2.0, size.width, size.height)];
+    
+    self.addressLabel.frame = CGRectMake((self.bounds.size.width - sizeAddress.width) / 2.0, self.placeNameLabel.frame.origin.y + self.placeNameLabel.frame.size.height, sizeAddress.width, sizeAddress.height);
     [self.addressLabel setFont:montserratSmall];
     [self.addressLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
     
+    UIFont *missionGothic = [UIFont fontWithName:@"MissionGothic-BoldItalic" size:14.0f];
+    [self.commitButton setNormalColor:[UIColor whiteColor]];
+    [self.commitButton setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
     [self.commitButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
-    self.commitButton.titleLabel.font = montserrat;
+    self.commitButton.titleLabel.font = missionGothic;
     [self.commitButton addTarget:self
                           action:@selector(commitClicked:)
                 forControlEvents:UIControlEventTouchUpInside];
+    self.commitButton.titleEdgeInsets = UIEdgeInsetsMake(20.0, 0.0, 0.0, 0.0);
+    self.commitButton.frame = CGRectMake(0.0, 0.0, 70.0, self.bounds.size.height);
+    [self.commitButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+    
+    self.pinImageView = [[UIImageView alloc] initWithFrame:CGRectMake((self.commitButton.frame.size.width - 25.0) / 2.0, 20.0, 25.0, 25.0)];
+    self.pinImageView.image = [UIImage imageNamed:@"GreyPinIcon"];
+    self.pinImageView.contentMode = UIViewContentModeScaleAspectFit;
+    [self.commitButton addSubview:self.pinImageView];
+    
     [self layoutCommitButton];
     
     self.arrowButton.frame = CGRectMake(self.frame.size.width - 30.0, (self.frame.size.height - 10.0) / 2, 7.0, 11.0);
@@ -136,19 +165,11 @@
 -(void)layoutCommitButton {
     if (self.commitButton.tag == 1) {
         [self.commitButton setTitle:@"  tethr  " forState:UIControlStateNormal];
-        [self.commitButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-        [self.commitButton setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
+        self.pinImageView.image = [UIImage imageNamed:@"GreyPinIcon"];
     } else {
         [self.commitButton setTitle:@"  tethred  " forState:UIControlStateNormal];
-        [self.commitButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-        [self.commitButton setBackgroundColor:UIColorFromRGB(0x8e0528)];
+        self.pinImageView.image = [UIImage imageNamed:@"PinIcon"];
     }
-
-    self.commitButton.layer.cornerRadius = 9.0;
-    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
-    CGSize size = [self.commitButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
-    self.commitButton.titleEdgeInsets = UIEdgeInsetsMake(1.0, 1.0, 0, 0);
-    self.commitButton.frame = CGRectMake(self.placeNameLabel.frame.origin.x, self.frame.size.height - size.height - 13.0, size.width, size.height);
 }
 
 -(IBAction)commitClicked:(id)sender {

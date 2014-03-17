@@ -8,6 +8,7 @@
 
 #import "LeftPanelViewController.h"
 #import "Place.h"
+#import "TethrButton.h"
 #import "ViewController.h"
 
 #import <MapKit/MapKit.h>
@@ -42,12 +43,13 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 
 @property (nonatomic, assign) id<CenterViewControllerDelegate> delegate;
 
+@property (strong, nonatomic) CLLocationManager * locationManager;
 @property (strong, nonatomic) UILabel *tethrLabel;
 @property (strong, nonatomic) UIActivityIndicatorView * spinner;
 @property (retain, nonatomic) UIButton * numberButton;
 @property (strong, nonatomic) UIButton *leftPanelButtonLarge;
 @property (retain, nonatomic) UIButton * triangleButton;
-@property (strong, nonatomic) UIButton *listViewButton;
+@property (strong, nonatomic) TethrButton *listViewButton;
 @property (strong, nonatomic) UIButton *listViewButtonLarge;
 @property (retain, nonatomic) UIButton *settingsButtonLarge;
 @property (retain, nonatomic) MKMapView * mv;
@@ -56,7 +58,7 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 @property (assign, nonatomic) bool resettingLocation;
 @property (nonatomic, strong) FBProfilePictureView *userProfilePictureView;
 @property (strong, nonatomic) UILabel *notificationsLabel;
-@property (retain, nonatomic) UIButton *notificationsButton;
+@property (retain, nonatomic) TethrButton *notificationsButton;
 @property (strong, nonatomic) UIButton *notificationsButtonLarge;
 @property (retain, nonatomic) UIButton * cityButton;
 @property (retain, nonatomic) UIButton * placeButton;

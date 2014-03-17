@@ -41,7 +41,6 @@
 
 @interface MainViewController () <CenterViewControllerDelegate, DecisionViewControllerDelegate, FriendsListViewControllerDelegate, InviteViewControllerDelegate, LeftPanelViewControllerDelegate, PlacesViewControllerDelegate, RightPanelViewControllerDelegate, SettingsViewControllerDelegate, UIGestureRecognizerDelegate>
 
-@property (nonatomic, strong) CenterViewController *centerViewController;
 @property (nonatomic, strong) LeftPanelViewController *leftPanelViewController;
 @property (nonatomic, strong) DecisionViewController *decisionViewController;
 @property (nonatomic, strong) SettingsViewController *settingsViewController;
@@ -70,6 +69,7 @@
 @property (retain, nonatomic) UIView *confirmationView;
 @property (retain, nonatomic) UIActivityIndicatorView *activityIndicatorView;
 @property (nonatomic, assign) BOOL openingPlacePage;
+@property (nonatomic, strong) UIPanGestureRecognizer *panRecognizerBottom;
 
 @end
 
@@ -78,6 +78,7 @@
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+    
     if (self) {
         self.leftPanelNotShownYet = YES;
         self.rightPanelNotShownYet = YES;
@@ -370,10 +371,10 @@
                 [Flurry setGender:[gender lowercaseString]];
             }
             
-            NSString *relationshipStatus = result[@"relationship_status"];
-            if (relationshipStatus && [relationshipStatus length] != 0) {
-                [self.currentUser setObject:relationshipStatus forKey:@"relationshipStatus"];
-            }
+//            NSString *relationshipStatus = result[@"relationship_status"];
+//            if (relationshipStatus && [relationshipStatus length] != 0) {
+//                [self.currentUser setObject:relationshipStatus forKey:@"relationshipStatus"];
+//            }
             
             [self.currentUser saveEventually];
             
@@ -443,6 +444,7 @@
     
     if (city && state && sharedDataManager.facebookFriends) {
         PFQuery *facebookFriendsQuery = [PFUser query];
+        facebookFriendsQuery.limit = 5000;
         [facebookFriendsQuery whereKey:kUserFacebookIDKey containedIn:sharedDataManager.facebookFriends];
 
         [facebookFriendsQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
@@ -489,7 +491,7 @@
                                 friend.placeId = [sharedDataManager.friendsToPlacesMap objectForKey:friend.friendID];
                             }
                             
-                            if ([user[kUserCityKey] isEqualToString:city] && [user[kUserStateKey] isEqualToString:state]) {
+                            if (([user[kUserCityKey] isEqualToString:city] && [user[kUserStateKey] isEqualToString:state]) || ![userDetails boolForKey:@"cityFriendsOnly"]) {
                                 [sharedDataManager.tetherFriendsNearbyDictionary setObject:friend forKey:friend.friendID];
                             }
                             [sharedDataManager.tetherFriendsDictionary setObject:friend forKey:friend.friendID];
@@ -893,10 +895,42 @@
     [panRecognizer setDelegate:self];
     
     [_centerViewController.view addGestureRecognizer:panRecognizer];
+    
+    UIScreenEdgePanGestureRecognizer *panRecognizerEdgeLeft = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(movePanel:)];
+    [panRecognizerEdgeLeft setEdges:UIRectEdgeLeft];
+    [panRecognizerEdgeLeft setDelegate:self];
+    
+    [_centerViewController.view addGestureRecognizer:panRecognizerEdgeLeft];
+    
+    UIScreenEdgePanGestureRecognizer *panRecognizerEdgeRight = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(movePanel:)];
+    [panRecognizerEdgeRight setEdges:UIRectEdgeRight];
+    [panRecognizerEdgeRight setDelegate:self];
+    
+    [_centerViewController.view addGestureRecognizer:panRecognizerEdgeRight];
+    
+    UIScreenEdgePanGestureRecognizer *panRecognizerEdgeBottom = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(showSettingsView)];
+    [panRecognizerEdgeBottom setEdges:UIRectEdgeTop];
+    [panRecognizerEdgeBottom setDelegate:self];
+    
+    [_centerViewController.bottomBar addGestureRecognizer:panRecognizerEdgeBottom];
+    
+    self.panRecognizerBottom = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(showSettingsView)];
+    [self.panRecognizerBottom setMinimumNumberOfTouches:1];
+    [self.panRecognizerBottom setMaximumNumberOfTouches:1];
+    [self.panRecognizerBottom setDelegate:self];
+    [self.centerViewController.bottomBar addGestureRecognizer:self.panRecognizerBottom];
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer  shouldRecognizeSimultaneouslyWithGestureRecognizer :(UIGestureRecognizer *)otherGestureRecognizer {
+    if ([gestureRecognizer isKindOfClass:[UIScreenEdgePanGestureRecognizer class]] || gestureRecognizer == self.panRecognizerBottom) {
+        return YES;
+    }
+    return NO;
 }
 
 -(void)movePanel:(id)sender
 {
+    [self.centerViewController.mv setScrollEnabled:NO];
      self.centerViewController.dragging = YES;
     [[[(UITapGestureRecognizer*)sender view] layer] removeAllAnimations];
     
@@ -988,13 +1022,6 @@
                      completion:^(BOOL finished) {
                           [Flurry logEvent:@"User_views_Settings_Page"];
                      }];
-    
-    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-    if (![userDetails boolForKey:kUserDefaultsHasSeenCityChangeTutorialKey]) {
-        [userDetails setBool:YES forKey:kUserDefaultsHasSeenCityChangeTutorialKey];
-        [userDetails synchronize];
-        [self.centerViewController closeTutorial];
-    }
 }
 
 -(void)showListView
@@ -1071,10 +1098,6 @@
                             options:UIViewAnimationOptionBeginFromCurrentState
                          animations:^{
                              _centerViewController.view.frame = CGRectMake(self.view.frame.size.width - PANEL_WIDTH, 0, self.view.frame.size.width, self.view.frame.size.height);
-                             Datastore *sharedDataManager = [Datastore sharedDataManager];
-                             if ((![userDetails boolForKey:kUserDefaultsHasSeenFriendInviteTutorialKey] && [sharedDataManager.tetherFriendsNearbyDictionary count] > 0)) {
-                                 [self.leftPanelViewController addTutorialView];
-                             }
                          }
                          completion:^(BOOL finished) {
                              _centerViewController.numberButton.tag = 0;
@@ -1160,6 +1183,7 @@
                      completion:^(BOOL finished) {
                          [self resetMainView];
                           self.centerViewController.dragging = NO;
+                         [self.centerViewController.mv setScrollEnabled:YES];
                      }];
 }
 
@@ -1268,7 +1292,7 @@
         self.settingsViewController.goingOutSwitch.on = choice;
     }
     
-    if (![userDetails boolForKey:kUserDefaultsHasSeenRefreshTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenFriendsListTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenPlaceListTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenCityChangeTutorialKey]) {
+    if (![userDetails boolForKey:kUserDefaultsHasSeenRefreshTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenFriendsListTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenPlaceListTutorialKey]) {
         [self.centerViewController addTutorialView];
     }
     
@@ -1450,6 +1474,10 @@
 }
 
 -(void)selectAnnotationForPlace:(Place*)place {
+    if(!MKMapRectContainsPoint(self.centerViewController.mv.visibleMapRect, MKMapPointForCoordinate(place.coord))) {
+       [self zoomToFitMapAnnotations:self.centerViewController.mv];
+    }
+    
     [self movePanelToOriginalPosition];
     if ([self.centerViewController.placeToAnnotationViewDictionary objectForKey:place.placeId]) {
         TetherAnnotationView *annotationView = [self.centerViewController.placeToAnnotationViewDictionary objectForKey:place.placeId];
@@ -1459,8 +1487,38 @@
             annotationView.placeTouchView.userInteractionEnabled = YES;
             annotationView.tag = 0;
         }
-
     }
+}
+
+-(void)zoomToFitMapAnnotations:(MKMapView*)mapView{
+    if([mapView.annotations count] == 0)
+        return;
+    
+    CLLocationCoordinate2D topLeftCoord;
+    topLeftCoord.latitude = -90;
+    topLeftCoord.longitude = 180;
+    
+    CLLocationCoordinate2D bottomRightCoord;
+    bottomRightCoord.latitude = 90;
+    bottomRightCoord.longitude = -180;
+    
+    for(id<MKAnnotation>annotation in mapView.annotations)
+    {
+        topLeftCoord.longitude = fmin(topLeftCoord.longitude, annotation.coordinate.longitude);
+        topLeftCoord.latitude = fmax(topLeftCoord.latitude, annotation.coordinate.latitude);
+        
+        bottomRightCoord.longitude = fmax(bottomRightCoord.longitude, annotation.coordinate.longitude);
+        bottomRightCoord.latitude = fmin(bottomRightCoord.latitude, annotation.coordinate.latitude);
+    }
+    
+    MKCoordinateRegion region;
+    region.center.latitude = topLeftCoord.latitude - (topLeftCoord.latitude - bottomRightCoord.latitude) * 0.5;
+    region.center.longitude = topLeftCoord.longitude + (bottomRightCoord.longitude - topLeftCoord.longitude) * 0.5;
+    region.span.latitudeDelta = fabs(topLeftCoord.latitude - bottomRightCoord.latitude) * 1.1; // Add a little extra space on the sides
+    region.span.longitudeDelta = fabs(bottomRightCoord.longitude - topLeftCoord.longitude) * 1.1; // Add a little extra space on the sides
+    
+    region = [mapView regionThatFits:region];
+    [mapView setRegion:region animated:YES];
 }
 
 -(void)closeListView {

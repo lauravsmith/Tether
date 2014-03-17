@@ -94,53 +94,6 @@
     [self hideSearchBar];
 }
 
--(void)addTutorialView {
-    if  (![[self.view subviews] containsObject:self.tutorialView]) {
-        NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-        if (![userDetails boolForKey:kUserDefaultsHasSeenFriendInviteTutorialKey]) {
-            self.tutorialView = [[UIView alloc] initWithFrame:CGRectMake(0.0, self.view.frame.size.height - TUTORIAL_HEADER_HEIGHT, self.view.frame.size.width, TUTORIAL_HEADER_HEIGHT)];
-            [self.tutorialView setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
-            UILabel *tutorialLabel = [[UILabel alloc] init];
-            tutorialLabel.text = @"Tap         to invite a friend to a location";
-            UIFont *montserratLabelFont = [UIFont fontWithName:@"Montserrat" size:13];
-            tutorialLabel.font = montserratLabelFont;
-            [tutorialLabel setTextColor:UIColorFromRGB(0x8e0528)];
-            CGSize size = [tutorialLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratLabelFont}];
-            tutorialLabel.frame = CGRectMake((self.view.frame.size.width - size.width  - PANEL_WIDTH) / 2.0, (TUTORIAL_HEADER_HEIGHT - size.height) / 2.0, size.width, size.height);
-            [self.tutorialView addSubview:tutorialLabel];
-            
-            UIImageView *inviteImageView = [[UIImageView alloc] initWithFrame:CGRectMake(tutorialLabel.frame.origin.x + 30.0, tutorialLabel.frame.origin.y - 2.0, 20.0, 20.0)];
-            [inviteImageView setImage:[UIImage imageNamed:@"InviteIcon"]];
-            [inviteImageView setBackgroundColor:[UIColor whiteColor]];
-            inviteImageView.layer.cornerRadius = 6.0;
-            [self.tutorialView addSubview:inviteImageView];
-            
-            self.tutorialView.userInteractionEnabled = YES;
-            UITapGestureRecognizer *tutorialTapGesture =
-            [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tutorialTapped:)];
-            [self.tutorialView addGestureRecognizer:tutorialTapGesture];
-            [self.view addSubview:self.tutorialView];
-        }
-    }
-}
-
-- (void)tutorialTapped:(UIGestureRecognizer*)recognizer {
-        [self closeTutorial];
-}
-
--(void)closeTutorial {
-    [UIView animateWithDuration:0.2
-                     animations:^{
-                         self.tutorialView.alpha = 0.0;
-                     } completion:^(BOOL finished) {
-                         [self.tutorialView removeFromSuperview];
-                         NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-                        if (![userDetails boolForKey:kUserDefaultsHasSeenFriendInviteTutorialKey]) {
-                           [userDetails setBool:YES forKey:kUserDefaultsHasSeenFriendInviteTutorialKey];
-                        }
-                     }];
-}
-
 -(void)updateFriendsList {
     NSSortDescriptor *nameDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"name" ascending:YES];
     Datastore *sharedDataManager = [Datastore sharedDataManager];
@@ -237,7 +190,11 @@
             UIFont *montserratBold = [UIFont fontWithName:@"Montserrat" size:14.0f];
             friendsLabel.font = montserratBold;
             NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-            friendsLabel.text = [NSString stringWithFormat:@"Friends in %@", [userDetails objectForKey:@"city"]];
+            if  (![userDetails boolForKey:@"cityFriendsOnly"]) {
+                friendsLabel.text = @"Friends";               
+            } else {
+                friendsLabel.text = [NSString stringWithFormat:@"Friends in %@", [userDetails objectForKey:@"city"]];
+            }
             
             CGSize textLabelSize = [friendsLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];
             friendsLabel.frame = CGRectMake((self.view.frame.size.width - PANEL_WIDTH - textLabelSize.width) / 2.0, (SEARCH_BAR_HEIGHT - textLabelSize.height) / 2.0 + STATUS_BAR_HEIGHT, MIN(textLabelSize.width, self.view.frame.size.width - PANEL_WIDTH), textLabelSize.height);
@@ -249,15 +206,16 @@
             Datastore *sharedDataManager = [Datastore sharedDataManager];
             UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, friendsViewBackground.frame.size.height, self.view.frame.size.width, HEADER_HEIGHT)];
             [header setBackgroundColor:UIColorFromRGB(0xf8f8f8)];
+            UIFont *missionGothic = [UIFont fontWithName:@"MissionGothic-BoldItalic" size:14.0f];
             UILabel *goingOutLabel = [[UILabel alloc] initWithFrame:header.frame];
             [goingOutLabel setTextColor:UIColorFromRGB(0x8e0528)];
             UILabel *countLabel = [[UILabel alloc] initWithFrame:CGRectMake(100.0, 0, 50.0, HEADER_HEIGHT)];
             [countLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
-            goingOutLabel.font = montserratBold;
+            goingOutLabel.font = missionGothic;
             countLabel.font = montserratBold;
             goingOutLabel.text = @"tethred";
             countLabel.text = [NSString stringWithFormat:@"%lu",(unsigned long)[sharedDataManager.tetherFriendsGoingOut count]];
-            textLabelSize = [goingOutLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];
+            textLabelSize = [goingOutLabel.text sizeWithAttributes:@{NSFontAttributeName: missionGothic}];
             CGSize numberLabelSize = [countLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];
             goingOutLabel.frame = CGRectMake(10.0, (header.frame.size.height - textLabelSize.height) / 2.0 , textLabelSize.width, textLabelSize.height);
             countLabel.frame = CGRectMake(goingOutLabel.frame.origin.x + goingOutLabel.frame.size.width + PADDING, goingOutLabel.frame.origin.y, numberLabelSize.width, numberLabelSize.height);
@@ -276,16 +234,16 @@
             UILabel *countLabel = [[UILabel alloc] initWithFrame:CGRectMake(100.0, 0, 50.0, HEADER_HEIGHT)];
             [countLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
             UIFont *montserratBold = [UIFont fontWithName:@"Montserrat" size:14.0f];
-            goingOutLabel.font = montserratBold;
+            UIFont *missionGothic = [UIFont fontWithName:@"MissionGothic-BoldItalic" size:14.0f];
+            goingOutLabel.font = missionGothic;
             countLabel.font = montserratBold;
             if (section == 2) {
-                goingOutLabel.text = @"Going Out";
+                goingOutLabel.text = @"going Out";
                 countLabel.text = [NSString stringWithFormat:@"%lu",(unsigned long)[sharedDataManager.tetherFriendsNotGoingOut count]];
             } else {
-                goingOutLabel.text = @"Not Going Out";
-                countLabel.text = [NSString stringWithFormat:@"%lu",(unsigned long)[sharedDataManager.tetherFriendsUndecided count]];
+                goingOutLabel.text = @"not Going Out";
             }
-            CGSize textLabelSize = [goingOutLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];
+            CGSize textLabelSize = [goingOutLabel.text sizeWithAttributes:@{NSFontAttributeName: missionGothic}];
             CGSize numberLabelSize = [countLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];
             goingOutLabel.frame = CGRectMake(10.0, (header.frame.size.height - textLabelSize.height) / 2.0 , textLabelSize.width, textLabelSize.height);
             countLabel.frame = CGRectMake(goingOutLabel.frame.origin.x + goingOutLabel.frame.size.width + PADDING, goingOutLabel.frame.origin.y, numberLabelSize.width, numberLabelSize.height);
@@ -411,11 +369,6 @@
 -(void)inviteFriend:(Friend *)friend {
     if ([self.delegate respondsToSelector:@selector(inviteFriend:)]) {
         [self.delegate inviteFriend:friend];
-        
-        NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
-        if (![userDefaults boolForKey:kUserDefaultsHasSeenFriendInviteTutorialKey]) {
-            [self closeTutorial];
-        }
     }
     
      [Flurry logEvent:@"User_views_invite_page_from_friend_list"];

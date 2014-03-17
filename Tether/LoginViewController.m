@@ -82,7 +82,7 @@
 -(void)login {
     [PFFacebookUtils initializeFacebook];
     
-    NSArray *permissionsArray = @[@"user_about_me", @"user_relationships", @"user_birthday", @"user_location"];
+    NSArray *permissionsArray = @[@"user_birthday"];
     
     // Login PFUser using Facebook
     [PFFacebookUtils logInWithPermissions:permissionsArray block:^(PFUser *user, NSError *error) {
@@ -92,10 +92,10 @@
             } else {
                 NSLog(@"Uh oh. An error occurred: %@", error);
             }
-            [self loginPerformed:NO];
+            [self loginPerformed:NO withError:error];
         } else if (user.isNew) {
             NSLog(@"User with facebook signed up and logged in!");
-            [self loginPerformed:YES];
+            [self loginPerformed:YES withError:nil];
             NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
             if (![userDetails boolForKey:@"loggedOut"]) {
                 [userDetails setBool:YES forKey:@"isNew"];
@@ -104,12 +104,12 @@
             }
         } else {
             NSLog(@"User with facebook logged in!");
-            [self loginPerformed:YES];
+            [self loginPerformed:YES withError:nil];
         }
     }];
 }
 
--(void)loginPerformed:(BOOL)loggedIn {
+-(void)loginPerformed:(BOOL)loggedIn withError:(NSError *)error{
     [self.spinner stopAnimating];
     
     if (loggedIn) {
@@ -122,12 +122,20 @@
         [installation saveInBackground];
         
     } else {
-        // Show error alert
-		[[[UIAlertView alloc] initWithTitle:@"Login Failed"
-                                    message:@"Facebook Login failed. Please try again"
-                                   delegate:nil
-                          cancelButtonTitle:@"Ok"
-                          otherButtonTitles:nil] show];
+        if (error.code == 2) {
+            [[[UIAlertView alloc] initWithTitle:@"Update Settings"
+                                        message:@"Go to Settings > Facebook > Tethr to allow Tethr to access your Facebook account"
+                                       delegate:nil
+                              cancelButtonTitle:@"Ok"
+                              otherButtonTitles:nil] show];
+        } else {
+            // Show error alert
+            [[[UIAlertView alloc] initWithTitle:@"Login Failed"
+                                        message:@"Facebook Login failed. Please try again"
+                                       delegate:nil
+                              cancelButtonTitle:@"Ok"
+                              otherButtonTitles:nil] show];
+        }
     }
 }
 

@@ -148,8 +148,10 @@
     NSDate *lastWeek = [self getThisWeek];
     
     PFQuery *query = [PFQuery queryWithClassName:kCommitmentClassKey];
-    [query whereKey:kUserFacebookIDKey containedIn:friendsArrayWithMe];
-    [query whereKey:kCommitmentCityKey equalTo:userCity];
+    [query whereKey:kUserFacebookIDKey containedIn:friendsArrayWithMe];        
+    if ([self.userDetails boolForKey:@"cityFriendsOnly"]) {
+        [query whereKey:kCommitmentCityKey equalTo:userCity];
+    }
     [query whereKey:kCommitmentDateKey greaterThan:lastWeek];
     query.limit = 5000; // is this an appropriate limit?
     
@@ -195,11 +197,17 @@
                     if ([self.delegate respondsToSelector:@selector(setPlace:forFriend:)]) {
                         [self.delegate setPlace:place.placeId forFriend:friendID];
                     }
+                    
+                    if ([object objectForKey:kCommitmentPlaceIDKey]) {
+                        [tempDictionary setObject:place forKey:[object objectForKey:kCommitmentPlaceIDKey]];
+                    }
                 } else {
                     place.numberPastCommitments = place.numberPastCommitments + 1;
+                    
+                    if ([object objectForKey:kCommitmentPlaceIDKey] && [[object objectForKey:kCommitmentCityKey] isEqualToString:userCity]) {
+                        [tempDictionary setObject:place forKey:[object objectForKey:kCommitmentPlaceIDKey]];
+                    }
                 }
-
-                [tempDictionary setObject:place forKey:[object objectForKey:kCommitmentPlaceIDKey]];
             }
             
             if ([self.delegate respondsToSelector:@selector(sortFriendsList)]) {
@@ -331,6 +339,10 @@
         if ([self.delegate respondsToSelector:@selector(closeListView)]) {
             [self.delegate closeListView];
         }
+        
+        if (![self.userDetails boolForKey:kUserDefaultsHasSeenTethrTutorialKey]) {
+            [self closeTutorial];
+        }
     }
 }
 
@@ -438,40 +450,42 @@
 }
 
 -(void)showFriendsViewFromCell:(PlaceCell*) placeCell {
-    if ([self.delegate respondsToSelector:@selector(canUpdatePlaces:)]) {
-        [self.delegate canUpdatePlaces:NO];
-    }
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
-    Place *place =  [sharedDataManager.placesDictionary objectForKey:placeCell.place.placeId];
-    self.friendsListViewController = [[FriendsListViewController alloc] init];
-    self.friendsListViewController.delegate = self;
-    NSMutableSet *friends = [[NSMutableSet alloc] init];
-    for (id friendId in place.friendsCommitted) {
-        if ([sharedDataManager.tetherFriendsDictionary objectForKey:friendId]) {
-            Friend *friend = [sharedDataManager.tetherFriendsDictionary objectForKey:friendId];
-            [friends addObject:friend];
+    if  (!self.friendsListViewController) {
+        if ([self.delegate respondsToSelector:@selector(canUpdatePlaces:)]) {
+            [self.delegate canUpdatePlaces:NO];
         }
-    }
+        Datastore *sharedDataManager = [Datastore sharedDataManager];
+        Place *place =  [sharedDataManager.placesDictionary objectForKey:placeCell.place.placeId];
+        self.friendsListViewController = [[FriendsListViewController alloc] init];
+        self.friendsListViewController.delegate = self;
+        NSMutableSet *friends = [[NSMutableSet alloc] init];
+        for (id friendId in place.friendsCommitted) {
+            if ([sharedDataManager.tetherFriendsDictionary objectForKey:friendId]) {
+                Friend *friend = [sharedDataManager.tetherFriendsDictionary objectForKey:friendId];
+                [friends addObject:friend];
+            }
+        }
 
-    self.friendsListViewController.friendsArray = [[friends allObjects] mutableCopy];
-    self.friendsListViewController.place = placeCell.place;
-    [self.friendsListViewController loadFriendsOfFriends];
-    [self.friendsListViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
-    [self.view addSubview:self.friendsListViewController.view];
-    [self addChildViewController:self.friendsListViewController];
-    [self.friendsListViewController didMoveToParentViewController:self];
-    
-    [UIView animateWithDuration:SLIDE_TIMING
-                          delay:0.0
-         usingSpringWithDamping:1.0
-          initialSpringVelocity:1.0
-                        options:UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
-                         [self.friendsListViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
-                     }
-                     completion:^(BOOL finished) {
-                         [self searchBarCancelButtonClicked:self.searchBar];
-                     }];
+        self.friendsListViewController.friendsArray = [[friends allObjects] mutableCopy];
+        self.friendsListViewController.place = placeCell.place;
+        [self.friendsListViewController loadFriendsOfFriends];
+        [self.friendsListViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+        [self.view addSubview:self.friendsListViewController.view];
+        [self addChildViewController:self.friendsListViewController];
+        [self.friendsListViewController didMoveToParentViewController:self];
+        
+        [UIView animateWithDuration:SLIDE_TIMING
+                              delay:0.0
+             usingSpringWithDamping:1.0
+              initialSpringVelocity:1.0
+                            options:UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                             [self.friendsListViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                         }
+                         completion:^(BOOL finished) {
+                             [self searchBarCancelButtonClicked:self.searchBar];
+                         }];
+    }
 }
 
 -(void)inviteToPlace:(Place *)place {
@@ -1017,8 +1031,10 @@
         [self scrollToPlaceWithId:cell.place.placeId];
         [self searchBarCancelButtonClicked:self.searchBar];
     } else {
-        PlaceCell *cell = (PlaceCell*)[tableView cellForRowAtIndexPath:indexPath];
-        [self showFriendsViewFromCell:cell];
+        if (!self.friendsListViewController) {
+            PlaceCell *cell = (PlaceCell*)[tableView cellForRowAtIndexPath:indexPath];
+            [self showFriendsViewFromCell:cell];
+        }
         [tableView deselectRowAtIndexPath:indexPath animated:YES];
         
         NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];

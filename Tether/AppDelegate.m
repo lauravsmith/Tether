@@ -23,6 +23,7 @@ NSString *const SessionStateChangedNotification =
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    NSLog(@"Push Test ad hoc");
     [Parse setApplicationId:@"1NXZgowFvhrlzeB0xF7OjzQa6Vt7BbWmOYBQpwKj"
                   clientKey:@"1hyOM9UX4azldMphJE46K3RYbvTtucpPDF6KzrP7"];
 
@@ -85,10 +86,7 @@ fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
 {
     UIViewController *topViewController = [self.navController topViewController];
     UIViewController *modalViewController = [topViewController presentedViewController];
-    
-    // If the login screen is not already displayed, display it. If the login screen is
-    // displayed, then getting back here means the login in progress did not successfully
-    // complete. In that case, notify the login view so it can update its UI appropriately.
+
     if (![modalViewController isKindOfClass:[LoginViewController class]]) {
         LoginViewController* loginViewController = [[LoginViewController alloc]
                                                       init];
@@ -174,7 +172,8 @@ fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
 
 - (void)applicationDidEnterBackground:(UIApplication *)application
 {
-    // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later. 
+    [self.mainViewController.centerViewController.locationManager stopMonitoringSignificantLocationChanges];
+    // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
     // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
 }
 
@@ -186,6 +185,7 @@ fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
         [self.mainViewController setupView];
         [self.mainViewController showDecisionView];
     }
+    [self.mainViewController.centerViewController.locationManager startMonitoringSignificantLocationChanges];
     // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
 }
 

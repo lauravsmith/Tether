@@ -15,8 +15,10 @@
 #import "FriendLabel.h"
 #import "InviteViewController.h"
 #import "SearchResultCell.h"
+#import "TethrButton.h"
 
 #import <AFNetworking/AFHTTPRequestOperationManager.h>
+#import <AddressBook/AddressBook.h>
 
 #define CELL_HEIGHT 60.0
 #define LABEL_HEIGHT 40.0
@@ -49,7 +51,7 @@
 @property (retain, nonatomic) NSMutableArray *placeSearchResultsArray;
 @property (nonatomic, strong) UITableView *placeSearchResultsTableView;
 @property (nonatomic, strong) UITableViewController *placeSearchResultsTableViewController;
-@property (retain, nonatomic) UIButton *plusButton;
+@property (retain, nonatomic) TethrButton *plusButton;
 @end
 
 @implementation InviteViewController
@@ -82,7 +84,7 @@
     [self.view setBackgroundColor:[UIColor whiteColor]];
     
     self.placeLabel = [[UILabel alloc] init];
-    self.placeLabel.text = self.place.name;
+    self.placeLabel.text = [NSString stringWithFormat:@"Invite to %@",self. place.name];
     [self.placeLabel setTextColor:[UIColor whiteColor]];
     UIFont *montserratLarge = [UIFont fontWithName:@"Montserrat" size:14.0f];
     self.placeLabel.font = montserratLarge;
@@ -112,7 +114,12 @@
     self.friendsInvitedScrollView.showsVerticalScrollIndicator = YES;
     [self.view addSubview:self.friendsInvitedScrollView];
     
-    self.plusButton = [[UIButton alloc] initWithFrame:CGRectMake(0.0, 0.0, LABEL_HEIGHT + PADDING, LABEL_HEIGHT + PADDING*2)];
+    UITapGestureRecognizer *tapFriendsInviteScrollView = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(friendsInvitedScrollViewTapped)];
+    [self.friendsInvitedScrollView addGestureRecognizer:tapFriendsInviteScrollView];
+    
+    self.plusButton = [[TethrButton alloc] initWithFrame:CGRectMake(0.0, 0.0, LABEL_HEIGHT + PADDING, LABEL_HEIGHT + PADDING*2)];
+    [self.plusButton setNormalColor:[UIColor clearColor]];
+    [self.plusButton setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
     [self.plusButton setImage:[UIImage imageNamed:@"PlusSign"] forState:UIControlStateNormal];
     
     double imageInsetX = (self.plusButton.frame.size.width - PLUS_ICON_SIZE) / 2.0;
@@ -218,7 +225,10 @@
 
 -(IBAction)plusButtonTapped:(id)sender {
     [self setSearchFriends];
-    NSLog(@"%f", self.view.frame.size.height);
+}
+
+-(void)friendsInvitedScrollViewTapped{
+    [self setSearchFriends];
 }
 
 -(void)placeLabelTapped:(UIGestureRecognizer*)recognizer {
@@ -245,7 +255,7 @@
     }
     
     self.place = place;
-    self.placeLabel.text = place.name;
+    self.placeLabel.text = [NSString stringWithFormat:@"Invite to %@",place.name];
     UIFont *montserratLarge = [UIFont fontWithName:@"Montserrat" size:14.0f];
     self.placeLabel.font = montserratLarge;
     CGSize size = [self.placeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratLarge}];
@@ -561,6 +571,8 @@
         [self.placeSearchBar setShowsCancelButton:YES animated:YES];
     } else if (searchBar == self.searchBar) {
         [self.searchBar setShowsCancelButton:YES animated:YES];
+        [self searchFriends:@""];
+        self.friendSearchResultsTableView.hidden = NO;
     }
     [searchBar becomeFirstResponder];
 }
@@ -606,13 +618,20 @@
 -(void)searchFriends:(NSString*)searchText {
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     self.friendSearchResultsArray = [[NSMutableArray alloc] init];
-    searchText = [searchText lowercaseString];
-    for(id key in sharedDataManager.tetherFriendsDictionary) {
-        Friend *friend = [sharedDataManager.tetherFriendsDictionary objectForKey:key];
-        if (!friend.blocked && ![friend.friendID isEqualToString:sharedDataManager.facebookId] && ![self.friendsInvitedDictionary objectForKey:friend.friendID]) {
-            NSString *name = [friend.name lowercaseString];
-            if ([name rangeOfString:searchText].location != NSNotFound) {
-                [self.friendSearchResultsArray addObject:friend];
+    
+    if ([searchText isEqualToString:@""]) {
+        for(id key in sharedDataManager.tetherFriendsDictionary) {
+            [self.friendSearchResultsArray addObject:[sharedDataManager.tetherFriendsDictionary objectForKey:key]];
+        }
+    } else {
+        searchText = [searchText lowercaseString];
+        for(id key in sharedDataManager.tetherFriendsDictionary) {
+            Friend *friend = [sharedDataManager.tetherFriendsDictionary objectForKey:key];
+            if (!friend.blocked && ![friend.friendID isEqualToString:sharedDataManager.facebookId] && ![self.friendsInvitedDictionary objectForKey:friend.friendID]) {
+                NSString *name = [friend.name lowercaseString];
+                if ([name rangeOfString:searchText].location != NSNotFound) {
+                    [self.friendSearchResultsArray addObject:friend];
+                }
             }
         }
     }

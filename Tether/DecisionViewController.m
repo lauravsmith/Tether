@@ -77,13 +77,13 @@
     [self.view addSubview:questionLabel];
     
     self.slider = [[UISlider alloc] initWithFrame:CGRectMake(0, self.topBar.frame.size.height, 80.0, 20.0)];
-    self.slider.transform = CGAffineTransformMakeScale(0.75, 0.75);
     CGRect frame = self.slider.frame;
     frame.origin.x = (self.view.frame.size.width - self.slider.frame.size.width) / 2.0;
     frame.origin.y = questionLabel.frame.origin.y + questionLabel.frame.size.height + 15.0;
     self.slider.frame = frame;
-    [self.slider setMinimumTrackTintColor:[UIColor clearColor]];
-    [self.slider setMaximumTrackTintColor:[UIColor clearColor]];
+    UIImage *clearImage = [[UIImage alloc] init];
+    [self.slider setMinimumTrackImage:clearImage forState:UIControlStateNormal];
+    [self.slider setMaximumTrackImage:clearImage forState:UIControlStateNormal];
     self.slider.backgroundColor = [UIColor grayColor];
     self.slider.layer.cornerRadius = 8.0;
     self.slider.value = 1;
@@ -101,7 +101,7 @@
     [noButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [noButton setTitle:@"NO" forState:UIControlStateNormal];
     size = [noButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
-    noButton.frame = CGRectMake(self.slider.frame.origin.x - size.width - 5.0, self.slider.frame.origin.y, size.width, size.height);
+    noButton.frame = CGRectMake(self.slider.frame.origin.x - size.width - 6.0, self.slider.frame.origin.y + 2.5, size.width, size.height);
     [noButton addTarget:self action:@selector(handleNoButton:) forControlEvents:UIControlEventTouchDown];
     
     [self.view addSubview:noButton];
@@ -111,7 +111,7 @@
     [yesButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [yesButton setTitle:@"YES" forState:UIControlStateNormal];
     size = [yesButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
-    yesButton.frame = CGRectMake(self.slider.frame.origin.x + self.slider.frame.size.width + 5.0, self.slider.frame.origin.y, size.width, size.height);
+    yesButton.frame = CGRectMake(self.slider.frame.origin.x + self.slider.frame.size.width + 7.0, self.slider.frame.origin.y + 2.5, size.width, size.height);
     [yesButton addTarget:self action:@selector(handleYesButton:) forControlEvents:UIControlEventTouchDown];
     
     [self.view addSubview:yesButton];

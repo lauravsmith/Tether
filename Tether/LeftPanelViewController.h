@@ -18,7 +18,6 @@
 @property (nonatomic, assign) id<LeftPanelViewControllerDelegate> delegate;
 -(void)hideSearchBar;
 -(void)updateFriendsList;
--(void)addTutorialView;
 @end
 
 @protocol LeftPanelViewControllerDelegate <NSObject>

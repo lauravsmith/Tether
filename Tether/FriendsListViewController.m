@@ -15,8 +15,10 @@
 #import "FriendsListViewController.h"
 #import "InviteViewController.h"
 #import "PlacesViewController.h"
+#import "TethrButton.h"
 
 #import <FacebookSDK/FacebookSDK.h>
+#import <AddressBookUI/AddressBookUI.h>
 
 #define degreesToRadian(x) (M_PI * (x) / 180.0)
 
@@ -31,7 +33,7 @@
 #define PROFILE_PICTURE_SIZE 50.0
 #define SLIDE_TIMING 0.6
 #define STATUS_BAR_HEIGHT 20.0
-#define SUB_BAR_HEIGHT 30.0
+#define SUB_BAR_HEIGHT 65.0
 #define TOP_BAR_HEIGHT 70.0
 #define TUTORIAL_HEADER_HEIGHT 50.0
 
@@ -43,17 +45,19 @@
 @property (retain, nonatomic) UIView * subBar;
 @property (nonatomic, strong) UILabel *placeLabel;
 @property (nonatomic, strong) UILabel *addressLabel;
-@property (retain, nonatomic) UIButton * commitButton;
-@property (nonatomic, strong) UIButton *inviteButton;
-@property (retain, nonatomic) UIButton * moreInfoButton;
+@property (retain, nonatomic) TethrButton * commitButton;
+@property (nonatomic, strong) TethrButton *inviteButton;
+@property (retain, nonatomic) TethrButton * mapButton;
 @property (nonatomic, strong) UILabel *plusIconLabel;
 @property (retain, nonatomic) UIButton * backButton;
 @property (retain, nonatomic) UIButton *backButtonLarge;
 @property (retain, nonatomic) UIButton *numberButton;
 @property (retain, nonatomic) UIView *tutorialView;
-@property (retain, nonatomic) UIButton *mapButton;
-@property (retain, nonatomic) UIButton *mapButtonLarge;
+@property (retain, nonatomic) UIButton *moreInfoButton;
 @property (retain, nonatomic) InviteViewController *inviteViewController;
+@property (retain, nonatomic) UIImageView *inviteImageView;
+@property (retain, nonatomic) UIImageView *pinImageView;
+@property (retain, nonatomic) UIImageView *mapImageView;
 @end
 
 @implementation FriendsListViewController
@@ -81,7 +85,11 @@
     [self.topBar setBackgroundColor:UIColorFromRGB(0x8e0528)];
     
     self.subBar = [[UIView alloc] initWithFrame:CGRectMake(0.0, TOP_BAR_HEIGHT, self.view.frame.size.width, SUB_BAR_HEIGHT)];
-    [self.subBar setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
+    [self.subBar setBackgroundColor:[UIColor whiteColor]];
+    UIView *subBarLine = [[UIView alloc] initWithFrame:CGRectMake(15.0, SUB_BAR_HEIGHT - 1.0, self.view.frame.size.width - 15.0, 1.0)];
+    [subBarLine setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
+    [subBarLine setAlpha:0.5];
+    [self.subBar addSubview:subBarLine];
     [self.view addSubview:self.subBar];
     
     self.placeLabel = [[UILabel alloc] init];
@@ -124,21 +132,33 @@
     [self.backButtonLarge addTarget:self action:@selector(closeFriendsView) forControlEvents:UIControlEventTouchDown];
     [self.view addSubview:self.backButtonLarge];
 
-    UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:12.0f];
+    UIFont *missionGothic = [UIFont fontWithName:@"MissionGothic-BoldItalic" size:14.0f];
     
-    self.inviteButton = [[UIButton alloc] initWithFrame:CGRectMake(0.0, 0.0, (self.view.frame.size.width - PADDING * 2) / 3.0, SUB_BAR_HEIGHT - PADDING)];
+    self.inviteButton = [[TethrButton alloc] initWithFrame:CGRectMake(0.0, 0.0, (self.view.frame.size.width - PADDING * 2) / 3.0, SUB_BAR_HEIGHT - PADDING)];
+    [self.inviteButton setNormalColor:[UIColor whiteColor]];
+    [self.inviteButton setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
+    [self.inviteButton setTitle:@"invite" forState:UIControlStateNormal];
+    [self.inviteButton setTitleEdgeInsets:UIEdgeInsetsMake(20.0, 0.0, 0.0, 0.0)];
+    [self.inviteButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+    self.inviteButton.titleLabel.font = missionGothic;
     [self.inviteButton setBackgroundColor:[UIColor whiteColor]];
-    [self.inviteButton setImage:[UIImage imageNamed:@"InviteIcon"] forState:UIControlStateNormal];
-    
-    [self.inviteButton setImageEdgeInsets:UIEdgeInsetsMake(0.0, 0.0, 0.0, 0.0)];
+    self.inviteImageView = [[UIImageView alloc] initWithFrame:CGRectMake(((self.view.frame.size.width - PADDING * 2) / 3.0 - 20.0) / 2.0, 10.0, 20.0, 20.0)];
+    self.inviteImageView.image = [UIImage imageNamed:@"PlusSign"];
+    [self.inviteButton addSubview:self.inviteImageView];
     [self.inviteButton addTarget:self
                           action:@selector(inviteClicked:)
                 forControlEvents:UIControlEventTouchUpInside];
     [self.subBar addSubview:self.inviteButton];
+
+    self.pinImageView = [[UIImageView alloc] initWithFrame:CGRectMake(((self.view.frame.size.width - PADDING * 2) / 3.0 - 25.0) / 2.0, 8.0, 25.0, 25.0)];
+    self.pinImageView.image = [UIImage imageNamed:@"GreyPinIcon"];
+    self.pinImageView.contentMode = UIViewContentModeScaleAspectFit;
     
-    self.commitButton = [[UIButton alloc] initWithFrame:CGRectMake(self.inviteButton.frame.origin.x + self.inviteButton.frame.size.width + PADDING, 0.0, (self.view.frame.size.width - PADDING * 2) / 3.0, SUB_BAR_HEIGHT - PADDING)];
+    self.commitButton = [[TethrButton alloc] initWithFrame:CGRectMake(self.inviteButton.frame.origin.x + self.inviteButton.frame.size.width + PADDING, 0.0, (self.view.frame.size.width - PADDING * 2) / 3.0, SUB_BAR_HEIGHT - PADDING)];
+    [self.commitButton setNormalColor:[UIColor whiteColor]];
+    [self.commitButton setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
     [self.commitButton setBackgroundColor:[UIColor whiteColor]];
-    self.commitButton.titleLabel.font = montserratSmall;
+    self.commitButton.titleLabel.font = missionGothic;
     [self.commitButton addTarget:self
                           action:@selector(commitClicked:)
                 forControlEvents:UIControlEventTouchUpInside];
@@ -146,33 +166,53 @@
     if (sharedDataManager.currentCommitmentPlace) {
         if ([self.place.placeId isEqualToString:sharedDataManager.currentCommitmentPlace.placeId]) {
             [self.commitButton setTitle:@"tethred" forState:UIControlStateNormal];
-            [self.commitButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
             self.commitButton.tag = 2;
+            self.pinImageView.image = [UIImage imageNamed:@"PinIcon"];
         } else {
             [self.commitButton setTitle:@"tethr" forState:UIControlStateNormal];
-            [self.commitButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
             self.commitButton.tag = 1;
         }
     } else {
         [self.commitButton setTitle:@"tethr" forState:UIControlStateNormal];
-        [self.commitButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
         self.commitButton.tag = 1;
     }
+    
+    [self.commitButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+    [self.commitButton setTitleEdgeInsets:UIEdgeInsetsMake(20.0, 0, 0, 0)];
+    [self.commitButton addSubview:self.pinImageView];
+    
     [self.subBar addSubview:self.commitButton];
     
-    self.moreInfoButton = [[UIButton alloc] initWithFrame:CGRectMake(self.commitButton.frame.origin.x + self.commitButton.frame.size.width + PADDING, 0.0, (self.view.frame.size.width  - PADDING * 2) / 3.0, SUB_BAR_HEIGHT - PADDING)];
-    [self.moreInfoButton setBackgroundColor:[UIColor whiteColor]];
-    [self.moreInfoButton setTitle:@"more info" forState:UIControlStateNormal];
-    [self.moreInfoButton setTitleColor:UIColorFromRGB(0x05528e)  forState:UIControlStateNormal];
-    UIFont *montserratExtraSmall = [UIFont fontWithName:@"Montserrat" size:8.0f];
-    self.moreInfoButton.titleLabel.font = montserratExtraSmall;
-    [self.moreInfoButton addTarget:self
-                            action:@selector(moreInfoClicked:)
+    self.mapButton = [[TethrButton alloc] initWithFrame:CGRectMake(self.commitButton.frame.origin.x + self.commitButton.frame.size.width + PADDING, 0.0, (self.view.frame.size.width  - PADDING * 2) / 3.0, SUB_BAR_HEIGHT - PADDING)];
+    [self.mapButton setNormalColor:[UIColor whiteColor]];
+    [self.mapButton setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
+    [self.mapButton setBackgroundColor:[UIColor whiteColor]];
+    [self.mapButton setTitle:@"map" forState:UIControlStateNormal];
+    [self.mapButton setTitleEdgeInsets:UIEdgeInsetsMake(20.0, 0.0, 0.0, 0.0)];
+    [self.mapButton setTitleColor:UIColorFromRGB(0x8e0528)  forState:UIControlStateNormal];
+    self.mapButton.titleLabel.font = missionGothic;
+    [self.mapButton addTarget:self
+                            action:@selector(showMapViewAnnotation:)
+     
                   forControlEvents:UIControlEventTouchUpInside];
-    [self.subBar addSubview:self.moreInfoButton];
+    [self.subBar addSubview:self.mapButton];
+    
+    self.mapImageView = [[UIImageView alloc] initWithFrame:CGRectMake(((self.view.frame.size.width - PADDING * 2) / 3.0 - 25.0) / 2.0, 8.0, 25.0, 25.0)];
+    self.mapImageView.image = [UIImage imageNamed:@"LocationSpotter"];
+    [self.mapButton addSubview:self.mapImageView];
+    
+    UIView *verticalDivider1 = [[UIView alloc] initWithFrame:CGRectMake(self.inviteButton.frame.size.width, (SUB_BAR_HEIGHT - 45.0) / 2.0, 1.0, 45.0)];
+    [verticalDivider1 setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
+    [verticalDivider1 setAlpha:0.5];
+    [self.subBar addSubview:verticalDivider1];
+    
+    UIView *verticalDivider2 = [[UIView alloc] initWithFrame:CGRectMake(self.commitButton.frame.origin.x + self.commitButton.frame.size.width, (SUB_BAR_HEIGHT - 45.0) / 2.0, 1.0, 45.0)];
+    [verticalDivider2 setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
+    [verticalDivider2 setAlpha:0.5];
+    [self.subBar addSubview:verticalDivider2];
     
     //set up friends going out table view
-    self.friendsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, self.subBar.frame.origin.y + self.subBar.frame.size.height, self.view.frame.size.width, self.view.frame.size.height)];
+    self.friendsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, self.subBar.frame.origin.y + self.subBar.frame.size.height, self.view.frame.size.width, self.view.frame.size.height - TOP_BAR_HEIGHT - SUB_BAR_HEIGHT)];
     [self.friendsTableView setSeparatorColor:UIColorFromRGB(0xc8c8c8)];
     [self.friendsTableView setDataSource:self];
     [self.friendsTableView setDelegate:self];
@@ -184,26 +224,21 @@
     
     self.friendsOfFriendsArray = [[NSMutableArray alloc] init];
     
-    [Flurry logEvent:@"User_views_place_specific_page"];
-}
-
--(void)addMapViewButton {
-    self.mapButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 40.0, (self.topBar.frame.size.height - 20.0 + STATUS_BAR_HEIGHT) / 2.0, 20.0, 20.0)];
-    [self.mapButton setImage:[UIImage imageNamed:@"LocationSpotter"] forState:UIControlStateNormal];
-    [self.mapButton addTarget:self action:@selector(showMapViewAnnotation:) forControlEvents:UIControlEventTouchUpInside];
-    [self.topBar addSubview:self.mapButton];
+    self.moreInfoButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 40.0, (self.topBar.frame.size.height - 25.0 + STATUS_BAR_HEIGHT) / 2.0, 25.0, 25.0)];
+    [self.moreInfoButton setImage:[UIImage imageNamed:@"InfoPinGrey"] forState:UIControlStateNormal];
+    [self.moreInfoButton addTarget:self action:@selector(moreInfoClicked:) forControlEvents:UIControlEventTouchUpInside];
+    [self.topBar addSubview:self.moreInfoButton];
     
-    self.mapButtonLarge = [[UIButton alloc] initWithFrame:CGRectMake(self.mapButton.frame.origin.x - 20.0, 0.0, 60.0, TOP_BAR_HEIGHT)];
-   [self.mapButtonLarge addTarget:self action:@selector(showMapViewAnnotation:) forControlEvents:UIControlEventTouchUpInside];
-    [self.topBar addSubview:self.mapButtonLarge];
+    [Flurry logEvent:@"User_views_place_specific_page"];
 }
 
 -(void)closeFriendsView {
     if ([self.delegate respondsToSelector:@selector(closeFriendsView)]) {
         [self.delegate closeFriendsView];
         NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-        if (![userDetails boolForKey:kUserDefaultsHasSeenPlaceInviteTutorialKey]) {
+        if (![userDetails boolForKey:kUserDefaultsHasSeenPlaceInviteTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenPlaceTethrTutorialKey]) {
             [userDetails setBool:YES forKey:kUserDefaultsHasSeenPlaceInviteTutorialKey];
+            [userDetails setBool:YES forKey:kUserDefaultsHasSeenPlaceTethrTutorialKey];
             [userDetails synchronize];
         }
     }
@@ -283,10 +318,6 @@
             }];
         }
     }];
-    
-    if ([self.friendsArray count] > 0) {
-        [self addMapViewButton];
-    }
 }
 
 -(NSDate*)getStartTime{
@@ -313,10 +344,10 @@
 -(void) layoutCommitButton {
     if (self.commitButton.tag == 1) {
         [self.commitButton setTitle:@"tethr" forState:UIControlStateNormal];
-        [self.commitButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
+        self.pinImageView.image = [UIImage imageNamed:@"GreyPinIcon"];
     } else {
         [self.commitButton setTitle:@"tethred" forState:UIControlStateNormal];
-        [self.commitButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+        self.pinImageView.image = [UIImage imageNamed:@"PinIcon"];
     }
 }
 
@@ -423,9 +454,6 @@
     
     [self.numberButton setTitle:[NSString stringWithFormat:@"%lu", (unsigned long)[self.friendsArray count]] forState:UIControlStateNormal];
     
-    if (!self.mapButton) {
-        [self addMapViewButton];
-    }
     [self.friendsTableView reloadData];
 }
 
