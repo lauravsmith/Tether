@@ -294,6 +294,10 @@
 		47AC11E618D13FFC00F60B3A /* TethrButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 47AC11E518D13FFC00F60B3A /* TethrButton.m */; };
 		47AC11E918D2170600F60B3A /* GreyPinIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 47AC11E718D2170600F60B3A /* GreyPinIcon.png */; };
 		47AC11EA18D2170600F60B3A /* GreyPinIcon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 47AC11E818D2170600F60B3A /* GreyPinIcon@2x.png */; };
+		47BA769318D78CE6001C9236 /* ShareViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 47BA769218D78CE6001C9236 /* ShareViewController.m */; };
+		47BA769618D791B6001C9236 /* FacebookIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 47BA769418D791B6001C9236 /* FacebookIcon.png */; };
+		47BA769718D791B6001C9236 /* MessageIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 47BA769518D791B6001C9236 /* MessageIcon.png */; };
+		47BA769918D79B3F001C9236 /* TwitterIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 47BA769818D79B3F001C9236 /* TwitterIcon.png */; };
 		47BB2C57187E074100BB40F5 /* FriendLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 47BB2C56187E074100BB40F5 /* FriendLabel.m */; };
 		47BB2C5F187E27B100BB40F5 /* LocationIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 47BB2C5E187E27B100BB40F5 /* LocationIcon.png */; };
 		47C7B6C1184AC7BB00358BE1 /* PlaceCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 47C7B6C0184AC7BB00358BE1 /* PlaceCell.m */; };
@@ -675,6 +679,11 @@
 		47AC11E518D13FFC00F60B3A /* TethrButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TethrButton.m; sourceTree = "<group>"; };
 		47AC11E718D2170600F60B3A /* GreyPinIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = GreyPinIcon.png; sourceTree = "<group>"; };
 		47AC11E818D2170600F60B3A /* GreyPinIcon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "GreyPinIcon@2x.png"; sourceTree = "<group>"; };
+		47BA769118D78CE6001C9236 /* ShareViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShareViewController.h; sourceTree = "<group>"; };
+		47BA769218D78CE6001C9236 /* ShareViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ShareViewController.m; sourceTree = "<group>"; };
+		47BA769418D791B6001C9236 /* FacebookIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = FacebookIcon.png; sourceTree = "<group>"; };
+		47BA769518D791B6001C9236 /* MessageIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MessageIcon.png; sourceTree = "<group>"; };
+		47BA769818D79B3F001C9236 /* TwitterIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = TwitterIcon.png; sourceTree = "<group>"; };
 		47BB2C55187E074100BB40F5 /* FriendLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FriendLabel.h; sourceTree = "<group>"; };
 		47BB2C56187E074100BB40F5 /* FriendLabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FriendLabel.m; sourceTree = "<group>"; };
 		47BB2C5E187E27B100BB40F5 /* LocationIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = LocationIcon.png; sourceTree = "<group>"; };
@@ -902,6 +911,9 @@
 		47064CC6183DB11D00E9228A /* Images */ = {
 			isa = PBXGroup;
 			children = (
+				47BA769418D791B6001C9236 /* FacebookIcon.png */,
+				47BA769818D79B3F001C9236 /* TwitterIcon.png */,
+				47BA769518D791B6001C9236 /* MessageIcon.png */,
 				474DEA2118D3B68A0011486D /* LocationSpotter.png */,
 				474DEA2218D3B68A0011486D /* LocationSpotter@2x.png */,
 				477A8E8B18B68E9200F4F89B /* LineNavigator@2x.png */,
@@ -977,6 +989,8 @@
 				47FB08D8184970CA00A07908 /* PlacesViewController.m */,
 				4776517C18AA615A00768D57 /* ManageFriendsViewController.h */,
 				4776517D18AA615A00768D57 /* ManageFriendsViewController.m */,
+				47BA769118D78CE6001C9236 /* ShareViewController.h */,
+				47BA769218D78CE6001C9236 /* ShareViewController.m */,
 			);
 			name = Controller;
 			sourceTree = "<group>";
@@ -1472,6 +1486,7 @@
 				4790C45A1889B0F100DB9759 /* HelveticaNeueLTStd-BdExO.otf in Resources */,
 				4790C46F1889B0F100DB9759 /* HelveticaNeueLTStd-LtCn.otf in Resources */,
 				4775D5B918AC0AB700E80CAC /* ftv2lastnode.png in Resources */,
+				47BA769918D79B3F001C9236 /* TwitterIcon.png in Resources */,
 				4790C4711889B0F100DB9759 /* HelveticaNeueLTStd-LtEx.otf in Resources */,
 				4775D5D818AC0AB700E80CAC /* all_5f.html in Resources */,
 				4775D5B418AC0AB700E80CAC /* ftv2blank.png in Resources */,
@@ -1544,6 +1559,7 @@
 				4775D5DC18AC0AB700E80CAC /* all_63.html in Resources */,
 				4790C4671889B0F100DB9759 /* HelveticaNeueLTStd-Hv.otf in Resources */,
 				4790C4791889B0F100DB9759 /* HelveticaNeueLTStd-MdIt.otf in Resources */,
+				47BA769718D791B6001C9236 /* MessageIcon.png in Resources */,
 				476F4D8418B2BF7F001A89A1 /* BlackTriangle@2x.png in Resources */,
 				4790C46C1889B0F100DB9759 /* HelveticaNeueLTStd-HvIt.otf in Resources */,
 				476F4D8618B2C154001A89A1 /* Blacktriangle.png in Resources */,
@@ -1614,6 +1630,7 @@
 				4775D59E18AC0AB700E80CAC /* annotated.html in Resources */,
 				4790C4661889B0F100DB9759 /* HelveticaNeueLTStd-ExO.otf in Resources */,
 				4775D62418AC0AB700E80CAC /* Avro-LICENSE.txt in Resources */,
+				47BA769618D791B6001C9236 /* FacebookIcon.png in Resources */,
 				4790C44E1889B0F100DB9759 /* HelveticaLTStd-FractionsBd.otf in Resources */,
 				4775D5B818AC0AB700E80CAC /* ftv2folderopen.png in Resources */,
 				4790C4531889B0F100DB9759 /* HelveticaLTStd-Obl.otf in Resources */,
@@ -1713,6 +1730,7 @@
 				47FB08D9184970CA00A07908 /* PlacesViewController.m in Sources */,
 				47FCE5271853E7A20030B1E1 /* Datastore.m in Sources */,
 				47E73EB9187B92C4009CA44A /* TetherAnnotationView.m in Sources */,
+				47BA769318D78CE6001C9236 /* ShareViewController.m in Sources */,
 				4776518118AA691300768D57 /* ManageFriendCell.m in Sources */,
 				47064C9C183D9E3800E9228A /* ViewController.m in Sources */,
 				47EFC41718B116ED008A26AA /* SBJsonWriter.m in Sources */,

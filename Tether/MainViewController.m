@@ -22,6 +22,7 @@
 #import "PlacesViewController.h"
 #import "RightPanelViewController.h"
 #import "SettingsViewController.h"
+#import "ShareViewController.h"
 #import "TetherAnnotation.h"
 #import "TetherAnnotationView.h"
 #import "TetherCache.h"
@@ -39,7 +40,7 @@
 #define PANEL_WIDTH 45.0
 #define POLLING_INTERVAL 20
 
-@interface MainViewController () <CenterViewControllerDelegate, DecisionViewControllerDelegate, FriendsListViewControllerDelegate, InviteViewControllerDelegate, LeftPanelViewControllerDelegate, PlacesViewControllerDelegate, RightPanelViewControllerDelegate, SettingsViewControllerDelegate, UIGestureRecognizerDelegate>
+@interface MainViewController () <CenterViewControllerDelegate, DecisionViewControllerDelegate, FriendsListViewControllerDelegate, InviteViewControllerDelegate, LeftPanelViewControllerDelegate, PlacesViewControllerDelegate, RightPanelViewControllerDelegate, SettingsViewControllerDelegate, ShareViewControllerDelegate, UIGestureRecognizerDelegate>
 
 @property (nonatomic, strong) LeftPanelViewController *leftPanelViewController;
 @property (nonatomic, strong) DecisionViewController *decisionViewController;
@@ -70,6 +71,7 @@
 @property (retain, nonatomic) UIActivityIndicatorView *activityIndicatorView;
 @property (nonatomic, assign) BOOL openingPlacePage;
 @property (nonatomic, strong) UIPanGestureRecognizer *panRecognizerBottom;
+@property (retain, nonatomic) ShareViewController *shareVC;
 
 @end
 
@@ -117,52 +119,6 @@
                                    userInfo:nil
                                     repeats:YES];
     [self refreshNotificationsNumber];
-}
-
-// handle in phone call layout
--(void)setNeedsStatusBarAppearanceUpdate {
-    [super setNeedsStatusBarAppearanceUpdate];
-    
-    if (self.settingsViewController) {
-        if ([UIApplication sharedApplication].statusBarFrame.size.height == 40.0) {
-            self.settingsViewController.view.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - 20.0);
-        } else {
-            self.settingsViewController.view.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height + 20.0);
-        }
-
-        [self.settingsViewController.view setNeedsDisplay];
-    }
-    
-    if (self.centerViewController) {
-        if ([UIApplication sharedApplication].statusBarFrame.size.height == 40.0) {
-            self.centerViewController.view.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - 20.0);
-        } else {
-            self.centerViewController.view.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height + 20.0);
-        }
-        [self.centerViewController setNeedsStatusBarAppearanceUpdate];
-        [self.centerViewController.view setNeedsDisplay];
-        [self.centerViewController.view setNeedsLayout];
-    }
-    
-    if (self.leftPanelViewController) {
-        if ([UIApplication sharedApplication].statusBarFrame.size.height == 40.0) {
-            self.leftPanelViewController.view.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - 20.0);
-        } else {
-            self.leftPanelViewController.view.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height + 20.0);
-        }
-        [self.leftPanelViewController.view setNeedsDisplay];
-        [self.leftPanelViewController.view setNeedsLayout];
-    }
-    
-    if (self.rightPanelViewController) {
-        if ([UIApplication sharedApplication].statusBarFrame.size.height == 40.0) {
-            self.rightPanelViewController.view.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - 20.0);
-        } else {
-            self.rightPanelViewController.view.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height + 20.0);
-        }
-        [self.rightPanelViewController.view setNeedsDisplay];
-        [self.rightPanelViewController.view setNeedsLayout];
-    }
 }
 
 -(UIStatusBarStyle)preferredStatusBarStyle{
@@ -777,6 +733,8 @@
         [_decisionViewController didMoveToParentViewController:self];
     } else if ([self shouldShowDecisionView] && self.showingDecisionView) {
         [self.view bringSubviewToFront:self.decisionViewController.view];
+    } else {
+        self.centerViewController.searchBarBackground.hidden = NO;
     }
 }
 
@@ -1049,13 +1007,6 @@
                              [Flurry logEvent:@"User_views_Places_list_page"];
                          }];
     }
-    
-    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-    if (![userDetails boolForKey:kUserDefaultsHasSeenPlaceListTutorialKey]) {
-        [userDetails setBool:YES forKey:kUserDefaultsHasSeenPlaceListTutorialKey];
-        [userDetails synchronize];
-        [self.centerViewController closeTutorial];
-    }
 }
 
 -(void)showListViewNoReset {
@@ -1112,12 +1063,6 @@
                              
                              [Flurry logEvent:@"User_views_Friends_List"];
                          }];
-    }
-    
-    if (![userDetails boolForKey:kUserDefaultsHasSeenFriendsListTutorialKey]) {
-        [userDetails setBool:YES forKey:kUserDefaultsHasSeenFriendsListTutorialKey];
-        [userDetails synchronize];
-        [self.centerViewController closeTutorial];
     }
 }
 
@@ -1275,6 +1220,7 @@
             self.showingDecisionView = NO;
             self.decisionViewController.view.alpha = 1.0;
             [self pollDatabase];
+            self.centerViewController.searchBarBackground.hidden = NO;
         }];
 
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
@@ -1290,10 +1236,6 @@
     
     if (self.settingsViewController) {
         self.settingsViewController.goingOutSwitch.on = choice;
-    }
-    
-    if (![userDetails boolForKey:kUserDefaultsHasSeenRefreshTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenFriendsListTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenPlaceListTutorialKey]) {
-        [self.centerViewController addTutorialView];
     }
     
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
@@ -1414,6 +1356,49 @@
                      }];
 }
 
+-(void)showShareViewController {
+    self.shareVC = [[ShareViewController alloc] init];
+    self.shareVC.delegate = self;
+    
+    [self addChildViewController:self.shareVC];
+    [self.shareVC didMoveToParentViewController:self];
+    [self.shareVC.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+    [self.view addSubview:self.shareVC.view];
+    
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.shareVC.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                     }];
+}
+
+-(void)newPlaceAdded {
+    [self.placesViewController addDictionaries];
+    [self.placesViewController sortPlacesByPopularity];
+}
+
+#pragma mark ShareViewControllerDelegate
+
+-(void)closeShareViewController {
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.shareVC.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                         [self.shareVC.view removeFromSuperview];
+                         [self.shareVC removeFromParentViewController];
+                     }];
+}
+
 #pragma mark FriendInviteViewControllerDelegate methods
 
 -(void)closeInviteView {
@@ -1474,7 +1459,10 @@
 }
 
 -(void)selectAnnotationForPlace:(Place*)place {
-    if(!MKMapRectContainsPoint(self.centerViewController.mv.visibleMapRect, MKMapPointForCoordinate(place.coord))) {
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    if ([place.city isEqualToString:[userDetails objectForKey:@"city"]] && [self.centerViewController.placeToAnnotationViewDictionary objectForKey:place.placeId]) {
+       [self zoomToFitMapAnnotationsInCity:self.centerViewController.mv];
+    } else if(!MKMapRectContainsPoint(self.centerViewController.mv.visibleMapRect, MKMapPointForCoordinate(place.coord))) {
        [self zoomToFitMapAnnotations:self.centerViewController.mv];
     }
     
@@ -1516,6 +1504,48 @@
     region.center.longitude = topLeftCoord.longitude + (bottomRightCoord.longitude - topLeftCoord.longitude) * 0.5;
     region.span.latitudeDelta = fabs(topLeftCoord.latitude - bottomRightCoord.latitude) * 1.1; // Add a little extra space on the sides
     region.span.longitudeDelta = fabs(bottomRightCoord.longitude - topLeftCoord.longitude) * 1.1; // Add a little extra space on the sides
+    
+    region = [mapView regionThatFits:region];
+    [mapView setRegion:region animated:YES];
+}
+
+-(void)zoomToFitMapAnnotationsInCity:(MKMapView*)mapView{
+    NSMutableArray *cityAnnotations = [[NSMutableArray alloc] init];
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    
+    for (id<MKAnnotation>annotation in mapView.annotations) {
+        if ([annotation isKindOfClass:[MKUserLocation class]]) {
+            [cityAnnotations addObject:annotation];
+        } else if ([((TetherAnnotation*)annotation).place.city isEqualToString:[userDetails objectForKey:@"city"]]) {
+            [cityAnnotations addObject:annotation];
+        }
+    }
+    
+    if([cityAnnotations count] <= 3)
+        return;
+    
+    CLLocationCoordinate2D topLeftCoord;
+    topLeftCoord.latitude = -90;
+    topLeftCoord.longitude = 180;
+    
+    CLLocationCoordinate2D bottomRightCoord;
+    bottomRightCoord.latitude = 90;
+    bottomRightCoord.longitude = -180;
+    
+    for(id<MKAnnotation>annotation in cityAnnotations)
+    {
+        topLeftCoord.longitude = fmin(topLeftCoord.longitude, annotation.coordinate.longitude);
+        topLeftCoord.latitude = fmax(topLeftCoord.latitude, annotation.coordinate.latitude);
+        
+        bottomRightCoord.longitude = fmax(bottomRightCoord.longitude, annotation.coordinate.longitude);
+        bottomRightCoord.latitude = fmin(bottomRightCoord.latitude, annotation.coordinate.latitude);
+    }
+    
+    MKCoordinateRegion region;
+    region.center.latitude = topLeftCoord.latitude - (topLeftCoord.latitude - bottomRightCoord.latitude) * 0.5;
+    region.center.longitude = topLeftCoord.longitude + (bottomRightCoord.longitude - topLeftCoord.longitude) * 0.5;
+    region.span.latitudeDelta = fabs(topLeftCoord.latitude - bottomRightCoord.latitude) * 1.5; // Add a little extra space on the sides
+    region.span.longitudeDelta = fabs(bottomRightCoord.longitude - topLeftCoord.longitude) * 1.5; // Add a little extra space on the sides
     
     region = [mapView regionThatFits:region];
     [mapView setRegion:region animated:YES];

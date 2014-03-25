@@ -12,9 +12,11 @@
 #import "Datastore.h"
 #import "Flurry.h"
 #import "Place.h"
+#import "SearchResultCell.h"
 #import "TetherAnnotation.h"
 #import "TetherAnnotationView.h"
 
+#import <AFNetworking/AFHTTPRequestOperationManager.h>
 #import <FacebookSDK/FacebookSDK.h>
 #import <MapKit/MapKit.h> 
 
@@ -25,6 +27,9 @@
 #define MAX_FRIENDS_ON_PIN 15.0
 #define NOTIFICATIONS_SIZE 32.0
 #define PADDING 20.0
+#define SEARCH_BAR_HEIGHT 45.0
+#define SEARCH_BAR_WIDTH 270.0
+#define SEARCH_RESULTS_CELL_HEIGHT 60.0
 #define SPINNER_SIZE 30.0
 #define STATUS_BAR_HEIGHT 20.0
 #define TOP_BAR_HEIGHT 70.0
@@ -32,14 +37,18 @@
 
 #define degreesToRadian(x) (M_PI * (x) / 180.0)
 
-@interface CenterViewController () <MKMapViewDelegate, CLLocationManagerDelegate>
+@interface CenterViewController () <MKMapViewDelegate, CLLocationManagerDelegate, UISearchBarDelegate, UITableViewDelegate, UITableViewDataSource>
 @property (retain, nonatomic) NSString * cityLocation;
 @property (retain, nonatomic) UIView * topBar;
+@property (retain, nonatomic) UISearchBar *searchBar;
+@property (retain, nonatomic) NSMutableArray *searchResultsArray;
+@property (nonatomic, strong) UITableView *searchResultsTableView;
+@property (nonatomic, strong) UITableViewController *searchResultsTableViewController;
 @property (assign, nonatomic) bool mapHasAdjusted;
 @property (strong, nonatomic) NSTimer * finishLoadingTimer;
 @property (retain, nonatomic) UITapGestureRecognizer * cityTapGesture;
 @property (strong, nonatomic) UIButton *commitmentButton;
-@property (strong, nonatomic) UIView *tutorialView;
+@property (strong, nonatomic) UIView *dismissSearchView;
 
 @end
 
@@ -85,6 +94,42 @@
     self.topBar = [[UIView alloc] initWithFrame:CGRectMake(0, 0.0, self.view.frame.size.width,TOP_BAR_HEIGHT)];
     self.topBar.layer.backgroundColor = UIColorFromRGB(0x8e0528).CGColor;
     [self.view addSubview:self.topBar];
+    
+    // set up search bar and corresponding search results tableview
+    self.searchBarBackground = [[UIView alloc] initWithFrame:CGRectMake(0, self.topBar.frame.size.height, self.view.frame.size.width,SEARCH_BAR_HEIGHT)];
+    [self.searchBarBackground setBackgroundColor:[UIColor whiteColor]];
+    [self.searchBarBackground setAlpha:0.85];
+    [self.view addSubview:self.searchBarBackground];
+    self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake((self.view.frame.size.width - SEARCH_BAR_WIDTH) / 2.0, 0.0, SEARCH_BAR_WIDTH,SEARCH_BAR_HEIGHT)];
+    self.searchBar.delegate = self;
+    [self.searchBar setBackgroundImage:[UIImage new]];
+    [self.searchBar setTranslucent:YES];
+    self.searchBar.layer.cornerRadius = 5.0;
+    self.searchBar.placeholder = @"Where are you going?";
+    [self.searchBarBackground addSubview:self.searchBar];
+    self.searchBarBackground.hidden = YES;
+    
+    self.dismissSearchView = [[UIView alloc] initWithFrame:CGRectMake(0, self.searchBarBackground.frame.origin.y + self.searchBarBackground.frame.size.height, self.view.frame.size.width, self.view.frame.size.height - self.searchBarBackground.frame.origin.y - self.searchBarBackground.frame.size.height)];
+    [self.dismissSearchView setHidden:YES];
+    [self.dismissSearchView setUserInteractionEnabled:YES];
+    UITapGestureRecognizer *dismissSearchTap =
+    [[UITapGestureRecognizer alloc] initWithTarget:self
+                                            action:@selector(handleDismissSearchTap:)];
+    [self.dismissSearchView addGestureRecognizer:dismissSearchTap];
+    [self.view addSubview:self.dismissSearchView];
+    
+    self.searchResultsArray = [[NSMutableArray alloc] init];
+    
+    self.searchResultsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, self.searchBarBackground.frame.origin.y + self.searchBarBackground.frame.size.height, self.view.frame.size.width, self.view.frame.size.height)];
+    self.searchResultsTableView.hidden = YES;
+    [self.searchResultsTableView setAlpha:0.85];
+    [self.searchResultsTableView setDataSource:self];
+    [self.searchResultsTableView setDelegate:self];
+    [self.view addSubview:self.searchResultsTableView];
+    
+    self.searchResultsTableViewController = [[UITableViewController alloc] init];
+    self.searchResultsTableViewController.tableView = self.searchResultsTableView;
+    [self.searchResultsTableView reloadData];
     
     self.locationManager = [[CLLocationManager alloc] init];
     self.locationManager.delegate  = self;
@@ -156,11 +201,6 @@
     }
     [self.bottomBar setBackgroundColor:[UIColor whiteColor]];
     [self.bottomBar setAlpha:0.85];
-    
-    UISwipeGestureRecognizer * swipeUp = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swipeUp:)];
-    [swipeUp setDirection:(UISwipeGestureRecognizerDirectionUp)];
-    self.bottomBar.userInteractionEnabled = YES;
-    [self.view addGestureRecognizer:swipeUp];
     
     // large background button to increase touch surface area
     self.settingsButtonLarge = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, self.bottomBar.frame.size.width / 4.0, self.bottomBar.frame.size.height)];
@@ -310,89 +350,7 @@
     }
 }
 
--(void)addTutorialView {
-    self.tutorialView = [[UIView alloc] initWithFrame:CGRectMake(0.0, self.topBar.frame.origin.y + self.topBar.frame.size.height, self.view.frame.size.width, TUTORIAL_HEADER_HEIGHT)];
-    [self.tutorialView setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
-    UILabel *tutorialLabel = [[UILabel alloc] init];
-
-    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-    
-    UIImage *arrowImage = [UIImage imageNamed:@"RedTriangle"];
-    UIImageView *arrow = [[UIImageView alloc] init];
-    
-    UIFont *montserratLabelFont = [UIFont fontWithName:@"Montserrat" size:13];
-    tutorialLabel.font = montserratLabelFont;
-    [tutorialLabel setTextColor:UIColorFromRGB(0x8e0528)];
-    
-    if (![userDetails boolForKey:kUserDefaultsHasSeenRefreshTutorialKey]) {
-        tutorialLabel.text = @"Tap to refresh";
-        arrow = [[UIImageView alloc] initWithFrame: CGRectMake((self.view.frame.size.width - 7.0) / 2.0, 2.0, 7.0, 11.0)];
-        CGSize size = [tutorialLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratLabelFont}];
-        tutorialLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2.0, (TUTORIAL_HEADER_HEIGHT - size.height) / 2.0, size.width, size.height);
-        self.tutorialView.tag = 1;
-        [arrow setImage:arrowImage];
-        arrow.transform = CGAffineTransformMakeRotation(degreesToRadian(90));
-    } else if (![userDetails boolForKey:kUserDefaultsHasSeenFriendsListTutorialKey]) {
-        tutorialLabel.text = @"See what friends in your city are doing";
-        arrow = [[UIImageView alloc] initWithFrame: CGRectMake(self.numberButton.frame.origin.x + 5.0, 2.0, 7.0, 11.0)];
-        CGSize size = [tutorialLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratLabelFont}];
-        tutorialLabel.frame = CGRectMake(10.0, (TUTORIAL_HEADER_HEIGHT - size.height) / 2.0, size.width, size.height);
-        self.tutorialView.tag = 2;
-        [arrow setImage:arrowImage];
-        arrow.transform = CGAffineTransformMakeRotation(degreesToRadian(90));
-    } else {
-        tutorialLabel.text = @"tethr to a location to share your plans";
-        arrow = [[UIImageView alloc] initWithFrame: CGRectMake((self.view.frame.size.width - 7.0) - 18.0, 2.0, 7.0, 11.0)];
-        CGSize size = [tutorialLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratLabelFont}];
-        tutorialLabel.frame = CGRectMake((self.view.frame.size.width - size.width) - 10.0, (TUTORIAL_HEADER_HEIGHT - size.height) / 2.0, size.width, size.height);
-        self.tutorialView.tag = 3;
-        [arrow setImage:arrowImage];
-        arrow.transform = CGAffineTransformMakeRotation(degreesToRadian(90));
-    }
-
-    [self.tutorialView addSubview:tutorialLabel];
-    [self.tutorialView addSubview:arrow];
-    
-    self.tutorialView.userInteractionEnabled = YES;
-    UITapGestureRecognizer *tutorialTapGesture =
-    [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tutorialTapped:)];
-    [self.tutorialView addGestureRecognizer:tutorialTapGesture];
-    [self.view addSubview:self.tutorialView];
-}
-
--(void)closeTutorial {
-    [UIView animateWithDuration:0.2
-                     animations:^{
-                         self.tutorialView.alpha = 0.0;
-                     } completion:^(BOOL finished) {
-                         [self.tutorialView removeFromSuperview];
-                         NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-                         if (![userDetails boolForKey:kUserDefaultsHasSeenRefreshTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenFriendsListTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenPlaceListTutorialKey]) {
-                             [self addTutorialView];
-                         }
-                     }];
-}
-
 #pragma UIGestureRecognizers
-
-- (void)tutorialTapped:(UIGestureRecognizer*)recognizer {
-     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-    if (self.tutorialView.tag == 1) {
-        [userDetails setBool:YES forKey:kUserDefaultsHasSeenRefreshTutorialKey];
-    } else if (self.tutorialView.tag == 2) {
-        [userDetails setBool:YES forKey:kUserDefaultsHasSeenFriendsListTutorialKey];
-    } else {
-        [userDetails setBool:YES forKey:kUserDefaultsHasSeenPlaceListTutorialKey];
-    }
-    [userDetails synchronize];
-    [self closeTutorial];
-}
-
--(void)swipeUp:(UIGestureRecognizer*)recognizer  {
-    if ([self.delegate respondsToSelector:@selector(showSettingsView)]) {
-        [self.delegate showSettingsView];
-    }
-}
 
 -(void)cityNameTap:(UIGestureRecognizer*)recognizer {
     if ([self.delegate respondsToSelector:@selector(showSettingsView)]) {
@@ -407,13 +365,6 @@
         [self.spinner startAnimating];
         [self performSelector:@selector(refreshComplete) withObject:self.spinner afterDelay:1.0];
         [self updateLocation];
-    }
-    
-    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-    if (![userDetails boolForKey:kUserDefaultsHasSeenRefreshTutorialKey]) {
-        [userDetails setBool:YES forKey:kUserDefaultsHasSeenRefreshTutorialKey];
-        [userDetails synchronize];
-        [self closeTutorial];
     }
     
     [Flurry logEvent:@"Refresh_clicked"];
@@ -573,6 +524,7 @@
 }
 
 -(void)showListView {
+    [self searchBarCancelButtonClicked:self.searchBar];
     if ([self.delegate respondsToSelector:@selector(showListView)]) {
         self.listViewOpen = YES;
         [self.delegate showListView];
@@ -624,6 +576,7 @@
                 
             case 1: {
                 [_delegate movePanelRight];
+                [self searchBarCancelButtonClicked:self.searchBar];
                 break;
             }
                 
@@ -645,6 +598,7 @@
                 
             case 1: {
                 [_delegate movePanelLeft];
+                [self searchBarCancelButtonClicked:self.searchBar];
                 break;
             }
                 
@@ -665,6 +619,7 @@
                 
             case 1: {
                 [_delegate movePanelLeft];
+                [self searchBarCancelButtonClicked:self.searchBar];
                 break;
             }
                 
@@ -687,6 +642,10 @@
         annotationView.placeTouchView.userInteractionEnabled = NO;
         annotationView.tag = 1;
     }
+}
+
+- (void)handleDismissSearchTap:(UITapGestureRecognizer *)recognizer {
+    [self searchBarCancelButtonClicked:self.searchBar];
 }
 
 #pragma mark MapView delegate
@@ -1003,7 +962,6 @@
     }
 }
 
-
 -(void)mapViewDidFinishLoadingMap:(MKMapView *)mapView {
     if (!self.mapHasAdjusted) {
         NSLog(@"Did finish loading map");
@@ -1015,6 +973,156 @@
 {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
+}
+
+#pragma mark SearchBarDelegate methods
+
+- (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
+    [self.searchBar setShowsCancelButton:YES animated:YES];
+    [self.dismissSearchView setHidden:NO];
+}
+
+- (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
+    searchBar.text=@"";
+    
+    [searchBar setShowsCancelButton:NO animated:YES];
+    [searchBar resignFirstResponder];
+    
+    self.searchResultsArray = nil;
+    [self.searchResultsTableView reloadData];
+    self.searchResultsTableView.hidden = YES;
+    [self.dismissSearchView setHidden:YES];
+}
+
+- (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar {
+    self.searchResultsTableView.hidden = NO;
+    [self loadPlacesForSearch:searchBar.text];
+    [self.dismissSearchView setHidden:YES];
+    [Flurry logEvent:@"User_searches_from_main_page"];
+}
+
+#pragma mark UITableViewDataSource Methods
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+        return SEARCH_RESULTS_CELL_HEIGHT;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return [self.searchResultsArray count] + 1;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+        if (indexPath.row == [self.searchResultsArray count]) {
+            UIImageView *foursquareImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"poweredByFoursquare"]];
+            foursquareImageView.frame = CGRectMake(0, 0, self.view.frame.size.width, SEARCH_RESULTS_CELL_HEIGHT);
+            foursquareImageView.contentMode = UIViewContentModeScaleAspectFit;
+            UITableViewCell *cell = [[UITableViewCell alloc] init];
+            [cell addSubview:foursquareImageView];
+            return cell;
+        }
+        SearchResultCell *cell = [[SearchResultCell alloc] init];
+        Place *p = [self.searchResultsArray objectAtIndex:indexPath.row];
+        cell.place = p;
+        UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:18];
+        UIFont *montserratSubLabelFont = [UIFont fontWithName:@"Montserrat" size:12];
+        UILabel *placeNameLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 20.0)];
+        placeNameLabel.text = p.name;
+        placeNameLabel.font = montserrat;
+        [cell addSubview:placeNameLabel];
+        UILabel *placeAddressLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 30.0, self.view.frame.size.width, 15.0)];
+        placeAddressLabel.text = p.address;
+        placeAddressLabel.font = montserratSubLabelFont;
+        [cell addSubview:placeAddressLabel];
+    
+        return cell;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (tableView == self.searchResultsTableView ) {
+        if (indexPath.row >= [self.searchResultsArray count]) {
+            return;
+        }
+        SearchResultCell *cell = (SearchResultCell*)[tableView cellForRowAtIndexPath:indexPath];
+        Datastore *sharedDataManager = [Datastore sharedDataManager];
+        if (![sharedDataManager.foursquarePlacesDictionary objectForKey:cell.place.placeId]) {
+            [sharedDataManager.foursquarePlacesDictionary setObject:cell.place forKey:cell.place.placeId];
+            if ([self.delegate respondsToSelector:@selector(newPlaceAdded)]) {
+                [self.delegate newPlaceAdded];
+            }
+        }
+
+        if ([self.delegate respondsToSelector:@selector(openPageForPlaceWithId:)]) {
+            [self.delegate openPageForPlaceWithId:cell.place.placeId];
+          [Flurry logEvent:@"User_opens_place_page_from_main_search"];
+        }
+        [self searchBarCancelButtonClicked:self.searchBar];
+    }
+}
+
+// Search foursquare data call
+- (void)loadPlacesForSearch:(NSString*)search {
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    [formatter setDateFormat:@"YYYYMMdd"];
+    NSString *today = [formatter stringFromDate:[NSDate date]];
+    
+    NSString *urlString1 = @"https://api.foursquare.com/v2/venues/search?near=";
+    NSString *urlString2 = @"&query=";
+    NSString *urlString3 = @"&limit=50&client_id=VLMUFMIAUWTTEVXXFQEQNKFDMCOFYEHTZU1U53IPQCI1PONX&client_secret=RH1CZUW0WWVM5LIEGZNFLU133YZX1ZMESAJ4PWNSDDSFMGYS&v=";
+    NSString *joinString=[NSString stringWithFormat:@"%@%@%@%@%@%@%@%@",urlString1,[userDetails objectForKey:@"city"] ,@"%20",[userDetails objectForKey:@"state"],urlString2, search, urlString3, today];
+    joinString = [joinString stringByReplacingOccurrencesOfString:@" " withString:@"%20"];
+    
+    NSURL *url = [NSURL URLWithString:joinString];
+    
+    NSURLRequest *request = [NSURLRequest requestWithURL:url];
+    AFHTTPRequestOperation *operation = [[AFHTTPRequestOperation alloc]
+                                         initWithRequest:request];
+    operation.responseSerializer = [AFJSONResponseSerializer serializer];
+    [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSDictionary *jsonDict = (NSDictionary *) responseObject;
+        [self processSearchResults:jsonDict];
+        [Flurry logEvent:@"Foursquare_User_Search"];
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Failure");
+        [self localSearchWithSearch:search];
+    }];
+    [operation start];
+}
+
+- (void)processSearchResults:(NSDictionary *)json {
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    NSDictionary *response = [json objectForKey:@"response"];
+    self.searchResultsArray = [[NSMutableArray alloc] init];
+    NSArray *venues = [response objectForKey:@"venues"];
+    for (NSDictionary *venue in venues) {
+        Place *newPlace = [[Place alloc] init];
+        newPlace.placeId = [venue objectForKey:@"id"];
+        newPlace.name = [venue objectForKey:@"name"];
+        CLLocationCoordinate2D location = CLLocationCoordinate2DMake([(NSString*)[[venue objectForKey:@"location"] objectForKey:@"lat"] doubleValue], [[[venue objectForKey:@"location"] objectForKey:@"lng"] doubleValue]);
+        newPlace.coord = location;
+        newPlace.city = [userDetails objectForKey:@"city"];
+        newPlace.state = [userDetails objectForKey:@"state"];
+        NSDictionary *locationDetails = [venue objectForKey:@"location"];
+        newPlace.address = [locationDetails objectForKey:@"address"];
+        
+        [self.searchResultsArray addObject:newPlace];
+    }
+    [self.searchResultsTableView reloadData];
+}
+
+-(void)localSearchWithSearch:(NSString*)search {
+    self.searchResultsArray = [[NSMutableArray alloc] init];
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    for (Place *place in sharedDataManager.placesArray) {
+        if (place.name ) {
+            if ([[place.name lowercaseString] rangeOfString:[search lowercaseString]].location != NSNotFound) {
+                [self.searchResultsArray addObject:place];
+            }
+        }
+    }
+    
+    [self.searchResultsTableView reloadData];
 }
 
 @end

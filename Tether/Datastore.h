@@ -34,6 +34,7 @@
     NSMutableSet *bestFriendSet;
     NSString *placeIDForNotification;
     BOOL hasUpdatedFriends;
+    NSMutableArray * placesArray;
 }
 
 @property (nonatomic, retain) NSString *facebookId;
@@ -59,6 +60,7 @@
 @property (nonatomic, strong) NSMutableSet *bestFriendSet;
 @property (nonatomic, strong) NSString *placeIDForNotification;
 @property (nonatomic, assign) BOOL hasUpdatedFriends;
+@property (nonatomic, strong) NSMutableArray * placesArray;
 
 + (id)sharedDataManager;
 

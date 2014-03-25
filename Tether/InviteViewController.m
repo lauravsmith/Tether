@@ -19,6 +19,7 @@
 
 #import <AFNetworking/AFHTTPRequestOperationManager.h>
 #import <AddressBook/AddressBook.h>
+#import <MessageUI/MessageUI.h>
 
 #define CELL_HEIGHT 60.0
 #define LABEL_HEIGHT 40.0
@@ -33,7 +34,7 @@
 #define PADDING 10.0
 #define PLUS_ICON_SIZE 23.0
 
-@interface InviteViewController () <UIGestureRecognizerDelegate, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UITextViewDelegate>
+@interface InviteViewController () <UIGestureRecognizerDelegate, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UITextViewDelegate, MFMessageComposeViewControllerDelegate>
 @property (retain, nonatomic) NSMutableArray *friendSearchResultsArray;
 @property (nonatomic, strong) UITableView *friendSearchResultsTableView;
 @property (nonatomic, strong) UITableViewController *friendSearchResultsTableViewController;
@@ -204,6 +205,7 @@
     
     [self.view addSubview:self.placeSearchResultsTableView];
 }
+
 
 -(void)hideSearchFriends {
      [self.searchBarBackgroundView setHidden:YES];
@@ -513,6 +515,40 @@
     }
 }
 
+-(IBAction)openSMSDialog:(id)sender {
+    [Flurry logEvent:@"User_Clicked_Share_SMS_Invite"];
+    if(![MFMessageComposeViewController canSendText]) {
+        UIAlertView *warningAlert = [[UIAlertView alloc] initWithTitle:@"Error" message:@"Your device doesn't support SMS!" delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        [warningAlert show];
+        return;
+    }
+    
+    NSString *message = [NSString stringWithFormat:@"Tethr to %@ with me! https://itunes.apple.com/app/tethr/id825917714?mt=8", self.place.name];
+    
+    MFMessageComposeViewController *messageController = [[MFMessageComposeViewController alloc] init];
+    messageController.messageComposeDelegate = self;
+    [messageController setRecipients:nil];
+    [messageController setBody:message];
+    
+    // Present message view controller on screen
+    [self addChildViewController:messageController];
+    [messageController didMoveToParentViewController:self];
+    [messageController.view setFrame:CGRectMake(0.0f, self.view.frame.size.height, self.view.frame.size.width, self.view.frame.size.height)];
+    [self.view addSubview:messageController.view];
+    
+    [UIView animateWithDuration:0.6
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [messageController.view setFrame:CGRectMake( 0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                         
+                     }];
+}
+
 -(void)confirmInvitationsSent {
     self.confirmationView = [[UIView alloc] initWithFrame:CGRectMake((self.view.frame.size.width - 200.0) / 2.0, (self.view.frame.size.height - 100.0) / 2.0, 200.0, 100.0)];
     [self.confirmationView setBackgroundColor:[UIColor whiteColor]];
@@ -690,6 +726,28 @@
 
 #pragma mark UITableViewDataSource Methods
 
+-(UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section
+{
+    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, CELL_HEIGHT)];
+    TethrButton *button = [[TethrButton alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, CELL_HEIGHT)];
+    [button setNormalColor:[UIColor whiteColor]];
+    [button setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
+    [button setTitle:@"Invite more friends..." forState:UIControlStateNormal];
+    
+    [button addTarget:self action:@selector(openSMSDialog:) forControlEvents:UIControlEventTouchUpInside];
+    
+    UIFont *montserratBold = [UIFont fontWithName:@"Montserrat" size:14.0f];
+    button.titleLabel.font = montserratBold;
+    [button setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+    
+    [header addSubview:button];
+    return header;
+}
+
+-(CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
+    return CELL_HEIGHT;
+}
+
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (tableView == self.placeSearchResultsTableView) {
         return SEARCH_RESULTS_CELL_HEIGHT;
@@ -697,7 +755,6 @@
         return CELL_HEIGHT;
     }
 }
-
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     if (tableView == self.placeSearchResultsTableView) {
@@ -773,6 +830,8 @@
     return YES;
 }
 
+#pragma mark TextViewDelegate
+
 -(void) textViewDidChange:(UITextView *)textView
 {
     if(self.messageTextView.text.length == 0){
@@ -797,6 +856,42 @@
     }
     
     return YES;
+}
+
+#pragma mark MessageComposeViewController
+
+-(void)messageComposeViewController:(MFMessageComposeViewController *)controller didFinishWithResult:(MessageComposeResult)result {
+    switch (result) {
+        case MessageComposeResultCancelled:
+            break;
+            
+        case MessageComposeResultFailed:
+        {
+            UIAlertView *warningAlert = [[UIAlertView alloc] initWithTitle:@"Error" message:@"Failed to send SMS!" delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            [warningAlert show];
+            break;
+        }
+            
+        case MessageComposeResultSent:
+            [Flurry logEvent:@"User_Sent_SMS"];
+            break;
+            
+        default:
+            break;
+    }
+    
+    [UIView animateWithDuration:0.6*1.2
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [controller.view setFrame:CGRectMake(0.0f, self.view.frame.size.height + 40.0, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                         [controller.view removeFromSuperview];
+                         [controller removeFromParentViewController];
+                     }];
 }
 
 - (void)didReceiveMemoryWarning

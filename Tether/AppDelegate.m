@@ -40,7 +40,7 @@ NSString *const SessionStateChangedNotification =
     [self.window makeKeyAndVisible];
     
     [[UIBarButtonItem appearanceWhenContainedIn:[UISearchBar class], nil] setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys:
-                                                                                                  UIColorFromRGB(0xD6D6D6),
+                                                                                                  [UIColor grayColor],
                                                                                                   NSForegroundColorAttributeName,
                                                                                                   nil]
                                                                                         forState:UIControlStateNormal];

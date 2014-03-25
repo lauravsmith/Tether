@@ -304,6 +304,9 @@
         [self.placesArray addObject:[sharedDataManager.placesDictionary objectForKey:key]];
     }
     
+    sharedDataManager.placesArray = [[NSMutableArray alloc] init];
+    sharedDataManager.placesArray = [self.placesArray mutableCopy];
+    
     // Sort places first by tonights popularity, then past popularity
     NSSortDescriptor *numberCommitmentsDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"numberCommitments" ascending:NO];
     NSSortDescriptor *numberPastCommitmentsDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"numberPastCommitments" ascending:NO];
@@ -381,7 +384,10 @@
     Place *place = [sharedDataManager.placesDictionary objectForKey:placeId];
     
     [self.placesTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:[self.placesArray indexOfObject:place] inSection:0]
-                                atScrollPosition:UITableViewScrollPositionTop animated:YES];
+                                atScrollPosition:UITableViewScrollPositionTop animated:NO];
+    
+    PlaceCell *cell = (PlaceCell*)[self.placesTableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:[self.placesArray indexOfObject:place] inSection:0]];
+   [self showFriendsViewFromCell:cell];
 }
 
 -(void)openPageForPlaceWithId:(id)placeId {

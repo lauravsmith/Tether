@@ -20,5 +20,4 @@
 @protocol FriendCellDelegate <NSObject>
 -(void)goToPlaceInListView:(id)placeId;
 -(void)inviteFriend:(Friend*)friend;
--(void)dragImageView:(FBProfilePictureView*)imageView forPoint:(CGPoint)point;
 @end

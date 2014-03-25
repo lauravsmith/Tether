@@ -26,4 +26,5 @@
 -(void)pollDatabase;
 -(void)inviteFriend:(Friend*)friend;
 -(void)sortTetherFriends;
+-(void)showShareViewController;
 @end

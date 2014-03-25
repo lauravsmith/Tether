@@ -12,6 +12,7 @@
 #import "Flurry.h"
 #import "ManageFriendsViewController.h"
 #import "SettingsViewController.h"
+#import "ShareViewController.h"
 #import "TethrTextField.h"
 
 #import "UIImage+ImageEffects.h"
@@ -29,10 +30,10 @@
 
 static NSString *kGeoNamesAccountName = @"lsmit87";
 
-@interface SettingsViewController () <ILGeoNamesLookupDelegate, ManageFriendsViewControllerDelegate, UITextFieldDelegate, UITableViewDelegate, UITableViewDataSource, NSURLConnectionDataDelegate>
+@interface SettingsViewController () <ILGeoNamesLookupDelegate, ManageFriendsViewControllerDelegate, UITextFieldDelegate, UITableViewDelegate, UITableViewDataSource, NSURLConnectionDataDelegate, ShareViewControllerDelegate>
 
 @property (retain, nonatomic) UITextField *statusMessageTextField;
-@property (retain, nonatomic) UIButton * doneButton;
+@property (retain, nonatomic) TethrButton * doneButton;
 @property (retain, nonatomic) UIButton * largeDoneButton;
 @property (retain, nonatomic) UIView * topBarView;
 @property (retain, nonatomic) UITextField *cityTextField;
@@ -49,6 +50,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 @property (retain, nonatomic) UIButton * inviteFriendsButton;
 @property (retain, nonatomic) UIButton * arrowButton;
 @property (retain, nonatomic) ManageFriendsViewController *manageVC;
+@property (retain, nonatomic) ShareViewController *shareVC;
 @property (retain, nonatomic) UIView *backgroundView;
 @property (retain, nonatomic) UILabel *dotLabel;
 @property (retain, nonatomic) UILabel * seeFriendsEverywhereLabel;
@@ -122,12 +124,16 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [self.view addSubview:self.statusMessageTextField];
     
     UIView *whiteView = [[UIView alloc] initWithFrame:CGRectMake(0.0, 220.0, self.view.frame.size.width, self.view.frame.size.height - 220.0)];
-    [whiteView setBackgroundColor:[UIColor whiteColor]];
+    [whiteView setBackgroundColor:UIColorFromRGB(0xf8f8f8)];
     [self.view addSubview:whiteView];
     
     UITapGestureRecognizer *closeKeyBoardTap2 = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissKeyboard)];
     whiteView.userInteractionEnabled = YES;
     [whiteView addGestureRecognizer:closeKeyBoardTap2];
+    
+    UIView *segment1 = [[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.frame.size.width, SEGMENT_HEIGHT)];
+    [segment1 setBackgroundColor:[UIColor whiteColor]];
+    [whiteView addSubview:segment1];
     
     UIView *segment2 = [[UIView alloc] initWithFrame:CGRectMake(0.0, SEGMENT_HEIGHT, self.view.frame.size.width, SEGMENT_HEIGHT)];
     [segment2 setBackgroundColor:UIColorFromRGB(0xf8f8f8)];
@@ -224,7 +230,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [self.logoutButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateHighlighted];
     self.logoutButton.titleLabel.font = montserratLarge;
     size = [self.logoutButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratLarge}];
-    self.logoutButton.frame = CGRectMake(self.view.frame.size.width - size.width - PADDING, self.view.frame.size.height - size.height - PADDING, size.width, size.height);
+    self.logoutButton.frame = CGRectMake(PADDING, self.view.frame.size.height - size.height - PADDING, size.width, size.height);
     [self.logoutButton addTarget:self action:@selector(logoutButtonWasPressed:) forControlEvents:UIControlEventTouchDown];
     [self.view addSubview:self.logoutButton];
     
@@ -232,14 +238,16 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [self.largeLogoutButton addTarget:self action:@selector(logoutButtonWasPressed:) forControlEvents:UIControlEventTouchDown];
     [self.view addSubview:self.largeLogoutButton];
 
-    self.doneButton = [[UIButton alloc] init];
+    self.doneButton = [[TethrButton alloc] init];
+    [self.doneButton setNormalColor:UIColorFromRGB(0xf8f8f8)];
+    [self.doneButton setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
     [self.doneButton setTitle:@"Done" forState:UIControlStateNormal];
     [self.doneButton setTitleColor:UIColorFromRGB(0x1d1d1d) forState:UIControlStateNormal];
     [self.doneButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateHighlighted];
     [self.doneButton addTarget:self action:@selector(handleCloseSettings:) forControlEvents:UIControlEventTouchDown];
     self.doneButton.titleLabel.font = montserratLarge;
     CGSize buttonSize = [self.doneButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratLarge}];
-    self.doneButton.frame = CGRectMake(PADDING, self.view.frame.size.height - buttonSize.height - PADDING, buttonSize.width, buttonSize.height);
+    self.doneButton.frame = CGRectMake(self.view.frame.size.width - buttonSize.width - PADDING, self.view.frame.size.height - buttonSize.height - PADDING, buttonSize.width, buttonSize.height);
     [self.view addSubview:self.doneButton];
     
     self.largeDoneButton = [[UIButton alloc] initWithFrame:CGRectMake(0.0, self.doneButton.frame.origin.y - PADDING, self.view.frame.size.width / 2.0, self.view.frame.size.height - self.doneButton.frame.origin.y)];
@@ -263,6 +271,10 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     NSURLRequest *profilePictureURLRequest = [NSURLRequest requestWithURL:profilePictureURL cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:10.0f]; // Facebook profile picture cache policy: Expires in 2 weeks
     [NSURLConnection connectionWithRequest:profilePictureURLRequest delegate:self];
     
+    UIView *segment3 = [[UIView alloc] initWithFrame:CGRectMake(0.0, SEGMENT_HEIGHT*2, self.view.frame.size.width, SEGMENT_HEIGHT)];
+    [segment3 setBackgroundColor:[UIColor whiteColor]];
+    [whiteView addSubview:segment3];
+    
     self.seeFriendsEverywhereLabel = [[UILabel alloc] init];
     self.seeFriendsEverywhereLabel.text = @"See friends everywhere";
     self.seeFriendsEverywhereLabel.font = montserrat;
@@ -283,6 +295,12 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [segment4 setBackgroundColor:UIColorFromRGB(0xf8f8f8)];
     [whiteView addSubview:segment4];
     
+    TethrButton *manageButtonLarge = [[TethrButton alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.frame.size.width, SEGMENT_HEIGHT)];
+    [manageButtonLarge setNormalColor:UIColorFromRGB(0xf8f8f8)];
+    [manageButtonLarge setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
+    [manageButtonLarge addTarget:self action:@selector(showManage:) forControlEvents:UIControlEventTouchUpInside];
+    [segment4 addSubview:manageButtonLarge];
+    
     UIButton *manageButton = [[UIButton alloc] init];
     [manageButton setTitle:@"Manage friends" forState:UIControlStateNormal];
     manageButton.titleLabel.font = montserrat;
@@ -292,10 +310,6 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [manageButton addTarget:self action:@selector(showManage:) forControlEvents:UIControlEventTouchUpInside];
     [segment4 addSubview:manageButton];
     
-    UIButton *manageButtonLarge = [[UIButton alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.frame.size.width, SEGMENT_HEIGHT)];
-    [manageButtonLarge addTarget:self action:@selector(showManage:) forControlEvents:UIControlEventTouchUpInside];
-    [segment4 addSubview:manageButtonLarge];
-    
     self.arrowButton = [[UIButton alloc] init];
     [self.arrowButton setImage:[UIImage imageNamed:@"BlackTriangle"] forState:UIControlStateNormal];
     self.arrowButton.frame = CGRectMake(self.view.frame.size.width - 11.0 - PADDING, (SEGMENT_HEIGHT - 7.0) / 2.0, 7.0, 11.0);
@@ -304,6 +318,34 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
                          action:@selector(showManage:)
                forControlEvents:UIControlEventTouchUpInside];
     [segment4 addSubview:self.arrowButton];
+    
+    UIView *segment5 = [[UIView alloc] initWithFrame:CGRectMake(0.0, SEGMENT_HEIGHT*4, self.view.frame.size.width, SEGMENT_HEIGHT)];
+    [segment5 setBackgroundColor:[UIColor whiteColor]];
+    [whiteView addSubview:segment5];
+    
+    TethrButton *shareButtonLarge = [[TethrButton alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.frame.size.width, SEGMENT_HEIGHT)];
+    [shareButtonLarge setNormalColor:[UIColor whiteColor]];
+    [shareButtonLarge setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
+    [shareButtonLarge addTarget:self action:@selector(showShare:) forControlEvents:UIControlEventTouchUpInside];
+    [segment5 addSubview:shareButtonLarge];
+    
+    UIButton *shareButton = [[UIButton alloc] init];
+    [shareButton setTitle:@"Share Tethr" forState:UIControlStateNormal];
+    shareButton.titleLabel.font = montserrat;
+    size = [shareButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName: montserrat}];
+    shareButton.frame = CGRectMake(PADDING, (SEGMENT_HEIGHT - size.height) / 2.0, size.width, size.height);
+    [shareButton setTitleColor:UIColorFromRGB(0x1d1d1d) forState:UIControlStateNormal];
+    [shareButton addTarget:self action:@selector(showShare:) forControlEvents:UIControlEventTouchUpInside];
+    [segment5 addSubview:shareButton];
+    
+    UIButton *shareArrowButton = [[UIButton alloc] init];
+    [shareArrowButton setImage:[UIImage imageNamed:@"BlackTriangle"] forState:UIControlStateNormal];
+    shareArrowButton.frame = CGRectMake(self.view.frame.size.width - 11.0 - PADDING, (SEGMENT_HEIGHT - 7.0) / 2.0, 7.0, 11.0);
+    shareArrowButton.transform = CGAffineTransformMakeRotation(degreesToRadian(180));
+    [shareArrowButton addTarget:self
+                         action:@selector(showShare:)
+               forControlEvents:UIControlEventTouchUpInside];
+    [segment5 addSubview:shareArrowButton];
 }
 
 -(void)connectionDidFinishLoading:(NSURLConnection *)connection {
@@ -650,25 +692,50 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 
 #pragma mark button action methods
 
+-(IBAction)showShare:(id)sender {
+    if (!self.shareVC) {
+        self.shareVC = [[ShareViewController alloc] init];
+        self.shareVC.delegate = self;
+        
+        [self addChildViewController:self.shareVC];
+        [self.shareVC didMoveToParentViewController:self];
+        [self.shareVC.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+        [self.view addSubview:self.shareVC.view];
+        
+        [UIView animateWithDuration:SLIDE_TIMING
+                              delay:0.0
+             usingSpringWithDamping:1.0
+              initialSpringVelocity:1.0
+                            options:UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                             [self.shareVC.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                         }
+                         completion:^(BOOL finished) {
+                         }];
+    }
+}
+
 - (IBAction)showManage:(id)sender {
-    self.manageVC = [[ManageFriendsViewController alloc] init];
-    self.manageVC.delegate = self;
-    
-    [self addChildViewController:self.manageVC];
-    [self.manageVC didMoveToParentViewController:self];
-    [self.manageVC.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
-    [self.view addSubview:self.manageVC.view];
-    
-    [UIView animateWithDuration:SLIDE_TIMING
-                          delay:0.0
-         usingSpringWithDamping:1.0
-          initialSpringVelocity:1.0
-                        options:UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
-                         [self.manageVC.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
-                     }
-                     completion:^(BOOL finished) {
-                     }];
+    if (!self.manageVC) {
+        self.manageVC = [[ManageFriendsViewController alloc] init];
+        self.manageVC.delegate = self;
+        
+        [self addChildViewController:self.manageVC];
+        [self.manageVC didMoveToParentViewController:self];
+        [self.manageVC.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+        [self.view addSubview:self.manageVC.view];
+        
+        [UIView animateWithDuration:SLIDE_TIMING
+                              delay:0.0
+             usingSpringWithDamping:1.0
+              initialSpringVelocity:1.0
+                            options:UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                             [self.manageVC.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                         }
+                         completion:^(BOOL finished) {
+                         }];
+    }
 }
 
 - (IBAction)handleCloseSettings:(id)sender {
@@ -745,6 +812,26 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
                      completion:^(BOOL finished) {
                          [self.manageVC.view removeFromSuperview];
                          [self.manageVC removeFromParentViewController];
+                         self.manageVC = nil;
+                     }];
+}
+
+
+#pragma mark ShareViewControllerDelegate
+
+-(void)closeShareViewController {
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.shareVC.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                         [self.shareVC.view removeFromSuperview];
+                         [self.shareVC removeFromParentViewController];
+                         self.shareVC = nil;
                      }];
 }
 

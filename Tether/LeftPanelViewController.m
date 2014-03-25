@@ -13,6 +13,7 @@
 #import "FriendCell.h"
 #import "Flurry.h"
 #import "LeftPanelViewController.h"
+#import "ShareViewController.h"
 
 #define CELL_HEIGHT 65
 #define HEADER_HEIGHT 30.0
@@ -26,11 +27,12 @@
 #define SEARCH_BAR_HEIGHT 55.0
 #define SEARCH_BAR_WIDTH 270.0
 #define SECOND_TABLE_OFFSET_Y 350.0
+#define SLIDE_TIMING 0.6
 #define STATUS_BAR_HEIGHT 15.0
 #define TABLE_HEIGHT 400.0
 #define TUTORIAL_HEADER_HEIGHT 50.0
 
-@interface LeftPanelViewController ()<UIAlertViewDelegate ,UITableViewDelegate, UITableViewDataSource, FriendCellDelegate, UIScrollViewDelegate, UISearchBarDelegate>
+@interface LeftPanelViewController ()<UIAlertViewDelegate ,UITableViewDelegate, UITableViewDataSource, FriendCellDelegate, UIScrollViewDelegate, UISearchBarDelegate, ShareViewControllerDelegate>
 
 @property (nonatomic, strong) UITableView *friendsGoingOutTableView;
 @property (nonatomic, strong) UITableViewController *friendsGoingOutTableViewController;
@@ -238,10 +240,10 @@
             goingOutLabel.font = missionGothic;
             countLabel.font = montserratBold;
             if (section == 2) {
-                goingOutLabel.text = @"going Out";
+                goingOutLabel.text = @"going out";
                 countLabel.text = [NSString stringWithFormat:@"%lu",(unsigned long)[sharedDataManager.tetherFriendsNotGoingOut count]];
             } else {
-                goingOutLabel.text = @"not Going Out";
+                goingOutLabel.text = @"not going out";
             }
             CGSize textLabelSize = [goingOutLabel.text sizeWithAttributes:@{NSFontAttributeName: missionGothic}];
             CGSize numberLabelSize = [countLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];
@@ -306,6 +308,18 @@
         } else if (indexPath.section == 2) {
             [cell setFriend:[sharedDataManager.tetherFriendsNotGoingOut objectAtIndex:indexPath.row]];
         } else if (indexPath.section == 3) {
+//            if (indexPath.row == [sharedDataManager.tetherFriendsUndecided count]) {
+//                UITableViewCell *cell = [[UITableViewCell alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.height, CELL_HEIGHT)];
+//                UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.height, CELL_HEIGHT)];
+//                label.text = @"Get more friends on Tethr";
+//                label.textColor = [UIColor blackColor];
+//                UIFont *montserratBold = [UIFont fontWithName:@"Montserrat" size:14.0f];
+//                CGSize size = [label.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];
+//                label.font = montserratBold;
+//                label.frame = CGRectMake((self.view.frame.size.width - PANEL_WIDTH - size.width) / 2.0, (CELL_HEIGHT - size.height) / 2.0, size.width, size.height);
+//                [cell addSubview:label];
+//                return cell;
+//            }
             if (indexPath.row >= [sharedDataManager.tetherFriendsUndecided count]) {
                 [cell setFriend:NULL];
                 return  cell;
@@ -335,6 +349,7 @@
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
     if (tableView == self.searchResultsTableView) {
         self.searchBar.delegate = nil;
         [self.searchResultsTableView setHidden:YES];
@@ -343,7 +358,6 @@
         [self hideSearchBar];
         [self.friendsGoingOutTableView scrollsToTop];
         
-        Datastore *sharedDataManager = [Datastore sharedDataManager];
         if ([sharedDataManager.tetherFriendsGoingOut containsObject:friend]) {
             [self.friendsGoingOutTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:[sharedDataManager.tetherFriendsGoingOut indexOfObject:friend] inSection:1]
                                                  atScrollPosition:UITableViewScrollPositionTop animated:YES];
@@ -355,6 +369,11 @@
                                                  atScrollPosition:UITableViewScrollPositionTop animated:YES];
         }
         [self searchBarCancelButtonClicked:self.searchBar];
+    } else {
+        if (indexPath.section == 3 && indexPath.row == [sharedDataManager.tetherFriendsUndecided count]) {
+            [self showShare];
+        }
+        [tableView deselectRowAtIndexPath:indexPath animated:YES];
     }
 }
 
@@ -410,6 +429,12 @@
 {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
+}
+
+-(void)showShare {
+    if ([self.delegate respondsToSelector:@selector(showShareViewController)]) {
+        [self.delegate showShareViewController];
+    }
 }
 
 @end

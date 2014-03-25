@@ -33,6 +33,7 @@
 @synthesize bestFriendSet;
 @synthesize placeIDForNotification;
 @synthesize hasUpdatedFriends;
+@synthesize placesArray;
 
 #pragma mark Singleton Methods
 

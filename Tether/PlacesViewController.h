@@ -22,6 +22,8 @@
 -(void)sortPlacesByPopularity;
 -(void)openPageForPlaceWithId:(id)placeId;
 -(void)setCellForPlace:(Place*)place tethered:(BOOL)tethered;
+-(void)addDictionaries;
+-(void)sortPlacesByPopularity;
 @end
 
 @protocol PlacesViewControllerDelegate <NSObject>

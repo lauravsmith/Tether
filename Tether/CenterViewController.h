@@ -37,6 +37,7 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 -(void)openPageForPlaceWithId:(id)placeId;
 -(void)removePreviousCommitment;
 -(void)removeCommitmentFromDatabase;
+-(void)newPlaceAdded;
 @end
 
 @interface CenterViewController : ViewController <MKMapViewDelegate>
@@ -68,6 +69,7 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 @property (strong, nonatomic) CLLocation *userCoordinates;
 @property (assign, nonatomic) bool listViewOpen;
 @property (assign, nonatomic) bool dragging;
+@property (strong, nonatomic) UIView *searchBarBackground;
 -(void)updateLocation;
 -(void)setCityFromCLLocation:(CLLocation*)location;
 -(void)layoutNumberButton;
@@ -76,6 +78,4 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 -(void)refreshNotificationsNumber;
 - (void)movePanelLeft:(UIGestureRecognizer*)recognizer;
 -(void)setUserLocationToCity:(NSString*)city;
--(void)addTutorialView;
--(void)closeTutorial;
 @end
