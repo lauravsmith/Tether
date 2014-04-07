@@ -13,6 +13,7 @@
 @property (nonatomic, strong) NSString *name;
 @property (nonatomic, strong) NSString *friendID;
 @property (nonatomic, strong) NSString *statusMessage;
+@property (nonatomic, strong) NSString *city;
 @property (nonatomic, strong) NSDate *timeLastUpdated;
 @property (nonatomic, strong) NSArray *friendsArray;
 @property (nonatomic, assign) BOOL status;

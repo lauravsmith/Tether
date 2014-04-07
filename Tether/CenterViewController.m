@@ -292,7 +292,7 @@
     NSDate *timeLastUpdated = [userDetails objectForKey:@"timeLastUpdated"];
     NSDate *startTime = [self getStartTime];
     
-    if (sharedDataManager.currentCommitmentPlace && [startTime compare:timeLastUpdated] == NSOrderedAscending && [sharedDataManager.currentCommitmentPlace.friendsCommitted count] > 0) {
+    if (sharedDataManager.currentCommitmentPlace && [startTime compare:timeLastUpdated] == NSOrderedAscending && [sharedDataManager.currentCommitmentPlace.totalCommitted count] > 0) {
         self.cityButton.hidden = YES;
         self.commitmentButton.hidden = NO;
         self.placeButton.hidden = NO;
@@ -300,7 +300,7 @@
         
         UIFont *montserratExtraSmall = [UIFont fontWithName:@"Montserrat" size:10];
         [self.placeButton setTitle:sharedDataManager.currentCommitmentPlace.name forState:UIControlStateNormal];
-        [self.placeNumberButton setTitle:[NSString stringWithFormat:@"%lu", (unsigned long)[sharedDataManager.currentCommitmentPlace.friendsCommitted count]] forState:UIControlStateNormal];
+        [self.placeNumberButton setTitle:[NSString stringWithFormat:@"%lu", (unsigned long)[sharedDataManager.currentCommitmentPlace.totalCommitted count]] forState:UIControlStateNormal];
         
         CGSize size1 = [self.placeButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratExtraSmall}];
         CGSize size2 = [self.placeNumberButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratSmall}];
@@ -682,25 +682,40 @@
         UILabel *numberLabel = [[UILabel alloc] init];
         UIFont *helveticaNeueSmall = [UIFont fontWithName:@"HelveticaNeue-Bold" size:10];
         numberLabel.font = helveticaNeueSmall;
-        numberLabel.text = [NSString stringWithFormat:@"%lu", (unsigned long)[((TetherAnnotation*)annotation).place.friendsCommitted count]];
+        numberLabel.text = [NSString stringWithFormat:@"%lu", (unsigned long)[((TetherAnnotation*)annotation).place.totalCommitted count]];
         CGSize size = [numberLabel.text sizeWithAttributes:@{NSFontAttributeName:helveticaNeueSmall}];
         numberLabel.frame = CGRectMake((pinView.frame.size.width - size.width) / 2.0, (pinView.frame.size.height - size.height) / 4.0, MIN(size.width, 20), MIN(size.height, 15.0));
         numberLabel.adjustsFontSizeToFitWidth = YES;
-        numberLabel.textColor = [UIColor whiteColor];
-        
-        [pinView addSubview:imageView];
-        [pinView addSubview:numberLabel];
         
         UILabel* leftLabel = [[UILabel alloc] init];
         leftLabel.userInteractionEnabled = YES;
         [leftLabel setTextColor:[UIColor whiteColor]];
         UIFont *helveticaNeue = [UIFont fontWithName:@"HelveticaNeue-Bold" size:20];
         [leftLabel setFont:helveticaNeue];
-        [leftLabel setText:[NSString stringWithFormat:@"  %d",[((TetherAnnotation*)annotation).place.friendsCommitted count]]];
+        [leftLabel setText:[NSString stringWithFormat:@"  %d",[((TetherAnnotation*)annotation).place.totalCommitted count]]];
         size = [leftLabel.text sizeWithAttributes:@{NSFontAttributeName:helveticaNeue}];
         leftLabel.frame = CGRectMake(0, -2.0, size.width + 10.0, 45.0);
         UIView *backgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, size.width + 10.0, 45.0)];
-        [backgroundView setBackgroundColor:UIColorFromRGB(0x8e0528)];
+
+        if ([p.friendsCommitted count] == 0) {
+            UIImage *pinImage = [UIImage imageNamed:@"DarkGreyPin"];
+            pinView.tag = 1;
+            pinView.image = NULL;
+            pinView.frame = CGRectMake(0, 0, 40.0, 40.0);
+            UIImageView *imageView = [[UIImageView alloc] initWithImage:pinImage];
+            imageView.frame = CGRectMake(9.5, 1.0, 21.0, 38.0);
+            leftLabel.textColor = UIColorFromRGB(0x8e0528);
+            numberLabel.textColor = UIColorFromRGB(0x8e0528);
+            [pinView addSubview:imageView];
+            [pinView addSubview:numberLabel];
+            [backgroundView setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
+        } else {
+            numberLabel.textColor = [UIColor whiteColor];
+            [pinView addSubview:imageView];
+            [pinView addSubview:numberLabel];
+            [backgroundView setBackgroundColor:UIColorFromRGB(0x8e0528)];
+        }
+    
         [backgroundView addSubview:leftLabel];
         pinView.leftCalloutAccessoryView = backgroundView;
     
@@ -861,6 +876,8 @@
             }
         }
         
+        __block int numFriends = 0;
+        
         //show faces
         [UIView animateWithDuration:0.3f
                               delay:0.0
@@ -874,11 +891,17 @@
                                      frame.size.width = FACE_SIZE;
                                      frame.size.height = FACE_SIZE;
                                      subView.frame = frame;
+                                     numFriends += 1;
                                  }
                              }
                          }
                          completion:^(BOOL finished) {
-                             [self layoutTouchEventForAnnotationView:((TetherAnnotationView*)view)];
+                             if (numFriends == 0) {
+                                 [self performSelector:@selector(layoutTouchEventForAnnotationView:) withObject:(TetherAnnotationView*)view afterDelay:0.2
+                                  ];
+                             } else {
+                                 [self layoutTouchEventForAnnotationView:((TetherAnnotationView*)view)];
+                             }
                          }];
         view.tag = 0;
     } else {

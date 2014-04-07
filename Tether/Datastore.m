@@ -21,6 +21,7 @@
 @synthesize tetherFriendsGoingOut;
 @synthesize tetherFriendsNotGoingOut;
 @synthesize tetherFriendsUndecided;
+@synthesize tetherFriendsUnseen;
 @synthesize friendsToPlacesMap;
 @synthesize popularPlacesDictionary;
 @synthesize foursquarePlacesDictionary;

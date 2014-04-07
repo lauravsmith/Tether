@@ -97,6 +97,8 @@
 		476F4DCE18B2F7E6001A89A1 /* MissionGothicThinItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 476F4DC318B2F7E6001A89A1 /* MissionGothicThinItalic.otf */; };
 		476F4DCF18B2F7E6001A89A1 /* Personal Use License.txt in Resources */ = {isa = PBXBuildFile; fileRef = 476F4DC418B2F7E6001A89A1 /* Personal Use License.txt */; };
 		476F4DD118B3B92A001A89A1 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 476F4DD018B3B92A001A89A1 /* Icon.png */; };
+		4775899818EDDF640041AB8F /* DarkGreyPin.png in Resources */ = {isa = PBXBuildFile; fileRef = 4775899618EDDF640041AB8F /* DarkGreyPin.png */; };
+		4775899918EDDF640041AB8F /* DarkGreyPin@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4775899718EDDF640041AB8F /* DarkGreyPin@2x.png */; };
 		4775D59A18AC0AB700E80CAC /* libFlurry_4.3.2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4775D50218AC0AB700E80CAC /* libFlurry_4.3.2.a */; };
 		4775D59B18AC0AB700E80CAC /* _flurry_8h_source.html in Resources */ = {isa = PBXBuildFile; fileRef = 4775D50418AC0AB700E80CAC /* _flurry_8h_source.html */; };
 		4775D59C18AC0AB700E80CAC /* _flurry_ad_delegate_8h_source.html in Resources */ = {isa = PBXBuildFile; fileRef = 4775D50518AC0AB700E80CAC /* _flurry_ad_delegate_8h_source.html */; };
@@ -434,6 +436,8 @@
 		476F4DC318B2F7E6001A89A1 /* MissionGothicThinItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = MissionGothicThinItalic.otf; sourceTree = "<group>"; };
 		476F4DC418B2F7E6001A89A1 /* Personal Use License.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Personal Use License.txt"; sourceTree = "<group>"; };
 		476F4DD018B3B92A001A89A1 /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
+		4775899618EDDF640041AB8F /* DarkGreyPin.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = DarkGreyPin.png; sourceTree = "<group>"; };
+		4775899718EDDF640041AB8F /* DarkGreyPin@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "DarkGreyPin@2x.png"; sourceTree = "<group>"; };
 		4775D50118AC0AB700E80CAC /* Flurry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Flurry.h; sourceTree = "<group>"; };
 		4775D50218AC0AB700E80CAC /* libFlurry_4.3.2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libFlurry_4.3.2.a; sourceTree = "<group>"; };
 		4775D50418AC0AB700E80CAC /* _flurry_8h_source.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = _flurry_8h_source.html; sourceTree = "<group>"; };
@@ -918,6 +922,8 @@
 				474DEA2218D3B68A0011486D /* LocationSpotter@2x.png */,
 				477A8E8B18B68E9200F4F89B /* LineNavigator@2x.png */,
 				477A8E8C18B68E9200F4F89B /* LineNavigator.png */,
+				4775899618EDDF640041AB8F /* DarkGreyPin.png */,
+				4775899718EDDF640041AB8F /* DarkGreyPin@2x.png */,
 				476F4DD018B3B92A001A89A1 /* Icon.png */,
 				476F4D8918B2F379001A89A1 /* Bell@2x.png */,
 				476F4D8718B2F36E001A89A1 /* Bell.png */,
@@ -1541,6 +1547,7 @@
 				4775D5B618AC0AB700E80CAC /* ftv2doc.png in Resources */,
 				4775D62218AC0AB700E80CAC /* FlurryiOSAnalyticsREADMEv4.3.2.pdf in Resources */,
 				4775D61D18AC0AB700E80CAC /* tab_s.png in Resources */,
+				4775899918EDDF640041AB8F /* DarkGreyPin@2x.png in Resources */,
 				4790C4891889B0F100DB9759 /* HelveticaRoundedLTStd-Bd.otf in Resources */,
 				4790C44F1889B0F100DB9759 /* HelveticaLTStd-Light.otf in Resources */,
 				4790C4451889B0F100DB9759 /* HelveticaLTStd-Bold.otf in Resources */,
@@ -1576,6 +1583,7 @@
 				4775D65218AC52B900E80CAC /* README.md in Resources */,
 				4790C4611889B0F100DB9759 /* HelveticaNeueLTStd-BlkExO.otf in Resources */,
 				4775D5D318AC0AB700E80CAC /* pages.html in Resources */,
+				4775899818EDDF640041AB8F /* DarkGreyPin.png in Resources */,
 				4790C48C1889B0F100DB9759 /* HelveticaRoundedLTStd-BdO.otf in Resources */,
 				4775D62718AC0AB700E80CAC /* Flurry-LICENSE.txt in Resources */,
 				4775D62318AC0AB700E80CAC /* FlurryiOSReleaseNotesv4.3.2.pdf in Resources */,

@@ -425,6 +425,7 @@
                             friend.name = user[kUserDisplayNameKey];
                             friend.friendsArray = user[kUserFacebookFriendsKey];
                         }
+                        friend.city = user[@"cityLocation"];
                         friend.timeLastUpdated = user[kUserTimeLastUpdatedKey];
                         friend.status = [user[kUserStatusKey] boolValue];
                         friend.statusMessage = user[kUserStatusMessageKey];
@@ -527,16 +528,6 @@
                     [push setQuery:pushQuery]; // Set our Installation query
                     [push setData:data];
                     [push sendPushInBackground];
-                    
-                    PFObject *notification = [PFObject objectWithClassName:kNotificationClassKey];
-                    [notification setObject:sharedDataManager.facebookId forKey:kNotificationSenderKey];
-                    [notification setObject:messageHeader forKey:kNotificationMessageHeaderKey];
-                    [notification setObject:friend.friendID forKey:kNotificationRecipientKey];
-                    [notification setObject:[userDetails objectForKey:kUserDefaultsCityKey] forKey:kNotificationCityKey];
-                    [notification setObject:@"newUser" forKey:kNotificationTypeKey];
-                    [notification setObject:@"" forKey:kNotificationPlaceNameKey];
-                    [notification setObject:@"" forKey:kNotificationPlaceIdKey];
-                    [notification saveInBackground];
                 }
             }];
         }
@@ -550,13 +541,17 @@
     NSMutableSet *tempFriendsGoingOutSet = [[NSMutableSet alloc] init];
     NSMutableSet *tempFriendsNotGoingOutSet = [[NSMutableSet alloc] init];
     NSMutableSet *tempFriendsUndecidedSet = [[NSMutableSet alloc] init];
+    NSMutableSet *tempFriendsUnseenSet = [[NSMutableSet alloc] init];
     
     for (id key in sharedDataManager.tetherFriendsNearbyDictionary) {
         Friend *friend = [sharedDataManager.tetherFriendsNearbyDictionary objectForKey:key];
         if (friend) {
-            if ((([startTime compare:friend.timeLastUpdated] == NSOrderedDescending || !friend.status) && ![sharedDataManager.friendsToPlacesMap objectForKey:friend.friendID]) || !friend.timeLastUpdated) {
+            if (([startTime compare:friend.timeLastUpdated] == NSOrderedAscending && !friend.status)) {
                 friend.placeId = @"";
                 [tempFriendsUndecidedSet addObject:friend];
+            } else if ((([startTime compare:friend.timeLastUpdated] == NSOrderedDescending) && ![sharedDataManager.friendsToPlacesMap objectForKey:friend.friendID]) || !friend.timeLastUpdated) {
+                friend.placeId = @"";
+                [tempFriendsUnseenSet addObject:friend];
             } else {
                 if ([friend.friendID isEqualToString:sharedDataManager.facebookId]) {
                     if (sharedDataManager.currentCommitmentPlace && ![sharedDataManager.currentCommitmentPlace.placeId isEqualToString:@""]) {
@@ -577,6 +572,11 @@
 
     // only update lists if they have changed
     BOOL listsHaveChanged = NO;
+    
+    if (![tempFriendsUnseenSet isEqualToSet:[NSSet setWithArray:sharedDataManager.tetherFriendsUnseen]]) {
+        sharedDataManager.tetherFriendsUnseen = [[tempFriendsUnseenSet allObjects] mutableCopy];
+        listsHaveChanged = YES;
+    }
     
     if (![tempFriendsUndecidedSet isEqualToSet:[NSSet setWithArray:sharedDataManager.tetherFriendsUndecided]]) {
         sharedDataManager.tetherFriendsUndecided = [[tempFriendsUndecidedSet allObjects] mutableCopy];
@@ -1429,14 +1429,14 @@
     
     if ([self.centerViewController.placeToAnnotationDictionary objectForKey:place.placeId]) {
         TetherAnnotation *previousAnnotation = [self.centerViewController.placeToAnnotationDictionary objectForKey:place.placeId];
-        if ([place.friendsCommitted isEqualToSet:previousAnnotation.place.friendsCommitted] && !self.committingToPlace) {
+        if ([place.totalCommitted isEqualToSet:previousAnnotation.place.totalCommitted] && !self.committingToPlace) {
             return;
         }
         
         [self removePlaceMarkFromMapView:place];
     }
     [self.centerViewController.placeToAnnotationDictionary  setObject:annotation forKey:place.placeId];
-    if ([place.friendsCommitted count] > 0) {
+    if ([place.totalCommitted count] > 0) {
         [self.centerViewController.mv addAnnotation:annotation];
     }
     self.committingToPlace = NO;
@@ -1686,13 +1686,15 @@
     Place *p = [sharedDataManager.placesDictionary objectForKey:place.placeId];
     if (p) {
         NSMutableSet *friendsCommitted = [[NSMutableSet alloc] init];
+        NSMutableSet *totalCommitted = [[NSMutableSet alloc] init];
         if (p.friendsCommitted) {
             friendsCommitted = p.friendsCommitted;
         }
         
         [friendsCommitted addObject:sharedDataManager.facebookId];
-        if (friendsCommitted) {
-            p.numberCommitments = [friendsCommitted count];
+        [totalCommitted addObject:sharedDataManager.facebookId];
+        if (totalCommitted) {
+            p.numberCommitments = [totalCommitted count];
         }
 
         sharedDataManager.currentCommitmentPlace = p;
@@ -1734,16 +1736,6 @@
                 [push setQuery:pushQuery]; // Set our Installation query
                 [push setData:data];
                 [push sendPushInBackground];
-                
-                PFObject *invitation = [PFObject objectWithClassName:kNotificationClassKey];                
-                [invitation setObject:sharedDataManager.facebookId forKey:kNotificationSenderKey];
-                [invitation setObject:place.name forKey:kNotificationPlaceNameKey];
-                [invitation setObject:place.placeId forKey:kNotificationPlaceIdKey];
-                [invitation setObject:messageHeader forKey:kNotificationMessageHeaderKey];
-                [invitation setObject:friend.friendID forKey:kNotificationRecipientKey];
-                [invitation setObject:place.city forKey:kNotificationCityKey];
-                [invitation setObject:@"acceptance" forKey:kNotificationTypeKey];
-                [invitation saveInBackground];
            }
         }];
     }
@@ -1754,8 +1746,9 @@
     if (sharedDataManager.currentCommitmentPlace) {
         if ([sharedDataManager.currentCommitmentPlace.friendsCommitted containsObject:sharedDataManager.facebookId]) {
             [sharedDataManager.currentCommitmentPlace.friendsCommitted removeObject:sharedDataManager.facebookId];
-            sharedDataManager.currentCommitmentPlace.numberCommitments = [sharedDataManager.currentCommitmentPlace.friendsCommitted count];
-            NSLog(@"Removing previous commitment to %@ with %lu commitments", sharedDataManager.currentCommitmentPlace.name, (unsigned long)[sharedDataManager.currentCommitmentPlace.friendsCommitted count]);
+            [sharedDataManager.currentCommitmentPlace.totalCommitted removeObject:sharedDataManager.facebookId];
+            sharedDataManager.currentCommitmentPlace.numberCommitments = [sharedDataManager.currentCommitmentPlace.totalCommitted count];
+            NSLog(@"Removing previous commitment to %@ with %lu commitments", sharedDataManager.currentCommitmentPlace.name, (unsigned long)[sharedDataManager.currentCommitmentPlace.totalCommitted count]);
             sharedDataManager.currentCommitmentPlace.numberCommitments = MAX(0, sharedDataManager.currentCommitmentPlace.numberCommitments - 1);
             [sharedDataManager.placesDictionary setObject:sharedDataManager.currentCommitmentPlace
                                                    forKey:sharedDataManager.currentCommitmentPlace.placeId];

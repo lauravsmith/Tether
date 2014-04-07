@@ -139,6 +139,8 @@
 
     if (sharedDataManager.facebookId) {
         [friendsArrayWithMe addObject:sharedDataManager.facebookId];
+        
+    NSSet *friendsSet = [NSMutableSet setWithArray:friendsArrayWithMe];
     
     NSString *userCity;
     NSString *userState = [[NSString alloc] init];
@@ -148,14 +150,15 @@
     NSDate *lastWeek = [self getThisWeek];
     
     PFQuery *query = [PFQuery queryWithClassName:kCommitmentClassKey];
-    [query whereKey:kUserFacebookIDKey containedIn:friendsArrayWithMe];        
+//    [query whereKey:kUserFacebookIDKey containedIn:friendsArrayWithMe];        
     if ([self.userDetails boolForKey:@"cityFriendsOnly"]) {
         [query whereKey:kCommitmentCityKey equalTo:userCity];
     }
-    [query whereKey:kCommitmentDateKey greaterThan:lastWeek];
-    query.limit = 5000; // is this an appropriate limit?
-    
+        
     NSDate *startTime = [self getStartTime];
+        
+    [query whereKey:kCommitmentDateKey greaterThan:startTime];
+    query.limit = 5000; // is this an appropriate limit?
 
     [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
         if (!error) {
@@ -176,6 +179,7 @@
                     place.numberCommitments = 0;
                     place.numberPastCommitments = 0;
                     place.friendsCommitted = [[NSMutableSet alloc] init];
+                    place.totalCommitted = [[NSMutableSet alloc] init];
                 } else {
                     place = [tempDictionary objectForKey:[object objectForKey:kCommitmentPlaceIDKey]];
                 }
@@ -183,7 +187,20 @@
                 NSDate *commitmentTime = [object objectForKey:kCommitmentDateKey];
                 if (commitmentTime != nil && [startTime compare:commitmentTime] == NSOrderedAscending) {
                     // commitment for tonight
-                    [place.friendsCommitted addObject:[object objectForKey:kUserFacebookIDKey]];
+                    if ([friendsSet containsObject:friendID]) {
+                        [place.friendsCommitted addObject:[object objectForKey:kUserFacebookIDKey]];
+                        [place.totalCommitted addObject:friendID];
+                        if ([object objectForKey:kCommitmentPlaceIDKey]) {
+                            [tempDictionary setObject:place forKey:[object objectForKey:kCommitmentPlaceIDKey]];
+                        }
+                    } else if([place.city isEqualToString:userCity] || [sharedDataManager.popularPlacesDictionary objectForKey:place.placeId]) {
+                        // add all commitments in your city
+                        [place.totalCommitted addObject:friendID];
+                        if ([object objectForKey:kCommitmentPlaceIDKey]) {
+                            [tempDictionary setObject:place forKey:[object objectForKey:kCommitmentPlaceIDKey]];
+                        }
+                    }
+
                     NSLog(@"Adding commitments to %@", place.name);
                     place.numberCommitments = place.numberCommitments + 1;
                     if ([sharedDataManager.facebookId isEqualToString:friendID] && ![sharedDataManager.currentCommitmentPlace.name isEqualToString:place.name]) {
@@ -198,9 +215,7 @@
                         [self.delegate setPlace:place.placeId forFriend:friendID];
                     }
                     
-                    if ([object objectForKey:kCommitmentPlaceIDKey]) {
-                        [tempDictionary setObject:place forKey:[object objectForKey:kCommitmentPlaceIDKey]];
-                    }
+
                 } else {
                     place.numberPastCommitments = place.numberPastCommitments + 1;
                     
@@ -267,7 +282,8 @@
         if ([sharedDataManager.foursquarePlacesDictionary objectForKey:key]) {
             Place *tempPlace = [sharedDataManager.foursquarePlacesDictionary objectForKey:key];
             [place.friendsCommitted unionSet:tempPlace.friendsCommitted];
-            place.numberCommitments = [place.friendsCommitted count];
+            [place.totalCommitted unionSet:tempPlace.totalCommitted];
+            place.numberCommitments = [place.totalCommitted count];
         }
         [sharedDataManager.placesDictionary setObject:place forKey:place.placeId];
     }
@@ -328,7 +344,7 @@
     for (id key in sharedDataManager.popularPlacesDictionary) {
         Place *p = [sharedDataManager.popularPlacesDictionary objectForKey:key];
         if (p) {
-            if ([p.friendsCommitted count] > 0) {
+            if ([p.totalCommitted count] > 0) {
                 [self.delegate placeMarkOnMapView:p];
             }
         }
@@ -394,13 +410,9 @@
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     Place *place = [sharedDataManager.placesDictionary objectForKey:placeId];
     if (place.numberCommitments > 0) {
-        if (place.numberCommitments == 1 && [place.friendsCommitted containsObject:sharedDataManager.facebookId]) {
-            return;
-        } else {
-            [self scrollToPlaceWithId:placeId];
-            PlaceCell *cell = (PlaceCell*)[self.placesTableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:[self.placesArray indexOfObject:place] inSection:0]];
-            [self showFriendsViewFromCell:cell];
-        }
+        [self scrollToPlaceWithId:placeId];
+        PlaceCell *cell = (PlaceCell*)[self.placesTableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:[self.placesArray indexOfObject:place] inSection:0]];
+        [self showFriendsViewFromCell:cell];
     }
 }
 
@@ -844,6 +856,8 @@
         newPlace.state = [self.userDetails objectForKey:@"state"];
         NSDictionary *locationDetails = [venue objectForKey:@"location"];
         newPlace.address = [locationDetails objectForKey:@"address"];
+        newPlace.friendsCommitted = [[NSMutableSet alloc] init];
+        newPlace.totalCommitted = [[NSMutableSet alloc] init];
         
         if (![sharedDataManager.foursquarePlacesDictionary objectForKey:newPlace.placeId]) {
             [sharedDataManager.foursquarePlacesDictionary setObject:newPlace forKey:newPlace.placeId];

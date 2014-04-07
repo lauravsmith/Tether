@@ -6,11 +6,13 @@
 //  Copyright (c) 2013 Laura Smith. All rights reserved.
 //
 
+#import "TethrButton.h"
+
 #import <UIKit/UIKit.h>
 
 @interface LoginViewController : UIViewController
 @property (strong, nonatomic) UIActivityIndicatorView *spinner;
-@property (strong, nonatomic) UIButton *loginButton;
+@property (strong, nonatomic) TethrButton *loginButton;
 -(void)loginPerformed:(BOOL)loggedIn;
 -(void)loginFailed;
 @end

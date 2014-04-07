@@ -102,6 +102,7 @@
     [sharedDataManager.tetherFriendsGoingOut sortUsingDescriptors:[NSArray arrayWithObjects:nameDescriptor, nil]];
     [sharedDataManager.tetherFriendsNotGoingOut sortUsingDescriptors:[NSArray arrayWithObjects:nameDescriptor, nil]];
     [sharedDataManager.tetherFriendsUndecided sortUsingDescriptors:[NSArray arrayWithObjects:nameDescriptor, nil]];
+    [sharedDataManager.tetherFriendsUnseen sortUsingDescriptors:[NSArray arrayWithObjects:nameDescriptor, nil]];
     
     [self.friendsGoingOutTableView reloadData];
 }
@@ -126,6 +127,14 @@
     }
     
     for (Friend *friend in sharedDataManager.tetherFriendsUndecided) {
+        if (friend.name ) {
+            if ([[friend.name lowercaseString] rangeOfString:[search lowercaseString]].location != NSNotFound) {
+                [self.searchResultsArray addObject:friend];
+            }
+        }
+    }
+    
+    for (Friend *friend in sharedDataManager.tetherFriendsUnseen) {
         if (friend.name ) {
             if ([[friend.name lowercaseString] rangeOfString:[search lowercaseString]].location != NSNotFound) {
                 [self.searchResultsArray addObject:friend];
@@ -242,8 +251,11 @@
             if (section == 2) {
                 goingOutLabel.text = @"going out";
                 countLabel.text = [NSString stringWithFormat:@"%lu",(unsigned long)[sharedDataManager.tetherFriendsNotGoingOut count]];
-            } else {
+            } else if (section == 3){
                 goingOutLabel.text = @"not going out";
+                countLabel.text = [NSString stringWithFormat:@"%lu",(unsigned long)[sharedDataManager.tetherFriendsUndecided count]];
+            } else {
+                goingOutLabel.text = @"undecided";
             }
             CGSize textLabelSize = [goingOutLabel.text sizeWithAttributes:@{NSFontAttributeName: missionGothic}];
             CGSize numberLabelSize = [countLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];
@@ -283,13 +295,15 @@
             return [sharedDataManager.tetherFriendsGoingOut count];
         } else if (section == 2) {
             return [sharedDataManager.tetherFriendsNotGoingOut count];
+        } else if (section == 3) {
+            return [sharedDataManager.tetherFriendsUndecided count];
         } else {
             NSInteger count = [sharedDataManager.tetherFriendsNearbyDictionary count];
             if (count < MIN_CELLS) {
-                NSInteger difference = MIN_CELLS - [sharedDataManager.tetherFriendsGoingOut count] - [sharedDataManager.tetherFriendsNotGoingOut count];
+                NSInteger difference = MIN_CELLS - [sharedDataManager.tetherFriendsGoingOut count] - [sharedDataManager.tetherFriendsNotGoingOut count] - [sharedDataManager.tetherFriendsUndecided count];
                 return difference;
             }
-            return [sharedDataManager.tetherFriendsUndecided count];
+            return [sharedDataManager.tetherFriendsUnseen count];
         }
     } else {
         return [self.searchResultsArray count];
@@ -308,23 +322,13 @@
         } else if (indexPath.section == 2) {
             [cell setFriend:[sharedDataManager.tetherFriendsNotGoingOut objectAtIndex:indexPath.row]];
         } else if (indexPath.section == 3) {
-//            if (indexPath.row == [sharedDataManager.tetherFriendsUndecided count]) {
-//                UITableViewCell *cell = [[UITableViewCell alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.height, CELL_HEIGHT)];
-//                UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.height, CELL_HEIGHT)];
-//                label.text = @"Get more friends on Tethr";
-//                label.textColor = [UIColor blackColor];
-//                UIFont *montserratBold = [UIFont fontWithName:@"Montserrat" size:14.0f];
-//                CGSize size = [label.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];
-//                label.font = montserratBold;
-//                label.frame = CGRectMake((self.view.frame.size.width - PANEL_WIDTH - size.width) / 2.0, (CELL_HEIGHT - size.height) / 2.0, size.width, size.height);
-//                [cell addSubview:label];
-//                return cell;
-//            }
-            if (indexPath.row >= [sharedDataManager.tetherFriendsUndecided count]) {
+            [cell setFriend:[sharedDataManager.tetherFriendsUndecided objectAtIndex:indexPath.row]];
+        } else if (indexPath.section == 4) {
+            if (indexPath.row >= [sharedDataManager.tetherFriendsUnseen count]) {
                 [cell setFriend:NULL];
                 return  cell;
             }
-            [cell setFriend:[sharedDataManager.tetherFriendsUndecided objectAtIndex:indexPath.row]];
+             [cell setFriend:[sharedDataManager.tetherFriendsUnseen objectAtIndex:indexPath.row]];
         }
         [cell layoutSubviews];
         
@@ -342,7 +346,7 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     if (tableView == self.friendsGoingOutTableView) {
-        return 4;
+        return 5;
     } else {
         return 1;
     }
@@ -366,6 +370,9 @@
                                                  atScrollPosition:UITableViewScrollPositionTop animated:YES];
         } else if ([sharedDataManager.tetherFriendsUndecided containsObject:friend]) {
             [self.friendsGoingOutTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:[sharedDataManager.tetherFriendsUndecided indexOfObject:friend] inSection:3]
+                                                 atScrollPosition:UITableViewScrollPositionTop animated:YES];
+        } else if ([sharedDataManager.tetherFriendsUnseen containsObject:friend]) {
+            [self.friendsGoingOutTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:[sharedDataManager.tetherFriendsUnseen indexOfObject:friend] inSection:4]
                                                  atScrollPosition:UITableViewScrollPositionTop animated:YES];
         }
         [self searchBarCancelButtonClicked:self.searchBar];

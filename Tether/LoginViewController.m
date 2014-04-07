@@ -10,6 +10,7 @@
 #import "CenterViewController.h"
 #import "Constants.h"
 #import "LoginViewController.h"
+
 #import <Parse/Parse.h>
 
 @interface LoginViewController ()
@@ -56,8 +57,10 @@
     sloganLabel.frame = CGRectMake((self.view.frame.size.width - 160.0) / 2.0, self.view.frame.size.height / 3.5, 160.0, 40.0);
     [self.view addSubview:sloganLabel];
     
-    self.loginButton = [[UIButton alloc] init];
+    self.loginButton = [[TethrButton alloc] init];
     [self.loginButton setTitle:@"Login with facebook" forState:UIControlStateNormal];
+    [self.loginButton setNormalColor:UIColorFromRGB(0x8e0528)];
+    [self.loginButton setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
     self.loginButton.frame = CGRectMake((self.view.frame.size.width - 230.0) / 2.0, textureImageView.frame.origin.y - 25.0, 230.0, 50.0);
     [self.loginButton setBackgroundColor:UIColorFromRGB(0x8e0528)];
     [self.loginButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
@@ -136,6 +139,7 @@
                               cancelButtonTitle:@"Ok"
                               otherButtonTitles:nil] show];
         }
+        [self.loginButton setEnabled:YES];
     }
 }
 

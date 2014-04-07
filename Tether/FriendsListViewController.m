@@ -122,7 +122,7 @@
     
     UIFont *helveticaNeueLarge = [UIFont fontWithName:@"HelveticaNeue-Bold" size:30];
     self.numberButton = [[UIButton alloc] init];
-    [self.numberButton setTitle:[NSString stringWithFormat:@"%lu", (unsigned long)[self.place.friendsCommitted count]] forState:UIControlStateNormal];
+    [self.numberButton setTitle:[NSString stringWithFormat:@"%lu", (unsigned long)[self.place.totalCommitted count]] forState:UIControlStateNormal];
     self.numberButton.titleLabel.font = helveticaNeueLarge;
     size = [self.numberButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:helveticaNeueLarge}];
     self.numberButton.frame = CGRectMake(self.backButton.frame.origin.x + self.backButton.frame.size.width + 5.0, (self.topBar.frame.size.height - STATUS_BAR_HEIGHT - size.height) / 2 + STATUS_BAR_HEIGHT, MIN(60.0,size.width), size.height);
@@ -574,15 +574,7 @@
 }
 
 -(CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    if (section == 0) {
-        NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-        if (![userDetails boolForKey:kUserDefaultsHasSeenPlaceInviteTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenPlaceTethrTutorialKey]) {
-            return TUTORIAL_HEADER_HEIGHT;
-        }
-        return 0;
-    } else {
         return HEADER_HEIGHT;
-    }
 }
 
 -(UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
@@ -594,21 +586,30 @@
     [label setTextColor:UIColorFromRGB(0x8e0528)];
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
     [label setFont:montserrat];
+    UILabel *countLabel = [[UILabel alloc] initWithFrame:CGRectMake(100.0, 0, 50.0, HEADER_HEIGHT)];
     if(section == 0) {
-        [self setupTutorialView];
-        return self.tutorialView;
-    } else {
-        NSString *headerString = @"Friends of Friends Going Here ";
+        NSString *headerString = @"friends tethred here ";
         [label setText:headerString];
+        countLabel.text = [NSString stringWithFormat:@"%lu",(unsigned long)[self.friendsArray count]];
+    } else if (section == 1){
+        NSString *headerString = @"friends of friends tethred here ";
+        [label setText:headerString];
+        countLabel.text = [NSString stringWithFormat:@"%lu",(unsigned long)[self.friendsOfFriendsArray count]];
+    } else {
+        NSString *headerString = @"others tethred here ";
+        [label setText:headerString];
+        int count = 0;
+        if (self.place.totalCommitted && self.friendsArray && self.friendsOfFriendsArray && [self.place.totalCommitted count] > 0) {
+            count = MAX(0, [self.place.totalCommitted count] - [self.friendsArray count] - [self.friendsOfFriendsArray count]);
+        }
+        countLabel.text = [NSString stringWithFormat:@"%d", MAX(0, count)];
     }
     CGSize size = [label.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
     label.frame = CGRectMake(10.0, (view.frame.size.height - size.height) / 2.0, size.width, size.height);
     [view addSubview:label];
     
-    UILabel *countLabel = [[UILabel alloc] initWithFrame:CGRectMake(100.0, 0, 50.0, HEADER_HEIGHT)];
     [countLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
     countLabel.font = montserrat;
-    countLabel.text = [NSString stringWithFormat:@"%lu",(unsigned long)[self.friendsOfFriendsArray count]];
     CGSize numberLabelSize = [countLabel.text sizeWithAttributes:@{NSFontAttributeName: montserrat}];
     countLabel.frame = CGRectMake(label.frame.origin.x + label.frame.size.width + PADDING, label.frame.origin.y, numberLabelSize.width, numberLabelSize.height);
     [view addSubview:countLabel];
@@ -619,13 +620,19 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     if (section == 0) {
         return [self.friendsArray count];
-    } else {
+    } else if (section == 1) {
         return [self.friendsOfFriendsArray count];
+    } else {
+        return 0;
     }
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    if ([self.place.totalCommitted count] - [self.friendsArray count] - [self.friendsOfFriendsArray count] > 0) {
+        return 3;
+    } else {
         return 2;
+    }
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
