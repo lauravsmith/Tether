@@ -8,6 +8,7 @@
 
 #import "CenterViewController.h"
 #import "Constants.h"
+#import "CreatePlaceViewController.h"
 #import "Datastore.h"
 #import "Flurry.h"
 #import "Friend.h"
@@ -30,7 +31,7 @@
 #define SPINNER_SIZE 30.0
 #define STATUS_BAR_HEIGHT 20.0
 
-@interface PlacesViewController () <InviteViewControllerDelegate, FriendsListViewControllerDelegate, PlaceCellDelegate, UIGestureRecognizerDelegate,UISearchBarDelegate, UITableViewDelegate, UITableViewDataSource>
+@interface PlacesViewController () <CreatePlaceViewControllerDelegate, InviteViewControllerDelegate, FriendsListViewControllerDelegate, PlaceCellDelegate, UIGestureRecognizerDelegate,UISearchBarDelegate, UITableViewDelegate, UITableViewDataSource>
 
 @property (nonatomic, strong) NSMutableArray *placesArray;
 @property (nonatomic, strong) UITableViewController *placesTableViewController;
@@ -48,6 +49,7 @@
 @property (retain, nonatomic) UIView *confirmationView;
 @property (retain, nonatomic) UIActivityIndicatorView *activityIndicatorView;
 @property (retain, nonatomic) FriendsListViewController *friendsListViewController;
+@property (retain, nonatomic) CreatePlaceViewController *createVC;
 
 @end
 
@@ -131,6 +133,31 @@
     self.backButtonLarge = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, (self.view.frame.size.width - SEARCH_BAR_WIDTH) / 2.0, STATUS_BAR_HEIGHT + 60.0)];
     [self.backButtonLarge addTarget:self action:@selector(closeListView) forControlEvents:UIControlEventTouchDown];
     [self.view addSubview:self.backButtonLarge];
+    
+    UIButton *addButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 40.0, 20.0, 40.0, 40.0)];
+    [addButton setImage:[UIImage imageNamed:@"PlusSign"] forState:UIControlStateNormal];
+    [addButton addTarget:self action:@selector(createPlace:) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:addButton];
+}
+
+-(IBAction)createPlace:(id)sender {
+    self.createVC = [[CreatePlaceViewController alloc] init];
+    self.createVC.delegate = self;
+    self.createVC.view.frame = CGRectMake(self.view.frame.size.width, 0.0, self.view.frame.size.width, self.view.frame.size.height);
+    [self.view addSubview:self.createVC.view];
+    [self addChildViewController:self.createVC];
+    [self.createVC didMoveToParentViewController:self];
+    
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.createVC.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                     }];
 }
 
 -(void)getFriendsCommitments {
@@ -146,8 +173,6 @@
     NSString *userState = [[NSString alloc] init];
     userCity = [self.userDetails objectForKey:kUserDefaultsCityKey];
     userState = [self.userDetails objectForKey:kUserDefaultsStateKey];
-        
-    NSDate *lastWeek = [self getThisWeek];
     
     PFQuery *query = [PFQuery queryWithClassName:kCommitmentClassKey];
 //    [query whereKey:kUserFacebookIDKey containedIn:friendsArrayWithMe];        
@@ -384,15 +409,6 @@
         [components setHour:5.0];
         return [calendar dateByAddingComponents:deltaComps toDate:[calendar dateFromComponents:components] options:0];
     }
-}
-
--(NSDate*)getThisWeek{
-    NSDate *now = [NSDate date];
-    NSCalendar *calendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
-    NSDateComponents *components = [calendar components:NSYearCalendarUnit|NSMonthCalendarUnit|NSDayCalendarUnit fromDate:now];
-    NSDateComponents* deltaComps = [[NSDateComponents alloc] init];
-    [deltaComps setDay:-7.0];
-    return [calendar dateByAddingComponents:deltaComps toDate:[calendar dateFromComponents:components] options:0];
 }
 
 -(void)scrollToPlaceWithId:(id)placeId {
@@ -667,7 +683,12 @@
 -(void)loadStoredPlacesFromSearchObject:(PFObject*)object {
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     PFQuery *query = [PFQuery queryWithClassName:kPlaceClassKey];
-    [query whereKey:kPlaceSearchKey equalTo:object.objectId];
+    NSArray *keysArray = [[NSArray alloc] initWithObjects:object.objectId, @"tethr", nil];
+    [query whereKey:kPlaceSearchKey containedIn:keysArray];
+    NSString *city = [self.userDetails objectForKey:@"city"];
+    NSString *state = [self.userDetails objectForKey:@"state"];
+    [query whereKey:@"city" equalTo:city];
+    [query whereKey:@"state" equalTo:state];
     
     [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
         if (!error) {
@@ -1066,6 +1087,24 @@
     }
     
     return;
+}
+
+#pragma mark CreatePlaceViewControllerDelegate
+
+-(void)closeCreatePlaceVC {
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.createVC.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                         [self.createVC.view removeFromSuperview];
+                         [self.createVC removeFromParentViewController];
+                         self.createVC = nil;
+                     }];
 }
 
 - (void)didReceiveMemoryWarning

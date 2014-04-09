@@ -544,6 +544,9 @@
     [self.locationManager stopUpdatingLocation];
     [self.locationManager startMonitoringSignificantLocationChanges];
     
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    sharedDataManager.userCoordinates = self.userCoordinates;
+    
     if (self.userCoordinates) {
         if (self.userCoordinates.coordinate.latitude != 0.0) {
             [Flurry setLatitude:self.userCoordinates.coordinate.latitude

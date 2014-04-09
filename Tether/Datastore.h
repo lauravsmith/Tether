@@ -36,6 +36,7 @@
     NSString *placeIDForNotification;
     BOOL hasUpdatedFriends;
     NSMutableArray * placesArray;
+    CLLocation *userCoordinates;
 }
 
 @property (nonatomic, retain) NSString *facebookId;
@@ -63,6 +64,7 @@
 @property (nonatomic, strong) NSString *placeIDForNotification;
 @property (nonatomic, assign) BOOL hasUpdatedFriends;
 @property (nonatomic, strong) NSMutableArray * placesArray;
+@property (strong, nonatomic) CLLocation *userCoordinates;
 
 + (id)sharedDataManager;
 

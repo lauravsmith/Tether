@@ -35,6 +35,7 @@
 @synthesize placeIDForNotification;
 @synthesize hasUpdatedFriends;
 @synthesize placesArray;
+@synthesize userCoordinates;
 
 #pragma mark Singleton Methods
 

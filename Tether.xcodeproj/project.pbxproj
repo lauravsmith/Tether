@@ -99,6 +99,7 @@
 		476F4DD118B3B92A001A89A1 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 476F4DD018B3B92A001A89A1 /* Icon.png */; };
 		4775899818EDDF640041AB8F /* DarkGreyPin.png in Resources */ = {isa = PBXBuildFile; fileRef = 4775899618EDDF640041AB8F /* DarkGreyPin.png */; };
 		4775899918EDDF640041AB8F /* DarkGreyPin@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4775899718EDDF640041AB8F /* DarkGreyPin@2x.png */; };
+		4775899C18F30A4B0041AB8F /* CreatePlaceViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4775899B18F30A4B0041AB8F /* CreatePlaceViewController.m */; };
 		4775D59A18AC0AB700E80CAC /* libFlurry_4.3.2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4775D50218AC0AB700E80CAC /* libFlurry_4.3.2.a */; };
 		4775D59B18AC0AB700E80CAC /* _flurry_8h_source.html in Resources */ = {isa = PBXBuildFile; fileRef = 4775D50418AC0AB700E80CAC /* _flurry_8h_source.html */; };
 		4775D59C18AC0AB700E80CAC /* _flurry_ad_delegate_8h_source.html in Resources */ = {isa = PBXBuildFile; fileRef = 4775D50518AC0AB700E80CAC /* _flurry_ad_delegate_8h_source.html */; };
@@ -438,6 +439,8 @@
 		476F4DD018B3B92A001A89A1 /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
 		4775899618EDDF640041AB8F /* DarkGreyPin.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = DarkGreyPin.png; sourceTree = "<group>"; };
 		4775899718EDDF640041AB8F /* DarkGreyPin@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "DarkGreyPin@2x.png"; sourceTree = "<group>"; };
+		4775899A18F30A4B0041AB8F /* CreatePlaceViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CreatePlaceViewController.h; sourceTree = "<group>"; };
+		4775899B18F30A4B0041AB8F /* CreatePlaceViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CreatePlaceViewController.m; sourceTree = "<group>"; };
 		4775D50118AC0AB700E80CAC /* Flurry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Flurry.h; sourceTree = "<group>"; };
 		4775D50218AC0AB700E80CAC /* libFlurry_4.3.2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libFlurry_4.3.2.a; sourceTree = "<group>"; };
 		4775D50418AC0AB700E80CAC /* _flurry_8h_source.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = _flurry_8h_source.html; sourceTree = "<group>"; };
@@ -997,6 +1000,8 @@
 				4776517D18AA615A00768D57 /* ManageFriendsViewController.m */,
 				47BA769118D78CE6001C9236 /* ShareViewController.h */,
 				47BA769218D78CE6001C9236 /* ShareViewController.m */,
+				4775899A18F30A4B0041AB8F /* CreatePlaceViewController.h */,
+				4775899B18F30A4B0041AB8F /* CreatePlaceViewController.m */,
 			);
 			name = Controller;
 			sourceTree = "<group>";
@@ -1737,6 +1742,7 @@
 				470981AB184D7DD100779FC8 /* TetherAnnotation.m in Sources */,
 				47FB08D9184970CA00A07908 /* PlacesViewController.m in Sources */,
 				47FCE5271853E7A20030B1E1 /* Datastore.m in Sources */,
+				4775899C18F30A4B0041AB8F /* CreatePlaceViewController.m in Sources */,
 				47E73EB9187B92C4009CA44A /* TetherAnnotationView.m in Sources */,
 				47BA769318D78CE6001C9236 /* ShareViewController.m in Sources */,
 				4776518118AA691300768D57 /* ManageFriendCell.m in Sources */,
