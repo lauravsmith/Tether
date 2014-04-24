@@ -25,6 +25,7 @@
 @synthesize friendsToPlacesMap;
 @synthesize popularPlacesDictionary;
 @synthesize foursquarePlacesDictionary;
+@synthesize tethrPlacesDictionary;
 @synthesize placesDictionary;
 @synthesize currentCommitmentParseObject;
 @synthesize currentCommitmentPlace;

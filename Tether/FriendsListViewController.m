@@ -9,6 +9,7 @@
 #import "CenterViewController.h"
 #import "Constants.h"
 #import "Datastore.h"
+#import "EditPlaceViewController.h"
 #import "Flurry.h"
 #import "Friend.h"
 #import "FriendAtPlaceCell.h"
@@ -35,6 +36,7 @@
 #define STATUS_BAR_HEIGHT 20.0
 #define SUB_BAR_HEIGHT 65.0
 #define TOP_BAR_HEIGHT 70.0
+#define MEMO_HEIGHT 15.0
 #define TUTORIAL_HEADER_HEIGHT 50.0
 
 @interface FriendsListViewController () <InviteViewControllerDelegate, UIGestureRecognizerDelegate, UITableViewDataSource, UITableViewDelegate>
@@ -45,6 +47,7 @@
 @property (retain, nonatomic) UIView * subBar;
 @property (nonatomic, strong) UILabel *placeLabel;
 @property (nonatomic, strong) UILabel *addressLabel;
+@property (nonatomic, strong) UILabel *memoLabel;
 @property (retain, nonatomic) TethrButton * commitButton;
 @property (nonatomic, strong) TethrButton *inviteButton;
 @property (retain, nonatomic) TethrButton * mapButton;
@@ -58,6 +61,7 @@
 @property (retain, nonatomic) UIImageView *inviteImageView;
 @property (retain, nonatomic) UIImageView *pinImageView;
 @property (retain, nonatomic) UIImageView *mapImageView;
+@property (retain, nonatomic) EditPlaceViewController *editViewController;
 @end
 
 @implementation FriendsListViewController
@@ -81,10 +85,16 @@
     [panRecognizer setDelegate:self];
     [self.view addGestureRecognizer:panRecognizer];
     
-    self.topBar = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, TOP_BAR_HEIGHT)];
+    CGFloat topBarHeight = TOP_BAR_HEIGHT;
+    
+    if (self.place.memo) {
+        topBarHeight += MEMO_HEIGHT;
+    }
+    
+    self.topBar = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, topBarHeight)];
     [self.topBar setBackgroundColor:UIColorFromRGB(0x8e0528)];
     
-    self.subBar = [[UIView alloc] initWithFrame:CGRectMake(0.0, TOP_BAR_HEIGHT, self.view.frame.size.width, SUB_BAR_HEIGHT)];
+    self.subBar = [[UIView alloc] initWithFrame:CGRectMake(0.0, topBarHeight, self.view.frame.size.width, SUB_BAR_HEIGHT)];
     [self.subBar setBackgroundColor:[UIColor whiteColor]];
     UIView *subBarLine = [[UIView alloc] initWithFrame:CGRectMake(15.0, SUB_BAR_HEIGHT - 1.0, self.view.frame.size.width - 15.0, 1.0)];
     [subBarLine setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
@@ -110,8 +120,19 @@
     
     CGSize size = [self.placeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
     CGSize addressLabelSize = [self.addressLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratTiny}];
-    self.placeLabel.frame = CGRectMake(MAX(LEFT_PADDING, (self.view.frame.size.width - size.width) / 2.0), STATUS_BAR_HEIGHT + (self.topBar.frame.size.height - STATUS_BAR_HEIGHT - size.height - addressLabelSize.height) / 2.0, MIN(self.view.frame.size.width - LEFT_PADDING*2, size.width), size.height);
-    self.addressLabel.frame = CGRectMake(MAX(LEFT_PADDING, (self.view.frame.size.width - addressLabelSize.width) / 2.0), STATUS_BAR_HEIGHT + (self.topBar.frame.size.height - STATUS_BAR_HEIGHT + size.height - addressLabelSize.height) / 2.0, addressLabelSize.width, addressLabelSize.height);
+    self.placeLabel.frame = CGRectMake(MAX(LEFT_PADDING, (self.view.frame.size.width - size.width) / 2.0), STATUS_BAR_HEIGHT + (TOP_BAR_HEIGHT - STATUS_BAR_HEIGHT - size.height - addressLabelSize.height) / 2.0, MIN(self.view.frame.size.width - LEFT_PADDING*2, size.width), size.height);
+    self.addressLabel.frame = CGRectMake(MAX(LEFT_PADDING, (self.view.frame.size.width - addressLabelSize.width) / 2.0), STATUS_BAR_HEIGHT + (TOP_BAR_HEIGHT - STATUS_BAR_HEIGHT + size.height - addressLabelSize.height) / 2.0, addressLabelSize.width, addressLabelSize.height);
+    
+    if (self.place.memo && ![self.place.memo isEqualToString:@""]) {
+        self.memoLabel = [[UILabel alloc] init];
+        self.memoLabel.text = [NSString stringWithFormat:@"\"%@\"", self.place.memo];
+        [self.memoLabel setTextColor:[UIColor whiteColor]];
+        self.memoLabel.font = montserrat;
+        self.memoLabel.adjustsFontSizeToFitWidth = YES;
+        [self.topBar addSubview:self.memoLabel];
+        size = [self.memoLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
+        self.memoLabel.frame = CGRectMake(MAX(LEFT_PADDING, (self.view.frame.size.width - size.width) / 2.0), self.addressLabel.frame.origin.y + self.addressLabel.frame.size.height + PADDING*2, size.width, size.height);
+    }
     
     // left panel view button setup
     UIImage *leftPanelButtonImage = [UIImage imageNamed:@"WhiteTriangle"];
@@ -122,10 +143,10 @@
     
     UIFont *helveticaNeueLarge = [UIFont fontWithName:@"HelveticaNeue-Bold" size:30];
     self.numberButton = [[UIButton alloc] init];
-    [self.numberButton setTitle:[NSString stringWithFormat:@"%lu", (unsigned long)[self.place.totalCommitted count]] forState:UIControlStateNormal];
+    [self.numberButton setTitle:[NSString stringWithFormat:@"%lu", (unsigned long)[self.place.friendsCommitted count]] forState:UIControlStateNormal];
     self.numberButton.titleLabel.font = helveticaNeueLarge;
     size = [self.numberButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:helveticaNeueLarge}];
-    self.numberButton.frame = CGRectMake(self.backButton.frame.origin.x + self.backButton.frame.size.width + 5.0, (self.topBar.frame.size.height - STATUS_BAR_HEIGHT - size.height) / 2 + STATUS_BAR_HEIGHT, MIN(60.0,size.width), size.height);
+    self.numberButton.frame = CGRectMake(self.backButton.frame.origin.x + self.backButton.frame.size.width + 5.0, (TOP_BAR_HEIGHT - STATUS_BAR_HEIGHT - size.height) / 2 + STATUS_BAR_HEIGHT, MIN(60.0,size.width), size.height);
     [self.topBar addSubview:self.numberButton];
     
     self.backButtonLarge = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, (self.view.frame.size.width) / 4.0, TOP_BAR_HEIGHT)];
@@ -223,10 +244,18 @@
     self.friendsTableViewController.tableView = self.friendsTableView;
     
     self.friendsOfFriendsArray = [[NSMutableArray alloc] init];
+
+    self.moreInfoButton = [[UIButton alloc] init];
     
-    self.moreInfoButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 40.0, (self.topBar.frame.size.height - 25.0 + STATUS_BAR_HEIGHT) / 2.0, 25.0, 25.0)];
-    [self.moreInfoButton setImage:[UIImage imageNamed:@"InfoPinGrey"] forState:UIControlStateNormal];
-    [self.moreInfoButton addTarget:self action:@selector(moreInfoClicked:) forControlEvents:UIControlEventTouchUpInside];
+    if (!self.place.owner) {
+        self.moreInfoButton.frame = CGRectMake(self.view.frame.size.width - 40.0, (self.topBar.frame.size.height - 25.0 + STATUS_BAR_HEIGHT) / 2.0, 25.0, 25.0);
+        [self.moreInfoButton setImage:[UIImage imageNamed:@"InfoPinGrey"] forState:UIControlStateNormal];
+        [self.moreInfoButton addTarget:self action:@selector(moreInfoClicked:) forControlEvents:UIControlEventTouchUpInside];
+    } else if ([self.place.owner isEqualToString:sharedDataManager.facebookId]) {
+        self.moreInfoButton.frame = CGRectMake(self.view.frame.size.width - 50.0, (TOP_BAR_HEIGHT - 25.0 + STATUS_BAR_HEIGHT) / 2.0, 34.0, 32.0);
+        [self.moreInfoButton setImage:[UIImage imageNamed:@"Edit"] forState:UIControlStateNormal];
+        [self.moreInfoButton addTarget:self action:@selector(editClicked:) forControlEvents:UIControlEventTouchUpInside];
+    }
     [self.topBar addSubview:self.moreInfoButton];
     
     [Flurry logEvent:@"User_views_place_specific_page"];
@@ -482,6 +511,30 @@
     }
 }
 
+-(IBAction)editClicked:(id)sender {
+    self.editViewController = [[EditPlaceViewController alloc] init];
+    self.editViewController.delegate = self;
+    self.editViewController.place = self.place;
+    [self.editViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+    [self.view addSubview:self.editViewController.view];
+    [self addChildViewController:self.editViewController];
+    [self.editViewController didMoveToParentViewController:self];
+    
+    
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:SLIDE_TIMING
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.editViewController.view setFrame:CGRectMake( 0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                         [Flurry logEvent:@"User_views_edit_page_from_place_specific_page"];
+                     }
+                     completion:^(BOOL finished) {
+                     }];
+    
+}
+
 -(IBAction)showMapViewAnnotation:(id)sender {
     if ([self.delegate respondsToSelector:@selector(selectAnnotationForPlace:)]) {
         [self.delegate selectAnnotationForPlace:self.place];
@@ -567,6 +620,45 @@
     }
 }
 
+#pragma mark CreatePlaceViewControllerDelegate
+
+-(void)closeCreatePlaceVC {
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.editViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                         [self.editViewController.view removeFromSuperview];
+                         [self.editViewController removeFromParentViewController];
+                         self.editViewController = nil;
+                         [self viewDidLoad];
+                         if ([self.delegate respondsToSelector:@selector(refreshList)]) {
+                            [self.delegate refreshList];
+                         }
+                     }];
+}
+
+-(void)refreshListAfterDelete {
+    [self closeCreatePlaceVC];
+    
+    if([self.delegate respondsToSelector:@selector(refreshList)]) {
+        [self.delegate refreshList];
+    }
+    
+    if([self.delegate respondsToSelector:@selector(closeFriendsView)]) {
+        [self.delegate closeFriendsView];
+    }
+}
+
+-(void)refreshPlaceDetails:(Place*)place {
+    self.place = place;
+//    [self viewDidLoad];
+}
+
 #pragma mark UITableViewDataSource Methods
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -591,18 +683,10 @@
         NSString *headerString = @"friends tethred here ";
         [label setText:headerString];
         countLabel.text = [NSString stringWithFormat:@"%lu",(unsigned long)[self.friendsArray count]];
-    } else if (section == 1){
+    } else {
         NSString *headerString = @"friends of friends tethred here ";
         [label setText:headerString];
         countLabel.text = [NSString stringWithFormat:@"%lu",(unsigned long)[self.friendsOfFriendsArray count]];
-    } else {
-        NSString *headerString = @"others tethred here ";
-        [label setText:headerString];
-        int count = 0;
-        if (self.place.totalCommitted && self.friendsArray && self.friendsOfFriendsArray && [self.place.totalCommitted count] > 0) {
-            count = MAX(0, [self.place.totalCommitted count] - [self.friendsArray count] - [self.friendsOfFriendsArray count]);
-        }
-        countLabel.text = [NSString stringWithFormat:@"%d", MAX(0, count)];
     }
     CGSize size = [label.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
     label.frame = CGRectMake(10.0, (view.frame.size.height - size.height) / 2.0, size.width, size.height);
@@ -620,19 +704,13 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     if (section == 0) {
         return [self.friendsArray count];
-    } else if (section == 1) {
-        return [self.friendsOfFriendsArray count];
     } else {
-        return 0;
+        return [self.friendsOfFriendsArray count];
     }
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    if ([self.place.totalCommitted count] - [self.friendsArray count] - [self.friendsOfFriendsArray count] > 0) {
-        return 3;
-    } else {
         return 2;
-    }
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {

@@ -19,4 +19,5 @@
 -(void)updateNotificationsNumber;
 -(BOOL)shouldShowDecisionView;
 -(void)setupView;
+-(void)queryFriendsStatus;
 @end

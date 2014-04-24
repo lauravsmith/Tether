@@ -97,6 +97,13 @@
 		476F4DCE18B2F7E6001A89A1 /* MissionGothicThinItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 476F4DC318B2F7E6001A89A1 /* MissionGothicThinItalic.otf */; };
 		476F4DCF18B2F7E6001A89A1 /* Personal Use License.txt in Resources */ = {isa = PBXBuildFile; fileRef = 476F4DC418B2F7E6001A89A1 /* Personal Use License.txt */; };
 		476F4DD118B3B92A001A89A1 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 476F4DD018B3B92A001A89A1 /* Icon.png */; };
+		47746C9A1906D2F700DC73F4 /* Cancel.png in Resources */ = {isa = PBXBuildFile; fileRef = 47746C961906D2F700DC73F4 /* Cancel.png */; };
+		47746C9B1906D2F700DC73F4 /* Cancel@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 47746C971906D2F700DC73F4 /* Cancel@2x.png */; };
+		47746C9C1906D2F700DC73F4 /* Edit.png in Resources */ = {isa = PBXBuildFile; fileRef = 47746C981906D2F700DC73F4 /* Edit.png */; };
+		47746C9D1906D2F700DC73F4 /* Edit@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 47746C991906D2F700DC73F4 /* Edit@2x.png */; };
+		47746CA01906D7E000DC73F4 /* EditPlaceViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 47746C9F1906D7E000DC73F4 /* EditPlaceViewController.m */; };
+		47746CA31907080700DC73F4 /* Trash.png in Resources */ = {isa = PBXBuildFile; fileRef = 47746CA11907080700DC73F4 /* Trash.png */; };
+		47746CA41907080700DC73F4 /* Trash@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 47746CA21907080700DC73F4 /* Trash@2x.png */; };
 		4775899818EDDF640041AB8F /* DarkGreyPin.png in Resources */ = {isa = PBXBuildFile; fileRef = 4775899618EDDF640041AB8F /* DarkGreyPin.png */; };
 		4775899918EDDF640041AB8F /* DarkGreyPin@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4775899718EDDF640041AB8F /* DarkGreyPin@2x.png */; };
 		4775899C18F30A4B0041AB8F /* CreatePlaceViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4775899B18F30A4B0041AB8F /* CreatePlaceViewController.m */; };
@@ -437,6 +444,14 @@
 		476F4DC318B2F7E6001A89A1 /* MissionGothicThinItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = MissionGothicThinItalic.otf; sourceTree = "<group>"; };
 		476F4DC418B2F7E6001A89A1 /* Personal Use License.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Personal Use License.txt"; sourceTree = "<group>"; };
 		476F4DD018B3B92A001A89A1 /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
+		47746C961906D2F700DC73F4 /* Cancel.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Cancel.png; sourceTree = "<group>"; };
+		47746C971906D2F700DC73F4 /* Cancel@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Cancel@2x.png"; sourceTree = "<group>"; };
+		47746C981906D2F700DC73F4 /* Edit.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Edit.png; sourceTree = "<group>"; };
+		47746C991906D2F700DC73F4 /* Edit@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Edit@2x.png"; sourceTree = "<group>"; };
+		47746C9E1906D7E000DC73F4 /* EditPlaceViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EditPlaceViewController.h; sourceTree = "<group>"; };
+		47746C9F1906D7E000DC73F4 /* EditPlaceViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EditPlaceViewController.m; sourceTree = "<group>"; };
+		47746CA11907080700DC73F4 /* Trash.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Trash.png; sourceTree = "<group>"; };
+		47746CA21907080700DC73F4 /* Trash@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Trash@2x.png"; sourceTree = "<group>"; };
 		4775899618EDDF640041AB8F /* DarkGreyPin.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = DarkGreyPin.png; sourceTree = "<group>"; };
 		4775899718EDDF640041AB8F /* DarkGreyPin@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "DarkGreyPin@2x.png"; sourceTree = "<group>"; };
 		4775899A18F30A4B0041AB8F /* CreatePlaceViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CreatePlaceViewController.h; sourceTree = "<group>"; };
@@ -918,6 +933,12 @@
 		47064CC6183DB11D00E9228A /* Images */ = {
 			isa = PBXGroup;
 			children = (
+				47746CA11907080700DC73F4 /* Trash.png */,
+				47746CA21907080700DC73F4 /* Trash@2x.png */,
+				47746C961906D2F700DC73F4 /* Cancel.png */,
+				47746C971906D2F700DC73F4 /* Cancel@2x.png */,
+				47746C981906D2F700DC73F4 /* Edit.png */,
+				47746C991906D2F700DC73F4 /* Edit@2x.png */,
 				47BA769418D791B6001C9236 /* FacebookIcon.png */,
 				47BA769818D79B3F001C9236 /* TwitterIcon.png */,
 				47BA769518D791B6001C9236 /* MessageIcon.png */,
@@ -1002,6 +1023,8 @@
 				47BA769218D78CE6001C9236 /* ShareViewController.m */,
 				4775899A18F30A4B0041AB8F /* CreatePlaceViewController.h */,
 				4775899B18F30A4B0041AB8F /* CreatePlaceViewController.m */,
+				47746C9E1906D7E000DC73F4 /* EditPlaceViewController.h */,
+				47746C9F1906D7E000DC73F4 /* EditPlaceViewController.m */,
 			);
 			name = Controller;
 			sourceTree = "<group>";
@@ -1435,6 +1458,7 @@
 				4775D61818AC0AB700E80CAC /* sync_off.png in Resources */,
 				4775D5CC18AC0AB700E80CAC /* nav_f.png in Resources */,
 				4775D5B018AC0AB700E80CAC /* doxygen.png in Resources */,
+				47746C9C1906D2F700DC73F4 /* Edit.png in Resources */,
 				4746100018822E9F0067545B /* FriendsThing.png in Resources */,
 				4775D62818AC0AB700E80CAC /* Flurry_AppCircle_Advertiser_TOS.pdf in Resources */,
 				4790C4441889B0F100DB9759 /* HelveticaLTStd-BlkObl.otf in Resources */,
@@ -1487,6 +1511,7 @@
 				4775D5C918AC0AB700E80CAC /* interface_flurry.html in Resources */,
 				4775D5A318AC0AB700E80CAC /* class_flurry_ads-members.html in Resources */,
 				4790C4561889B0F100DB9759 /* HelveticaNeueLTStd-Bd.otf in Resources */,
+				47746C9A1906D2F700DC73F4 /* Cancel.png in Resources */,
 				4775D61718AC0AB700E80CAC /* search_r.png in Resources */,
 				476F4DCA18B2F7E6001A89A1 /* MissionGothicLightItalic.otf in Resources */,
 				476F4DC518B2F7E6001A89A1 /* MissionGothicBlack.otf in Resources */,
@@ -1508,6 +1533,7 @@
 				4775D5A118AC0AB700E80CAC /* bdwn.png in Resources */,
 				4775D60918AC0AB700E80CAC /* functions_72.html in Resources */,
 				4790C4651889B0F100DB9759 /* HelveticaNeueLTStd-Ex.otf in Resources */,
+				47746C9B1906D2F700DC73F4 /* Cancel@2x.png in Resources */,
 				4790C4761889B0F100DB9759 /* HelveticaNeueLTStd-MdCnO.otf in Resources */,
 				4775D5EE18AC0AB700E80CAC /* all_73.html in Resources */,
 				4775D5C018AC0AB700E80CAC /* ftv2plastnode.png in Resources */,
@@ -1524,6 +1550,7 @@
 				4790C48A1889B0F100DB9759 /* HelveticaRoundedLTStd-BdCn.otf in Resources */,
 				4790C4581889B0F100DB9759 /* HelveticaNeueLTStd-BdCnO.otf in Resources */,
 				4790C4701889B0F100DB9759 /* HelveticaNeueLTStd-LtCnO.otf in Resources */,
+				47746C9D1906D2F700DC73F4 /* Edit@2x.png in Resources */,
 				4790C4421889B0F100DB9759 /* HelveticaLTStd-BlkCond.otf in Resources */,
 				47460FF9188079BE0067545B /* Montserrat.ttf in Resources */,
 				476F4DC818B2F7E6001A89A1 /* MissionGothicBoldItalic.otf in Resources */,
@@ -1574,6 +1601,7 @@
 				47BA769718D791B6001C9236 /* MessageIcon.png in Resources */,
 				476F4D8418B2BF7F001A89A1 /* BlackTriangle@2x.png in Resources */,
 				4790C46C1889B0F100DB9759 /* HelveticaNeueLTStd-HvIt.otf in Resources */,
+				47746CA31907080700DC73F4 /* Trash.png in Resources */,
 				476F4D8618B2C154001A89A1 /* Blacktriangle.png in Resources */,
 				476F4DC618B2F7E6001A89A1 /* MissionGothicBlackItalic.otf in Resources */,
 				4775D62518AC0AB700E80CAC /* Flurry AppCircle Advertiser TOS FINAL August 1, 2012.pdf in Resources */,
@@ -1585,6 +1613,7 @@
 				4790C4831889B0F100DB9759 /* HelveticaNeueLTStd-UltLtCnO.otf in Resources */,
 				4775D5E418AC0AB700E80CAC /* all_67.html in Resources */,
 				4775D5B718AC0AB700E80CAC /* ftv2folderclosed.png in Resources */,
+				47746CA41907080700DC73F4 /* Trash@2x.png in Resources */,
 				4775D65218AC52B900E80CAC /* README.md in Resources */,
 				4790C4611889B0F100DB9759 /* HelveticaNeueLTStd-BlkExO.otf in Resources */,
 				4775D5D318AC0AB700E80CAC /* pages.html in Resources */,
@@ -1749,6 +1778,7 @@
 				47064C9C183D9E3800E9228A /* ViewController.m in Sources */,
 				47EFC41718B116ED008A26AA /* SBJsonWriter.m in Sources */,
 				47C7B6C1184AC7BB00358BE1 /* PlaceCell.m in Sources */,
+				47746CA01906D7E000DC73F4 /* EditPlaceViewController.m in Sources */,
 				47065F1C185AA8BC0047A564 /* RightPanelViewController.m in Sources */,
 				47064C96183D9E3800E9228A /* AppDelegate.m in Sources */,
 				47064C92183D9E3800E9228A /* main.m in Sources */,

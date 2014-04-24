@@ -12,23 +12,14 @@
 #import "TetherAnnotation.h"
 
 #define ROW_HEIGHT 40.0
+#define STATUS_BAR_HEIGHT 20.0
+#define SPINNER_SIZE 30.0
 #define TOP_BAR_HEIGHT 70.0
 
-@interface CreatePlaceViewController () <MKMapViewDelegate, UIGestureRecognizerDelegate, UITextFieldDelegate>
-
-@property (retain, nonatomic) MKMapView * mv;
-@property (retain, nonatomic) UIView * topBar;
-@property (retain, nonatomic) UILabel * topBarLabel;
-@property (retain, nonatomic) MKPointAnnotation *pa;
+@interface CreatePlaceViewController () <MKMapViewDelegate, UIGestureRecognizerDelegate, UITextFieldDelegate, UIAlertViewDelegate>
 @property (retain, nonatomic) UIView *whiteView;
-@property (retain, nonatomic) UILabel * nameLabel;
-@property (retain, nonatomic) UITextField * nameTextField;
-@property (retain, nonatomic) UILabel * addressLabel;
-@property (retain, nonatomic) UITextField * addressTextField;
 @property (retain, nonatomic) UIView *greyView;
-@property (retain, nonatomic) UILabel * privateLabel;
 @property (strong, nonatomic) UIView *dismissKeyboardView;
-@property (strong, nonatomic) UIButton *createButton;
 @property (strong, nonatomic) UIButton *cancelButton;
 
 @end
@@ -55,26 +46,18 @@
     [self.view addSubview:self.topBar];
     
     self.topBarLabel = [[UILabel alloc] init];
-    self.topBarLabel.text = @"Create New Place";
+    self.topBarLabel.text = @"Create a Location";
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
     [self.topBarLabel setFont:montserrat];
     CGSize size = [self.topBarLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
-    self.topBarLabel.frame= CGRectMake((self.view.frame.size.width - size.width) / 2.0, (self.topBar.frame.size.height - size.height) / 2.0, size.width, size.height);
+    self.topBarLabel.frame= CGRectMake((self.view.frame.size.width - size.width) / 2.0, STATUS_BAR_HEIGHT + (self.topBar.frame.size.height - STATUS_BAR_HEIGHT - size.height) / 2.0, size.width, size.height);
     [self.topBarLabel setTextColor:[UIColor whiteColor]];
     [self.topBar addSubview:self.topBarLabel];
     
-    self.createButton = [[UIButton alloc] init];
-    [self.createButton setTitle:@"Create" forState:UIControlStateNormal];
-    self.createButton.titleLabel.font = montserrat;
-    size = [self.createButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
-    self.createButton.frame = CGRectMake(self.view.frame.size.width - size.width - 10.0, self.topBarLabel.frame.origin.y, size.width, size.height);
-    [self.createButton addTarget:self action:@selector(createPlace:) forControlEvents:UIControlEventTouchUpInside];
-    [self.createButton setEnabled:NO];
-    [self.topBar addSubview:self.createButton];
-    
     self.cancelButton = [[UIButton alloc] init];
-    [self.cancelButton setTitle:@"X" forState:UIControlStateNormal];
-    self.cancelButton.frame = CGRectMake(10.0, 20.0, 20.0, 20.0);
+    [self.cancelButton setImage:[UIImage imageNamed:@"Cancel"] forState:UIControlStateNormal];
+    [self.cancelButton setImageEdgeInsets:UIEdgeInsetsMake(33.0, 10.0, 25.0, 20.0)];
+    self.cancelButton.frame = CGRectMake(0.0, 0.0, 55.0, 83.0);
     [self.cancelButton addTarget:self action:@selector(closeView:) forControlEvents:UIControlEventTouchUpInside];
     [self.topBar addSubview:self.cancelButton];
     
@@ -85,7 +68,7 @@
     
     [self.view addSubview:self.mv];
     
-    self.whiteView = [[UIView alloc] initWithFrame:CGRectMake(0, self.topBar.frame.size.height, self.view.frame.size.width, ROW_HEIGHT *2)];
+    self.whiteView = [[UIView alloc] initWithFrame:CGRectMake(0, self.topBar.frame.size.height, self.view.frame.size.width, ROW_HEIGHT *4)];
     self.whiteView.alpha = 0.85;
     [self.whiteView setBackgroundColor:[UIColor whiteColor]];
     [self.view addSubview:self.whiteView];
@@ -118,16 +101,50 @@
     self.addressTextField.frame = CGRectMake(100.0, ROW_HEIGHT, self.view.frame.size.width - 100.0, ROW_HEIGHT);
     [self.whiteView addSubview:self.addressTextField];
     
+    self.memoLabel = [[UILabel alloc] init];
+    self.memoLabel.text = @"Memo";
+    self.memoLabel.font = montserrat;
+    size = [self.memoLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
+    self.memoLabel.frame = CGRectMake(10.0, ROW_HEIGHT*2 + (ROW_HEIGHT - size.height) / 2.0, size.width, size.height);
+    [self.whiteView addSubview:self.memoLabel];
+    
+    self.memoTextField = [[UITextField alloc] init];
+    self.memoTextField.delegate = self;
+    self.memoTextField.font = montserrat;
+    self.memoTextField.placeholder = @"Optional";
+    self.memoTextField.frame = CGRectMake(100.0, ROW_HEIGHT*2, self.view.frame.size.width - 100.0, ROW_HEIGHT);
+    [self.whiteView addSubview:self.memoTextField];
+    
     self.privateLabel = [[UILabel alloc] init];
     self.privateLabel.text = @"Only visible to my friends";
     self.privateLabel.font = montserrat;
     size = [self.privateLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
-    self.privateLabel.frame = CGRectMake(10.0, ROW_HEIGHT * 2 + (ROW_HEIGHT - size.height) / 2.0, size.width, size.height);
-//    [self.whiteView addSubview:self.privateLabel];
+    self.privateLabel.frame = CGRectMake(10.0, ROW_HEIGHT * 3 + (ROW_HEIGHT - size.height) / 2.0, size.width, size.height);
+    [self.whiteView addSubview:self.privateLabel];
+    
+    self.privateSwitch = [[UISwitch alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 70.0, self.privateLabel.frame.origin.y - 6.0, 0.0, 0.0)];
+    [self.privateSwitch setOnTintColor:UIColorFromRGB(0x8e0528)];
+    [self.whiteView addSubview:self.privateSwitch];
+    
+    UIView *divider = [[UIView alloc] initWithFrame:CGRectMake(10.0, ROW_HEIGHT, self.view.frame.size.width - 10.0, 1.0)];
+    [divider setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
+    [divider setAlpha:0.5];
+    [self.whiteView addSubview:divider];
+    
+    UIView *divider2 = [[UIView alloc] initWithFrame:CGRectMake(10.0, ROW_HEIGHT * 2, self.view.frame.size.width - 10.0, 1.0)];
+    [divider2 setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
+    [divider2 setAlpha:0.5];
+    [self.whiteView addSubview:divider2];
+    
+    UIView *divider3 = [[UIView alloc] initWithFrame:CGRectMake(10.0, ROW_HEIGHT * 3, self.view.frame.size.width - 10.0, 1.0)];
+    [divider3 setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
+    [divider3 setAlpha:0.5];
+    [self.whiteView addSubview:divider3];
     
     self.greyView = [[UIView alloc] initWithFrame:CGRectMake(0.0, self.view.frame.size.height - ROW_HEIGHT, self.view.frame.size.width, ROW_HEIGHT)];
     [self.greyView setBackgroundColor:[UIColor blackColor]];
     self.greyView.alpha = 0.8;
+    
     UILabel * tapLabel = [[UILabel alloc] init];
     tapLabel.text = @"Tap the map to set the location";
     tapLabel.font = montserrat;
@@ -136,6 +153,18 @@
     [tapLabel setTextColor:[UIColor whiteColor]];
     [self.greyView addSubview:tapLabel];
     [self.view addSubview:self.greyView];
+    
+    self.createButton = [[TethrButton alloc] init];
+    self.createButton.frame = self.greyView.frame;
+    [self.createButton setNormalColor:[UIColor whiteColor]];
+    [self.createButton setHighlightedColor:UIColorFromRGB(0x8e0528)];
+    [self.createButton setTitle:@"Create!" forState:UIControlStateNormal];
+    [self.createButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
+    [self.createButton setTitleColor:[UIColor whiteColor] forState:UIControlStateHighlighted];
+    self.createButton.titleLabel.font = montserrat;
+    [self.createButton addTarget:self action:@selector(createPlace:) forControlEvents:UIControlEventTouchUpInside];
+    [self.createButton setHidden:YES];
+    [self.view addSubview:self.createButton];
     
     self.dismissKeyboardView = [[UIView alloc] initWithFrame:CGRectMake(0, self.whiteView.frame.origin.y + self.whiteView.frame.size.height, self.view.frame.size.width, self.view.frame.size.height - self.whiteView.frame.origin.y - self.whiteView.frame.size.height)];
     [self.dismissKeyboardView setHidden:YES];
@@ -157,7 +186,7 @@
     NSLog(@"Adjusting Map: %f, %f", sharedDataManager.userCoordinates.coordinate.latitude,
           sharedDataManager.userCoordinates.coordinate.longitude);
     
-    MKCoordinateRegion adjustedRegion = [self.mv regionThatFits:MKCoordinateRegionMakeWithDistance(userCoord, 8000, 8000)];
+    MKCoordinateRegion adjustedRegion = [self.mv regionThatFits:MKCoordinateRegionMakeWithDistance(userCoord, 2000, 2000)];
     [self.mv setRegion:adjustedRegion animated:NO];
     
     UITapGestureRecognizer *tgr = [[UITapGestureRecognizer alloc]
@@ -172,12 +201,87 @@
     }
 }
 
+-(void)showConfirmationForAction:(NSString*)action {
+    
+    self.confirmationView = [[UIView alloc] initWithFrame:CGRectMake((self.view.frame.size.width - 200.0) / 2.0, (self.view.frame.size.height - 100.0) / 2.0, 200.0, 100.0)];
+    [self.confirmationView setBackgroundColor:[UIColor whiteColor]];
+    self.confirmationView.alpha = 0.8;
+    self.confirmationView.layer.cornerRadius = 10.0;
+    
+    self.confirmationLabel = [[UILabel alloc] init];
+    if ([action isEqualToString:@"save"]) {
+        self.confirmationLabel.text = @"Saving Changes...";
+        [self performSelector:@selector(dismissConfirmationForAction:) withObject:@"save" afterDelay:2.0];
+    } else if ([action isEqualToString:@"create"]) {
+        self.confirmationLabel.text = @"Creating Location...";
+        [self performSelector:@selector(dismissConfirmationForAction:) withObject:@"create" afterDelay:2.0];
+    } else {
+        self.confirmationLabel.text = @"Deleting Location...";
+        [self performSelector:@selector(dismissConfirmationForAction:) withObject:@"delete" afterDelay:2.0];
+    }
+    self.confirmationLabel.textColor = UIColorFromRGB(0x8e0528);
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
+    self.confirmationLabel.font = montserrat;
+    CGSize size = [self.confirmationLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
+    self.confirmationLabel.frame = CGRectMake((self.confirmationView.frame.size.width - size.width) / 2.0, (self.confirmationView.frame.size.height - size.height) / 2.0, size.width, size.height);
+    [self.confirmationView addSubview:self.confirmationLabel];
+    
+    [self.view addSubview:self.confirmationView];
+    
+    self.activityIndicatorView = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake((self.confirmationView.frame.size.width - SPINNER_SIZE) / 2.0, self.confirmationLabel.frame.origin.y + self.confirmationLabel.frame.size.height + 2.0, SPINNER_SIZE, SPINNER_SIZE)];
+    self.activityIndicatorView.color = UIColorFromRGB(0x8e0528);
+    [self.confirmationView addSubview:self.activityIndicatorView];
+    [self.activityIndicatorView startAnimating];
+}
+
+-(void)dismissConfirmationForAction:(NSString*)action {
+    [self.activityIndicatorView stopAnimating];
+    if ([action isEqualToString:@"save"]) {
+        self.confirmationLabel.text = @"Saved!";
+    } else if ([action isEqualToString:@"create"]) {
+        self.confirmationLabel.text = @"Created!";
+    } else {
+        self.confirmationLabel.text = @"Deleted!";
+    }
+    
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:16.0f];
+    self.confirmationLabel.font = montserrat;
+    CGSize size = [self.confirmationLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
+    self.confirmationLabel.frame = CGRectMake((self.confirmationView.frame.size.width - size.width) / 2.0, (self.confirmationView.frame.size.height - size.height) / 2.0, size.width, size.height);
+    
+    [UIView animateWithDuration:0.2
+                          delay:0.5
+                        options:UIViewAnimationOptionAllowAnimatedContent animations:^{
+                            self.confirmationView.alpha = 0.2;
+                        } completion:^(BOOL finished) {
+                            [self.confirmationView removeFromSuperview];
+                            if ([action isEqualToString:@"save"]) {
+                                [self closeView];
+                            } else {
+                                [self closeView];
+                                [self closeViewAfterDelete];
+                            }
+                        }];
+}
+
+-(void)closeView {
+    if ([self.delegate respondsToSelector:@selector(closeCreatePlaceVC)]) {
+        [self.delegate closeCreatePlaceVC];
+    }
+}
+
+-(void)closeViewAfterDelete {
+    if ([self.delegate respondsToSelector:@selector(refreshListAfterDelete)]) {
+        [self.delegate refreshListAfterDelete];
+    }
+}
+
 #pragma mark IBAction
 
 -(IBAction)createPlace:(id)sender {
     id<MKAnnotation> annotation = [self.mv.annotations objectAtIndex:0.0];
     
-    PFObject *placeObject = [PFObject objectWithClassName:@"Place"];
+    PFObject *placeObject = [PFObject objectWithClassName:@"TethrPlace"];
     [placeObject setObject:self.nameTextField.text forKey:@"name"];
 
     [placeObject setObject:[PFGeoPoint geoPointWithLatitude:annotation.coordinate.latitude
@@ -187,11 +291,15 @@
     [placeObject setObject:[userDetails objectForKey:@"city"] forKey:@"city"];
     [placeObject setObject:[userDetails objectForKey:@"state"] forKey:@"state"];
     
-    [placeObject setObject:@"tethr" forKey:@"placeSearchObjectId"];
-    
     if (![self.addressTextField.text isEqualToString:@""]) {
         [placeObject setObject:self.addressTextField.text forKey:@"address"];
     }
+    
+    if (![self.memoTextField.text isEqualToString:@""]) {
+        [placeObject setObject:self.memoTextField.text forKey:@"memo"];
+    }
+    
+    [placeObject setObject:[NSNumber numberWithBool:self.privateSwitch.on] forKey:@"private"];
     
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     [placeObject setObject:sharedDataManager.facebookId forKey:@"owner"];
@@ -200,12 +308,59 @@
         if (!error) {
             [placeObject setObject:placeObject.objectId forKey:@"placeId"];
             [placeObject saveInBackground];
+            [self addNewLocationToPlacesListForId:placeObject.objectId];
         }
     }];
+    [self showConfirmationForAction:@"create"];
+}
+
+-(void)addNewLocationToPlacesListForId:(NSString*)placeId {
+    Place *place = [[Place alloc] init];
+    place.placeId = placeId;
+    place.name = self.nameTextField.text;
+    if (![self.addressTextField.text isEqualToString:@""]) {
+        place.address = self.addressTextField.text;
+    }
+    
+    if (![self.memoTextField.text isEqualToString:@""]) {
+        place.memo = self.memoTextField.text;
+    }
+    
+    place.isPrivate = self.privateSwitch.on;
+    
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    place.city = [userDetails objectForKey:@"city"];
+    place.state = [userDetails objectForKey:@"state"];
+    
+    id<MKAnnotation> annotation = [self.mv.annotations objectAtIndex:0.0];
+    place.coord = annotation.coordinate;
+    
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    place.owner = sharedDataManager.facebookId;
+    
+    place.friendsCommitted = [[NSMutableSet alloc] init];
+    
+    [sharedDataManager.tethrPlacesDictionary setObject:place forKey:place.placeId];
+    [self.delegate openNewPlaceWithId:place.placeId];
 }
 
 -(IBAction)closeView:(id)sender {
-    [self.delegate closeCreatePlaceVC];
+    if (self.annotation || ![self.nameTextField.text isEqualToString:@""]) {
+        NSString *message;
+        if (self.place.placeId) {
+            message = @"Are you sure you want to discard your changes?";
+        } else {
+            message = @"Are you sure you want to stop creating this location?";
+        }
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Confirm"
+                                                        message:message
+                                                       delegate:self
+                                              cancelButtonTitle:@"Cancel"
+                                              otherButtonTitles:@"Yes", nil];
+        [alert show];
+    } else {
+        [self.delegate closeCreatePlaceVC];
+    }
 }
 
 #pragma mark UIGestureRecognizers
@@ -223,19 +378,22 @@
     CGPoint touchPoint = [gestureRecognizer locationInView:self.mv];
     CLLocationCoordinate2D touchMapCoordinate =
     [self.mv convertPoint:touchPoint toCoordinateFromView:self.mv];
-    [self.mv removeAnnotation:self.pa];
-    self.pa = [[MKPointAnnotation alloc] init];
-    self.pa.coordinate = touchMapCoordinate;
+    [self.mv removeAnnotation:self.annotation];
+    self.annotation = [[MKPointAnnotation alloc] init];
+    self.annotation.coordinate = touchMapCoordinate;
     if ([self.nameTextField.text isEqualToString:@""]) {
-        self.pa.title = @"";
+        self.annotation.title = @"";
     } else {
-        self.pa.title = self.nameTextField.text;
+        self.annotation.title = self.nameTextField.text;
     }
-    [self.mv addAnnotation:self.pa];
+    [self.mv addAnnotation:self.annotation];
     
-    [self.mv selectAnnotation:self.pa animated:NO];
+    [self.mv selectAnnotation:self.annotation animated:NO];
     
-    [self.greyView setHidden:YES];
+    if (!self.greyView.hidden) {
+        [self.greyView setHidden:YES];
+        [self.createButton setHidden:NO];
+    }
 }
 
 #pragma mark UIGestureRecognizerDelegate
@@ -282,7 +440,20 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherG
 
 -(void)textFieldDidEndEditing:(UITextField *)textField {
     if (![textField.text isEqualToString:@""] && [self.mv.annotations count]  > 0) {
+        [self.createButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
         [self.createButton setEnabled:YES];
+    } else {
+        [self.createButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
+        [self.createButton setEnabled:NO];
+    }
+}
+
+#pragma mark UIAlertViewDelegate
+
+- (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
+    if (buttonIndex == 0) {
+    } else {
+        [self.delegate closeCreatePlaceVC];
     }
 }
 

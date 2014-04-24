@@ -26,6 +26,7 @@
     NSMutableDictionary *friendsToPlacesMap;
     NSMutableDictionary *popularPlacesDictionary;
     NSMutableDictionary *foursquarePlacesDictionary;
+    NSMutableDictionary *tethrPlacesDictionary;
     NSMutableDictionary *placesDictionary;
     PFObject *currentCommitmentParseObject;
     Place *currentCommitmentPlace;
@@ -55,6 +56,7 @@
 @property (nonatomic, strong) NSMutableDictionary *friendsToPlacesMap;
 @property (nonatomic, strong) NSMutableDictionary *popularPlacesDictionary;
 @property (nonatomic, strong) NSMutableDictionary *foursquarePlacesDictionary;
+@property (nonatomic, strong) NSMutableDictionary *tethrPlacesDictionary;
 @property (nonatomic, strong) NSMutableDictionary *placesDictionary;
 @property (retain, nonatomic) PFObject *currentCommitmentParseObject;
 @property (retain, nonatomic) Place *currentCommitmentPlace;

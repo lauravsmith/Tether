@@ -94,6 +94,7 @@
         Datastore *sharedDataManager= [Datastore sharedDataManager];
         sharedDataManager.tetherFriendsDictionary = [[NSMutableDictionary alloc] init];
         sharedDataManager.tetherFriendsNearbyDictionary = [[NSMutableDictionary alloc] init];
+        [self queryFriendsStatus];
     }
     return self;
 }
@@ -259,7 +260,9 @@
     [self.currentUser setObject:sharedDataManager.facebookFriends forKey:kUserFacebookFriendsKey];
     [self.currentUser saveInBackground];
     
-    [self queryFriendsStatus];
+    if (!sharedDataManager.tetherFriends) {
+        [self queryFriendsStatus];
+    }
 }
 
 -(void)facebookRequestDidLoad:(id)result {
@@ -327,11 +330,6 @@
                 [Flurry setGender:[gender lowercaseString]];
             }
             
-//            NSString *relationshipStatus = result[@"relationship_status"];
-//            if (relationshipStatus && [relationshipStatus length] != 0) {
-//                [self.currentUser setObject:relationshipStatus forKey:@"relationshipStatus"];
-//            }
-            
             [self.currentUser saveEventually];
             
             if ([self.currentUser objectForKey:kUserStatusMessageKey]) {
@@ -394,14 +392,21 @@
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     NSLog(@"Your city: %@ state: %@", city, state);
     
+    NSMutableArray *facebookFriends = [[NSMutableArray alloc] init];
+    if (sharedDataManager.facebookFriends) {
+        facebookFriends = [sharedDataManager.facebookFriends mutableCopy];
+    } else {
+        facebookFriends = [userDetails objectForKey:@"tethrFriends"];
+    }
+    
     if (![self.currentUser objectForKey:kUserCityKey]) {
         [self saveCity:city state:state];
     }
     
-    if (city && state && sharedDataManager.facebookFriends) {
+    if (city && state && facebookFriends) {
         PFQuery *facebookFriendsQuery = [PFUser query];
         facebookFriendsQuery.limit = 5000;
-        [facebookFriendsQuery whereKey:kUserFacebookIDKey containedIn:sharedDataManager.facebookFriends];
+        [facebookFriendsQuery whereKey:kUserFacebookIDKey containedIn:facebookFriends];
 
         [facebookFriendsQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
             if (!error) {
@@ -494,6 +499,11 @@
         Friend *friend = [sharedDataManager.tetherFriendsDictionary objectForKey:key];
         [tetherFriends addObject:friend.friendID];
     }
+    
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    [userDetails setObject:tetherFriends forKey:@"tethrFriends"];
+    [userDetails setObject:sharedDataManager.facebookFriends forKey:@"facebookFriends"];
+    [userDetails synchronize];
     
     [self.currentUser setObject:tetherFriends forKey:@"tethrFriends"];
     [self.currentUser saveEventually];
@@ -1429,14 +1439,14 @@
     
     if ([self.centerViewController.placeToAnnotationDictionary objectForKey:place.placeId]) {
         TetherAnnotation *previousAnnotation = [self.centerViewController.placeToAnnotationDictionary objectForKey:place.placeId];
-        if ([place.totalCommitted isEqualToSet:previousAnnotation.place.totalCommitted] && !self.committingToPlace) {
+        if ([place.friendsCommitted isEqualToSet:previousAnnotation.place.friendsCommitted] && !self.committingToPlace) {
             return;
         }
         
         [self removePlaceMarkFromMapView:place];
     }
     [self.centerViewController.placeToAnnotationDictionary  setObject:annotation forKey:place.placeId];
-    if ([place.totalCommitted count] > 0) {
+    if ([place.friendsCommitted count] > 0) {
         [self.centerViewController.mv addAnnotation:annotation];
     }
     self.committingToPlace = NO;
@@ -1636,7 +1646,10 @@
             if (place.address) {
                 [commitment setObject:place.address forKey:kCommitmentAddressKey];
             }
-
+            
+            if (place.isPrivate) {
+                [commitment setObject:place.owner forKey:@"placeOwner"];
+            }
             
             NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
             [userDetails setBool:YES forKey:kUserDefaultsStatusKey];
@@ -1746,9 +1759,8 @@
     if (sharedDataManager.currentCommitmentPlace) {
         if ([sharedDataManager.currentCommitmentPlace.friendsCommitted containsObject:sharedDataManager.facebookId]) {
             [sharedDataManager.currentCommitmentPlace.friendsCommitted removeObject:sharedDataManager.facebookId];
-            [sharedDataManager.currentCommitmentPlace.totalCommitted removeObject:sharedDataManager.facebookId];
-            sharedDataManager.currentCommitmentPlace.numberCommitments = [sharedDataManager.currentCommitmentPlace.totalCommitted count];
-            NSLog(@"Removing previous commitment to %@ with %lu commitments", sharedDataManager.currentCommitmentPlace.name, (unsigned long)[sharedDataManager.currentCommitmentPlace.totalCommitted count]);
+            sharedDataManager.currentCommitmentPlace.numberCommitments = [sharedDataManager.currentCommitmentPlace.friendsCommitted count];
+            NSLog(@"Removing previous commitment to %@ with %lu commitments", sharedDataManager.currentCommitmentPlace.name, (unsigned long)[sharedDataManager.currentCommitmentPlace.friendsCommitted count]);
             sharedDataManager.currentCommitmentPlace.numberCommitments = MAX(0, sharedDataManager.currentCommitmentPlace.numberCommitments - 1);
             [sharedDataManager.placesDictionary setObject:sharedDataManager.currentCommitmentPlace
                                                    forKey:sharedDataManager.currentCommitmentPlace.placeId];

@@ -292,7 +292,7 @@
     NSDate *timeLastUpdated = [userDetails objectForKey:@"timeLastUpdated"];
     NSDate *startTime = [self getStartTime];
     
-    if (sharedDataManager.currentCommitmentPlace && [startTime compare:timeLastUpdated] == NSOrderedAscending && [sharedDataManager.currentCommitmentPlace.totalCommitted count] > 0) {
+    if (sharedDataManager.currentCommitmentPlace && [startTime compare:timeLastUpdated] == NSOrderedAscending && [sharedDataManager.currentCommitmentPlace.friendsCommitted count] > 0) {
         self.cityButton.hidden = YES;
         self.commitmentButton.hidden = NO;
         self.placeButton.hidden = NO;
@@ -300,7 +300,7 @@
         
         UIFont *montserratExtraSmall = [UIFont fontWithName:@"Montserrat" size:10];
         [self.placeButton setTitle:sharedDataManager.currentCommitmentPlace.name forState:UIControlStateNormal];
-        [self.placeNumberButton setTitle:[NSString stringWithFormat:@"%lu", (unsigned long)[sharedDataManager.currentCommitmentPlace.totalCommitted count]] forState:UIControlStateNormal];
+        [self.placeNumberButton setTitle:[NSString stringWithFormat:@"%lu", (unsigned long)[sharedDataManager.currentCommitmentPlace.friendsCommitted count]] forState:UIControlStateNormal];
         
         CGSize size1 = [self.placeButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratExtraSmall}];
         CGSize size2 = [self.placeNumberButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratSmall}];
@@ -437,6 +437,13 @@
     MKCoordinateRegion adjustedRegion = [self.mv regionThatFits:MKCoordinateRegionMakeWithDistance(userCoord, 8000, 8000)];
     [self.mv setRegion:adjustedRegion animated:NO];
     
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    
+    if (![userDetails boolForKey:@"useCurrentLocation"]) {
+        Datastore *sharedDataManager = [Datastore sharedDataManager];
+        sharedDataManager.userCoordinates = self.userCoordinates;
+    }
+    
     // change position of legal link
     UIView *legalView = nil;
     
@@ -545,7 +552,7 @@
     [self.locationManager startMonitoringSignificantLocationChanges];
     
     Datastore *sharedDataManager = [Datastore sharedDataManager];
-    sharedDataManager.userCoordinates = self.userCoordinates;
+    sharedDataManager.userCoordinates = newLoc;
     
     if (self.userCoordinates) {
         if (self.userCoordinates.coordinate.latitude != 0.0) {
@@ -685,7 +692,7 @@
         UILabel *numberLabel = [[UILabel alloc] init];
         UIFont *helveticaNeueSmall = [UIFont fontWithName:@"HelveticaNeue-Bold" size:10];
         numberLabel.font = helveticaNeueSmall;
-        numberLabel.text = [NSString stringWithFormat:@"%lu", (unsigned long)[((TetherAnnotation*)annotation).place.totalCommitted count]];
+        numberLabel.text = [NSString stringWithFormat:@"%lu", (unsigned long)[((TetherAnnotation*)annotation).place.friendsCommitted count]];
         CGSize size = [numberLabel.text sizeWithAttributes:@{NSFontAttributeName:helveticaNeueSmall}];
         numberLabel.frame = CGRectMake((pinView.frame.size.width - size.width) / 2.0, (pinView.frame.size.height - size.height) / 4.0, MIN(size.width, 20), MIN(size.height, 15.0));
         numberLabel.adjustsFontSizeToFitWidth = YES;
@@ -695,7 +702,7 @@
         [leftLabel setTextColor:[UIColor whiteColor]];
         UIFont *helveticaNeue = [UIFont fontWithName:@"HelveticaNeue-Bold" size:20];
         [leftLabel setFont:helveticaNeue];
-        [leftLabel setText:[NSString stringWithFormat:@"  %d",[((TetherAnnotation*)annotation).place.totalCommitted count]]];
+        [leftLabel setText:[NSString stringWithFormat:@"  %d",[((TetherAnnotation*)annotation).place.friendsCommitted count]]];
         size = [leftLabel.text sizeWithAttributes:@{NSFontAttributeName:helveticaNeue}];
         leftLabel.frame = CGRectMake(0, -2.0, size.width + 10.0, 45.0);
         UIView *backgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, size.width + 10.0, 45.0)];
@@ -1107,7 +1114,7 @@
     operation.responseSerializer = [AFJSONResponseSerializer serializer];
     [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSDictionary *jsonDict = (NSDictionary *) responseObject;
-        [self processSearchResults:jsonDict];
+        [self processSearchResults:jsonDict forSearch:search];
         [Flurry logEvent:@"Foursquare_User_Search"];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Failure");
@@ -1116,10 +1123,19 @@
     [operation start];
 }
 
-- (void)processSearchResults:(NSDictionary *)json {
+- (void)processSearchResults:(NSDictionary *)json forSearch:(NSString*)search{
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     NSDictionary *response = [json objectForKey:@"response"];
     self.searchResultsArray = [[NSMutableArray alloc] init];
+    
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    for (id key in sharedDataManager.tethrPlacesDictionary) {
+        Place *place = [sharedDataManager.tethrPlacesDictionary objectForKey:key];
+        if ([[place.name lowercaseString] rangeOfString:[search lowercaseString]].location != NSNotFound) {
+            [self.searchResultsArray addObject:place];
+        }
+    }
+    
     NSArray *venues = [response objectForKey:@"venues"];
     for (NSDictionary *venue in venues) {
         Place *newPlace = [[Place alloc] init];

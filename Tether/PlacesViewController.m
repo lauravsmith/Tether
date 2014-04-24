@@ -26,7 +26,7 @@
 #define HEADER_HEIGHT 50.0
 #define SEARCH_RESULTS_CELL_HEIGHT 60.0
 #define SEARCH_BAR_HEIGHT 50.0
-#define SEARCH_BAR_WIDTH 270.0
+#define SEARCH_BAR_WIDTH 240.0
 #define SLIDE_TIMING 0.6
 #define SPINNER_SIZE 30.0
 #define STATUS_BAR_HEIGHT 20.0
@@ -40,6 +40,7 @@
 @property (retain, nonatomic) NSUserDefaults *userDetails;
 @property (assign, nonatomic) bool friendStatusDetailsHaveLoaded;
 @property (assign, nonatomic) bool foursquarePlacesDataHasLoaded;
+@property (assign, nonatomic) bool tethrPlacesDataHasLoaded;
 @property (retain, nonatomic) UISearchBar *searchBar;
 @property (retain, nonatomic) NSMutableArray *searchResultsArray;
 @property (nonatomic, strong) UITableView *searchResultsTableView;
@@ -62,10 +63,12 @@
         Datastore *sharedDataManager = [Datastore sharedDataManager];
         sharedDataManager.popularPlacesDictionary = [[NSMutableDictionary alloc] init];
         sharedDataManager.foursquarePlacesDictionary = [[NSMutableDictionary alloc] init];
+        sharedDataManager.tethrPlacesDictionary = [[NSMutableDictionary alloc] init];
         sharedDataManager.friendsToPlacesMap = [[NSMutableDictionary alloc] init];
         self.placesArray = [[NSMutableArray alloc] init];
         self.friendStatusDetailsHaveLoaded = NO;
         self.foursquarePlacesDataHasLoaded = NO;
+        self.tethrPlacesDataHasLoaded = NO;
         self.userDetails = [NSUserDefaults standardUserDefaults];
     }
     return self;
@@ -134,7 +137,7 @@
     [self.backButtonLarge addTarget:self action:@selector(closeListView) forControlEvents:UIControlEventTouchDown];
     [self.view addSubview:self.backButtonLarge];
     
-    UIButton *addButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 40.0, 20.0, 40.0, 40.0)];
+    UIButton *addButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 41.0, 25.0, 40.0, 40.0)];
     [addButton setImage:[UIImage imageNamed:@"PlusSign"] forState:UIControlStateNormal];
     [addButton addTarget:self action:@selector(createPlace:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:addButton];
@@ -166,8 +169,6 @@
 
     if (sharedDataManager.facebookId) {
         [friendsArrayWithMe addObject:sharedDataManager.facebookId];
-        
-    NSSet *friendsSet = [NSMutableSet setWithArray:friendsArrayWithMe];
     
     NSString *userCity;
     NSString *userState = [[NSString alloc] init];
@@ -175,7 +176,7 @@
     userState = [self.userDetails objectForKey:kUserDefaultsStateKey];
     
     PFQuery *query = [PFQuery queryWithClassName:kCommitmentClassKey];
-//    [query whereKey:kUserFacebookIDKey containedIn:friendsArrayWithMe];        
+    [query whereKey:kUserFacebookIDKey containedIn:friendsArrayWithMe];        
     if ([self.userDetails boolForKey:@"cityFriendsOnly"]) {
         [query whereKey:kCommitmentCityKey equalTo:userCity];
     }
@@ -192,61 +193,54 @@
 
             sharedDataManager.friendsToPlacesMap = [[NSMutableDictionary alloc] init];
             for (PFObject *object in objects) {
-                Place *place = [[Place alloc] init];
-                geoPoint = [object objectForKey:kCommitmentGeoPointKey];
-                id friendID =[object objectForKey:kUserFacebookIDKey];
-                if (![tempDictionary objectForKey:[object objectForKey:kCommitmentPlaceIDKey]]) {
-                    place.city = [object objectForKey:kCommitmentCityKey];
-                    place.name = [object objectForKey:kCommitmentPlaceKey];
-                    place.address = [object objectForKey:kCommitmentAddressKey];
-                    place.coord = CLLocationCoordinate2DMake(geoPoint.latitude, geoPoint.longitude);
-                    place.placeId = [object objectForKey:kCommitmentPlaceIDKey];
-                    place.numberCommitments = 0;
-                    place.numberPastCommitments = 0;
-                    place.friendsCommitted = [[NSMutableSet alloc] init];
-                    place.totalCommitted = [[NSMutableSet alloc] init];
-                } else {
-                    place = [tempDictionary objectForKey:[object objectForKey:kCommitmentPlaceIDKey]];
-                }
-                
-                NSDate *commitmentTime = [object objectForKey:kCommitmentDateKey];
-                if (commitmentTime != nil && [startTime compare:commitmentTime] == NSOrderedAscending) {
-                    // commitment for tonight
-                    if ([friendsSet containsObject:friendID]) {
+                if (![object objectForKey:@"placeOwner"] || [friendsArrayWithMe containsObject:[object objectForKey:@"placeOwner"]]) {
+                    Place *place = [[Place alloc] init];
+                    geoPoint = [object objectForKey:kCommitmentGeoPointKey];
+                    id friendID =[object objectForKey:kUserFacebookIDKey];
+                    if (![tempDictionary objectForKey:[object objectForKey:kCommitmentPlaceIDKey]]) {
+                        place.city = [object objectForKey:kCommitmentCityKey];
+                        place.name = [object objectForKey:kCommitmentPlaceKey];
+                        place.address = [object objectForKey:kCommitmentAddressKey];
+                        place.coord = CLLocationCoordinate2DMake(geoPoint.latitude, geoPoint.longitude);
+                        place.placeId = [object objectForKey:kCommitmentPlaceIDKey];
+                        place.numberCommitments = 0;
+                        place.numberPastCommitments = 0;
+                        place.friendsCommitted = [[NSMutableSet alloc] init];
+                    } else {
+                        place = [tempDictionary objectForKey:[object objectForKey:kCommitmentPlaceIDKey]];
+                    }
+                    
+                    NSDate *commitmentTime = [object objectForKey:kCommitmentDateKey];
+                    if (commitmentTime != nil && [startTime compare:commitmentTime] == NSOrderedAscending) {
+                        // commitment for tonight
                         [place.friendsCommitted addObject:[object objectForKey:kUserFacebookIDKey]];
-                        [place.totalCommitted addObject:friendID];
                         if ([object objectForKey:kCommitmentPlaceIDKey]) {
                             [tempDictionary setObject:place forKey:[object objectForKey:kCommitmentPlaceIDKey]];
                         }
-                    } else if([place.city isEqualToString:userCity] || [sharedDataManager.popularPlacesDictionary objectForKey:place.placeId]) {
-                        // add all commitments in your city
-                        [place.totalCommitted addObject:friendID];
-                        if ([object objectForKey:kCommitmentPlaceIDKey]) {
+                        
+                        NSLog(@"Adding commitments to %@", place.name);
+                        place.numberCommitments = place.numberCommitments + 1;
+                        if ([sharedDataManager.facebookId isEqualToString:friendID] && ![sharedDataManager.currentCommitmentPlace.name isEqualToString:place.name]) {
+                            NSLog(@"Setting your current commitment to %@", place.name);
+                            sharedDataManager.currentCommitmentPlace = place;
+                            sharedDataManager.currentCommitmentParseObject = object;
+                            if ([self.delegate respondsToSelector:@selector(refreshCommitmentName)]) {
+                                [self.delegate refreshCommitmentName];
+                            }
+                        }
+                        if ([self.delegate respondsToSelector:@selector(setPlace:forFriend:)]) {
+                            [self.delegate setPlace:place.placeId forFriend:friendID];
+                        }
+                        
+                        
+                    } else {
+                        place.numberPastCommitments = place.numberPastCommitments + 1;
+                        
+                        if ([object objectForKey:kCommitmentPlaceIDKey] && [[object objectForKey:kCommitmentCityKey] isEqualToString:userCity]) {
                             [tempDictionary setObject:place forKey:[object objectForKey:kCommitmentPlaceIDKey]];
                         }
                     }
 
-                    NSLog(@"Adding commitments to %@", place.name);
-                    place.numberCommitments = place.numberCommitments + 1;
-                    if ([sharedDataManager.facebookId isEqualToString:friendID] && ![sharedDataManager.currentCommitmentPlace.name isEqualToString:place.name]) {
-                        NSLog(@"Setting your current commitment to %@", place.name);
-                        sharedDataManager.currentCommitmentPlace = place;
-                        sharedDataManager.currentCommitmentParseObject = object;
-                        if ([self.delegate respondsToSelector:@selector(refreshCommitmentName)]) {
-                            [self.delegate refreshCommitmentName];
-                        }
-                    }
-                    if ([self.delegate respondsToSelector:@selector(setPlace:forFriend:)]) {
-                        [self.delegate setPlace:place.placeId forFriend:friendID];
-                    }
-                    
-
-                } else {
-                    place.numberPastCommitments = place.numberPastCommitments + 1;
-                    
-                    if ([object objectForKey:kCommitmentPlaceIDKey] && [[object objectForKey:kCommitmentCityKey] isEqualToString:userCity]) {
-                        [tempDictionary setObject:place forKey:[object objectForKey:kCommitmentPlaceIDKey]];
-                    }
                 }
             }
             
@@ -292,9 +286,12 @@
             }
         }
     }];
-    if (!self.foursquarePlacesDataHasLoaded) {
-        [self loadStoredPlaces];
-    }
+        if (!self.foursquarePlacesDataHasLoaded) {
+            [self loadStoredPlaces];
+        }
+        if (!self.tethrPlacesDataHasLoaded) {
+            [self loadTethrPlaces];
+        }
     }
 }
 
@@ -307,8 +304,7 @@
         if ([sharedDataManager.foursquarePlacesDictionary objectForKey:key]) {
             Place *tempPlace = [sharedDataManager.foursquarePlacesDictionary objectForKey:key];
             [place.friendsCommitted unionSet:tempPlace.friendsCommitted];
-            [place.totalCommitted unionSet:tempPlace.totalCommitted];
-            place.numberCommitments = [place.totalCommitted count];
+            place.numberCommitments = [place.friendsCommitted count];
         }
         [sharedDataManager.placesDictionary setObject:place forKey:place.placeId];
     }
@@ -316,6 +312,13 @@
     for (id key in sharedDataManager.foursquarePlacesDictionary) {
         if (![sharedDataManager.placesDictionary objectForKey:key]) {
             Place *place = [sharedDataManager.foursquarePlacesDictionary objectForKey:key];
+            [sharedDataManager.placesDictionary setObject:place forKey:place.placeId];
+        }
+    }
+    
+    for (id key in sharedDataManager.tethrPlacesDictionary) {
+        if (![sharedDataManager.placesDictionary objectForKey:key]) {
+            Place *place = [sharedDataManager.tethrPlacesDictionary objectForKey:key];
             [sharedDataManager.placesDictionary setObject:place forKey:place.placeId];
         }
     }
@@ -336,6 +339,8 @@
             sharedDataManager.placeIDForNotification = @"";
         }
     }
+    
+    self.tethrPlacesDataHasLoaded = NO;
 }
 
 -(void)sortPlacesByPopularity {
@@ -369,7 +374,7 @@
     for (id key in sharedDataManager.popularPlacesDictionary) {
         Place *p = [sharedDataManager.popularPlacesDictionary objectForKey:key];
         if (p) {
-            if ([p.totalCommitted count] > 0) {
+            if ([p.friendsCommitted count] > 0) {
                 [self.delegate placeMarkOnMapView:p];
             }
         }
@@ -425,11 +430,9 @@
 -(void)openPageForPlaceWithId:(id)placeId {
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     Place *place = [sharedDataManager.placesDictionary objectForKey:placeId];
-    if (place.numberCommitments > 0) {
         [self scrollToPlaceWithId:placeId];
         PlaceCell *cell = (PlaceCell*)[self.placesTableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:[self.placesArray indexOfObject:place] inSection:0]];
         [self showFriendsViewFromCell:cell];
-    }
 }
 
 -(void)refresh {
@@ -642,6 +645,48 @@
 
 -(void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {
     self.searchResultsTableView.hidden = NO;
+}
+
+-(void)loadTethrPlaces {
+    NSString *city = [self.userDetails objectForKey:@"city"];
+    NSString *state = [self.userDetails objectForKey:@"state"];
+    
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    PFQuery *query = [PFQuery queryWithClassName:@"TethrPlace"];
+    [query whereKey:@"city" equalTo:city];
+    [query whereKey:@"state" equalTo:state];
+    
+    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+        if (!error) {
+                for (PFObject *placeObject in objects) {
+                    if (![placeObject objectForKey:@"private"] || [sharedDataManager.tetherFriends containsObject:[placeObject objectForKey:@"owner"]]) {
+                        Place *newPlace = [[Place alloc] init];
+                        newPlace.placeId = [placeObject objectForKey:@"placeId"];
+                        newPlace.name = [placeObject objectForKey:kPlaceNameKey];
+                        newPlace.city = [placeObject objectForKey:kPlaceCityKey];
+                        newPlace.state = [self.userDetails objectForKey:kPlaceStateKey];
+                        newPlace.address = [placeObject objectForKey:kPlaceAddressKey];
+                        PFGeoPoint *geoPoint = [placeObject objectForKey:kPlaceCoordinateKey];
+                        newPlace.coord = CLLocationCoordinate2DMake(geoPoint.latitude, geoPoint.longitude);
+                        newPlace.owner = [placeObject objectForKey:@"owner"];
+                        newPlace.memo = [placeObject objectForKey:@"memo"];
+                        newPlace.isPrivate = [[placeObject objectForKey:@"private"] boolValue];
+                        newPlace.friendsCommitted = [[NSMutableSet alloc] init];
+                        
+                        if (![sharedDataManager.tethrPlacesDictionary objectForKey:newPlace.placeId]) {
+                            [sharedDataManager.tethrPlacesDictionary setObject:newPlace forKey:newPlace.placeId];
+                        }
+                    }
+                }
+                
+                if (self.friendStatusDetailsHaveLoaded && self.foursquarePlacesDataHasLoaded) {
+                    [self addDictionaries];
+                    [self sortPlacesByPopularity];
+                }
+                NSLog(@"FINISHED LOADING TETHR PLACE DATA FROM PARSE DATASTORE with %lu objects", (unsigned long)[sharedDataManager.tethrPlacesDictionary count]);
+                self.tethrPlacesDataHasLoaded = YES;
+        }
+    }];
 }
 
 -(void)loadStoredPlaces {
@@ -878,13 +923,12 @@
         NSDictionary *locationDetails = [venue objectForKey:@"location"];
         newPlace.address = [locationDetails objectForKey:@"address"];
         newPlace.friendsCommitted = [[NSMutableSet alloc] init];
-        newPlace.totalCommitted = [[NSMutableSet alloc] init];
         
         if (![sharedDataManager.foursquarePlacesDictionary objectForKey:newPlace.placeId]) {
             [sharedDataManager.foursquarePlacesDictionary setObject:newPlace forKey:newPlace.placeId];
         }
     }
-    //TODO: save cityPlaceSearch
+    
     if (self.friendStatusDetailsHaveLoaded) {
         [self addDictionaries];
         [self sortPlacesByPopularity];
@@ -915,7 +959,7 @@
     operation.responseSerializer = [AFJSONResponseSerializer serializer];
     [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSDictionary *jsonDict = (NSDictionary *) responseObject;
-        [self processSearchResults:jsonDict];
+        [self processSearchResults:jsonDict forSearch:search];
         [Flurry logEvent:@"Foursquare_User_Search"];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Failure");
@@ -924,10 +968,19 @@
     [operation start];
 }
 
-- (void)processSearchResults:(NSDictionary *)json {
-    NSDictionary *response = [json objectForKey:@"response"];
+- (void)processSearchResults:(NSDictionary *)json forSearch:(NSString*)search {
     self.searchResultsArray = [[NSMutableArray alloc] init];
+    NSDictionary *response = [json objectForKey:@"response"];
     NSArray *venues = [response objectForKey:@"venues"];
+    
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    for (id key in sharedDataManager.tethrPlacesDictionary) {
+        Place *place = [sharedDataManager.tethrPlacesDictionary objectForKey:key];
+        if ([[place.name lowercaseString] rangeOfString:[search lowercaseString]].location != NSNotFound) {
+            [self.searchResultsArray addObject:place];
+        }
+    }
+    
     for (NSDictionary *venue in venues) {
         Place *newPlace = [[Place alloc] init];
         newPlace.placeId = [venue objectForKey:@"id"];
@@ -941,6 +994,7 @@
         
         [self.searchResultsArray addObject:newPlace];
     }
+    
     [self.searchResultsTableView reloadData];
 }
 
@@ -1105,6 +1159,31 @@
                          [self.createVC removeFromParentViewController];
                          self.createVC = nil;
                      }];
+}
+
+-(void)openNewPlaceWithId:(NSString*)placeId {
+    [self addDictionaries];
+    [self sortPlacesByPopularity];
+    
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:2.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.createVC.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                         [self.createVC.view removeFromSuperview];
+                         [self.createVC removeFromParentViewController];
+                         self.createVC = nil;
+                         [self scrollToPlaceWithId:placeId];
+                     }];
+}
+
+-(void)refreshList {
+    [self addDictionaries];
+    [self sortPlacesByPopularity];
 }
 
 - (void)didReceiveMemoryWarning

@@ -25,5 +25,6 @@
 -(void)removePreviousCommitment;
 -(void)removeCommitmentFromDatabase;
 -(void)selectAnnotationForPlace:(Place*)place;
+-(void)refreshList;
 
 @end
