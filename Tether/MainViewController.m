@@ -1672,13 +1672,15 @@
                     self.listsHaveChanged = YES;
                     [self pollDatabase];
                     
-                    NSDictionary *commitmentParams =
-                    [NSDictionary dictionaryWithObjectsAndKeys:
-                     @"Place", place.name,
-                     @"City", place.city,
-                     nil];
-                    
-                    [Flurry logEvent:@"Tethrd" withParameters:commitmentParams];
+                    if (place) {
+                        NSDictionary *commitmentParams =
+                        [NSDictionary dictionaryWithObjectsAndKeys:
+                         @"Place", place.name,
+                         @"City", place.city,
+                         nil];
+                        
+                        [Flurry logEvent:@"Tethrd" withParameters:commitmentParams];
+                    }
                 } else {
                     NSLog(@"Committing Error: %@ %@", error, [error userInfo]);
                     [Flurry logError:@"Error_committing" message:nil error:error];

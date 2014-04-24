@@ -453,11 +453,6 @@
         [self layoutCommitButton];
         
         [self.numberButton setTitle:[NSString stringWithFormat:@"%lu", (unsigned long)[self.friendsArray count]] forState:UIControlStateNormal];
-        
-        if ([self.friendsArray count] == 0) {
-            [self.mapButton removeFromSuperview];
-            self.mapButton = nil;
-        }
     }
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     if ([userDetails boolForKey:kUserDefaultsHasSeenPlaceInviteTutorialKey] && ![userDetails boolForKey:kUserDefaultsHasSeenPlaceTethrTutorialKey]) {
