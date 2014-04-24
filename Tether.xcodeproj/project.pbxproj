@@ -219,6 +219,8 @@
 		4776518118AA691300768D57 /* ManageFriendCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 4776518018AA691300768D57 /* ManageFriendCell.m */; };
 		477A8E8D18B68E9200F4F89B /* LineNavigator@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 477A8E8B18B68E9200F4F89B /* LineNavigator@2x.png */; };
 		477A8E8E18B68E9200F4F89B /* LineNavigator.png in Resources */ = {isa = PBXBuildFile; fileRef = 477A8E8C18B68E9200F4F89B /* LineNavigator.png */; };
+		47814E4D19098680004B146A /* MessageThread.m in Sources */ = {isa = PBXBuildFile; fileRef = 47814E4C19098680004B146A /* MessageThread.m */; };
+		47814E5019098F76004B146A /* MessageThreadCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 47814E4F19098F76004B146A /* MessageThreadCell.m */; };
 		478C4BFF18482B78004C6BD0 /* SettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 478C4BFE18482B78004C6BD0 /* SettingsViewController.m */; };
 		4790C4401889B0F100DB9759 /* HelveticaInseratLTStd-Roman.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3F11889B0F100DB9759 /* HelveticaInseratLTStd-Roman.otf */; };
 		4790C4411889B0F100DB9759 /* HelveticaLTStd-Blk.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3F21889B0F100DB9759 /* HelveticaLTStd-Blk.otf */; };
@@ -614,6 +616,10 @@
 		4776518018AA691300768D57 /* ManageFriendCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ManageFriendCell.m; sourceTree = "<group>"; };
 		477A8E8B18B68E9200F4F89B /* LineNavigator@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "LineNavigator@2x.png"; sourceTree = "<group>"; };
 		477A8E8C18B68E9200F4F89B /* LineNavigator.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = LineNavigator.png; sourceTree = "<group>"; };
+		47814E4B19098680004B146A /* MessageThread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MessageThread.h; sourceTree = "<group>"; };
+		47814E4C19098680004B146A /* MessageThread.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MessageThread.m; sourceTree = "<group>"; };
+		47814E4E19098F76004B146A /* MessageThreadCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MessageThreadCell.h; sourceTree = "<group>"; };
+		47814E4F19098F76004B146A /* MessageThreadCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MessageThreadCell.m; sourceTree = "<group>"; };
 		478C4BFD18482B78004C6BD0 /* SettingsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SettingsViewController.h; sourceTree = "<group>"; };
 		478C4BFE18482B78004C6BD0 /* SettingsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SettingsViewController.m; sourceTree = "<group>"; };
 		4790C3F11889B0F100DB9759 /* HelveticaInseratLTStd-Roman.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaInseratLTStd-Roman.otf"; sourceTree = "<group>"; };
@@ -803,6 +809,8 @@
 				4776518018AA691300768D57 /* ManageFriendCell.m */,
 				47AC11E418D13FFC00F60B3A /* TethrButton.h */,
 				47AC11E518D13FFC00F60B3A /* TethrButton.m */,
+				47814E4E19098F76004B146A /* MessageThreadCell.h */,
+				47814E4F19098F76004B146A /* MessageThreadCell.m */,
 			);
 			name = View;
 			sourceTree = "<group>";
@@ -826,6 +834,8 @@
 				472392A618649298000D0C7E /* Notification.m */,
 				47F2EAB81891E5C2007FFEC8 /* TethrTextField.h */,
 				47F2EAB91891E5C2007FFEC8 /* TethrTextField.m */,
+				47814E4B19098680004B146A /* MessageThread.h */,
+				47814E4C19098680004B146A /* MessageThread.m */,
 			);
 			name = Model;
 			sourceTree = "<group>";
@@ -1760,6 +1770,7 @@
 				4705F12A1859298F0095F8B1 /* SearchResultCell.m in Sources */,
 				47EFC43318B1BD7C008A26AA /* UIImage+ImageEffects.m in Sources */,
 				4775D65118AC52B900E80CAC /* JSONKit.m in Sources */,
+				47814E4D19098680004B146A /* MessageThread.m in Sources */,
 				47BB2C57187E074100BB40F5 /* FriendLabel.m in Sources */,
 				472392AA1864D304000D0C7E /* NotificationCell.m in Sources */,
 				472392B51867D08C000D0C7E /* Constants.m in Sources */,
@@ -1788,6 +1799,7 @@
 				47EFC41518B116ED008A26AA /* SBJsonBase.m in Sources */,
 				47EFC41218B116ED008A26AA /* NSObject+SBJSON.m in Sources */,
 				470A33AA184029CE006E48F9 /* LoginViewController.m in Sources */,
+				47814E5019098F76004B146A /* MessageThreadCell.m in Sources */,
 				47EFC41618B116ED008A26AA /* SBJsonParser.m in Sources */,
 				47059D8A1842E17E00CEC50E /* FriendCell.m in Sources */,
 				47E73EBF187C499A009CA44A /* FriendAtPlaceCell.m in Sources */,

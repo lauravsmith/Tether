@@ -357,6 +357,7 @@
     NSSortDescriptor *numberCommitmentsDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"numberCommitments" ascending:NO];
     NSSortDescriptor *numberPastCommitmentsDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"numberPastCommitments" ascending:NO];
     [self.placesArray sortUsingDescriptors:[NSArray arrayWithObjects:numberCommitmentsDescriptor, numberPastCommitmentsDescriptor, nil]];
+    
     if ([self.delegate respondsToSelector:@selector(dismissConfirmation)]) {
         [self.delegate dismissConfirmation];
     }

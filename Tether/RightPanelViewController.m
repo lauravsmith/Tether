@@ -9,13 +9,15 @@
 #import "CenterViewController.h"
 #import "Constants.h"
 #import "Datastore.h"
+#import "MessageThread.h"
+#import "MessageThreadCell.h"
 #import "Notification.h"
 #import "NotificationCell.h"
 #import "RightPanelViewController.h"
 
 #import <Parse/Parse.h>
 
-#define CELL_HEIGHT 70.0
+#define CELL_HEIGHT 80.0
 #define PADDING 10.0
 #define PANEL_WIDTH 45.0
 #define PROFILE_PICTURE_SIZE 28.0
@@ -28,6 +30,7 @@
 @property (retain, nonatomic) UIRefreshControl * refreshControl;
 @property (retain, nonatomic) UIView * deleteConfirmationView;
 @property (retain, nonatomic) UILabel * deleteConfirmationLabel;
+@property (retain, nonatomic) NSMutableDictionary * messageThreadDictionary;
 @property (retain, nonatomic) UIActivityIndicatorView * activityIndicatorView;
 @end
 
@@ -38,7 +41,7 @@
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
         self.notificationsArray = [[NSMutableArray alloc] init];
-        [self.view setAlpha:0.8];
+        self.messageThreadDictionary = [[NSMutableDictionary alloc] init];
     }
     return self;
 }
@@ -56,8 +59,8 @@
     [self.notificationsTableView setDataSource:self];
     [self.notificationsTableView setDelegate:self];
     [self.notificationsTableView setBackgroundColor:[UIColor clearColor]];
+    [self.notificationsTableView setBackgroundView:backgroundImageView];
     [self.view addSubview:self.notificationsTableView];
-    self.notificationsTableView.contentOffset = CGPointMake(0.0, -20.0);
     self.notificationsTableView.showsVerticalScrollIndicator = NO;
     
     self.notificationsTableViewController = [[UITableViewController alloc] init];
@@ -72,7 +75,7 @@
 -(void)refresh {
     [self.refreshControl beginRefreshing];
     [self performSelector:@selector(endRefresh:) withObject:self.refreshControl afterDelay:1.0f];
-    [self loadNotifications];
+//    [self loadNotifications];
 }
 
 - (void)endRefresh:(UIRefreshControl *)refresh
@@ -82,97 +85,39 @@
 
 -(void)loadNotifications {
     Datastore *sharedDataManager = [Datastore sharedDataManager];
-    NSLog(@"PARSE QUERY: POLLING NOTIFICATIONS");
     
-    PFQuery *query = [PFQuery queryWithClassName:kNotificationClassKey];
-    query.limit = 5000;
-    
-    if (sharedDataManager.facebookId) {
-        NSDate *today = [self getStartTime];
-        [query whereKey:@"recipientID" equalTo:sharedDataManager.facebookId];
-        query.cachePolicy = kPFCachePolicyNetworkElseCache;
-        [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
-            if (!error) {
-                sharedDataManager.todaysNotificationsArray = [[NSMutableArray alloc] init];
-                sharedDataManager.bestFriendSet = [[NSMutableSet alloc] init];
-                self.notificationsArray = [[NSMutableArray alloc] init];
-                for (PFObject *invitation in objects) {
-                    Notification *notification = [[Notification alloc] init];
-                    
-                    notification.parseObject = invitation;
-                    
-                    if ([invitation objectForKey:kNotificationTypeKey]) {
-                        notification.type = [invitation objectForKey:kNotificationTypeKey];
-                    }
-                    
-                    if ([invitation objectForKey:@"messageHeader"]) {
-                        notification.messageHeader = [invitation objectForKey:@"messageHeader"];
-                    }
-                    
-                    if ([invitation objectForKey:@"message"]) {
-                        notification.message = [invitation objectForKey:@"message"];
-                    }
-                    
-                    if ([invitation objectForKey:@"sender"]) {
-                        NSString *friendId =[invitation objectForKey:@"sender"];
-                        Friend *friend = [[Friend alloc] init];
-                        if ([sharedDataManager.tetherFriendsDictionary objectForKey:friendId]) {
-                            friend = [sharedDataManager.tetherFriendsDictionary objectForKey:friendId];
-                            notification.sender = friend;
-                            
-                            if (invitation.createdAt) {
-                                notification.time = invitation.createdAt;
-                            }
-                            
-                            if ([invitation objectForKey:@"placeId"]) {
-                                notification.placeId = [invitation objectForKey:@"placeId"];
-                                Place *place = [[Place alloc] init];
-                                if ([sharedDataManager.placesDictionary objectForKey:notification.placeId]) {
-                                    place = [sharedDataManager.placesDictionary objectForKey:notification.placeId];
-                                    notification.place = place;
-                                    notification.placeName = place.name;
-                                }
-                            }
-                            
-                            if ([invitation objectForKey:@"placeName"]) {
-                                notification.placeName = [invitation objectForKey:@"placeName"];
-                            }
-                            
-                            if ([invitation objectForKey:@"city"]) {
-                                notification.city = [invitation objectForKey:@"city"];
-                            }
-                            
-                            if ([invitation objectForKey:@"allRecipients"]) {
-                                NSMutableArray *recipientIds = [invitation objectForKey:@"allRecipients"];
-                                notification.allRecipients = [[NSMutableArray alloc] init];
-                                for (id recipientId in recipientIds) {
-                                    if (![recipientId isEqualToString:sharedDataManager.facebookId] &&
-                                        [sharedDataManager.tetherFriendsDictionary objectForKey:recipientId]) {
-                                        Friend *friend = [[Friend alloc] init];
-                                        friend = [sharedDataManager.tetherFriendsDictionary objectForKey:recipientId];
-                                        [notification.allRecipients addObject:friend];
-                                    }
-                                }
-                            }
-                            if ([notification.type isEqualToString:@"invitation"] || [notification.type isEqualToString:@"acceptance"] || [notification.type isEqualToString:@"status"] || [notification.type isEqualToString:@"newUser"] || [notification.type isEqualToString:@"receipt"]) {
-                                [self.notificationsArray addObject:notification];
-                            }
-                            
-                            if ([notification.type isEqualToString:@"invitation"]) {
-                                [sharedDataManager.bestFriendSet addObject:notification.sender.friendID];
-                                if ([today compare:notification.time] == NSOrderedAscending) {
-                                    [sharedDataManager.todaysNotificationsArray addObject:notification];
-                                }
-                            }
-                        }
-                    }
-                }
+    PFQuery *query = [PFQuery queryWithClassName:@"MessageParticipant"];
+    [query whereKey:@"facebookId" equalTo:sharedDataManager.facebookId];
+    [query includeKey:@"threadId"];
+    [query findObjectsInBackgroundWithBlock:^(NSArray *participants, NSError *error) {
+        if (!error) {
+            for (PFObject *participant in participants) {
+                // This does not require a network access.
+                PFObject *threadObject = [participant objectForKey:@"threadId"];
+                NSLog(@"recent message: %@", [threadObject objectForKey:@"recentMessage"]);
+                
+                MessageThread *thread = [[MessageThread alloc] init];
+                thread.threadId = threadObject.objectId;
+                thread.recentMessageDate = threadObject.updatedAt;
+                thread.recentMessage = [threadObject objectForKey:@"recentMessage"];
+                thread.participantIds = [NSMutableSet setWithArray:[threadObject objectForKey:@"participantIds"]];
+                thread.participantNames = [NSMutableSet setWithArray:[threadObject objectForKey:@"participantNames"]];
+                
+                [self.messageThreadDictionary setObject:thread forKey:thread.threadId];
             }
-            NSSortDescriptor *timeDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"time" ascending:NO];
-            [self.notificationsArray sortUsingDescriptors:[NSArray arrayWithObjects:timeDescriptor, nil]];
+            
+            for(id key in self.messageThreadDictionary) {
+                [self.notificationsArray addObject:[self.messageThreadDictionary objectForKey:key]];
+            }
+            
+            NSSortDescriptor *dateDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"recentMessageDate" ascending:NO];
+            [self.notificationsArray sortUsingDescriptors:[NSArray arrayWithObjects:dateDescriptor, nil]];
+            
             [self.notificationsTableView reloadData];
-        }];
-    }
+            
+            // TODO: message thread dictionary to array -> sory by date, use Message Thread cells
+        }
+    }];
 }
 
 -(NSDate*)getStartTime{
@@ -266,65 +211,95 @@
 #pragma mark UITableViewDataSource Methods
 
 -(CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    return 20.0;
+    return CELL_HEIGHT;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.row == [self.notificationsArray count]) {
         return CELL_HEIGHT;
     } else {
-        UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:12.0f];
-        NotificationCell *cell = (NotificationCell*)[self tableView:tableView cellForRowAtIndexPath:indexPath];
-        CGSize sizeTime = [cell.timeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
-        
-        CGRect rect = [cell.text boundingRectWithSize:CGSizeMake(200.0, 500.f)
-                                              options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading)
-                                              context:nil];
-        
-        return MAX(CELL_HEIGHT, rect.size.height + sizeTime.height + 1.0 + PADDING);
+//        UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:12.0f];
+//        NotificationCell *cell = (NotificationCell*)[self tableView:tableView cellForRowAtIndexPath:indexPath];
+//        CGSize sizeTime = [cell.timeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
+//        
+//        CGRect rect = [cell.text boundingRectWithSize:CGSizeMake(200.0, 500.f)
+//                                              options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading)
+//                                              context:nil];
+//        
+//        return MAX(CELL_HEIGHT, rect.size.height + sizeTime.height + 1.0 + PADDING);
+        return CELL_HEIGHT;
     }
 }
 
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return [self.notificationsArray count] + 1;
+    return [self.notificationsArray count];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.row == [self.notificationsArray count]) {
-        UITableViewCell *cell = [[UITableViewCell alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.frame.size.width - PANEL_WIDTH, CELL_HEIGHT)];
-        UILabel *clearNotificationsLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, cell.frame.size.width, cell.frame.size.height)];
-        clearNotificationsLabel.text = @"Clear activity feed";
-        if ([self.notificationsArray count] == 0) {
-            clearNotificationsLabel.text = @"Activity feed";
-        }
-        
-        [clearNotificationsLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
-        UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:20.0f];
-        [clearNotificationsLabel setFont:montserrat];
-        CGSize size = [clearNotificationsLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
-        clearNotificationsLabel.frame = CGRectMake((self.view.frame.size.width - PANEL_WIDTH - size.width) / 2.0, (CELL_HEIGHT - size.height) / 2.0, size.width, size.height);
-        clearNotificationsLabel.textAlignment = NSTextAlignmentCenter;
-        [cell setBackgroundColor:[UIColor clearColor]];
-        [cell addSubview:clearNotificationsLabel];
-        [cell setSelectionStyle:UITableViewCellSelectionStyleGray];
-        return cell;
-    } else {
-        NotificationCell *cell = [[NotificationCell alloc] init];
-        cell.delegate = self;
-        
-        if ([self.notificationsArray count] > 0) {
-            cell.notification = [self.notificationsArray objectAtIndex:indexPath.row];
-            [cell loadNotification];
-        }
-        cell.selectionStyle = UITableViewCellSelectionStyleNone;
-        return cell;
-    }
+    MessageThreadCell *cell = [[MessageThreadCell alloc] init];
+    [cell setMessageThread:[self.notificationsArray objectAtIndex:indexPath.row]];
+    return cell;
+    
+//    if (indexPath.row == [self.notificationsArray count]) {
+//        UITableViewCell *cell = [[UITableViewCell alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.frame.size.width - PANEL_WIDTH, CELL_HEIGHT)];
+//        UILabel *clearNotificationsLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, cell.frame.size.width, cell.frame.size.height)];
+//        clearNotificationsLabel.text = @"Clear activity feed";
+//        if ([self.notificationsArray count] == 0) {
+//            clearNotificationsLabel.text = @"Activity feed";
+//        }
+//        
+//        [clearNotificationsLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
+//        UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:20.0f];
+//        [clearNotificationsLabel setFont:montserrat];
+//        CGSize size = [clearNotificationsLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
+//        clearNotificationsLabel.frame = CGRectMake((self.view.frame.size.width - PANEL_WIDTH - size.width) / 2.0, (CELL_HEIGHT - size.height) / 2.0, size.width, size.height);
+//        clearNotificationsLabel.textAlignment = NSTextAlignmentCenter;
+//        [cell setBackgroundColor:[UIColor clearColor]];
+//        [cell addSubview:clearNotificationsLabel];
+//        [cell setSelectionStyle:UITableViewCellSelectionStyleGray];
+//        return cell;
+//    } else {
+//        NotificationCell *cell = [[NotificationCell alloc] init];
+//        cell.delegate = self;
+//        
+//        if ([self.notificationsArray count] > 0) {
+//            cell.notification = [self.notificationsArray objectAtIndex:indexPath.row];
+//            [cell loadNotification];
+//        }
+//        cell.selectionStyle = UITableViewCellSelectionStyleNone;
+//        return cell;
+//    }
 }
 
 -(UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
 {
-    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, STATUS_BAR_HEIGHT)];
+    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.notificationsTableView.frame.size.width, CELL_HEIGHT)];
+ 
+    UIImage *backgroundImage = [UIImage imageNamed:@"BlackTexture"];
+    UIImageView *backgroundImageView = [[UIImageView alloc] initWithImage:backgroundImage];
+    backgroundImageView.frame = CGRectMake(0, 0, view.frame.size.width, view.frame.size.height);
+    [view addSubview:backgroundImageView];
+    
+    UILabel *messageLabel = [[UILabel alloc] init];
+    messageLabel.text = @"Messages";
+    
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:18.0f];
+    [messageLabel setFont:montserrat];
+    messageLabel.textColor = [UIColor whiteColor];
+    CGSize size = [messageLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
+    messageLabel.frame = CGRectMake((self.view.frame.size.width - PANEL_WIDTH - size.width) / 2.0, (CELL_HEIGHT - size.height + STATUS_BAR_HEIGHT) / 2.0, size.width, size.height);
+    [view addSubview:messageLabel];
+    
+    UIButton *newMessageButton = [[UIButton alloc] initWithFrame:CGRectMake(view.frame.size.width - 41.0, 25.0, 40.0, 40.0)];
+    [newMessageButton setImage:[UIImage imageNamed:@"PlusSign"] forState:UIControlStateNormal];
+//    [newMessageButton addTarget:self action:@selector(newMessage:) forControlEvents:UIControlEventTouchUpInside];
+    [view addSubview:newMessageButton];
+    
+    UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(20.0, view.frame.size.height - 0.5, self.notificationsTableView.frame.size.width - 20.0, 0.5)];
+    separator.backgroundColor = UIColorFromRGB(0xc8c8c8);
+    [view addSubview:separator];
+    
     return view;
 }
 
