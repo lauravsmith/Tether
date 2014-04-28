@@ -9,7 +9,6 @@
 #import "LeftPanelViewController.h"
 #import "Place.h"
 #import "TethrButton.h"
-#import "ViewController.h"
 
 #import <MapKit/MapKit.h>
 #import <UIKit/UIKit.h>
@@ -40,7 +39,7 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 -(void)newPlaceAdded;
 @end
 
-@interface CenterViewController : ViewController <MKMapViewDelegate>
+@interface CenterViewController : UIViewController <MKMapViewDelegate>
 
 @property (nonatomic, assign) id<CenterViewControllerDelegate> delegate;
 

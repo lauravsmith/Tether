@@ -469,16 +469,10 @@
          }
          if(placemarks.count > 0)
          {
-             NSString *MyAddress = @"";
              NSString *city = @"";
              NSString *state = @"";
              
              CLPlacemark *myPlacemark = [placemarks objectAtIndex:0];
-             
-             if([myPlacemark.addressDictionary objectForKey:@"FormattedAddressLines"] != NULL)
-                 MyAddress = [[myPlacemark.addressDictionary objectForKey:@"FormattedAddressLines"] componentsJoinedByString:@", "];
-             else
-                 MyAddress = @"Address Not founded";
              
              if([myPlacemark.addressDictionary objectForKey:@"City"] != NULL)
                  city = [myPlacemark.addressDictionary objectForKey:@"City"];

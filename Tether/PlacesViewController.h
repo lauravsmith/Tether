@@ -6,11 +6,9 @@
 //  Copyright (c) 2013 Laura Smith. All rights reserved.
 //
 
-#import "ViewController.h"
-
 @protocol PlacesViewControllerDelegate;
 
-@interface PlacesViewController : ViewController
+@interface PlacesViewController : UIViewController
 @property (nonatomic, weak) id<PlacesViewControllerDelegate> delegate;
 @property (nonatomic, strong) UITableView *placesTableView;
 @property (assign, nonatomic) bool closingListView;

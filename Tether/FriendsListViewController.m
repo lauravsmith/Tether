@@ -472,7 +472,6 @@
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     
     Friend *friend = [[Friend alloc] init];
-    friend = [[Friend alloc] init];
     friend.friendID = sharedDataManager.facebookId;
     friend.name = sharedDataManager.name;
     friend.statusMessage = sharedDataManager.statusMessage;

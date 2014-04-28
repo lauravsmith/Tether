@@ -9,6 +9,7 @@
 #import "CenterViewController.h"
 #import "Constants.h"
 #import "Datastore.h"
+#import "Message.h"
 #import "MessageThread.h"
 #import "MessageThreadCell.h"
 #import "Notification.h"
@@ -32,6 +33,7 @@
 @property (retain, nonatomic) UILabel * deleteConfirmationLabel;
 @property (retain, nonatomic) NSMutableDictionary * messageThreadDictionary;
 @property (retain, nonatomic) UIActivityIndicatorView * activityIndicatorView;
+@property (retain, nonatomic) NSMutableArray * messageThreadObjects;
 @end
 
 @implementation RightPanelViewController
@@ -58,7 +60,6 @@
     self.notificationsTableView = [[UITableView alloc] initWithFrame:CGRectMake(PANEL_WIDTH, 0, self.view.frame.size.width - PANEL_WIDTH, self.view.frame.size.height)];
     [self.notificationsTableView setDataSource:self];
     [self.notificationsTableView setDelegate:self];
-    [self.notificationsTableView setBackgroundColor:[UIColor clearColor]];
     [self.notificationsTableView setBackgroundView:backgroundImageView];
     [self.view addSubview:self.notificationsTableView];
     self.notificationsTableView.showsVerticalScrollIndicator = NO;
@@ -75,7 +76,7 @@
 -(void)refresh {
     [self.refreshControl beginRefreshing];
     [self performSelector:@selector(endRefresh:) withObject:self.refreshControl afterDelay:1.0f];
-//    [self loadNotifications];
+    [self loadNotifications];
 }
 
 - (void)endRefresh:(UIRefreshControl *)refresh
@@ -91,9 +92,11 @@
     [query includeKey:@"threadId"];
     [query findObjectsInBackgroundWithBlock:^(NSArray *participants, NSError *error) {
         if (!error) {
+            self.messageThreadObjects = [[NSMutableArray alloc] init];
             for (PFObject *participant in participants) {
                 // This does not require a network access.
                 PFObject *threadObject = [participant objectForKey:@"threadId"];
+                [self.messageThreadObjects addObject:threadObject];
                 NSLog(@"recent message: %@", [threadObject objectForKey:@"recentMessage"]);
                 
                 MessageThread *thread = [[MessageThread alloc] init];
@@ -103,8 +106,12 @@
                 thread.participantIds = [NSMutableSet setWithArray:[threadObject objectForKey:@"participantIds"]];
                 thread.participantNames = [NSMutableSet setWithArray:[threadObject objectForKey:@"participantNames"]];
                 
+                thread.messages = [[NSMutableDictionary alloc] init];
+                
                 [self.messageThreadDictionary setObject:thread forKey:thread.threadId];
             }
+            
+            self.notificationsArray = [[NSMutableArray alloc] init];
             
             for(id key in self.messageThreadDictionary) {
                 [self.notificationsArray addObject:[self.messageThreadDictionary objectForKey:key]];
@@ -115,7 +122,37 @@
             
             [self.notificationsTableView reloadData];
             
-            // TODO: message thread dictionary to array -> sory by date, use Message Thread cells
+            [self loadMessages];
+        }
+    }];
+}
+
+-(void)loadMessages {
+    NSMutableArray *messageThreadIdArray = [[NSMutableArray alloc] init];
+    
+    for (id key in self.messageThreadDictionary) {
+        [messageThreadIdArray addObject:[self.messageThreadDictionary objectForKey:key]];
+    }
+    
+    PFQuery *query = [PFQuery queryWithClassName:@"Message"];
+    [query whereKey:@"threadId" containedIn:self.messageThreadObjects];
+    [query includeKey:@"threadId"];
+    [query findObjectsInBackgroundWithBlock:^(NSArray *messages, NSError *error) {
+        if (!error) {
+            for (PFObject *messageObject in messages) {
+                PFObject *threadObject = [messageObject objectForKey:@"threadId"];
+                MessageThread *thread = [self.messageThreadDictionary objectForKey:threadObject.objectId
+                                         ];
+                Message *message = [[Message alloc] init];
+                message.messageId = messageObject.objectId;
+                message.userId = [messageObject objectForKey:@"facebookId"];
+                message.userName = [messageObject objectForKey:@"name"];
+                message.content = [messageObject objectForKey:@"message"];
+                message.date = messageObject.updatedAt;
+                
+                [thread.messages setObject:message forKey:message.messageId];
+                [self.messageThreadDictionary setObject:thread forKey:thread.threadId];
+            }
         }
     }];
 }
@@ -215,20 +252,7 @@
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.row == [self.notificationsArray count]) {
-        return CELL_HEIGHT;
-    } else {
-//        UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:12.0f];
-//        NotificationCell *cell = (NotificationCell*)[self tableView:tableView cellForRowAtIndexPath:indexPath];
-//        CGSize sizeTime = [cell.timeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
-//        
-//        CGRect rect = [cell.text boundingRectWithSize:CGSizeMake(200.0, 500.f)
-//                                              options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading)
-//                                              context:nil];
-//        
-//        return MAX(CELL_HEIGHT, rect.size.height + sizeTime.height + 1.0 + PADDING);
-        return CELL_HEIGHT;
-    }
+    return CELL_HEIGHT;
 }
 
 
@@ -239,37 +263,8 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     MessageThreadCell *cell = [[MessageThreadCell alloc] init];
     [cell setMessageThread:[self.notificationsArray objectAtIndex:indexPath.row]];
+    [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
     return cell;
-    
-//    if (indexPath.row == [self.notificationsArray count]) {
-//        UITableViewCell *cell = [[UITableViewCell alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.frame.size.width - PANEL_WIDTH, CELL_HEIGHT)];
-//        UILabel *clearNotificationsLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, cell.frame.size.width, cell.frame.size.height)];
-//        clearNotificationsLabel.text = @"Clear activity feed";
-//        if ([self.notificationsArray count] == 0) {
-//            clearNotificationsLabel.text = @"Activity feed";
-//        }
-//        
-//        [clearNotificationsLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
-//        UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:20.0f];
-//        [clearNotificationsLabel setFont:montserrat];
-//        CGSize size = [clearNotificationsLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
-//        clearNotificationsLabel.frame = CGRectMake((self.view.frame.size.width - PANEL_WIDTH - size.width) / 2.0, (CELL_HEIGHT - size.height) / 2.0, size.width, size.height);
-//        clearNotificationsLabel.textAlignment = NSTextAlignmentCenter;
-//        [cell setBackgroundColor:[UIColor clearColor]];
-//        [cell addSubview:clearNotificationsLabel];
-//        [cell setSelectionStyle:UITableViewCellSelectionStyleGray];
-//        return cell;
-//    } else {
-//        NotificationCell *cell = [[NotificationCell alloc] init];
-//        cell.delegate = self;
-//        
-//        if ([self.notificationsArray count] > 0) {
-//            cell.notification = [self.notificationsArray objectAtIndex:indexPath.row];
-//            [cell loadNotification];
-//        }
-//        cell.selectionStyle = UITableViewCellSelectionStyleNone;
-//        return cell;
-//    }
 }
 
 -(UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
@@ -291,7 +286,7 @@
     messageLabel.frame = CGRectMake((self.view.frame.size.width - PANEL_WIDTH - size.width) / 2.0, (CELL_HEIGHT - size.height + STATUS_BAR_HEIGHT) / 2.0, size.width, size.height);
     [view addSubview:messageLabel];
     
-    UIButton *newMessageButton = [[UIButton alloc] initWithFrame:CGRectMake(view.frame.size.width - 41.0, 25.0, 40.0, 40.0)];
+    UIButton *newMessageButton = [[UIButton alloc] initWithFrame:CGRectMake(view.frame.size.width - 45.0, 30.0, 40.0, 40.0)];
     [newMessageButton setImage:[UIImage imageNamed:@"PlusSign"] forState:UIControlStateNormal];
 //    [newMessageButton addTarget:self action:@selector(newMessage:) forControlEvents:UIControlEventTouchUpInside];
     [view addSubview:newMessageButton];
@@ -304,9 +299,7 @@
 }
 
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.row == [self.notificationsArray count] && [self.notificationsArray count] > 0) {
-        [self deleteNotifications];
-    }
+    [self.delegate openMessageViewControllerForMessageThread:[self.notificationsArray objectAtIndex:indexPath.row]];
 }
 
 - (void)didReceiveMemoryWarning

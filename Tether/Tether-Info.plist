@@ -50,13 +50,9 @@
 	<true/>
 	<key>UIAppFonts</key>
 	<array>
-		<string>Champagne&amp;LimousinesItalic.ttf</string>
-		<string>Champagne&amp;Limousines.ttf</string>
-		<string>Champagne&amp;LimousinesBold.ttf</string>
 		<string>Montserrat.ttf</string>
 		<string>MontserratBold.ttf</string>
 		<string>HelveticaNeueLTStd-UltLt.otf</string>
-		<string>KaufmannStd.otf</string>
 		<string>MissionGothicBlackItalic.otf</string>
 		<string>MissionGothicBoldItalic.otf</string>
 		<string>MissionGothicBlack.otf</string>

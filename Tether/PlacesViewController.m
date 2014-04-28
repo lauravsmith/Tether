@@ -170,15 +170,14 @@
     if (sharedDataManager.facebookId) {
         [friendsArrayWithMe addObject:sharedDataManager.facebookId];
     
-    NSString *userCity;
-    NSString *userState = [[NSString alloc] init];
-    userCity = [self.userDetails objectForKey:kUserDefaultsCityKey];
-    userState = [self.userDetails objectForKey:kUserDefaultsStateKey];
+    NSString *userCity = [self.userDetails objectForKey:kUserDefaultsCityKey];;
+    NSString *userState = [self.userDetails objectForKey:kUserDefaultsStateKey];
     
     PFQuery *query = [PFQuery queryWithClassName:kCommitmentClassKey];
     [query whereKey:kUserFacebookIDKey containedIn:friendsArrayWithMe];        
     if ([self.userDetails boolForKey:@"cityFriendsOnly"]) {
         [query whereKey:kCommitmentCityKey equalTo:userCity];
+        [query whereKey:kCommitmentStateKey equalTo:userState];
     }
         
     NSDate *startTime = [self getStartTime];

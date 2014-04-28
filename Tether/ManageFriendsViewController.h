@@ -7,11 +7,10 @@
 //
 
 #import "Friend.h"
-#import "ViewController.h"
 
 @protocol ManageFriendsViewControllerDelegate;
 
-@interface ManageFriendsViewController : ViewController
+@interface ManageFriendsViewController : UIViewController
 
 @property (nonatomic, assign) id<ManageFriendsViewControllerDelegate> delegate;
 

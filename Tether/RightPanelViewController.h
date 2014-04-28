@@ -21,5 +21,6 @@
 -(void)openPageForPlaceWithId:(id)placeId;
 -(void)goToPlaceInListView:(id)placeId;
 -(void)userChangedLocationToCityName:(NSString*)city;
+-(void)openMessageViewControllerForMessageThread:(MessageThread *)thread;
 
 @end

@@ -8,13 +8,12 @@
 
 #import "CenterViewController.h"
 #import "ILGeoNamesLookup.h"
-#import "ViewController.h"
 
 #import <FacebookSDK/FacebookSDK.h>
 
 @protocol SettingsViewControllerDelegate;
 
-@interface SettingsViewController : ViewController
+@interface SettingsViewController : UIViewController
 
 @property (nonatomic, weak) id<SettingsViewControllerDelegate> delegate;
 @property (nonatomic, strong) FBProfilePictureView *userProfilePictureView;

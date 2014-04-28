@@ -17,6 +17,8 @@
 #import "LeftPanelViewController.h"
 #import "Datastore.h"
 #import "MainViewController.h"
+#import "MessageThread.h"
+#import "MessageViewController.h"
 #import "Notification.h"
 #import "Place.h"
 #import "PlacesViewController.h"
@@ -40,7 +42,7 @@
 #define PANEL_WIDTH 45.0
 #define POLLING_INTERVAL 20
 
-@interface MainViewController () <CenterViewControllerDelegate, DecisionViewControllerDelegate, FriendsListViewControllerDelegate, InviteViewControllerDelegate, LeftPanelViewControllerDelegate, PlacesViewControllerDelegate, RightPanelViewControllerDelegate, SettingsViewControllerDelegate, ShareViewControllerDelegate, UIGestureRecognizerDelegate>
+@interface MainViewController () <CenterViewControllerDelegate, DecisionViewControllerDelegate, FriendsListViewControllerDelegate, InviteViewControllerDelegate, LeftPanelViewControllerDelegate, PlacesViewControllerDelegate, RightPanelViewControllerDelegate, SettingsViewControllerDelegate, ShareViewControllerDelegate, UIGestureRecognizerDelegate, MessageViewControllerDelegate>
 
 @property (nonatomic, strong) LeftPanelViewController *leftPanelViewController;
 @property (nonatomic, strong) DecisionViewController *decisionViewController;
@@ -49,6 +51,7 @@
 @property (nonatomic, strong) RightPanelViewController *rightPanelViewController;
 @property (nonatomic, strong) FriendsListViewController *friendsListViewController;
 @property (nonatomic, strong) InviteViewController *inviteViewController;
+@property (nonatomic, strong) MessageViewController *messageViewController;
 @property (nonatomic, assign) BOOL showingRightPanel;
 @property (nonatomic, assign) BOOL showingLeftPanel;
 @property (nonatomic, assign) BOOL showingDecisionView;
@@ -392,7 +395,7 @@
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     NSLog(@"Your city: %@ state: %@", city, state);
     
-    NSMutableArray *facebookFriends = [[NSMutableArray alloc] init];
+    NSMutableArray *facebookFriends;
     if (sharedDataManager.facebookFriends) {
         facebookFriends = [sharedDataManager.facebookFriends mutableCopy];
     } else {
@@ -461,7 +464,7 @@
                         }
                     } else {
                         if ([sharedDataManager.tetherFriendsDictionary objectForKey:user[kUserFacebookIDKey]]) {
-                            [sharedDataManager.tetherFriendsDictionary setObject:Nil forKey:user[kUserFacebookIDKey]];
+                            [sharedDataManager.tetherFriendsDictionary removeObjectForKey:user[kUserFacebookIDKey]];
                         }
                     }
                 }
@@ -1046,7 +1049,6 @@
 
 - (void)movePanelRight // to show left panel
 {
-    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     if (!self.centerViewController.listViewOpen) {
         self.centerViewController.dragging = YES;
         UIView *childView = [self getLeftView];
@@ -1209,7 +1211,6 @@
                                  self.openingPlacePage = NO;
                              }];
         } else {
-            // TODO: fetch place from foursquare
             self.centerViewController.dragging = NO;
             [self showListViewNoReset];
         }
@@ -1321,6 +1322,43 @@
     [self.centerViewController locationSetup];
 }
 
+#pragma mark RightPanelViewControllerDelegate
+-(void)openMessageViewControllerForMessageThread:(MessageThread *)thread {
+    self.messageViewController = [[MessageViewController alloc] init];
+    self.messageViewController.delegate = self;
+    self.messageViewController.thread = thread;
+    [self.messageViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+    [self.view addSubview:self.messageViewController.view];
+    [self addChildViewController:self.messageViewController];
+    [self.messageViewController didMoveToParentViewController:self];
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.messageViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                         
+                     }];
+}
+
+-(void)closeMessageView {
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.messageViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                         [self.messageViewController.view removeFromSuperview];
+                         [self.messageViewController removeFromParentViewController];
+                     }];
+}
+
 #pragma mark LeftPanelViewControllerDelegate
 -(void)goToPlaceInListView:(id)placeId {
       self.centerViewController.dragging = NO;
@@ -1412,18 +1450,18 @@
 #pragma mark FriendInviteViewControllerDelegate methods
 
 -(void)closeInviteView {
-        [UIView animateWithDuration:SLIDE_TIMING
-                              delay:0.0
-             usingSpringWithDamping:1.0
-              initialSpringVelocity:1.0
-                            options:UIViewAnimationOptionBeginFromCurrentState
-                         animations:^{
-                             [self.inviteViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
-                         }
-                         completion:^(BOOL finished) {
-                             [self.inviteViewController.view removeFromSuperview];
-                             [self.inviteViewController removeFromParentViewController];
-                         }];
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.inviteViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                         [self.inviteViewController.view removeFromSuperview];
+                         [self.inviteViewController removeFromParentViewController];
+                     }];
 }
 
 #pragma mark PlacesViewControllerDelegate

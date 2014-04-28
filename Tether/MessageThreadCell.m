@@ -6,10 +6,16 @@
 //  Copyright (c) 2014 Laura Smith. All rights reserved.
 //
 
+#import "Datastore.h"
 #import "MessageThreadCell.h"
 
+#define degreesToRadian(x) (M_PI * (x) / 180.0)
+
 #define MAX_LABEL_WIDTH 150.0
-#define NAME_LABEL_OFFSET_X 70.0
+#define NAME_LABEL_OFFSET_X 80.0
+#define PROFILE_PICTURE_CORNER_RADIUS 22.0
+#define PROFILE_PICTURE_OFFSET_X 20.0
+#define PROFILE_PICTURE_SIZE 45.0
 
 @interface MessageThreadCellContentView : UIView
 
@@ -17,6 +23,7 @@
 @property (nonatomic, strong) UILabel *friendNamesLabel;
 @property (nonatomic, strong) UILabel *recentMessageLabel;
 @property (nonatomic, strong) FBProfilePictureView *friendProfilePictureView;
+@property (nonatomic, strong) UIButton *arrowButton;
 
 @end
 
@@ -29,18 +36,59 @@
         [self addSubview:self.friendNamesLabel];
         self.recentMessageLabel = [[UILabel alloc] init];
         [self addSubview:self.recentMessageLabel];
-        [self setBackgroundColor:[UIColor blackColor]];
+        [self setBackgroundColor:[UIColor clearColor]];
+        self.arrowButton = [[UIButton alloc] init];
+        [self addSubview:self.arrowButton];
     }
     return self;
 }
 
 - (void)layoutSubviews {
-    self.recentMessageLabel.text = self.messageThread.recentMessage;
+    UIFont *montserratBold = [UIFont fontWithName:@"Montserrat-Bold" size:14.0f];
+    NSString *names = @"";
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    
+    for (NSString *friendName in self.messageThread.participantNames) {
+        if (![friendName isEqualToString:sharedDataManager.name]) {
+            if ([names isEqualToString:@""]) {
+                names = friendName;
+            } else {
+                names = [NSString stringWithFormat:@"%@, %@", names,friendName];
+            }
+        }
+    }
+    
+    self.friendNamesLabel.text = names;
+    CGSize size = [self.friendNamesLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];
+    self.friendNamesLabel.frame = CGRectMake(NAME_LABEL_OFFSET_X, 10.0, MIN(size.width, MAX_LABEL_WIDTH), size.height);
+    [self.friendNamesLabel setTextColor:[UIColor whiteColor]];
+    [self.friendNamesLabel setFont:montserratBold];
+    
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
-    CGSize size = [self.recentMessageLabel.text sizeWithAttributes:@{NSFontAttributeName: montserrat}];
-    self.recentMessageLabel.frame = CGRectMake(NAME_LABEL_OFFSET_X, self.friendProfilePictureView.frame.origin.y, MIN(size.width, MAX_LABEL_WIDTH), size.height);
+    self.recentMessageLabel.text = self.messageThread.recentMessage;
+    size = [self.recentMessageLabel.text sizeWithAttributes:@{NSFontAttributeName: montserrat}];
+    self.recentMessageLabel.frame = CGRectMake(NAME_LABEL_OFFSET_X, self.friendNamesLabel.frame.origin.y + self.friendNamesLabel.frame.size.height + 10.0, MIN(size.width, MAX_LABEL_WIDTH), size.height);
     [self.recentMessageLabel setTextColor:[UIColor whiteColor]];
     [self.recentMessageLabel setFont:montserrat];
+    
+    NSString *friendID = @"";
+    for (NSString *participantID in self.messageThread.participantIds) {
+        if (![participantID isEqualToString:sharedDataManager.facebookId]) {
+            friendID = participantID;
+        }
+    }
+    self.friendProfilePictureView = [[FBProfilePictureView alloc] initWithProfileID:(NSString *)friendID pictureCropping:FBProfilePictureCroppingSquare];
+    self.friendProfilePictureView.clipsToBounds = YES;
+    [self addSubview:self.friendProfilePictureView];
+    self.friendProfilePictureView.frame = CGRectMake(PROFILE_PICTURE_OFFSET_X, 10.0, PROFILE_PICTURE_SIZE, PROFILE_PICTURE_SIZE);
+    self.friendProfilePictureView.layer.cornerRadius = 22.0;
+    self.friendProfilePictureView.clipsToBounds = YES;
+    self.friendProfilePictureView.tag = 0;
+    [self addSubview:self.friendProfilePictureView];
+    
+    self.arrowButton.frame = CGRectMake(self.frame.size.width - 30.0, (self.frame.size.height - 10.0) / 2, 7.0, 11.0);
+    self.arrowButton.transform = CGAffineTransformMakeRotation(degreesToRadian(180));
+    [self.arrowButton setImage:[UIImage imageNamed:@"WhiteTriangle"] forState:UIControlStateNormal];
 }
 
 - (void)prepareForReuse {
@@ -65,8 +113,7 @@
 {
     self = [super initWithFrame:frame];
     if (self) {
-        // Initialization code
-        
+        [self setBackgroundColor:[UIColor clearColor]];
     }
     return self;
 }
@@ -80,7 +127,7 @@
     return _cellContentView;
 }
 
-- (void)setMessageThread:(id<FBGraphUser>)thread {
+- (void)setMessageThread:(MessageThread*)thread {
     _messageThread = thread;
     [self.cellContentView setMessageThread:thread];
 }

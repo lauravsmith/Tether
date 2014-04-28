@@ -16,6 +16,6 @@
 @property (nonatomic, assign) BOOL *unread;
 @property (nonatomic, strong) NSMutableSet *participantIds;
 @property (nonatomic, strong) NSMutableSet *participantNames;
-@property (nonatomic, strong) NSMutableSet *Messages;
+@property (nonatomic, strong) NSMutableDictionary *messages;
 
 @end

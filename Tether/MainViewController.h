@@ -6,9 +6,7 @@
 //  Copyright (c) 2013 Laura Smith. All rights reserved.
 //
 
-#import "ViewController.h"
-
-@interface MainViewController : ViewController
+@interface MainViewController : UIViewController
 @property (nonatomic, strong) CenterViewController *centerViewController;
 @property (strong, nonatomic) NSMutableDictionary *friendsDictionary;
 -(void)pollDatabase;

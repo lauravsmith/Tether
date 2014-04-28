@@ -7,13 +7,12 @@
 //
 
 #import "Friend.h"
-#import "ViewController.h"
 
 #import <Parse/Parse.h>
 
 @protocol LeftPanelViewControllerDelegate;
 
-@interface LeftPanelViewController : ViewController
+@interface LeftPanelViewController : UIViewController
 
 @property (nonatomic, assign) id<LeftPanelViewControllerDelegate> delegate;
 -(void)hideSearchBar;
