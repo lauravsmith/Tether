@@ -356,7 +356,16 @@
     // Sort places first by tonights popularity, then past popularity
     NSSortDescriptor *numberCommitmentsDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"numberCommitments" ascending:NO];
     NSSortDescriptor *numberPastCommitmentsDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"numberPastCommitments" ascending:NO];
-    [self.placesArray sortUsingDescriptors:[NSArray arrayWithObjects:numberCommitmentsDescriptor, numberPastCommitmentsDescriptor, nil]];
+   NSSortDescriptor *ownerDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"owner" ascending:NO comparator:^NSComparisonResult(id obj1, id obj2) {
+        NSString *ownerID2 = (NSString*)obj2;
+        if ([ownerID2 isEqualToString:sharedDataManager.facebookId]) {
+            return NSOrderedAscending;
+        } else {
+            return NSOrderedDescending;
+        }
+   }];
+    
+    [self.placesArray sortUsingDescriptors:[NSArray arrayWithObjects:numberCommitmentsDescriptor, numberPastCommitmentsDescriptor, ownerDescriptor, nil]];
     if ([self.delegate respondsToSelector:@selector(dismissConfirmation)]) {
         [self.delegate dismissConfirmation];
     }

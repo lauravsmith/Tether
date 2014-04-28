@@ -87,7 +87,7 @@
     
     CGFloat topBarHeight = TOP_BAR_HEIGHT;
     
-    if (self.place.memo) {
+    if (![self.place.memo isEqualToString:@""]) {
         topBarHeight += MEMO_HEIGHT;
     }
     

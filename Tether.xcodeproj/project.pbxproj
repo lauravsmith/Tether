@@ -26,7 +26,6 @@
 		47064C90183D9E3800E9228A /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 47064C8E183D9E3800E9228A /* InfoPlist.strings */; };
 		47064C92183D9E3800E9228A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 47064C91183D9E3800E9228A /* main.m */; };
 		47064C96183D9E3800E9228A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 47064C95183D9E3800E9228A /* AppDelegate.m */; };
-		47064C99183D9E3800E9228A /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 47064C97183D9E3800E9228A /* Main.storyboard */; };
 		47064C9C183D9E3800E9228A /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 47064C9B183D9E3800E9228A /* ViewController.m */; };
 		47064C9E183D9E3800E9228A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 47064C9D183D9E3800E9228A /* Images.xcassets */; };
 		47064CA5183D9E3800E9228A /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 47064CA4183D9E3800E9228A /* XCTest.framework */; };
@@ -40,16 +39,6 @@
 		47064CC1183DA00D00E9228A /* CenterViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 47064CBF183DA00D00E9228A /* CenterViewController.m */; };
 		47064CC4183DA01B00E9228A /* LeftPanelViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 47064CC3183DA01B00E9228A /* LeftPanelViewController.m */; };
 		47064CC5183DA01B00E9228A /* LeftPanelViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 47064CC3183DA01B00E9228A /* LeftPanelViewController.m */; };
-		47064CD9183DBAE300E9228A /* Champagne&LimousinesBoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 47064CD4183DBAE300E9228A /* Champagne&LimousinesBoldItalic.ttf */; };
-		47064CDA183DBAE300E9228A /* Champagne&LimousinesBoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 47064CD4183DBAE300E9228A /* Champagne&LimousinesBoldItalic.ttf */; };
-		47064CDB183DBAE300E9228A /* Champagne&LimousinesBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 47064CD5183DBAE300E9228A /* Champagne&LimousinesBold.ttf */; };
-		47064CDC183DBAE300E9228A /* Champagne&LimousinesBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 47064CD5183DBAE300E9228A /* Champagne&LimousinesBold.ttf */; };
-		47064CDD183DBAE300E9228A /* Champagne&LimousinesItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 47064CD6183DBAE300E9228A /* Champagne&LimousinesItalic.ttf */; };
-		47064CDE183DBAE300E9228A /* Champagne&LimousinesItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 47064CD6183DBAE300E9228A /* Champagne&LimousinesItalic.ttf */; };
-		47064CDF183DBAE300E9228A /* Champagne&Limousines.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 47064CD7183DBAE300E9228A /* Champagne&Limousines.ttf */; };
-		47064CE0183DBAE300E9228A /* Champagne&Limousines.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 47064CD7183DBAE300E9228A /* Champagne&Limousines.ttf */; };
-		47064CE1183DBAE300E9228A /* readme.txt in Resources */ = {isa = PBXBuildFile; fileRef = 47064CD8183DBAE300E9228A /* readme.txt */; };
-		47064CE2183DBAE300E9228A /* readme.txt in Resources */ = {isa = PBXBuildFile; fileRef = 47064CD8183DBAE300E9228A /* readme.txt */; };
 		47065F1C185AA8BC0047A564 /* RightPanelViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 47065F1B185AA8BC0047A564 /* RightPanelViewController.m */; };
 		4707791E1895F91F00F9B263 /* LoginPageImage.png in Resources */ = {isa = PBXBuildFile; fileRef = 4707791D1895F91F00F9B263 /* LoginPageImage.png */; };
 		470981AB184D7DD100779FC8 /* TetherAnnotation.m in Sources */ = {isa = PBXBuildFile; fileRef = 470981AA184D7DD100779FC8 /* TetherAnnotation.m */; };
@@ -66,15 +55,11 @@
 		470A33A718400D42006E48F9 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 470A33A618400D42006E48F9 /* SystemConfiguration.framework */; };
 		470A33AA184029CE006E48F9 /* LoginViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 470A33A9184029CE006E48F9 /* LoginViewController.m */; };
 		470A33B71842CB98006E48F9 /* DecisionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 470A33B61842CB98006E48F9 /* DecisionViewController.m */; };
-		470C80D3189751FF003F06C4 /* KaufmannStd.otf in Resources */ = {isa = PBXBuildFile; fileRef = 470C80D2189751FF003F06C4 /* KaufmannStd.otf */; };
-		471594BC1899872E007DF8AE /* InviteIcon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 471594BB1899872E007DF8AE /* InviteIcon@2x.png */; };
-		471594BE18998BB4007DF8AE /* InviteIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 471594BD18998BB4007DF8AE /* InviteIcon.png */; };
 		47194F3618639AF900E114F5 /* InviteViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 47194F3518639AF900E114F5 /* InviteViewController.m */; };
 		472392A718649298000D0C7E /* Notification.m in Sources */ = {isa = PBXBuildFile; fileRef = 472392A618649298000D0C7E /* Notification.m */; };
 		472392AA1864D304000D0C7E /* NotificationCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 472392A91864D304000D0C7E /* NotificationCell.m */; };
 		472392B51867D08C000D0C7E /* Constants.m in Sources */ = {isa = PBXBuildFile; fileRef = 472392B41867D08C000D0C7E /* Constants.m */; };
 		47460FF9188079BE0067545B /* Montserrat.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 47460FF6188079BE0067545B /* Montserrat.ttf */; };
-		47460FFA188079BE0067545B /* OFL.txt in Resources */ = {isa = PBXBuildFile; fileRef = 47460FF7188079BE0067545B /* OFL.txt */; };
 		47460FFC188216A20067545B /* BlackTexture.png in Resources */ = {isa = PBXBuildFile; fileRef = 47460FFB188216A20067545B /* BlackTexture.png */; };
 		47460FFE18821C5B0067545B /* MontserratBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 47460FFD18821C5B0067545B /* MontserratBold.ttf */; };
 		4746100018822E9F0067545B /* FriendsThing.png in Resources */ = {isa = PBXBuildFile; fileRef = 47460FFF18822E9F0067545B /* FriendsThing.png */; };
@@ -89,14 +74,6 @@
 		476F4DC618B2F7E6001A89A1 /* MissionGothicBlackItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 476F4DBB18B2F7E6001A89A1 /* MissionGothicBlackItalic.otf */; };
 		476F4DC718B2F7E6001A89A1 /* MissionGothicBold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 476F4DBC18B2F7E6001A89A1 /* MissionGothicBold.otf */; };
 		476F4DC818B2F7E6001A89A1 /* MissionGothicBoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 476F4DBD18B2F7E6001A89A1 /* MissionGothicBoldItalic.otf */; };
-		476F4DC918B2F7E6001A89A1 /* MissionGothicLight.otf in Resources */ = {isa = PBXBuildFile; fileRef = 476F4DBE18B2F7E6001A89A1 /* MissionGothicLight.otf */; };
-		476F4DCA18B2F7E6001A89A1 /* MissionGothicLightItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 476F4DBF18B2F7E6001A89A1 /* MissionGothicLightItalic.otf */; };
-		476F4DCB18B2F7E6001A89A1 /* MissionGothicRegular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 476F4DC018B2F7E6001A89A1 /* MissionGothicRegular.otf */; };
-		476F4DCC18B2F7E6001A89A1 /* MissionGothicRegularItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 476F4DC118B2F7E6001A89A1 /* MissionGothicRegularItalic.otf */; };
-		476F4DCD18B2F7E6001A89A1 /* MissionGothicThin.otf in Resources */ = {isa = PBXBuildFile; fileRef = 476F4DC218B2F7E6001A89A1 /* MissionGothicThin.otf */; };
-		476F4DCE18B2F7E6001A89A1 /* MissionGothicThinItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 476F4DC318B2F7E6001A89A1 /* MissionGothicThinItalic.otf */; };
-		476F4DCF18B2F7E6001A89A1 /* Personal Use License.txt in Resources */ = {isa = PBXBuildFile; fileRef = 476F4DC418B2F7E6001A89A1 /* Personal Use License.txt */; };
-		476F4DD118B3B92A001A89A1 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 476F4DD018B3B92A001A89A1 /* Icon.png */; };
 		47746C9A1906D2F700DC73F4 /* Cancel.png in Resources */ = {isa = PBXBuildFile; fileRef = 47746C961906D2F700DC73F4 /* Cancel.png */; };
 		47746C9B1906D2F700DC73F4 /* Cancel@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 47746C971906D2F700DC73F4 /* Cancel@2x.png */; };
 		47746C9C1906D2F700DC73F4 /* Edit.png in Resources */ = {isa = PBXBuildFile; fileRef = 47746C981906D2F700DC73F4 /* Edit.png */; };
@@ -220,90 +197,13 @@
 		477A8E8D18B68E9200F4F89B /* LineNavigator@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 477A8E8B18B68E9200F4F89B /* LineNavigator@2x.png */; };
 		477A8E8E18B68E9200F4F89B /* LineNavigator.png in Resources */ = {isa = PBXBuildFile; fileRef = 477A8E8C18B68E9200F4F89B /* LineNavigator.png */; };
 		478C4BFF18482B78004C6BD0 /* SettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 478C4BFE18482B78004C6BD0 /* SettingsViewController.m */; };
-		4790C4401889B0F100DB9759 /* HelveticaInseratLTStd-Roman.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3F11889B0F100DB9759 /* HelveticaInseratLTStd-Roman.otf */; };
-		4790C4411889B0F100DB9759 /* HelveticaLTStd-Blk.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3F21889B0F100DB9759 /* HelveticaLTStd-Blk.otf */; };
-		4790C4421889B0F100DB9759 /* HelveticaLTStd-BlkCond.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3F31889B0F100DB9759 /* HelveticaLTStd-BlkCond.otf */; };
-		4790C4431889B0F100DB9759 /* HelveticaLTStd-BlkCondObl.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3F41889B0F100DB9759 /* HelveticaLTStd-BlkCondObl.otf */; };
-		4790C4441889B0F100DB9759 /* HelveticaLTStd-BlkObl.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3F51889B0F100DB9759 /* HelveticaLTStd-BlkObl.otf */; };
-		4790C4451889B0F100DB9759 /* HelveticaLTStd-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3F61889B0F100DB9759 /* HelveticaLTStd-Bold.otf */; };
-		4790C4461889B0F100DB9759 /* HelveticaLTStd-BoldCond.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3F71889B0F100DB9759 /* HelveticaLTStd-BoldCond.otf */; };
-		4790C4471889B0F100DB9759 /* HelveticaLTStd-BoldCondObl.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3F81889B0F100DB9759 /* HelveticaLTStd-BoldCondObl.otf */; };
-		4790C4481889B0F100DB9759 /* HelveticaLTStd-BoldObl.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3F91889B0F100DB9759 /* HelveticaLTStd-BoldObl.otf */; };
-		4790C4491889B0F100DB9759 /* HelveticaLTStd-Comp.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3FA1889B0F100DB9759 /* HelveticaLTStd-Comp.otf */; };
-		4790C44A1889B0F100DB9759 /* HelveticaLTStd-Cond.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3FB1889B0F100DB9759 /* HelveticaLTStd-Cond.otf */; };
-		4790C44B1889B0F100DB9759 /* HelveticaLTStd-CondObl.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3FC1889B0F100DB9759 /* HelveticaLTStd-CondObl.otf */; };
-		4790C44C1889B0F100DB9759 /* HelveticaLTStd-ExtraComp.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3FD1889B0F100DB9759 /* HelveticaLTStd-ExtraComp.otf */; };
-		4790C44D1889B0F100DB9759 /* HelveticaLTStd-Fractions.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3FE1889B0F100DB9759 /* HelveticaLTStd-Fractions.otf */; };
-		4790C44E1889B0F100DB9759 /* HelveticaLTStd-FractionsBd.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C3FF1889B0F100DB9759 /* HelveticaLTStd-FractionsBd.otf */; };
-		4790C44F1889B0F100DB9759 /* HelveticaLTStd-Light.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4001889B0F100DB9759 /* HelveticaLTStd-Light.otf */; };
-		4790C4501889B0F100DB9759 /* HelveticaLTStd-LightCond.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4011889B0F100DB9759 /* HelveticaLTStd-LightCond.otf */; };
-		4790C4511889B0F100DB9759 /* HelveticaLTStd-LightCondObl.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4021889B0F100DB9759 /* HelveticaLTStd-LightCondObl.otf */; };
-		4790C4521889B0F100DB9759 /* HelveticaLTStd-LightObl.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4031889B0F100DB9759 /* HelveticaLTStd-LightObl.otf */; };
-		4790C4531889B0F100DB9759 /* HelveticaLTStd-Obl.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4041889B0F100DB9759 /* HelveticaLTStd-Obl.otf */; };
-		4790C4541889B0F100DB9759 /* HelveticaLTStd-Roman.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4051889B0F100DB9759 /* HelveticaLTStd-Roman.otf */; };
-		4790C4551889B0F100DB9759 /* HelveticaLTStd-UltraComp.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4061889B0F100DB9759 /* HelveticaLTStd-UltraComp.otf */; };
-		4790C4561889B0F100DB9759 /* HelveticaNeueLTStd-Bd.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4071889B0F100DB9759 /* HelveticaNeueLTStd-Bd.otf */; };
-		4790C4571889B0F100DB9759 /* HelveticaNeueLTStd-BdCn.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4081889B0F100DB9759 /* HelveticaNeueLTStd-BdCn.otf */; };
-		4790C4581889B0F100DB9759 /* HelveticaNeueLTStd-BdCnO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4091889B0F100DB9759 /* HelveticaNeueLTStd-BdCnO.otf */; };
-		4790C4591889B0F100DB9759 /* HelveticaNeueLTStd-BdEx.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C40A1889B0F100DB9759 /* HelveticaNeueLTStd-BdEx.otf */; };
-		4790C45A1889B0F100DB9759 /* HelveticaNeueLTStd-BdExO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C40B1889B0F100DB9759 /* HelveticaNeueLTStd-BdExO.otf */; };
-		4790C45B1889B0F100DB9759 /* HelveticaNeueLTStd-BdIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C40C1889B0F100DB9759 /* HelveticaNeueLTStd-BdIt.otf */; };
-		4790C45C1889B0F100DB9759 /* HelveticaNeueLTStd-BdOu.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C40D1889B0F100DB9759 /* HelveticaNeueLTStd-BdOu.otf */; };
-		4790C45D1889B0F100DB9759 /* HelveticaNeueLTStd-Blk.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C40E1889B0F100DB9759 /* HelveticaNeueLTStd-Blk.otf */; };
-		4790C45E1889B0F100DB9759 /* HelveticaNeueLTStd-BlkCn.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C40F1889B0F100DB9759 /* HelveticaNeueLTStd-BlkCn.otf */; };
-		4790C45F1889B0F100DB9759 /* HelveticaNeueLTStd-BlkCnO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4101889B0F100DB9759 /* HelveticaNeueLTStd-BlkCnO.otf */; };
-		4790C4601889B0F100DB9759 /* HelveticaNeueLTStd-BlkEx.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4111889B0F100DB9759 /* HelveticaNeueLTStd-BlkEx.otf */; };
-		4790C4611889B0F100DB9759 /* HelveticaNeueLTStd-BlkExO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4121889B0F100DB9759 /* HelveticaNeueLTStd-BlkExO.otf */; };
-		4790C4621889B0F100DB9759 /* HelveticaNeueLTStd-BlkIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4131889B0F100DB9759 /* HelveticaNeueLTStd-BlkIt.otf */; };
-		4790C4631889B0F100DB9759 /* HelveticaNeueLTStd-Cn.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4141889B0F100DB9759 /* HelveticaNeueLTStd-Cn.otf */; };
-		4790C4641889B0F100DB9759 /* HelveticaNeueLTStd-CnO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4151889B0F100DB9759 /* HelveticaNeueLTStd-CnO.otf */; };
-		4790C4651889B0F100DB9759 /* HelveticaNeueLTStd-Ex.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4161889B0F100DB9759 /* HelveticaNeueLTStd-Ex.otf */; };
-		4790C4661889B0F100DB9759 /* HelveticaNeueLTStd-ExO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4171889B0F100DB9759 /* HelveticaNeueLTStd-ExO.otf */; };
-		4790C4671889B0F100DB9759 /* HelveticaNeueLTStd-Hv.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4181889B0F100DB9759 /* HelveticaNeueLTStd-Hv.otf */; };
-		4790C4681889B0F100DB9759 /* HelveticaNeueLTStd-HvCn.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4191889B0F100DB9759 /* HelveticaNeueLTStd-HvCn.otf */; };
-		4790C4691889B0F100DB9759 /* HelveticaNeueLTStd-HvCnO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C41A1889B0F100DB9759 /* HelveticaNeueLTStd-HvCnO.otf */; };
-		4790C46A1889B0F100DB9759 /* HelveticaNeueLTStd-HvEx.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C41B1889B0F100DB9759 /* HelveticaNeueLTStd-HvEx.otf */; };
-		4790C46B1889B0F100DB9759 /* HelveticaNeueLTStd-HvExO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C41C1889B0F100DB9759 /* HelveticaNeueLTStd-HvExO.otf */; };
-		4790C46C1889B0F100DB9759 /* HelveticaNeueLTStd-HvIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C41D1889B0F100DB9759 /* HelveticaNeueLTStd-HvIt.otf */; };
-		4790C46D1889B0F100DB9759 /* HelveticaNeueLTStd-It.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C41E1889B0F100DB9759 /* HelveticaNeueLTStd-It.otf */; };
-		4790C46E1889B0F100DB9759 /* HelveticaNeueLTStd-Lt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C41F1889B0F100DB9759 /* HelveticaNeueLTStd-Lt.otf */; };
-		4790C46F1889B0F100DB9759 /* HelveticaNeueLTStd-LtCn.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4201889B0F100DB9759 /* HelveticaNeueLTStd-LtCn.otf */; };
-		4790C4701889B0F100DB9759 /* HelveticaNeueLTStd-LtCnO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4211889B0F100DB9759 /* HelveticaNeueLTStd-LtCnO.otf */; };
-		4790C4711889B0F100DB9759 /* HelveticaNeueLTStd-LtEx.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4221889B0F100DB9759 /* HelveticaNeueLTStd-LtEx.otf */; };
-		4790C4721889B0F100DB9759 /* HelveticaNeueLTStd-LtExO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4231889B0F100DB9759 /* HelveticaNeueLTStd-LtExO.otf */; };
-		4790C4731889B0F100DB9759 /* HelveticaNeueLTStd-LtIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4241889B0F100DB9759 /* HelveticaNeueLTStd-LtIt.otf */; };
-		4790C4741889B0F100DB9759 /* HelveticaNeueLTStd-Md.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4251889B0F100DB9759 /* HelveticaNeueLTStd-Md.otf */; };
-		4790C4751889B0F100DB9759 /* HelveticaNeueLTStd-MdCn.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4261889B0F100DB9759 /* HelveticaNeueLTStd-MdCn.otf */; };
-		4790C4761889B0F100DB9759 /* HelveticaNeueLTStd-MdCnO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4271889B0F100DB9759 /* HelveticaNeueLTStd-MdCnO.otf */; };
-		4790C4771889B0F100DB9759 /* HelveticaNeueLTStd-MdEx.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4281889B0F100DB9759 /* HelveticaNeueLTStd-MdEx.otf */; };
-		4790C4781889B0F100DB9759 /* HelveticaNeueLTStd-MdExO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4291889B0F100DB9759 /* HelveticaNeueLTStd-MdExO.otf */; };
-		4790C4791889B0F100DB9759 /* HelveticaNeueLTStd-MdIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C42A1889B0F100DB9759 /* HelveticaNeueLTStd-MdIt.otf */; };
-		4790C47A1889B0F100DB9759 /* HelveticaNeueLTStd-Roman.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C42B1889B0F100DB9759 /* HelveticaNeueLTStd-Roman.otf */; };
-		4790C47B1889B0F100DB9759 /* HelveticaNeueLTStd-Th.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C42C1889B0F100DB9759 /* HelveticaNeueLTStd-Th.otf */; };
-		4790C47C1889B0F100DB9759 /* HelveticaNeueLTStd-ThCn.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C42D1889B0F100DB9759 /* HelveticaNeueLTStd-ThCn.otf */; };
-		4790C47D1889B0F100DB9759 /* HelveticaNeueLTStd-ThCnO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C42E1889B0F100DB9759 /* HelveticaNeueLTStd-ThCnO.otf */; };
-		4790C47E1889B0F100DB9759 /* HelveticaNeueLTStd-ThEx.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C42F1889B0F100DB9759 /* HelveticaNeueLTStd-ThEx.otf */; };
-		4790C47F1889B0F100DB9759 /* HelveticaNeueLTStd-ThExO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4301889B0F100DB9759 /* HelveticaNeueLTStd-ThExO.otf */; };
-		4790C4801889B0F100DB9759 /* HelveticaNeueLTStd-ThIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4311889B0F100DB9759 /* HelveticaNeueLTStd-ThIt.otf */; };
 		4790C4811889B0F100DB9759 /* HelveticaNeueLTStd-UltLt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4321889B0F100DB9759 /* HelveticaNeueLTStd-UltLt.otf */; };
-		4790C4821889B0F100DB9759 /* HelveticaNeueLTStd-UltLtCn.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4331889B0F100DB9759 /* HelveticaNeueLTStd-UltLtCn.otf */; };
-		4790C4831889B0F100DB9759 /* HelveticaNeueLTStd-UltLtCnO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4341889B0F100DB9759 /* HelveticaNeueLTStd-UltLtCnO.otf */; };
-		4790C4841889B0F100DB9759 /* HelveticaNeueLTStd-UltLtEx.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4351889B0F100DB9759 /* HelveticaNeueLTStd-UltLtEx.otf */; };
-		4790C4851889B0F100DB9759 /* HelveticaNeueLTStd-UltLtExO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4361889B0F100DB9759 /* HelveticaNeueLTStd-UltLtExO.otf */; };
-		4790C4861889B0F100DB9759 /* HelveticaNeueLTStd-UltLtIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4371889B0F100DB9759 /* HelveticaNeueLTStd-UltLtIt.otf */; };
-		4790C4871889B0F100DB9759 /* HelveticaNeueLTStd-XBlkCn.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4381889B0F100DB9759 /* HelveticaNeueLTStd-XBlkCn.otf */; };
-		4790C4881889B0F100DB9759 /* HelveticaNeueLTStd-XBlkCnO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4391889B0F100DB9759 /* HelveticaNeueLTStd-XBlkCnO.otf */; };
-		4790C4891889B0F100DB9759 /* HelveticaRoundedLTStd-Bd.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C43A1889B0F100DB9759 /* HelveticaRoundedLTStd-Bd.otf */; };
-		4790C48A1889B0F100DB9759 /* HelveticaRoundedLTStd-BdCn.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C43B1889B0F100DB9759 /* HelveticaRoundedLTStd-BdCn.otf */; };
-		4790C48B1889B0F100DB9759 /* HelveticaRoundedLTStd-BdCnO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C43C1889B0F100DB9759 /* HelveticaRoundedLTStd-BdCnO.otf */; };
-		4790C48C1889B0F100DB9759 /* HelveticaRoundedLTStd-BdO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C43D1889B0F100DB9759 /* HelveticaRoundedLTStd-BdO.otf */; };
-		4790C48D1889B0F100DB9759 /* HelveticaRoundedLTStd-Black.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C43E1889B0F100DB9759 /* HelveticaRoundedLTStd-Black.otf */; };
-		4790C48E1889B0F100DB9759 /* HelveticaRoundedLTStd-BlkO.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C43F1889B0F100DB9759 /* HelveticaRoundedLTStd-BlkO.otf */; };
 		47AC11DF18D13D7100F60B3A /* InfoPinGrey.png in Resources */ = {isa = PBXBuildFile; fileRef = 47AC11DD18D13D7100F60B3A /* InfoPinGrey.png */; };
 		47AC11E018D13D7100F60B3A /* InfoPinGrey@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 47AC11DE18D13D7100F60B3A /* InfoPinGrey@2x.png */; };
 		47AC11E618D13FFC00F60B3A /* TethrButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 47AC11E518D13FFC00F60B3A /* TethrButton.m */; };
 		47AC11E918D2170600F60B3A /* GreyPinIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 47AC11E718D2170600F60B3A /* GreyPinIcon.png */; };
 		47AC11EA18D2170600F60B3A /* GreyPinIcon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 47AC11E818D2170600F60B3A /* GreyPinIcon@2x.png */; };
+		47AE03FC190EA99500D05885 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 47AE03FB190EA99500D05885 /* Main.storyboard */; };
 		47BA769318D78CE6001C9236 /* ShareViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 47BA769218D78CE6001C9236 /* ShareViewController.m */; };
 		47BA769618D791B6001C9236 /* FacebookIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 47BA769418D791B6001C9236 /* FacebookIcon.png */; };
 		47BA769718D791B6001C9236 /* MessageIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 47BA769518D791B6001C9236 /* MessageIcon.png */; };
@@ -369,7 +269,6 @@
 		47064C93183D9E3800E9228A /* Tether-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Tether-Prefix.pch"; sourceTree = "<group>"; };
 		47064C94183D9E3800E9228A /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		47064C95183D9E3800E9228A /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		47064C98183D9E3800E9228A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		47064C9A183D9E3800E9228A /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		47064C9B183D9E3800E9228A /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
 		47064C9D183D9E3800E9228A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
@@ -384,11 +283,6 @@
 		47064CBF183DA00D00E9228A /* CenterViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CenterViewController.m; sourceTree = "<group>"; };
 		47064CC2183DA01B00E9228A /* LeftPanelViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LeftPanelViewController.h; sourceTree = "<group>"; };
 		47064CC3183DA01B00E9228A /* LeftPanelViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LeftPanelViewController.m; sourceTree = "<group>"; };
-		47064CD4183DBAE300E9228A /* Champagne&LimousinesBoldItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Champagne&LimousinesBoldItalic.ttf"; sourceTree = "<group>"; };
-		47064CD5183DBAE300E9228A /* Champagne&LimousinesBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Champagne&LimousinesBold.ttf"; sourceTree = "<group>"; };
-		47064CD6183DBAE300E9228A /* Champagne&LimousinesItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Champagne&LimousinesItalic.ttf"; sourceTree = "<group>"; };
-		47064CD7183DBAE300E9228A /* Champagne&Limousines.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Champagne&Limousines.ttf"; sourceTree = "<group>"; };
-		47064CD8183DBAE300E9228A /* readme.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = readme.txt; sourceTree = "<group>"; };
 		47065F1A185AA8BC0047A564 /* RightPanelViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RightPanelViewController.h; sourceTree = "<group>"; };
 		47065F1B185AA8BC0047A564 /* RightPanelViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RightPanelViewController.m; sourceTree = "<group>"; };
 		4707791D1895F91F00F9B263 /* LoginPageImage.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = LoginPageImage.png; sourceTree = "<group>"; };
@@ -409,9 +303,6 @@
 		470A33A9184029CE006E48F9 /* LoginViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LoginViewController.m; sourceTree = "<group>"; };
 		470A33B51842CB98006E48F9 /* DecisionViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DecisionViewController.h; sourceTree = "<group>"; };
 		470A33B61842CB98006E48F9 /* DecisionViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DecisionViewController.m; sourceTree = "<group>"; };
-		470C80D2189751FF003F06C4 /* KaufmannStd.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = KaufmannStd.otf; sourceTree = "<group>"; };
-		471594BB1899872E007DF8AE /* InviteIcon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "InviteIcon@2x.png"; sourceTree = "<group>"; };
-		471594BD18998BB4007DF8AE /* InviteIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = InviteIcon.png; sourceTree = "<group>"; };
 		47194F3418639AF900E114F5 /* InviteViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InviteViewController.h; sourceTree = "<group>"; };
 		47194F3518639AF900E114F5 /* InviteViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = InviteViewController.m; sourceTree = "<group>"; };
 		472392A518649298000D0C7E /* Notification.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Notification.h; sourceTree = "<group>"; };
@@ -421,7 +312,6 @@
 		472392B31867D08C000D0C7E /* Constants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Constants.h; sourceTree = "<group>"; };
 		472392B41867D08C000D0C7E /* Constants.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Constants.m; sourceTree = "<group>"; };
 		47460FF6188079BE0067545B /* Montserrat.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Montserrat.ttf; sourceTree = "<group>"; };
-		47460FF7188079BE0067545B /* OFL.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = OFL.txt; sourceTree = "<group>"; };
 		47460FFB188216A20067545B /* BlackTexture.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = BlackTexture.png; sourceTree = "<group>"; };
 		47460FFD18821C5B0067545B /* MontserratBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = MontserratBold.ttf; sourceTree = "<group>"; };
 		47460FFF18822E9F0067545B /* FriendsThing.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = FriendsThing.png; sourceTree = "<group>"; };
@@ -436,14 +326,6 @@
 		476F4DBB18B2F7E6001A89A1 /* MissionGothicBlackItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = MissionGothicBlackItalic.otf; sourceTree = "<group>"; };
 		476F4DBC18B2F7E6001A89A1 /* MissionGothicBold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = MissionGothicBold.otf; sourceTree = "<group>"; };
 		476F4DBD18B2F7E6001A89A1 /* MissionGothicBoldItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = MissionGothicBoldItalic.otf; sourceTree = "<group>"; };
-		476F4DBE18B2F7E6001A89A1 /* MissionGothicLight.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = MissionGothicLight.otf; sourceTree = "<group>"; };
-		476F4DBF18B2F7E6001A89A1 /* MissionGothicLightItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = MissionGothicLightItalic.otf; sourceTree = "<group>"; };
-		476F4DC018B2F7E6001A89A1 /* MissionGothicRegular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = MissionGothicRegular.otf; sourceTree = "<group>"; };
-		476F4DC118B2F7E6001A89A1 /* MissionGothicRegularItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = MissionGothicRegularItalic.otf; sourceTree = "<group>"; };
-		476F4DC218B2F7E6001A89A1 /* MissionGothicThin.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = MissionGothicThin.otf; sourceTree = "<group>"; };
-		476F4DC318B2F7E6001A89A1 /* MissionGothicThinItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = MissionGothicThinItalic.otf; sourceTree = "<group>"; };
-		476F4DC418B2F7E6001A89A1 /* Personal Use License.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Personal Use License.txt"; sourceTree = "<group>"; };
-		476F4DD018B3B92A001A89A1 /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
 		47746C961906D2F700DC73F4 /* Cancel.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Cancel.png; sourceTree = "<group>"; };
 		47746C971906D2F700DC73F4 /* Cancel@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Cancel@2x.png"; sourceTree = "<group>"; };
 		47746C981906D2F700DC73F4 /* Edit.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Edit.png; sourceTree = "<group>"; };
@@ -616,91 +498,14 @@
 		477A8E8C18B68E9200F4F89B /* LineNavigator.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = LineNavigator.png; sourceTree = "<group>"; };
 		478C4BFD18482B78004C6BD0 /* SettingsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SettingsViewController.h; sourceTree = "<group>"; };
 		478C4BFE18482B78004C6BD0 /* SettingsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SettingsViewController.m; sourceTree = "<group>"; };
-		4790C3F11889B0F100DB9759 /* HelveticaInseratLTStd-Roman.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaInseratLTStd-Roman.otf"; sourceTree = "<group>"; };
-		4790C3F21889B0F100DB9759 /* HelveticaLTStd-Blk.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-Blk.otf"; sourceTree = "<group>"; };
-		4790C3F31889B0F100DB9759 /* HelveticaLTStd-BlkCond.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-BlkCond.otf"; sourceTree = "<group>"; };
-		4790C3F41889B0F100DB9759 /* HelveticaLTStd-BlkCondObl.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-BlkCondObl.otf"; sourceTree = "<group>"; };
-		4790C3F51889B0F100DB9759 /* HelveticaLTStd-BlkObl.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-BlkObl.otf"; sourceTree = "<group>"; };
-		4790C3F61889B0F100DB9759 /* HelveticaLTStd-Bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-Bold.otf"; sourceTree = "<group>"; };
-		4790C3F71889B0F100DB9759 /* HelveticaLTStd-BoldCond.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-BoldCond.otf"; sourceTree = "<group>"; };
-		4790C3F81889B0F100DB9759 /* HelveticaLTStd-BoldCondObl.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-BoldCondObl.otf"; sourceTree = "<group>"; };
-		4790C3F91889B0F100DB9759 /* HelveticaLTStd-BoldObl.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-BoldObl.otf"; sourceTree = "<group>"; };
-		4790C3FA1889B0F100DB9759 /* HelveticaLTStd-Comp.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-Comp.otf"; sourceTree = "<group>"; };
-		4790C3FB1889B0F100DB9759 /* HelveticaLTStd-Cond.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-Cond.otf"; sourceTree = "<group>"; };
-		4790C3FC1889B0F100DB9759 /* HelveticaLTStd-CondObl.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-CondObl.otf"; sourceTree = "<group>"; };
-		4790C3FD1889B0F100DB9759 /* HelveticaLTStd-ExtraComp.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-ExtraComp.otf"; sourceTree = "<group>"; };
-		4790C3FE1889B0F100DB9759 /* HelveticaLTStd-Fractions.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-Fractions.otf"; sourceTree = "<group>"; };
-		4790C3FF1889B0F100DB9759 /* HelveticaLTStd-FractionsBd.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-FractionsBd.otf"; sourceTree = "<group>"; };
-		4790C4001889B0F100DB9759 /* HelveticaLTStd-Light.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-Light.otf"; sourceTree = "<group>"; };
-		4790C4011889B0F100DB9759 /* HelveticaLTStd-LightCond.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-LightCond.otf"; sourceTree = "<group>"; };
-		4790C4021889B0F100DB9759 /* HelveticaLTStd-LightCondObl.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-LightCondObl.otf"; sourceTree = "<group>"; };
-		4790C4031889B0F100DB9759 /* HelveticaLTStd-LightObl.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-LightObl.otf"; sourceTree = "<group>"; };
-		4790C4041889B0F100DB9759 /* HelveticaLTStd-Obl.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-Obl.otf"; sourceTree = "<group>"; };
-		4790C4051889B0F100DB9759 /* HelveticaLTStd-Roman.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-Roman.otf"; sourceTree = "<group>"; };
-		4790C4061889B0F100DB9759 /* HelveticaLTStd-UltraComp.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaLTStd-UltraComp.otf"; sourceTree = "<group>"; };
-		4790C4071889B0F100DB9759 /* HelveticaNeueLTStd-Bd.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-Bd.otf"; sourceTree = "<group>"; };
-		4790C4081889B0F100DB9759 /* HelveticaNeueLTStd-BdCn.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-BdCn.otf"; sourceTree = "<group>"; };
-		4790C4091889B0F100DB9759 /* HelveticaNeueLTStd-BdCnO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-BdCnO.otf"; sourceTree = "<group>"; };
-		4790C40A1889B0F100DB9759 /* HelveticaNeueLTStd-BdEx.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-BdEx.otf"; sourceTree = "<group>"; };
-		4790C40B1889B0F100DB9759 /* HelveticaNeueLTStd-BdExO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-BdExO.otf"; sourceTree = "<group>"; };
-		4790C40C1889B0F100DB9759 /* HelveticaNeueLTStd-BdIt.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-BdIt.otf"; sourceTree = "<group>"; };
-		4790C40D1889B0F100DB9759 /* HelveticaNeueLTStd-BdOu.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-BdOu.otf"; sourceTree = "<group>"; };
-		4790C40E1889B0F100DB9759 /* HelveticaNeueLTStd-Blk.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-Blk.otf"; sourceTree = "<group>"; };
-		4790C40F1889B0F100DB9759 /* HelveticaNeueLTStd-BlkCn.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-BlkCn.otf"; sourceTree = "<group>"; };
-		4790C4101889B0F100DB9759 /* HelveticaNeueLTStd-BlkCnO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-BlkCnO.otf"; sourceTree = "<group>"; };
-		4790C4111889B0F100DB9759 /* HelveticaNeueLTStd-BlkEx.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-BlkEx.otf"; sourceTree = "<group>"; };
-		4790C4121889B0F100DB9759 /* HelveticaNeueLTStd-BlkExO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-BlkExO.otf"; sourceTree = "<group>"; };
-		4790C4131889B0F100DB9759 /* HelveticaNeueLTStd-BlkIt.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-BlkIt.otf"; sourceTree = "<group>"; };
-		4790C4141889B0F100DB9759 /* HelveticaNeueLTStd-Cn.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-Cn.otf"; sourceTree = "<group>"; };
-		4790C4151889B0F100DB9759 /* HelveticaNeueLTStd-CnO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-CnO.otf"; sourceTree = "<group>"; };
-		4790C4161889B0F100DB9759 /* HelveticaNeueLTStd-Ex.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-Ex.otf"; sourceTree = "<group>"; };
-		4790C4171889B0F100DB9759 /* HelveticaNeueLTStd-ExO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-ExO.otf"; sourceTree = "<group>"; };
-		4790C4181889B0F100DB9759 /* HelveticaNeueLTStd-Hv.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-Hv.otf"; sourceTree = "<group>"; };
-		4790C4191889B0F100DB9759 /* HelveticaNeueLTStd-HvCn.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-HvCn.otf"; sourceTree = "<group>"; };
-		4790C41A1889B0F100DB9759 /* HelveticaNeueLTStd-HvCnO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-HvCnO.otf"; sourceTree = "<group>"; };
-		4790C41B1889B0F100DB9759 /* HelveticaNeueLTStd-HvEx.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-HvEx.otf"; sourceTree = "<group>"; };
-		4790C41C1889B0F100DB9759 /* HelveticaNeueLTStd-HvExO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-HvExO.otf"; sourceTree = "<group>"; };
-		4790C41D1889B0F100DB9759 /* HelveticaNeueLTStd-HvIt.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-HvIt.otf"; sourceTree = "<group>"; };
-		4790C41E1889B0F100DB9759 /* HelveticaNeueLTStd-It.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-It.otf"; sourceTree = "<group>"; };
-		4790C41F1889B0F100DB9759 /* HelveticaNeueLTStd-Lt.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-Lt.otf"; sourceTree = "<group>"; };
-		4790C4201889B0F100DB9759 /* HelveticaNeueLTStd-LtCn.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-LtCn.otf"; sourceTree = "<group>"; };
-		4790C4211889B0F100DB9759 /* HelveticaNeueLTStd-LtCnO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-LtCnO.otf"; sourceTree = "<group>"; };
-		4790C4221889B0F100DB9759 /* HelveticaNeueLTStd-LtEx.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-LtEx.otf"; sourceTree = "<group>"; };
-		4790C4231889B0F100DB9759 /* HelveticaNeueLTStd-LtExO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-LtExO.otf"; sourceTree = "<group>"; };
-		4790C4241889B0F100DB9759 /* HelveticaNeueLTStd-LtIt.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-LtIt.otf"; sourceTree = "<group>"; };
-		4790C4251889B0F100DB9759 /* HelveticaNeueLTStd-Md.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-Md.otf"; sourceTree = "<group>"; };
-		4790C4261889B0F100DB9759 /* HelveticaNeueLTStd-MdCn.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-MdCn.otf"; sourceTree = "<group>"; };
-		4790C4271889B0F100DB9759 /* HelveticaNeueLTStd-MdCnO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-MdCnO.otf"; sourceTree = "<group>"; };
-		4790C4281889B0F100DB9759 /* HelveticaNeueLTStd-MdEx.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-MdEx.otf"; sourceTree = "<group>"; };
-		4790C4291889B0F100DB9759 /* HelveticaNeueLTStd-MdExO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-MdExO.otf"; sourceTree = "<group>"; };
-		4790C42A1889B0F100DB9759 /* HelveticaNeueLTStd-MdIt.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-MdIt.otf"; sourceTree = "<group>"; };
-		4790C42B1889B0F100DB9759 /* HelveticaNeueLTStd-Roman.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-Roman.otf"; sourceTree = "<group>"; };
-		4790C42C1889B0F100DB9759 /* HelveticaNeueLTStd-Th.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-Th.otf"; sourceTree = "<group>"; };
-		4790C42D1889B0F100DB9759 /* HelveticaNeueLTStd-ThCn.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-ThCn.otf"; sourceTree = "<group>"; };
-		4790C42E1889B0F100DB9759 /* HelveticaNeueLTStd-ThCnO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-ThCnO.otf"; sourceTree = "<group>"; };
-		4790C42F1889B0F100DB9759 /* HelveticaNeueLTStd-ThEx.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-ThEx.otf"; sourceTree = "<group>"; };
-		4790C4301889B0F100DB9759 /* HelveticaNeueLTStd-ThExO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-ThExO.otf"; sourceTree = "<group>"; };
-		4790C4311889B0F100DB9759 /* HelveticaNeueLTStd-ThIt.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-ThIt.otf"; sourceTree = "<group>"; };
 		4790C4321889B0F100DB9759 /* HelveticaNeueLTStd-UltLt.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-UltLt.otf"; sourceTree = "<group>"; };
-		4790C4331889B0F100DB9759 /* HelveticaNeueLTStd-UltLtCn.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-UltLtCn.otf"; sourceTree = "<group>"; };
-		4790C4341889B0F100DB9759 /* HelveticaNeueLTStd-UltLtCnO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-UltLtCnO.otf"; sourceTree = "<group>"; };
-		4790C4351889B0F100DB9759 /* HelveticaNeueLTStd-UltLtEx.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-UltLtEx.otf"; sourceTree = "<group>"; };
-		4790C4361889B0F100DB9759 /* HelveticaNeueLTStd-UltLtExO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-UltLtExO.otf"; sourceTree = "<group>"; };
-		4790C4371889B0F100DB9759 /* HelveticaNeueLTStd-UltLtIt.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-UltLtIt.otf"; sourceTree = "<group>"; };
-		4790C4381889B0F100DB9759 /* HelveticaNeueLTStd-XBlkCn.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-XBlkCn.otf"; sourceTree = "<group>"; };
-		4790C4391889B0F100DB9759 /* HelveticaNeueLTStd-XBlkCnO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-XBlkCnO.otf"; sourceTree = "<group>"; };
-		4790C43A1889B0F100DB9759 /* HelveticaRoundedLTStd-Bd.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaRoundedLTStd-Bd.otf"; sourceTree = "<group>"; };
-		4790C43B1889B0F100DB9759 /* HelveticaRoundedLTStd-BdCn.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaRoundedLTStd-BdCn.otf"; sourceTree = "<group>"; };
-		4790C43C1889B0F100DB9759 /* HelveticaRoundedLTStd-BdCnO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaRoundedLTStd-BdCnO.otf"; sourceTree = "<group>"; };
-		4790C43D1889B0F100DB9759 /* HelveticaRoundedLTStd-BdO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaRoundedLTStd-BdO.otf"; sourceTree = "<group>"; };
-		4790C43E1889B0F100DB9759 /* HelveticaRoundedLTStd-Black.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaRoundedLTStd-Black.otf"; sourceTree = "<group>"; };
-		4790C43F1889B0F100DB9759 /* HelveticaRoundedLTStd-BlkO.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaRoundedLTStd-BlkO.otf"; sourceTree = "<group>"; };
 		47AC11DD18D13D7100F60B3A /* InfoPinGrey.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = InfoPinGrey.png; sourceTree = "<group>"; };
 		47AC11DE18D13D7100F60B3A /* InfoPinGrey@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "InfoPinGrey@2x.png"; sourceTree = "<group>"; };
 		47AC11E418D13FFC00F60B3A /* TethrButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TethrButton.h; sourceTree = "<group>"; };
 		47AC11E518D13FFC00F60B3A /* TethrButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TethrButton.m; sourceTree = "<group>"; };
 		47AC11E718D2170600F60B3A /* GreyPinIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = GreyPinIcon.png; sourceTree = "<group>"; };
 		47AC11E818D2170600F60B3A /* GreyPinIcon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "GreyPinIcon@2x.png"; sourceTree = "<group>"; };
+		47AE03FB190EA99500D05885 /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
 		47BA769118D78CE6001C9236 /* ShareViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShareViewController.h; sourceTree = "<group>"; };
 		47BA769218D78CE6001C9236 /* ShareViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ShareViewController.m; sourceTree = "<group>"; };
 		47BA769418D791B6001C9236 /* FacebookIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = FacebookIcon.png; sourceTree = "<group>"; };
@@ -886,7 +691,7 @@
 				470A33AB184029DF006E48F9 /* Controller */,
 				47064C94183D9E3800E9228A /* AppDelegate.h */,
 				47064C95183D9E3800E9228A /* AppDelegate.m */,
-				47064C97183D9E3800E9228A /* Main.storyboard */,
+				47AE03FB190EA99500D05885 /* Main.storyboard */,
 				47064C9A183D9E3800E9228A /* ViewController.h */,
 				47064C9B183D9E3800E9228A /* ViewController.m */,
 				47064CC6183DB11D00E9228A /* Images */,
@@ -900,10 +705,8 @@
 			isa = PBXGroup;
 			children = (
 				476F4DB918B2F7E6001A89A1 /* mission_gothic_personal */,
-				470C80D2189751FF003F06C4 /* KaufmannStd.otf */,
 				4790C3F01889B0F100DB9759 /* Helvetica */,
 				47460FF4188079BE0067545B /* Montserrat */,
-				47064CD3183DBAE300E9228A /* champagne_limousines */,
 				47064C8D183D9E3800E9228A /* Tether-Info.plist */,
 				47064C8E183D9E3800E9228A /* InfoPlist.strings */,
 				47064C91183D9E3800E9228A /* main.m */,
@@ -948,7 +751,6 @@
 				477A8E8C18B68E9200F4F89B /* LineNavigator.png */,
 				4775899618EDDF640041AB8F /* DarkGreyPin.png */,
 				4775899718EDDF640041AB8F /* DarkGreyPin@2x.png */,
-				476F4DD018B3B92A001A89A1 /* Icon.png */,
 				476F4D8918B2F379001A89A1 /* Bell@2x.png */,
 				476F4D8718B2F36E001A89A1 /* Bell.png */,
 				47AC11E718D2170600F60B3A /* GreyPinIcon.png */,
@@ -969,8 +771,6 @@
 				470537C0189F0895005C7E41 /* GreyTriangle@2x.png */,
 				470537B2189F01E4005C7E41 /* RedTriangle.png */,
 				470537B3189F01E4005C7E41 /* WhiteTriangle.png */,
-				471594BD18998BB4007DF8AE /* InviteIcon.png */,
-				471594BB1899872E007DF8AE /* InviteIcon@2x.png */,
 				4707791D1895F91F00F9B263 /* LoginPageImage.png */,
 				47FDB6031884B62100841FAD /* poweredByFoursquare.png */,
 				47461001188237B70067545B /* FriendIcon.png */,
@@ -979,19 +779,6 @@
 				47BB2C5E187E27B100BB40F5 /* LocationIcon.png */,
 			);
 			name = Images;
-			sourceTree = "<group>";
-		};
-		47064CD3183DBAE300E9228A /* champagne_limousines */ = {
-			isa = PBXGroup;
-			children = (
-				47064CD4183DBAE300E9228A /* Champagne&LimousinesBoldItalic.ttf */,
-				47064CD5183DBAE300E9228A /* Champagne&LimousinesBold.ttf */,
-				47064CD6183DBAE300E9228A /* Champagne&LimousinesItalic.ttf */,
-				47064CD7183DBAE300E9228A /* Champagne&Limousines.ttf */,
-				47064CD8183DBAE300E9228A /* readme.txt */,
-			);
-			name = champagne_limousines;
-			path = ../../../../Downloads/champagne_limousines;
 			sourceTree = "<group>";
 		};
 		470A33AB184029DF006E48F9 /* Controller */ = {
@@ -1034,7 +821,6 @@
 			children = (
 				47460FFD18821C5B0067545B /* MontserratBold.ttf */,
 				47460FF6188079BE0067545B /* Montserrat.ttf */,
-				47460FF7188079BE0067545B /* OFL.txt */,
 			);
 			path = Montserrat;
 			sourceTree = "<group>";
@@ -1046,13 +832,6 @@
 				476F4DBB18B2F7E6001A89A1 /* MissionGothicBlackItalic.otf */,
 				476F4DBC18B2F7E6001A89A1 /* MissionGothicBold.otf */,
 				476F4DBD18B2F7E6001A89A1 /* MissionGothicBoldItalic.otf */,
-				476F4DBE18B2F7E6001A89A1 /* MissionGothicLight.otf */,
-				476F4DBF18B2F7E6001A89A1 /* MissionGothicLightItalic.otf */,
-				476F4DC018B2F7E6001A89A1 /* MissionGothicRegular.otf */,
-				476F4DC118B2F7E6001A89A1 /* MissionGothicRegularItalic.otf */,
-				476F4DC218B2F7E6001A89A1 /* MissionGothicThin.otf */,
-				476F4DC318B2F7E6001A89A1 /* MissionGothicThinItalic.otf */,
-				476F4DC418B2F7E6001A89A1 /* Personal Use License.txt */,
 			);
 			path = mission_gothic_personal;
 			sourceTree = "<group>";
@@ -1265,85 +1044,7 @@
 		4790C3F01889B0F100DB9759 /* Helvetica */ = {
 			isa = PBXGroup;
 			children = (
-				4790C3F11889B0F100DB9759 /* HelveticaInseratLTStd-Roman.otf */,
-				4790C3F21889B0F100DB9759 /* HelveticaLTStd-Blk.otf */,
-				4790C3F31889B0F100DB9759 /* HelveticaLTStd-BlkCond.otf */,
-				4790C3F41889B0F100DB9759 /* HelveticaLTStd-BlkCondObl.otf */,
-				4790C3F51889B0F100DB9759 /* HelveticaLTStd-BlkObl.otf */,
-				4790C3F61889B0F100DB9759 /* HelveticaLTStd-Bold.otf */,
-				4790C3F71889B0F100DB9759 /* HelveticaLTStd-BoldCond.otf */,
-				4790C3F81889B0F100DB9759 /* HelveticaLTStd-BoldCondObl.otf */,
-				4790C3F91889B0F100DB9759 /* HelveticaLTStd-BoldObl.otf */,
-				4790C3FA1889B0F100DB9759 /* HelveticaLTStd-Comp.otf */,
-				4790C3FB1889B0F100DB9759 /* HelveticaLTStd-Cond.otf */,
-				4790C3FC1889B0F100DB9759 /* HelveticaLTStd-CondObl.otf */,
-				4790C3FD1889B0F100DB9759 /* HelveticaLTStd-ExtraComp.otf */,
-				4790C3FE1889B0F100DB9759 /* HelveticaLTStd-Fractions.otf */,
-				4790C3FF1889B0F100DB9759 /* HelveticaLTStd-FractionsBd.otf */,
-				4790C4001889B0F100DB9759 /* HelveticaLTStd-Light.otf */,
-				4790C4011889B0F100DB9759 /* HelveticaLTStd-LightCond.otf */,
-				4790C4021889B0F100DB9759 /* HelveticaLTStd-LightCondObl.otf */,
-				4790C4031889B0F100DB9759 /* HelveticaLTStd-LightObl.otf */,
-				4790C4041889B0F100DB9759 /* HelveticaLTStd-Obl.otf */,
-				4790C4051889B0F100DB9759 /* HelveticaLTStd-Roman.otf */,
-				4790C4061889B0F100DB9759 /* HelveticaLTStd-UltraComp.otf */,
-				4790C4071889B0F100DB9759 /* HelveticaNeueLTStd-Bd.otf */,
-				4790C4081889B0F100DB9759 /* HelveticaNeueLTStd-BdCn.otf */,
-				4790C4091889B0F100DB9759 /* HelveticaNeueLTStd-BdCnO.otf */,
-				4790C40A1889B0F100DB9759 /* HelveticaNeueLTStd-BdEx.otf */,
-				4790C40B1889B0F100DB9759 /* HelveticaNeueLTStd-BdExO.otf */,
-				4790C40C1889B0F100DB9759 /* HelveticaNeueLTStd-BdIt.otf */,
-				4790C40D1889B0F100DB9759 /* HelveticaNeueLTStd-BdOu.otf */,
-				4790C40E1889B0F100DB9759 /* HelveticaNeueLTStd-Blk.otf */,
-				4790C40F1889B0F100DB9759 /* HelveticaNeueLTStd-BlkCn.otf */,
-				4790C4101889B0F100DB9759 /* HelveticaNeueLTStd-BlkCnO.otf */,
-				4790C4111889B0F100DB9759 /* HelveticaNeueLTStd-BlkEx.otf */,
-				4790C4121889B0F100DB9759 /* HelveticaNeueLTStd-BlkExO.otf */,
-				4790C4131889B0F100DB9759 /* HelveticaNeueLTStd-BlkIt.otf */,
-				4790C4141889B0F100DB9759 /* HelveticaNeueLTStd-Cn.otf */,
-				4790C4151889B0F100DB9759 /* HelveticaNeueLTStd-CnO.otf */,
-				4790C4161889B0F100DB9759 /* HelveticaNeueLTStd-Ex.otf */,
-				4790C4171889B0F100DB9759 /* HelveticaNeueLTStd-ExO.otf */,
-				4790C4181889B0F100DB9759 /* HelveticaNeueLTStd-Hv.otf */,
-				4790C4191889B0F100DB9759 /* HelveticaNeueLTStd-HvCn.otf */,
-				4790C41A1889B0F100DB9759 /* HelveticaNeueLTStd-HvCnO.otf */,
-				4790C41B1889B0F100DB9759 /* HelveticaNeueLTStd-HvEx.otf */,
-				4790C41C1889B0F100DB9759 /* HelveticaNeueLTStd-HvExO.otf */,
-				4790C41D1889B0F100DB9759 /* HelveticaNeueLTStd-HvIt.otf */,
-				4790C41E1889B0F100DB9759 /* HelveticaNeueLTStd-It.otf */,
-				4790C41F1889B0F100DB9759 /* HelveticaNeueLTStd-Lt.otf */,
-				4790C4201889B0F100DB9759 /* HelveticaNeueLTStd-LtCn.otf */,
-				4790C4211889B0F100DB9759 /* HelveticaNeueLTStd-LtCnO.otf */,
-				4790C4221889B0F100DB9759 /* HelveticaNeueLTStd-LtEx.otf */,
-				4790C4231889B0F100DB9759 /* HelveticaNeueLTStd-LtExO.otf */,
-				4790C4241889B0F100DB9759 /* HelveticaNeueLTStd-LtIt.otf */,
-				4790C4251889B0F100DB9759 /* HelveticaNeueLTStd-Md.otf */,
-				4790C4261889B0F100DB9759 /* HelveticaNeueLTStd-MdCn.otf */,
-				4790C4271889B0F100DB9759 /* HelveticaNeueLTStd-MdCnO.otf */,
-				4790C4281889B0F100DB9759 /* HelveticaNeueLTStd-MdEx.otf */,
-				4790C4291889B0F100DB9759 /* HelveticaNeueLTStd-MdExO.otf */,
-				4790C42A1889B0F100DB9759 /* HelveticaNeueLTStd-MdIt.otf */,
-				4790C42B1889B0F100DB9759 /* HelveticaNeueLTStd-Roman.otf */,
-				4790C42C1889B0F100DB9759 /* HelveticaNeueLTStd-Th.otf */,
-				4790C42D1889B0F100DB9759 /* HelveticaNeueLTStd-ThCn.otf */,
-				4790C42E1889B0F100DB9759 /* HelveticaNeueLTStd-ThCnO.otf */,
-				4790C42F1889B0F100DB9759 /* HelveticaNeueLTStd-ThEx.otf */,
-				4790C4301889B0F100DB9759 /* HelveticaNeueLTStd-ThExO.otf */,
-				4790C4311889B0F100DB9759 /* HelveticaNeueLTStd-ThIt.otf */,
 				4790C4321889B0F100DB9759 /* HelveticaNeueLTStd-UltLt.otf */,
-				4790C4331889B0F100DB9759 /* HelveticaNeueLTStd-UltLtCn.otf */,
-				4790C4341889B0F100DB9759 /* HelveticaNeueLTStd-UltLtCnO.otf */,
-				4790C4351889B0F100DB9759 /* HelveticaNeueLTStd-UltLtEx.otf */,
-				4790C4361889B0F100DB9759 /* HelveticaNeueLTStd-UltLtExO.otf */,
-				4790C4371889B0F100DB9759 /* HelveticaNeueLTStd-UltLtIt.otf */,
-				4790C4381889B0F100DB9759 /* HelveticaNeueLTStd-XBlkCn.otf */,
-				4790C4391889B0F100DB9759 /* HelveticaNeueLTStd-XBlkCnO.otf */,
-				4790C43A1889B0F100DB9759 /* HelveticaRoundedLTStd-Bd.otf */,
-				4790C43B1889B0F100DB9759 /* HelveticaRoundedLTStd-BdCn.otf */,
-				4790C43C1889B0F100DB9759 /* HelveticaRoundedLTStd-BdCnO.otf */,
-				4790C43D1889B0F100DB9759 /* HelveticaRoundedLTStd-BdO.otf */,
-				4790C43E1889B0F100DB9759 /* HelveticaRoundedLTStd-Black.otf */,
-				4790C43F1889B0F100DB9759 /* HelveticaRoundedLTStd-BlkO.otf */,
 			);
 			name = Helvetica;
 			path = Montserrat/Helvetica;
@@ -1450,10 +1151,7 @@
 			files = (
 				4775D5DA18AC0AB700E80CAC /* all_61.html in Resources */,
 				4775D5D418AC0AB700E80CAC /* protocol_flurry_ad_delegate-p-members.html in Resources */,
-				4790C4881889B0F100DB9759 /* HelveticaNeueLTStd-XBlkCnO.otf in Resources */,
-				4790C45C1889B0F100DB9759 /* HelveticaNeueLTStd-BdOu.otf in Resources */,
 				4775D5C518AC0AB700E80CAC /* functions_func.html in Resources */,
-				4790C4861889B0F100DB9759 /* HelveticaNeueLTStd-UltLtIt.otf in Resources */,
 				4775D5BB18AC0AB700E80CAC /* ftv2mlastnode.png in Resources */,
 				4775D61818AC0AB700E80CAC /* sync_off.png in Resources */,
 				4775D5CC18AC0AB700E80CAC /* nav_f.png in Resources */,
@@ -1461,115 +1159,67 @@
 				47746C9C1906D2F700DC73F4 /* Edit.png in Resources */,
 				4746100018822E9F0067545B /* FriendsThing.png in Resources */,
 				4775D62818AC0AB700E80CAC /* Flurry_AppCircle_Advertiser_TOS.pdf in Resources */,
-				4790C4441889B0F100DB9759 /* HelveticaLTStd-BlkObl.otf in Resources */,
-				476F4DCF18B2F7E6001A89A1 /* Personal Use License.txt in Resources */,
 				47AC11EA18D2170600F60B3A /* GreyPinIcon@2x.png in Resources */,
-				4790C4771889B0F100DB9759 /* HelveticaNeueLTStd-MdEx.otf in Resources */,
-				4790C4601889B0F100DB9759 /* HelveticaNeueLTStd-BlkEx.otf in Resources */,
 				4775D61918AC0AB700E80CAC /* sync_on.png in Resources */,
-				476F4DCD18B2F7E6001A89A1 /* MissionGothicThin.otf in Resources */,
 				4775D61B18AC0AB700E80CAC /* tab_b.png in Resources */,
-				47460FFA188079BE0067545B /* OFL.txt in Resources */,
-				4790C47A1889B0F100DB9759 /* HelveticaNeueLTStd-Roman.otf in Resources */,
 				4775D60B18AC0AB700E80CAC /* functions_73.html in Resources */,
 				4775D5F918AC0AB700E80CAC /* functions_63.html in Resources */,
 				4775D60F18AC0AB700E80CAC /* mag_sel.png in Resources */,
 				4775D5A018AC0AB700E80CAC /* bc_s.png in Resources */,
 				4775D5FD18AC0AB700E80CAC /* functions_65.html in Resources */,
 				4775D60718AC0AB700E80CAC /* functions_70.html in Resources */,
-				4790C4491889B0F100DB9759 /* HelveticaLTStd-Comp.otf in Resources */,
 				4775D5AB18AC0AB700E80CAC /* dir_2c12105386bcc5c3935feab96f296a41.html in Resources */,
 				4775D59B18AC0AB700E80CAC /* _flurry_8h_source.html in Resources */,
-				4790C44D1889B0F100DB9759 /* HelveticaLTStd-Fractions.otf in Resources */,
 				470537BF189F084E005C7E41 /* RedTriangle@2x.png in Resources */,
-				4790C4551889B0F100DB9759 /* HelveticaLTStd-UltraComp.otf in Resources */,
 				476F4D8A18B2F379001A89A1 /* Bell@2x.png in Resources */,
-				4790C4461889B0F100DB9759 /* HelveticaLTStd-BoldCond.otf in Resources */,
-				476F4DD118B3B92A001A89A1 /* Icon.png in Resources */,
-				4790C47E1889B0F100DB9759 /* HelveticaNeueLTStd-ThEx.otf in Resources */,
-				4790C4731889B0F100DB9759 /* HelveticaNeueLTStd-LtIt.otf in Resources */,
-				4790C44C1889B0F100DB9759 /* HelveticaLTStd-ExtraComp.otf in Resources */,
-				4790C4401889B0F100DB9759 /* HelveticaInseratLTStd-Roman.otf in Resources */,
-				4790C4471889B0F100DB9759 /* HelveticaLTStd-BoldCondObl.otf in Resources */,
-				4790C4841889B0F100DB9759 /* HelveticaNeueLTStd-UltLtEx.otf in Resources */,
 				4775D5D518AC0AB700E80CAC /* protocol_flurry_ad_delegate-p.html in Resources */,
 				4775D5E818AC0AB700E80CAC /* all_6c.html in Resources */,
 				4775D5A518AC0AB700E80CAC /* closed.png in Resources */,
-				4790C4691889B0F100DB9759 /* HelveticaNeueLTStd-HvCnO.otf in Resources */,
 				4775D5DE18AC0AB700E80CAC /* all_64.html in Resources */,
 				476F4DC718B2F7E6001A89A1 /* MissionGothicBold.otf in Resources */,
-				4790C45E1889B0F100DB9759 /* HelveticaNeueLTStd-BlkCn.otf in Resources */,
 				4775D61318AC0AB700E80CAC /* search.css in Resources */,
-				4790C4631889B0F100DB9759 /* HelveticaNeueLTStd-Cn.otf in Resources */,
 				4775D5FB18AC0AB700E80CAC /* functions_64.html in Resources */,
 				4775D5BA18AC0AB700E80CAC /* ftv2link.png in Resources */,
 				474DEA2318D3B68A0011486D /* LocationSpotter.png in Resources */,
-				4790C4571889B0F100DB9759 /* HelveticaNeueLTStd-BdCn.otf in Resources */,
 				4775D60518AC0AB700E80CAC /* functions_6c.html in Resources */,
 				4775D5CF18AC0AB700E80CAC /* navtree.css in Resources */,
-				4790C4591889B0F100DB9759 /* HelveticaNeueLTStd-BdEx.otf in Resources */,
 				4775D5C918AC0AB700E80CAC /* interface_flurry.html in Resources */,
 				4775D5A318AC0AB700E80CAC /* class_flurry_ads-members.html in Resources */,
-				4790C4561889B0F100DB9759 /* HelveticaNeueLTStd-Bd.otf in Resources */,
 				47746C9A1906D2F700DC73F4 /* Cancel.png in Resources */,
 				4775D61718AC0AB700E80CAC /* search_r.png in Resources */,
-				476F4DCA18B2F7E6001A89A1 /* MissionGothicLightItalic.otf in Resources */,
 				476F4DC518B2F7E6001A89A1 /* MissionGothicBlack.otf in Resources */,
 				4775D61E18AC0AB700E80CAC /* tabs.css in Resources */,
 				4775D5F418AC0AB700E80CAC /* close.png in Resources */,
-				4790C4641889B0F100DB9759 /* HelveticaNeueLTStd-CnO.otf in Resources */,
-				4790C4821889B0F100DB9759 /* HelveticaNeueLTStd-UltLtCn.otf in Resources */,
-				4790C45A1889B0F100DB9759 /* HelveticaNeueLTStd-BdExO.otf in Resources */,
-				4790C46F1889B0F100DB9759 /* HelveticaNeueLTStd-LtCn.otf in Resources */,
 				4775D5B918AC0AB700E80CAC /* ftv2lastnode.png in Resources */,
 				47BA769918D79B3F001C9236 /* TwitterIcon.png in Resources */,
-				4790C4711889B0F100DB9759 /* HelveticaNeueLTStd-LtEx.otf in Resources */,
 				4775D5D818AC0AB700E80CAC /* all_5f.html in Resources */,
 				4775D5B418AC0AB700E80CAC /* ftv2blank.png in Resources */,
 				4775D5BD18AC0AB700E80CAC /* ftv2mo.png in Resources */,
 				4775D5F018AC0AB700E80CAC /* all_76.html in Resources */,
-				476F4DCB18B2F7E6001A89A1 /* MissionGothicRegular.otf in Resources */,
 				4775D5FF18AC0AB700E80CAC /* functions_66.html in Resources */,
 				4775D5A118AC0AB700E80CAC /* bdwn.png in Resources */,
 				4775D60918AC0AB700E80CAC /* functions_72.html in Resources */,
-				4790C4651889B0F100DB9759 /* HelveticaNeueLTStd-Ex.otf in Resources */,
 				47746C9B1906D2F700DC73F4 /* Cancel@2x.png in Resources */,
-				4790C4761889B0F100DB9759 /* HelveticaNeueLTStd-MdCnO.otf in Resources */,
 				4775D5EE18AC0AB700E80CAC /* all_73.html in Resources */,
 				4775D5C018AC0AB700E80CAC /* ftv2plastnode.png in Resources */,
 				47AC11E018D13D7100F60B3A /* InfoPinGrey@2x.png in Resources */,
-				4790C48B1889B0F100DB9759 /* HelveticaRoundedLTStd-BdCnO.otf in Resources */,
 				47064C9E183D9E3800E9228A /* Images.xcassets in Resources */,
 				4775D5EC18AC0AB700E80CAC /* all_72.html in Resources */,
-				4790C4501889B0F100DB9759 /* HelveticaLTStd-LightCond.otf in Resources */,
 				4775D61C18AC0AB700E80CAC /* tab_h.png in Resources */,
-				4790C46D1889B0F100DB9759 /* HelveticaNeueLTStd-It.otf in Resources */,
 				470537B7189F02D6005C7E41 /* GreyTriangle.png in Resources */,
-				47064CDD183DBAE300E9228A /* Champagne&LimousinesItalic.ttf in Resources */,
-				4790C48E1889B0F100DB9759 /* HelveticaRoundedLTStd-BlkO.otf in Resources */,
-				4790C48A1889B0F100DB9759 /* HelveticaRoundedLTStd-BdCn.otf in Resources */,
-				4790C4581889B0F100DB9759 /* HelveticaNeueLTStd-BdCnO.otf in Resources */,
-				4790C4701889B0F100DB9759 /* HelveticaNeueLTStd-LtCnO.otf in Resources */,
 				47746C9D1906D2F700DC73F4 /* Edit@2x.png in Resources */,
-				4790C4421889B0F100DB9759 /* HelveticaLTStd-BlkCond.otf in Resources */,
 				47460FF9188079BE0067545B /* Montserrat.ttf in Resources */,
 				476F4DC818B2F7E6001A89A1 /* MissionGothicBoldItalic.otf in Resources */,
 				4775D60118AC0AB700E80CAC /* functions_67.html in Resources */,
-				4790C4721889B0F100DB9759 /* HelveticaNeueLTStd-LtExO.otf in Resources */,
 				4775D5BC18AC0AB700E80CAC /* ftv2mnode.png in Resources */,
-				4790C45F1889B0F100DB9759 /* HelveticaNeueLTStd-BlkCnO.otf in Resources */,
-				4790C4751889B0F100DB9759 /* HelveticaNeueLTStd-MdCn.otf in Resources */,
 				4775D59D18AC0AB700E80CAC /* _flurry_ads_8h_source.html in Resources */,
-				4790C47F1889B0F100DB9759 /* HelveticaNeueLTStd-ThExO.otf in Resources */,
 				4775D5D218AC0AB700E80CAC /* open.png in Resources */,
 				4775D5CE18AC0AB700E80CAC /* nav_h.png in Resources */,
 				4775D5CD18AC0AB700E80CAC /* nav_g.png in Resources */,
-				47064CD9183DBAE300E9228A /* Champagne&LimousinesBoldItalic.ttf in Resources */,
 				4775D62A18AC0AB700E80CAC /* Jansson-LICENSE.txt in Resources */,
 				47064C90183D9E3800E9228A /* InfoPlist.strings in Resources */,
 				470537BB189F05FD005C7E41 /* PinIcon.png in Resources */,
 				4775D5A618AC0AB700E80CAC /* deprecated.html in Resources */,
-				47064CE1183DBAE300E9228A /* readme.txt in Resources */,
 				4775D5C118AC0AB700E80CAC /* ftv2pnode.png in Resources */,
 				470537BD189F0848005C7E41 /* WhiteTriangle@2x.png in Resources */,
 				4775D5C418AC0AB700E80CAC /* functions.html in Resources */,
@@ -1580,27 +1230,15 @@
 				4775D62218AC0AB700E80CAC /* FlurryiOSAnalyticsREADMEv4.3.2.pdf in Resources */,
 				4775D61D18AC0AB700E80CAC /* tab_s.png in Resources */,
 				4775899918EDDF640041AB8F /* DarkGreyPin@2x.png in Resources */,
-				4790C4891889B0F100DB9759 /* HelveticaRoundedLTStd-Bd.otf in Resources */,
-				4790C44F1889B0F100DB9759 /* HelveticaLTStd-Light.otf in Resources */,
-				4790C4451889B0F100DB9759 /* HelveticaLTStd-Bold.otf in Resources */,
-				4790C4681889B0F100DB9759 /* HelveticaNeueLTStd-HvCn.otf in Resources */,
-				470C80D3189751FF003F06C4 /* KaufmannStd.otf in Resources */,
-				476F4DCC18B2F7E6001A89A1 /* MissionGothicRegularItalic.otf in Resources */,
 				4775D62118AC0AB700E80CAC /* FlurryiOSAdvertisingREADMEv4.3.2.pdf in Resources */,
 				47EFC3F918B04652008A26AA /* SearchIcon@2x.png in Resources */,
 				4775D5E018AC0AB700E80CAC /* all_65.html in Resources */,
 				4775D5F718AC0AB700E80CAC /* functions_61.html in Resources */,
-				4790C4781889B0F100DB9759 /* HelveticaNeueLTStd-MdExO.otf in Resources */,
 				4775D5A918AC0AB700E80CAC /* dir_212594cf7f6b1b36110f797e39c45f6a.html in Resources */,
-				4790C46E1889B0F100DB9759 /* HelveticaNeueLTStd-Lt.otf in Resources */,
-				47064CDF183DBAE300E9228A /* Champagne&Limousines.ttf in Resources */,
 				4775D61A18AC0AB700E80CAC /* tab_a.png in Resources */,
 				4775D5DC18AC0AB700E80CAC /* all_63.html in Resources */,
-				4790C4671889B0F100DB9759 /* HelveticaNeueLTStd-Hv.otf in Resources */,
-				4790C4791889B0F100DB9759 /* HelveticaNeueLTStd-MdIt.otf in Resources */,
 				47BA769718D791B6001C9236 /* MessageIcon.png in Resources */,
 				476F4D8418B2BF7F001A89A1 /* BlackTriangle@2x.png in Resources */,
-				4790C46C1889B0F100DB9759 /* HelveticaNeueLTStd-HvIt.otf in Resources */,
 				47746CA31907080700DC73F4 /* Trash.png in Resources */,
 				476F4D8618B2C154001A89A1 /* Blacktriangle.png in Resources */,
 				476F4DC618B2F7E6001A89A1 /* MissionGothicBlackItalic.otf in Resources */,
@@ -1608,17 +1246,14 @@
 				4775D5EA18AC0AB700E80CAC /* all_70.html in Resources */,
 				47460FFC188216A20067545B /* BlackTexture.png in Resources */,
 				4775D61618AC0AB700E80CAC /* search_m.png in Resources */,
-				4790C4411889B0F100DB9759 /* HelveticaLTStd-Blk.otf in Resources */,
 				4775D61118AC0AB700E80CAC /* pages_64.html in Resources */,
-				4790C4831889B0F100DB9759 /* HelveticaNeueLTStd-UltLtCnO.otf in Resources */,
 				4775D5E418AC0AB700E80CAC /* all_67.html in Resources */,
 				4775D5B718AC0AB700E80CAC /* ftv2folderclosed.png in Resources */,
 				47746CA41907080700DC73F4 /* Trash@2x.png in Resources */,
 				4775D65218AC52B900E80CAC /* README.md in Resources */,
-				4790C4611889B0F100DB9759 /* HelveticaNeueLTStd-BlkExO.otf in Resources */,
 				4775D5D318AC0AB700E80CAC /* pages.html in Resources */,
+				47AE03FC190EA99500D05885 /* Main.storyboard in Resources */,
 				4775899818EDDF640041AB8F /* DarkGreyPin.png in Resources */,
-				4790C48C1889B0F100DB9759 /* HelveticaRoundedLTStd-BdO.otf in Resources */,
 				4775D62718AC0AB700E80CAC /* Flurry-LICENSE.txt in Resources */,
 				4775D62318AC0AB700E80CAC /* FlurryiOSReleaseNotesv4.3.2.pdf in Resources */,
 				470537B9189F0515005C7E41 /* PinIcon@2x.png in Resources */,
@@ -1626,65 +1261,39 @@
 				4775D61018AC0AB700E80CAC /* nomatches.html in Resources */,
 				4775D5C818AC0AB700E80CAC /* index.html in Resources */,
 				47AC11DF18D13D7100F60B3A /* InfoPinGrey.png in Resources */,
-				4790C4871889B0F100DB9759 /* HelveticaNeueLTStd-XBlkCn.otf in Resources */,
 				477A8E8D18B68E9200F4F89B /* LineNavigator@2x.png in Resources */,
 				470537B4189F01E4005C7E41 /* RedTriangle.png in Resources */,
 				470537B5189F01E4005C7E41 /* WhiteTriangle.png in Resources */,
 				474DEA2418D3B68A0011486D /* LocationSpotter@2x.png in Resources */,
 				4775D5E218AC0AB700E80CAC /* all_66.html in Resources */,
 				4775D5F218AC0AB700E80CAC /* classes_66.html in Resources */,
-				4790C47C1889B0F100DB9759 /* HelveticaNeueLTStd-ThCn.otf in Resources */,
 				4775D5E618AC0AB700E80CAC /* all_69.html in Resources */,
 				4707791E1895F91F00F9B263 /* LoginPageImage.png in Resources */,
 				4775D5B218AC0AB700E80CAC /* files.html in Resources */,
 				47EFC3F818B04652008A26AA /* SearchIcon.png in Resources */,
-				4790C46B1889B0F100DB9759 /* HelveticaNeueLTStd-HvExO.otf in Resources */,
-				476F4DCE18B2F7E6001A89A1 /* MissionGothicThinItalic.otf in Resources */,
 				4775D5A418AC0AB700E80CAC /* classes.html in Resources */,
-				4790C47B1889B0F100DB9759 /* HelveticaNeueLTStd-Th.otf in Resources */,
 				4775D5A218AC0AB700E80CAC /* class_flurry-members.html in Resources */,
-				4790C4741889B0F100DB9759 /* HelveticaNeueLTStd-Md.otf in Resources */,
-				4790C48D1889B0F100DB9759 /* HelveticaRoundedLTStd-Black.otf in Resources */,
 				470537C1189F0895005C7E41 /* GreyTriangle@2x.png in Resources */,
 				4775D5C318AC0AB700E80CAC /* ftv2vertline.png in Resources */,
-				4790C4851889B0F100DB9759 /* HelveticaNeueLTStd-UltLtExO.otf in Resources */,
 				4775D5A718AC0AB700E80CAC /* dir_108335c8efcef354a5e56ea2739114b7.html in Resources */,
 				4775D5F518AC0AB700E80CAC /* functions_5f.html in Resources */,
-				4790C44A1889B0F100DB9759 /* HelveticaLTStd-Cond.otf in Resources */,
 				4775D63318AC4DC900E80CAC /* PlusSign.png in Resources */,
 				4775D5C618AC0AB700E80CAC /* hierarchy.html in Resources */,
-				4790C4521889B0F100DB9759 /* HelveticaLTStd-LightObl.otf in Resources */,
 				47760C1F18A323E400E644B6 /* LocationSpotter.png in Resources */,
-				4790C4541889B0F100DB9759 /* HelveticaLTStd-Roman.otf in Resources */,
-				4790C4511889B0F100DB9759 /* HelveticaLTStd-LightCondObl.otf in Resources */,
 				476F4D8818B2F36E001A89A1 /* Bell.png in Resources */,
 				4775D60318AC0AB700E80CAC /* functions_69.html in Resources */,
 				4775D60D18AC0AB700E80CAC /* functions_76.html in Resources */,
-				4790C44B1889B0F100DB9759 /* HelveticaLTStd-CondObl.otf in Resources */,
-				4790C4621889B0F100DB9759 /* HelveticaNeueLTStd-BlkIt.otf in Resources */,
 				47461002188237B70067545B /* FriendIcon.png in Resources */,
 				47BB2C5F187E27B100BB40F5 /* LocationIcon.png in Resources */,
-				4790C45B1889B0F100DB9759 /* HelveticaNeueLTStd-BdIt.otf in Resources */,
 				4775D61518AC0AB700E80CAC /* search_l.png in Resources */,
 				4775D5CA18AC0AB700E80CAC /* interface_flurry_ads.html in Resources */,
-				4790C45D1889B0F100DB9759 /* HelveticaNeueLTStd-Blk.otf in Resources */,
-				471594BE18998BB4007DF8AE /* InviteIcon.png in Resources */,
 				4775D59E18AC0AB700E80CAC /* annotated.html in Resources */,
-				4790C4661889B0F100DB9759 /* HelveticaNeueLTStd-ExO.otf in Resources */,
 				4775D62418AC0AB700E80CAC /* Avro-LICENSE.txt in Resources */,
 				47BA769618D791B6001C9236 /* FacebookIcon.png in Resources */,
-				4790C44E1889B0F100DB9759 /* HelveticaLTStd-FractionsBd.otf in Resources */,
 				4775D5B818AC0AB700E80CAC /* ftv2folderopen.png in Resources */,
-				4790C4531889B0F100DB9759 /* HelveticaLTStd-Obl.otf in Resources */,
 				4775D5B518AC0AB700E80CAC /* ftv2cl.png in Resources */,
 				4790C4811889B0F100DB9759 /* HelveticaNeueLTStd-UltLt.otf in Resources */,
 				4775D61F18AC0AB700E80CAC /* Flurry iOS-4.x-Upgrade-README .pdf in Resources */,
-				4790C47D1889B0F100DB9759 /* HelveticaNeueLTStd-ThCnO.otf in Resources */,
-				47064CDB183DBAE300E9228A /* Champagne&LimousinesBold.ttf in Resources */,
-				4790C4431889B0F100DB9759 /* HelveticaLTStd-BlkCondObl.otf in Resources */,
-				4790C46A1889B0F100DB9759 /* HelveticaNeueLTStd-HvEx.otf in Resources */,
-				4790C4481889B0F100DB9759 /* HelveticaLTStd-BoldObl.otf in Resources */,
-				476F4DC918B2F7E6001A89A1 /* MissionGothicLight.otf in Resources */,
 				4775D62918AC0AB700E80CAC /* Flurry_AppSpot_Publisher_Platform_TOS.pdf in Resources */,
 				4775D62618AC0AB700E80CAC /* Flurry AppSpot Publisher Platform TOS FINAL August 1, 2012.pdf in Resources */,
 				47AC11E918D2170600F60B3A /* GreyPinIcon.png in Resources */,
@@ -1693,9 +1302,6 @@
 				47460FFE18821C5B0067545B /* MontserratBold.ttf in Resources */,
 				47FDB6041884B62100841FAD /* poweredByFoursquare.png in Resources */,
 				4775D59C18AC0AB700E80CAC /* _flurry_ad_delegate_8h_source.html in Resources */,
-				47064C99183D9E3800E9228A /* Main.storyboard in Resources */,
-				4790C4801889B0F100DB9759 /* HelveticaNeueLTStd-ThIt.otf in Resources */,
-				471594BC1899872E007DF8AE /* InviteIcon@2x.png in Resources */,
 				4775D5BF18AC0AB700E80CAC /* ftv2ns.png in Resources */,
 				4775D5BE18AC0AB700E80CAC /* ftv2node.png in Resources */,
 			);
@@ -1705,12 +1311,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				47064CE2183DBAE300E9228A /* readme.txt in Resources */,
-				47064CDC183DBAE300E9228A /* Champagne&LimousinesBold.ttf in Resources */,
-				47064CE0183DBAE300E9228A /* Champagne&Limousines.ttf in Resources */,
 				47064CAF183D9E3800E9228A /* InfoPlist.strings in Resources */,
-				47064CDA183DBAE300E9228A /* Champagne&LimousinesBoldItalic.ttf in Resources */,
-				47064CDE183DBAE300E9228A /* Champagne&LimousinesItalic.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1827,14 +1428,6 @@
 				47064C8F183D9E3800E9228A /* en */,
 			);
 			name = InfoPlist.strings;
-			sourceTree = "<group>";
-		};
-		47064C97183D9E3800E9228A /* Main.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				47064C98183D9E3800E9228A /* Base */,
-			);
-			name = Main.storyboard;
 			sourceTree = "<group>";
 		};
 		47064CAD183D9E3800E9228A /* InfoPlist.strings */ = {

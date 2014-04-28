@@ -232,11 +232,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Tether/PlacesViewController.m"
-            timestampString = "420058443.842594"
+            timestampString = "420392657.361544"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "432"
-            endingLineNumber = "432"
+            startingLineNumber = "441"
+            endingLineNumber = "441"
             landmarkName = "-openPageForPlaceWithId:"
             landmarkType = "5">
          </BreakpointContent>
