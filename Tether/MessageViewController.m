@@ -14,13 +14,15 @@
 #import "MessageViewController.h"
 
 #define BOTTOM_BAR_HEIGHT 50.0
+#define MAX_MESSAGE_FIELD_HEIGHT 150.0
+#define MESSAGE_FIELD_HEIGHT 28.0
+#define MESSAGE_FIELD_WIDTH 229.0
 #define MIN_CELL_HEIGHT 60.0
-#define MESSAGE_FIELD_HEIGHT 25.0
-#define MESSAGE_FIELD_WIDTH 200.0
+#define SEND_BUTTON_WIDTH 48.0
 #define STATUS_BAR_HEIGHT 20.0
 #define TOP_BAR_HEIGHT 70.0
 
-@interface MessageViewController () <UITableViewDataSource, UITableViewDelegate>
+@interface MessageViewController () <UITableViewDataSource, UITableViewDelegate, UITextViewDelegate>
 
 @property (retain, nonatomic) UIView * topBar;
 @property (retain, nonatomic) UILabel * nameLabel;
@@ -29,6 +31,9 @@
 @property (retain, nonatomic) UITextView * textView;
 @property (nonatomic, strong) UITableView *messagesTableView;
 @property (nonatomic, strong) UITableViewController *messagesTableViewController;
+@property (nonatomic, assign) BOOL keyboardShowing;
+@property (nonatomic, strong) NSNotification * notification;
+@property (retain, nonatomic) UIButton *sendButton;
 
 @end
 
@@ -62,7 +67,7 @@
     [self.topBar addSubview:self.backButton];
     
     // name labels setup
-    UIFont *montserratBold = [UIFont fontWithName:@"Montserrat-Bold" size:14.0f];
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
     NSString *names = @"";
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     
@@ -78,19 +83,11 @@
     
     self.nameLabel = [[UILabel alloc] init];
     [self.nameLabel setTextColor:[UIColor whiteColor]];
-    self.nameLabel.font = montserratBold;
+    self.nameLabel.font = montserrat;
     [self.nameLabel setText:names];
-    CGSize size = [self.nameLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];
+    CGSize size = [self.nameLabel.text sizeWithAttributes:@{NSFontAttributeName: montserrat}];
     self.nameLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2.0, (TOP_BAR_HEIGHT - size.height + STATUS_BAR_HEIGHT) / 2.0, size.width, size.height);
     [self.topBar addSubview:self.nameLabel];
-    
-    // bottom bar setup
-    self.bottomBar = [[UIView alloc] initWithFrame:CGRectMake(0.0, self.view.frame.size.height - BOTTOM_BAR_HEIGHT, self.view.frame.size.width,BOTTOM_BAR_HEIGHT)];
-    self.bottomBar.layer.backgroundColor = UIColorFromRGB(0xf8f8f8).CGColor;
-    [self.view addSubview:self.bottomBar];
-    
-    self.textView = [[UITextView alloc] initWithFrame:CGRectMake((self.bottomBar.frame.size.width - MESSAGE_FIELD_WIDTH) / 2.0,(self.bottomBar.frame.size.height - MESSAGE_FIELD_HEIGHT) / 2.0, MESSAGE_FIELD_WIDTH, MESSAGE_FIELD_HEIGHT)];
-    [self.bottomBar addSubview:self.textView];
     
     self.messagesArray = [[NSMutableArray alloc] init];
     
@@ -99,7 +96,7 @@
         [self.messagesArray addObject:message];
     }
     
-    NSSortDescriptor *dateDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"date" ascending:NO];
+    NSSortDescriptor *dateDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"date" ascending:YES];
     [self.messagesArray sortUsingDescriptors:[NSArray arrayWithObjects:dateDescriptor, nil]];
     
     self.messagesTableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, TOP_BAR_HEIGHT, self.view.frame.size.width, self.view.frame.size.height - TOP_BAR_HEIGHT - BOTTOM_BAR_HEIGHT)];
@@ -112,12 +109,69 @@
     self.messagesTableViewController = [[UITableViewController alloc] init];
     self.messagesTableViewController.tableView = self.messagesTableView;
     [self.messagesTableView reloadData];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(keyboardWillShow:)
+                                                 name:UIKeyboardWillShowNotification
+                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(keyboardWillHide)
+                                                 name:UIKeyboardWillHideNotification
+                                               object:nil];
+    
+    // bottom bar setup
+    self.bottomBar = [[UIView alloc] initWithFrame:CGRectMake(0.0, self.view.frame.size.height - BOTTOM_BAR_HEIGHT, self.view.frame.size.width,BOTTOM_BAR_HEIGHT)];
+    self.bottomBar.layer.backgroundColor = UIColorFromRGB(0xf8f8f8).CGColor;
+    [self.view addSubview:self.bottomBar];
+    
+    self.textView = [[UITextView alloc] initWithFrame:CGRectMake((self.bottomBar.frame.size.width - MESSAGE_FIELD_WIDTH) / 2.0,(self.bottomBar.frame.size.height - MESSAGE_FIELD_HEIGHT) / 2.0, MESSAGE_FIELD_WIDTH, MESSAGE_FIELD_HEIGHT)];
+    self.textView.delegate = self;
+    [[self.textView layer] setBorderColor:UIColorFromRGB(0xc8c8c8).CGColor];
+    [[self.textView layer] setBorderWidth:0.5];
+    [[self.textView layer] setCornerRadius:4.0];
+    self.textView.font = montserrat;
+    [self.bottomBar addSubview:self.textView];
+    
+    self.sendButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - SEND_BUTTON_WIDTH, 0.0, SEND_BUTTON_WIDTH, self.bottomBar.frame.size.height)];
+    [self.sendButton setTitle:@"Send" forState:UIControlStateNormal];
+    [self.sendButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
+    self.sendButton.titleLabel.font = montserrat;
+    [self.sendButton addTarget:self action:@selector(sendClicked:) forControlEvents:UIControlEventTouchUpInside];
+    [self.bottomBar addSubview:self.sendButton];
 }
 
 -(void)closeMessageView {
     if ([self.delegate respondsToSelector:@selector(closeMessageView)]) {
         [self.delegate closeMessageView];
     }
+}
+
+-(IBAction)sendClicked:(id)sender {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    Message *newMessage = [[Message alloc] init];
+    newMessage.content = self.textView.text;
+    newMessage.date = [NSDate date];
+    newMessage.userId = sharedDataManager.facebookId;
+    newMessage.userName = sharedDataManager.name;
+    newMessage.threadId = self.thread.threadId;
+    
+    [self sendMessage:newMessage];
+    
+    [self.messagesArray addObject:newMessage];
+    [self.messagesTableView reloadData];
+    
+    self.textView.text = @"";
+}
+
+-(void)sendMessage:(Message*)message {
+    PFObject *messageObject = [PFObject objectWithClassName:@"Message"];
+    [messageObject setObject:message.content forKey:@"message"];
+    [messageObject setObject:message.userId forKey:@"facebookId"];
+    [messageObject setObject:message.userName forKey:@"name"];
+    [messageObject setObject:self.thread.threadObject forKey:@"threadId"];
+    
+    [messageObject saveEventually];
 }
 
 #pragma mark UITableViewDataSource Methods
@@ -135,6 +189,98 @@
     MessageCell *cell = [[MessageCell alloc] init];
     [cell setMessage:[self.messagesArray objectAtIndex:indexPath.row]];
     return cell;
+}
+
+
+
+- (void)keyboardWillShow:(NSNotification *)notification {
+    NSIndexPath* ipath = [NSIndexPath indexPathForRow: [self.messagesArray count] -1 inSection: 0];
+    [self.messagesTableView scrollToRowAtIndexPath: ipath atScrollPosition: UITableViewScrollPositionBottom animated: YES];
+    
+    self.notification = notification;
+    self.keyboardShowing = YES;
+    CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameBeginUserInfoKey] CGRectValue].size;
+    
+    [UIView animateWithDuration:0.3
+                     animations:^{
+                    CGRect frame = self.bottomBar.frame;
+                    frame.origin.y = self.view.frame.size.height - keyboardSize.height - frame.size.height;
+                    self.bottomBar.frame = frame;
+                     }];
+}
+
+-(void)keyboardWillHide {
+    self.keyboardShowing = NO;
+    [UIView animateWithDuration:0.3
+                     animations:^{
+                         CGRect frame = self.bottomBar.frame;
+                         frame.origin.y = self.view.frame.size.height - frame.size.height;
+                         self.bottomBar.frame = frame;
+                     }];
+}
+
+#pragma mark TextViewDelegate
+
+- (BOOL) textViewShouldBeginEditing:(UITextView *)textView
+{
+    if (self.textView.tag == 0) {
+        self.textView.text = @"";
+        self.textView.textColor = [UIColor blackColor];
+        self.textView.tag = 1;
+    }
+    
+    return YES;
+}
+
+- (void)textViewDidChange:(UITextView *)textView {
+    if(self.textView.text.length == 0){
+        self.textView.textColor = UIColorFromRGB(0xc8c8c8);
+        self.textView.text = @"Type a message...";
+        [self.textView resignFirstResponder];
+        self.textView.tag = 0;
+        [self.sendButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
+    } else {
+        UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
+        
+        NSDictionary *attributes = @{NSFontAttributeName: montserrat};
+        CGRect rect = [self.textView.text boundingRectWithSize:CGSizeMake(MESSAGE_FIELD_WIDTH, 200.0)
+                                                  options:NSStringDrawingUsesLineFragmentOrigin
+                                               attributes:attributes
+                                                  context:nil];
+        CGRect frame = self.textView.frame;
+        frame.size.height = MAX(MESSAGE_FIELD_HEIGHT, MIN(rect.size.height, MAX_MESSAGE_FIELD_HEIGHT));
+        self.textView.frame = frame;
+        
+        frame = self.bottomBar.frame;
+        frame.size.height = self.textView.frame.size.height + 22.0;
+        if (self.keyboardShowing) {
+            // Works in both portrait and landscape mode
+            CGSize keyboardSize = [[[self.notification userInfo] objectForKey:UIKeyboardFrameBeginUserInfoKey] CGRectValue].size;
+            
+            frame.origin.y = self.view.frame.size.height - keyboardSize.height - frame.size.height;
+        } else {
+            frame.origin.y = self.view.frame.size.height - frame.size.height;
+        }
+        self.bottomBar.frame = frame;
+        
+        [self.sendButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+    }
+}
+
+- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
+    
+    if([text isEqualToString:@"\n"]) {
+        [textView resignFirstResponder];
+        if(self.textView.text.length == 0){
+            self.textView.textColor = UIColorFromRGB(0xc8c8c8);
+            self.textView.text = @"Type a message...";
+            [self.textView resignFirstResponder];
+            self.textView.tag = 0;
+        }
+        return NO;
+    }
+    
+    return YES;
 }
 
 - (void)didReceiveMemoryWarning

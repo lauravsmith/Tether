@@ -12,7 +12,7 @@
 @property (nonatomic, strong) NSString *messageId;
 @property (nonatomic, strong) NSString *threadId;
 @property (nonatomic, strong) NSDate *date;
-@property (nonatomic, strong) NSMutableSet *userId;
-@property (nonatomic, strong) NSMutableSet *userName;
+@property (nonatomic, strong) NSString *userId;
+@property (nonatomic, strong) NSString *userName;
 @property (nonatomic, strong) NSString *content;
 @end

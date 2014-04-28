@@ -7,11 +7,12 @@
 //
 
 #import "CenterViewController.h"
+#import "Datastore.h"
 #import "Message.h"
 #import "MessageCell.h"
 
 #define MAX_LABEL_WIDTH 150.0
-#define NAME_LABEL_OFFSET_X 80.0
+#define NAME_LABEL_OFFSET_X 20.0
 
 @interface MessageCellContentView : UIView
 
@@ -32,13 +33,20 @@
 }
 
 - (void)layoutSubviews {
-    UIFont *montserratBold = [UIFont fontWithName:@"Montserrat-Bold" size:14.0f];
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
     self.messageLabel.text = self.message.content;
-    CGSize size = [self.messageLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratBold}];
-    self.messageLabel.frame = CGRectMake(NAME_LABEL_OFFSET_X, 10.0, MIN(size.width, MAX_LABEL_WIDTH), size.height);
-    [self.messageLabel setTextColor:[UIColor blackColor]];
-    [self.messageLabel setBackgroundColor:UIColorFromRGB(0xf8f8f8)];
-    [self.messageLabel setFont:montserratBold];
+    [self.messageLabel setFont:montserrat];
+    CGSize size = [self.messageLabel.text sizeWithAttributes:@{NSFontAttributeName: montserrat}];
+    if ([self.message.userId isEqualToString:sharedDataManager.facebookId]) {
+        self.messageLabel.frame = CGRectMake(self.frame.size.width - size.width - NAME_LABEL_OFFSET_X, 10.0, MIN(size.width, MAX_LABEL_WIDTH), size.height);
+        [self.messageLabel setTextColor:[UIColor whiteColor]];
+        [self.messageLabel setBackgroundColor:UIColorFromRGB(0x8e0528)];
+    } else {
+        self.messageLabel.frame = CGRectMake(NAME_LABEL_OFFSET_X, 10.0, MIN(size.width, MAX_LABEL_WIDTH), size.height);
+        [self.messageLabel setTextColor:[UIColor blackColor]];
+        [self.messageLabel setBackgroundColor:UIColorFromRGB(0xf8f8f8)];
+    }
 }
 
 - (void)setMessage:(Message *)message {

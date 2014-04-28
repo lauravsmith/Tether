@@ -101,6 +101,7 @@
                 
                 MessageThread *thread = [[MessageThread alloc] init];
                 thread.threadId = threadObject.objectId;
+                thread.threadObject = threadObject;
                 thread.recentMessageDate = threadObject.updatedAt;
                 thread.recentMessage = [threadObject objectForKey:@"recentMessage"];
                 thread.participantIds = [NSMutableSet setWithArray:[threadObject objectForKey:@"participantIds"]];

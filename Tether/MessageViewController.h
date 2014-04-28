@@ -11,6 +11,7 @@
 @interface MessageViewController : UIViewController
 @property (nonatomic, weak) id<MessageViewControllerDelegate> delegate;
 @property (retain, nonatomic) MessageThread *thread;
+@property (retain, nonatomic) PFObject *messageThreadObject;
 @property (retain, nonatomic) NSMutableArray *messagesArray;
 
 @end

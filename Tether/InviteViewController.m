@@ -819,6 +819,8 @@
     }
 }
 
+#pragma mark TextViewDelegate
+
 - (BOOL) textViewShouldBeginEditing:(UITextView *)textView
 {
     if (self.messageTextView.tag == 0) {
@@ -829,8 +831,6 @@
     
     return YES;
 }
-
-#pragma mark TextViewDelegate
 
 -(void) textViewDidChange:(UITextView *)textView
 {
