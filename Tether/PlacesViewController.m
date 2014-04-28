@@ -193,7 +193,7 @@
 
             sharedDataManager.friendsToPlacesMap = [[NSMutableDictionary alloc] init];
             for (PFObject *object in objects) {
-                if (![object objectForKey:@"placeOwner"] || [friendsArrayWithMe containsObject:[object objectForKey:@"placeOwner"]]) {
+                if (![object objectForKey:@"placeOwner"] || ![object objectForKey:@"private"] || [friendsArrayWithMe containsObject:[object objectForKey:@"placeOwner"]]) {
                     Place *place = [[Place alloc] init];
                     geoPoint = [object objectForKey:kCommitmentGeoPointKey];
                     id friendID =[object objectForKey:kUserFacebookIDKey];
@@ -206,8 +206,14 @@
                         place.numberCommitments = 0;
                         place.numberPastCommitments = 0;
                         place.friendsCommitted = [[NSMutableSet alloc] init];
+                        place.memo = [object objectForKey:@"memo"];
+                        place.owner = [object objectForKey:@"placeOwner"];
                     } else {
                         place = [tempDictionary objectForKey:[object objectForKey:kCommitmentPlaceIDKey]];
+                    }
+                    
+                    if ([object objectForKey:@"private"]) {
+                        place.isPrivate = [object objectForKey:@"private"];
                     }
                     
                     NSDate *commitmentTime = [object objectForKey:kCommitmentDateKey];
@@ -303,6 +309,10 @@
         
         if ([sharedDataManager.foursquarePlacesDictionary objectForKey:key]) {
             Place *tempPlace = [sharedDataManager.foursquarePlacesDictionary objectForKey:key];
+            [place.friendsCommitted unionSet:tempPlace.friendsCommitted];
+            place.numberCommitments = [place.friendsCommitted count];
+        } else if ([sharedDataManager.tethrPlacesDictionary objectForKey:key]) {
+            Place *tempPlace = [sharedDataManager.tethrPlacesDictionary objectForKey:key];
             [place.friendsCommitted unionSet:tempPlace.friendsCommitted];
             place.numberCommitments = [place.friendsCommitted count];
         }

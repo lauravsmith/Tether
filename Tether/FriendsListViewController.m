@@ -420,7 +420,7 @@
 
 -(IBAction)commitClicked:(id)sender {
     Datastore *sharedDataManager = [Datastore sharedDataManager];
-    if (self.commitButton.tag == 1) {
+    if (self.commitButton.tag == 1 && ![sharedDataManager.currentCommitmentPlace.placeId isEqualToString:self.place.placeId]) {
         if([self.delegate respondsToSelector:@selector(commitToPlace:)]) {
             NSLog(@"CONTENT VIEW: commiting to %@", self.place.name);
             [self.delegate commitToPlace:self.place];

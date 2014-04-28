@@ -1596,103 +1596,113 @@
 }
 
 -(void)commitToPlace:(Place *)place {
-    self.committingToPlace = YES;
-    [self confirmTetheringToPlace:place];
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
-    [self handleLocalCommitmentToPlace:place];
-    
-    if (sharedDataManager.currentCommitmentPlace) {
-        [self removePreviousCommitment];
-    }
-    
-    PFQuery *query = [PFQuery queryWithClassName:kCommitmentClassKey];
-    [query whereKey:kUserFacebookIDKey equalTo:self.facebookId];
-    
-    [query whereKey:kCommitmentDateKey greaterThan:[self getStartTime]];
-
-    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
-        if (!error) {
-            PFObject *commitment;
-            if ([objects count] > 0) {
-                commitment = [objects objectAtIndex:0];
-            } else {
-                commitment = [PFObject objectWithClassName:kCommitmentClassKey];
-                [commitment setObject:self.facebookId forKey:kUserFacebookIDKey];
-            }
-            
-            if (place.placeId) {
-                [commitment setObject:place.placeId forKey:kCommitmentPlaceIDKey];
-            }
-
-            [commitment setObject:[NSDate date] forKey:kCommitmentDateKey];
-            
-            if (place.coord.latitude && place.coord.longitude) {
-                [commitment setObject:[PFGeoPoint geoPointWithLatitude:place.coord.latitude
-                                                             longitude:place.coord.longitude] forKey:kCommitmentGeoPointKey];
-            }
-
-            if (place.name) {
-                [commitment setObject:place.name forKey:kCommitmentPlaceKey];
-            }
-
-            if (place.city) {
-                [commitment setObject:place.city forKey:kCommitmentCityKey];
-            }
-            
-            if (place.state) {
-                [commitment setObject:place.state forKey:kCommitmentStateKey];
-            }
-
-            if (place.address) {
-                [commitment setObject:place.address forKey:kCommitmentAddressKey];
-            }
-            
-            if (place.isPrivate) {
-                [commitment setObject:place.owner forKey:@"placeOwner"];
-            }
-            
-            NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-            [userDetails setBool:YES forKey:kUserDefaultsStatusKey];
-            [userDetails setObject:[NSDate date] forKey:kUserDefaultsTimeLastUpdatedKey];
-            [userDetails synchronize];
-            
-            PFUser *user = [PFUser currentUser];
-            [user setObject:[NSNumber numberWithBool:YES] forKey:kUserStatusKey];
-            [user setObject:[NSDate date] forKey:kUserTimeLastUpdatedKey];
-            [user saveInBackground];
-            
-            self.settingsViewController.goingOutSwitch.on = YES;
-            
-            self.committingToPlace = YES;
-            [commitment saveEventually:^(BOOL succeeded, NSError *error) {
-                if (!error) {
-                    NSLog(@"PARSE SAVE: saved your new commitment");
-                    sharedDataManager.currentCommitmentParseObject = commitment;
-                    self.committingToPlace = NO;
-                    self.listsHaveChanged = YES;
-                    [self pollDatabase];
-                    
-                    if (place) {
-                        NSDictionary *commitmentParams =
-                        [NSDictionary dictionaryWithObjectsAndKeys:
-                         @"Place", place.name,
-                         @"City", place.city,
-                         nil];
-                        
-                        [Flurry logEvent:@"Tethrd" withParameters:commitmentParams];
-                    }
-                } else {
-                    NSLog(@"Committing Error: %@ %@", error, [error userInfo]);
-                    [Flurry logError:@"Error_committing" message:nil error:error];
-                }
-            }];
-            
-            [self notifyFriendsForCommitmentToPlace:place];
-        } else {
-            // Log details of the failure
-            NSLog(@"Error: %@ %@", error, [error userInfo]);
+    if (place) {
+        self.committingToPlace = YES;
+        [self confirmTetheringToPlace:place];
+        Datastore *sharedDataManager = [Datastore sharedDataManager];
+        [self handleLocalCommitmentToPlace:place];
+        
+        if (sharedDataManager.currentCommitmentPlace) {
+            [self removePreviousCommitment];
         }
-    }];
+        
+        PFQuery *query = [PFQuery queryWithClassName:kCommitmentClassKey];
+        [query whereKey:kUserFacebookIDKey equalTo:self.facebookId];
+        
+        [query whereKey:kCommitmentDateKey greaterThan:[self getStartTime]];
+        
+        [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+            if (!error) {
+                PFObject *commitment;
+                if ([objects count] > 0) {
+                    commitment = [objects objectAtIndex:0];
+                } else {
+                    commitment = [PFObject objectWithClassName:kCommitmentClassKey];
+                    [commitment setObject:self.facebookId forKey:kUserFacebookIDKey];
+                }
+                
+                if (place.placeId) {
+                    [commitment setObject:place.placeId forKey:kCommitmentPlaceIDKey];
+                }
+                
+                [commitment setObject:[NSDate date] forKey:kCommitmentDateKey];
+                
+                if (place.coord.latitude && place.coord.longitude) {
+                    [commitment setObject:[PFGeoPoint geoPointWithLatitude:place.coord.latitude
+                                                                 longitude:place.coord.longitude] forKey:kCommitmentGeoPointKey];
+                }
+                
+                if (place.name) {
+                    [commitment setObject:place.name forKey:kCommitmentPlaceKey];
+                }
+                
+                if (place.city) {
+                    [commitment setObject:place.city forKey:kCommitmentCityKey];
+                }
+                
+                if (place.state) {
+                    [commitment setObject:place.state forKey:kCommitmentStateKey];
+                }
+                
+                if (place.address) {
+                    [commitment setObject:place.address forKey:kCommitmentAddressKey];
+                }
+                
+                if (![place.owner isEqualToString:@""]) {
+                    [commitment setObject:place.owner forKey:@"placeOwner"];
+                }
+                
+                if (![place.memo isEqualToString:@""]) {
+                    [commitment setObject:place.memo forKey:@"memo"];
+                }
+                
+                if (place.isPrivate) {
+                    [commitment setObject:[NSNumber numberWithBool:place.isPrivate] forKey:@"private"];
+                }
+                
+                NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+                [userDetails setBool:YES forKey:kUserDefaultsStatusKey];
+                [userDetails setObject:[NSDate date] forKey:kUserDefaultsTimeLastUpdatedKey];
+                [userDetails synchronize];
+                
+                PFUser *user = [PFUser currentUser];
+                [user setObject:[NSNumber numberWithBool:YES] forKey:kUserStatusKey];
+                [user setObject:[NSDate date] forKey:kUserTimeLastUpdatedKey];
+                [user saveInBackground];
+                
+                self.settingsViewController.goingOutSwitch.on = YES;
+                
+                self.committingToPlace = YES;
+                [commitment saveEventually:^(BOOL succeeded, NSError *error) {
+                    if (!error) {
+                        NSLog(@"PARSE SAVE: saved your new commitment");
+                        sharedDataManager.currentCommitmentParseObject = commitment;
+                        self.committingToPlace = NO;
+                        self.listsHaveChanged = YES;
+                        [self pollDatabase];
+                        
+                        if (place) {
+                            NSDictionary *commitmentParams =
+                            [NSDictionary dictionaryWithObjectsAndKeys:
+                             @"Place", place.name,
+                             @"City", place.city,
+                             nil];
+                            
+                            [Flurry logEvent:@"Tethrd" withParameters:commitmentParams];
+                        }
+                    } else {
+                        NSLog(@"Committing Error: %@ %@", error, [error userInfo]);
+                        [Flurry logError:@"Error_committing" message:nil error:error];
+                    }
+                }];
+                
+                [self notifyFriendsForCommitmentToPlace:place];
+            } else {
+                // Log details of the failure
+                NSLog(@"Error: %@ %@", error, [error userInfo]);
+            }
+        }];
+    }
 }
 
 -(void)handleLocalCommitmentToPlace:(Place*)place {
