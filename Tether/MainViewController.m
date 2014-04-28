@@ -1648,12 +1648,16 @@
                     [commitment setObject:place.address forKey:kCommitmentAddressKey];
                 }
                 
-                if (![place.owner isEqualToString:@""]) {
-                    [commitment setObject:place.owner forKey:@"placeOwner"];
+                if (place.owner) {
+                    if (![place.owner isEqualToString:@""]) {
+                        [commitment setObject:place.owner forKey:@"placeOwner"];
+                    }
                 }
                 
-                if (![place.memo isEqualToString:@""]) {
-                    [commitment setObject:place.memo forKey:@"memo"];
+                if (place.memo) {
+                    if (![place.memo isEqualToString:@""]) {
+                        [commitment setObject:place.memo forKey:@"memo"];
+                    }
                 }
                 
                 if (place.isPrivate) {
