@@ -203,6 +203,8 @@
 		47AC11DF18D13D7100F60B3A /* InfoPinGrey.png in Resources */ = {isa = PBXBuildFile; fileRef = 47AC11DD18D13D7100F60B3A /* InfoPinGrey.png */; };
 		47AC11E018D13D7100F60B3A /* InfoPinGrey@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 47AC11DE18D13D7100F60B3A /* InfoPinGrey@2x.png */; };
 		47AC11E618D13FFC00F60B3A /* TethrButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 47AC11E518D13FFC00F60B3A /* TethrButton.m */; };
+		47AE03FE190EC02100D05885 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 47AE03FD190EC02100D05885 /* Main.storyboard */; };
+		47AE0401190EC02D00D05885 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 47AE0400190EC02D00D05885 /* ViewController.m */; };
 		47BA769318D78CE6001C9236 /* ShareViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 47BA769218D78CE6001C9236 /* ShareViewController.m */; };
 		47BA769618D791B6001C9236 /* FacebookIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 47BA769418D791B6001C9236 /* FacebookIcon.png */; };
 		47BA769718D791B6001C9236 /* MessageIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 47BA769518D791B6001C9236 /* MessageIcon.png */; };
@@ -505,6 +507,9 @@
 		47AC11DE18D13D7100F60B3A /* InfoPinGrey@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "InfoPinGrey@2x.png"; sourceTree = "<group>"; };
 		47AC11E418D13FFC00F60B3A /* TethrButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TethrButton.h; sourceTree = "<group>"; };
 		47AC11E518D13FFC00F60B3A /* TethrButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TethrButton.m; sourceTree = "<group>"; };
+		47AE03FD190EC02100D05885 /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
+		47AE03FF190EC02D00D05885 /* ViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
+		47AE0400190EC02D00D05885 /* ViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
 		47BA769118D78CE6001C9236 /* ShareViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShareViewController.h; sourceTree = "<group>"; };
 		47BA769218D78CE6001C9236 /* ShareViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ShareViewController.m; sourceTree = "<group>"; };
 		47BA769418D791B6001C9236 /* FacebookIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = FacebookIcon.png; sourceTree = "<group>"; };
@@ -695,6 +700,9 @@
 				470A33AB184029DF006E48F9 /* Controller */,
 				47064C94183D9E3800E9228A /* AppDelegate.h */,
 				47064C95183D9E3800E9228A /* AppDelegate.m */,
+				47AE03FD190EC02100D05885 /* Main.storyboard */,
+				47AE03FF190EC02D00D05885 /* ViewController.h */,
+				47AE0400190EC02D00D05885 /* ViewController.m */,
 				47064CC6183DB11D00E9228A /* Images */,
 				47064C9D183D9E3800E9228A /* Images.xcassets */,
 				47064C8C183D9E3800E9228A /* Supporting Files */,
@@ -1275,6 +1283,7 @@
 				4775D62618AC0AB700E80CAC /* Flurry AppSpot Publisher Platform TOS FINAL August 1, 2012.pdf in Resources */,
 				4775D62B18AC0AB700E80CAC /* ProjectApiKey.txt in Resources */,
 				4775D65018AC52B900E80CAC /* CHANGELOG.md in Resources */,
+				47AE03FE190EC02100D05885 /* Main.storyboard in Resources */,
 				47460FFE18821C5B0067545B /* MontserratBold.ttf in Resources */,
 				47FDB6041884B62100841FAD /* poweredByFoursquare.png in Resources */,
 				4775D59C18AC0AB700E80CAC /* _flurry_ad_delegate_8h_source.html in Resources */,
@@ -1365,6 +1374,7 @@
 				479C1892190AE42000161B02 /* MessageCell.m in Sources */,
 				47AC11E618D13FFC00F60B3A /* TethrButton.m in Sources */,
 				47EFC41518B116ED008A26AA /* SBJsonBase.m in Sources */,
+				47AE0401190EC02D00D05885 /* ViewController.m in Sources */,
 				47EFC41218B116ED008A26AA /* NSObject+SBJSON.m in Sources */,
 				470A33AA184029CE006E48F9 /* LoginViewController.m in Sources */,
 				47814E5019098F76004B146A /* MessageThreadCell.m in Sources */,
