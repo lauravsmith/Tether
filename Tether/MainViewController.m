@@ -1432,7 +1432,10 @@
     TetherAnnotation *annotation = [[TetherAnnotation alloc] init];
     [annotation setCoordinate:place.coord];
     [annotation setTitle:[NSString stringWithFormat:@"%@", place.name]];
-    if (place.address && ![place.address isEqualToString:@""]) {
+    
+    if (place.memo && ![place.memo isEqualToString:@""]) {
+        [annotation setSubtitle:[NSString stringWithFormat:@"\"%@\"", place.memo]];
+    } else if (place.address && ![place.address isEqualToString:@""]) {
         [annotation setSubtitle:[NSString stringWithFormat:@"%@", place.address]];
     }
     annotation.place = place;
@@ -1646,6 +1649,8 @@
                 
                 if (place.address) {
                     [commitment setObject:place.address forKey:kCommitmentAddressKey];
+                } else {
+                    [commitment setObject:@"" forKey:kCommitmentAddressKey];
                 }
                 
                 if (place.owner) {
@@ -1658,6 +1663,8 @@
                     if (![place.memo isEqualToString:@""]) {
                         [commitment setObject:place.memo forKey:@"memo"];
                     }
+                } else {
+                    [commitment setObject:@"" forKey:@"memo"];
                 }
                 
                 if (place.isPrivate) {

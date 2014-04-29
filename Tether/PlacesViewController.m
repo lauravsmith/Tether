@@ -366,10 +366,16 @@
     // Sort places first by tonights popularity, then past popularity
     NSSortDescriptor *numberCommitmentsDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"numberCommitments" ascending:NO];
     NSSortDescriptor *numberPastCommitmentsDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"numberPastCommitments" ascending:NO];
-   NSSortDescriptor *ownerDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"owner" ascending:NO comparator:^NSComparisonResult(id obj1, id obj2) {
-        NSString *ownerID2 = (NSString*)obj2;
-        if ([ownerID2 isEqualToString:sharedDataManager.facebookId]) {
-            return NSOrderedAscending;
+   NSSortDescriptor *ownerDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"placeId" ascending:NO comparator:^NSComparisonResult(id obj1, id obj2) {
+        NSString *placeId2 = (NSString*)obj2;
+       Place *place2 = [sharedDataManager.placesDictionary objectForKey:placeId2];
+       
+        if ([place2.owner isEqualToString:sharedDataManager.facebookId]) {
+            NSDate *startTime = [self getStartTime];
+            if ([startTime compare:place2.date] == NSOrderedAscending) {
+                return NSOrderedAscending;
+            }
+            return NSOrderedDescending;
         } else {
             return NSOrderedDescending;
         }
@@ -679,21 +685,28 @@
         if (!error) {
                 for (PFObject *placeObject in objects) {
                     if (![placeObject objectForKey:@"private"] || [sharedDataManager.tetherFriends containsObject:[placeObject objectForKey:@"owner"]]) {
-                        Place *newPlace = [[Place alloc] init];
-                        newPlace.placeId = [placeObject objectForKey:@"placeId"];
-                        newPlace.name = [placeObject objectForKey:kPlaceNameKey];
-                        newPlace.city = [placeObject objectForKey:kPlaceCityKey];
-                        newPlace.state = [self.userDetails objectForKey:kPlaceStateKey];
-                        newPlace.address = [placeObject objectForKey:kPlaceAddressKey];
-                        PFGeoPoint *geoPoint = [placeObject objectForKey:kPlaceCoordinateKey];
-                        newPlace.coord = CLLocationCoordinate2DMake(geoPoint.latitude, geoPoint.longitude);
-                        newPlace.owner = [placeObject objectForKey:@"owner"];
-                        newPlace.memo = [placeObject objectForKey:@"memo"];
-                        newPlace.isPrivate = [[placeObject objectForKey:@"private"] boolValue];
-                        newPlace.friendsCommitted = [[NSMutableSet alloc] init];
                         
-                        if (![sharedDataManager.tethrPlacesDictionary objectForKey:newPlace.placeId]) {
-                            [sharedDataManager.tethrPlacesDictionary setObject:newPlace forKey:newPlace.placeId];
+                        NSDate *startTime = [self getStartTime];
+                        
+                        if ([sharedDataManager.tetherFriends containsObject:[placeObject objectForKey:@"owner"]] || [sharedDataManager.facebookId isEqualToString:[placeObject objectForKey:@"owner"]] || [startTime compare:placeObject.createdAt] == NSOrderedAscending) {
+                        
+                            Place *newPlace = [[Place alloc] init];
+                            newPlace.placeId = [placeObject objectForKey:@"placeId"];
+                            newPlace.name = [placeObject objectForKey:kPlaceNameKey];
+                            newPlace.city = [placeObject objectForKey:kPlaceCityKey];
+                            newPlace.state = [self.userDetails objectForKey:kPlaceStateKey];
+                            newPlace.address = [placeObject objectForKey:kPlaceAddressKey];
+                            PFGeoPoint *geoPoint = [placeObject objectForKey:kPlaceCoordinateKey];
+                            newPlace.coord = CLLocationCoordinate2DMake(geoPoint.latitude, geoPoint.longitude);
+                            newPlace.owner = [placeObject objectForKey:@"owner"];
+                            newPlace.memo = [placeObject objectForKey:@"memo"];
+                            newPlace.isPrivate = [[placeObject objectForKey:@"private"] boolValue];
+                            newPlace.friendsCommitted = [[NSMutableSet alloc] init];
+                            newPlace.date = placeObject.createdAt;
+                            
+                            if (![sharedDataManager.tethrPlacesDictionary objectForKey:newPlace.placeId]) {
+                                [sharedDataManager.tethrPlacesDictionary setObject:newPlace forKey:newPlace.placeId];
+                            }
                         }
                     }
                 }

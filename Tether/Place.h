@@ -24,4 +24,5 @@
 @property (nonatomic, strong) NSString *memo;
 @property (nonatomic, strong) NSString *owner;
 @property (nonatomic, assign) BOOL isPrivate;
+@property (nonatomic, strong) NSDate *date;
 @end
