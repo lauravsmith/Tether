@@ -162,16 +162,23 @@
     [self.messagesTableView reloadData];
     
     self.textView.text = @"";
+    
+    NSIndexPath* ipath = [NSIndexPath indexPathForRow: [self.messagesArray count] -1 inSection: 0];
+    [self.messagesTableView scrollToRowAtIndexPath: ipath atScrollPosition: UITableViewScrollPositionBottom animated: YES];
 }
 
 -(void)sendMessage:(Message*)message {
+    // create message object associated with the thread object
     PFObject *messageObject = [PFObject objectWithClassName:@"Message"];
     [messageObject setObject:message.content forKey:@"message"];
     [messageObject setObject:message.userId forKey:@"facebookId"];
     [messageObject setObject:message.userName forKey:@"name"];
     [messageObject setObject:self.thread.threadObject forKey:@"threadId"];
-    
     [messageObject saveEventually];
+    
+    // update recent message value of thread
+    [self.thread.threadObject setObject:message.content forKey:@"recentMessage"];
+    [self.thread.threadObject saveEventually];
 }
 
 #pragma mark UITableViewDataSource Methods
@@ -191,15 +198,17 @@
     return cell;
 }
 
-
-
 - (void)keyboardWillShow:(NSNotification *)notification {
-    NSIndexPath* ipath = [NSIndexPath indexPathForRow: [self.messagesArray count] -1 inSection: 0];
-    [self.messagesTableView scrollToRowAtIndexPath: ipath atScrollPosition: UITableViewScrollPositionBottom animated: YES];
-    
     self.notification = notification;
     self.keyboardShowing = YES;
     CGSize keyboardSize = [[[notification userInfo] objectForKey:UIKeyboardFrameBeginUserInfoKey] CGRectValue].size;
+    
+    CGRect tableFrame = self.messagesTableView.frame;
+    tableFrame.size.height = self.view.frame.size.height - TOP_BAR_HEIGHT - BOTTOM_BAR_HEIGHT - keyboardSize.height;
+    self.messagesTableView.frame = tableFrame;
+    
+    NSIndexPath* ipath = [NSIndexPath indexPathForRow: [self.messagesArray count] -1 inSection: 0];
+    [self.messagesTableView scrollToRowAtIndexPath: ipath atScrollPosition: UITableViewScrollPositionBottom animated: YES];
     
     [UIView animateWithDuration:0.3
                      animations:^{
