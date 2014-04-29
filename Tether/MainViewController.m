@@ -1657,6 +1657,8 @@
                     if (![place.owner isEqualToString:@""]) {
                         [commitment setObject:place.owner forKey:@"placeOwner"];
                     }
+                } else {
+                    [commitment setObject:@"" forKey:@"placeOwner"];
                 }
                 
                 if (place.memo) {
