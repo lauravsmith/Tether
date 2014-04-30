@@ -11,5 +11,6 @@
 @interface MessageCell : UITableViewCell
 
 @property (nonatomic, strong) Message *message;
+@property (nonatomic, assign) BOOL showName;
 
 @end

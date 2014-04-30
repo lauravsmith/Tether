@@ -18,6 +18,8 @@
 
 @property (nonatomic, strong) Message *message;
 @property (nonatomic, strong) UILabel *messageLabel;
+@property (nonatomic, strong) UILabel *nameLabel;
+@property (nonatomic, assign) int showName;
 
 @end
 
@@ -34,16 +36,43 @@
 
 - (void)layoutSubviews {
     Datastore *sharedDataManager = [Datastore sharedDataManager];
+    if (self.showName && ![self.message.userId isEqualToString:sharedDataManager.facebookId]) {
+        UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:12.0f];
+        self.nameLabel = [[UILabel alloc] init];
+        self.nameLabel.text = self.message.userName;
+        [self.nameLabel setFont:montserratSmall];
+        CGSize size = [self.nameLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratSmall}];
+        self.nameLabel.frame = CGRectMake(NAME_LABEL_OFFSET_X, 0.0, size.width, size.height);
+        [self.nameLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
+        [self addSubview:self.nameLabel];
+    }
+    
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
     self.messageLabel.text = self.message.content;
     [self.messageLabel setFont:montserrat];
-    CGSize size = [self.messageLabel.text sizeWithAttributes:@{NSFontAttributeName: montserrat}];
+    
+    NSDictionary *attributes = @{NSFontAttributeName: montserrat};
+    CGRect rect = [self.messageLabel.text boundingRectWithSize:CGSizeMake(MAX_LABEL_WIDTH, 1000.0)
+                                              options:NSStringDrawingUsesLineFragmentOrigin
+                                           attributes:attributes
+                                              context:nil];
+    
+    self.messageLabel.lineBreakMode = NSLineBreakByWordWrapping;
+    self.messageLabel.numberOfLines = 0;
+    
+    float yOrigin = 0.0;
+    if (self.showName) {
+        yOrigin = self.nameLabel.frame.size.height + 5.0;
+    } else {
+        yOrigin = 10.0;
+    }
+    
     if ([self.message.userId isEqualToString:sharedDataManager.facebookId]) {
-        self.messageLabel.frame = CGRectMake(self.frame.size.width - size.width - NAME_LABEL_OFFSET_X, 10.0, MIN(size.width, MAX_LABEL_WIDTH), size.height);
+        self.messageLabel.frame = CGRectMake(self.frame.size.width - rect.size.width - NAME_LABEL_OFFSET_X, yOrigin, MIN(rect.size.width, MAX_LABEL_WIDTH), rect.size.height);
         [self.messageLabel setTextColor:[UIColor whiteColor]];
         [self.messageLabel setBackgroundColor:UIColorFromRGB(0x8e0528)];
     } else {
-        self.messageLabel.frame = CGRectMake(NAME_LABEL_OFFSET_X, 10.0, MIN(size.width, MAX_LABEL_WIDTH), size.height);
+        self.messageLabel.frame = CGRectMake(NAME_LABEL_OFFSET_X, yOrigin, MIN(rect.size.width, MAX_LABEL_WIDTH), rect.size.height);
         [self.messageLabel setTextColor:[UIColor blackColor]];
         [self.messageLabel setBackgroundColor:UIColorFromRGB(0xf8f8f8)];
     }
@@ -83,6 +112,10 @@
 
 - (void)setMessage:(Message*)message {
     _message = message;
+    if (self.showName) {
+        self.cellContentView.showName = self.showName;
+    }
+    
     [self.cellContentView setMessage:message];
 }
 

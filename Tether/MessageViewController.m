@@ -14,10 +14,12 @@
 #import "MessageViewController.h"
 
 #define BOTTOM_BAR_HEIGHT 50.0
+#define MAX_LABEL_WIDTH 150.0
 #define MAX_MESSAGE_FIELD_HEIGHT 150.0
 #define MESSAGE_FIELD_HEIGHT 28.0
 #define MESSAGE_FIELD_WIDTH 229.0
-#define MIN_CELL_HEIGHT 60.0
+#define MIN_CELL_HEIGHT 40.0
+#define PADDING 15.0
 #define SEND_BUTTON_WIDTH 48.0
 #define STATUS_BAR_HEIGHT 20.0
 #define TOP_BAR_HEIGHT 70.0
@@ -72,7 +74,7 @@
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     
     for (NSString *friendName in self.thread.participantNames) {
-        if (![friendName isEqualToString:sharedDataManager.name]) {
+        if (![friendName isEqualToString:sharedDataManager.name] && ![friendName isEqualToString:sharedDataManager.firstName]) {
             if ([names isEqualToString:@""]) {
                 names = friendName;
             } else {
@@ -131,6 +133,8 @@
     [[self.textView layer] setBorderWidth:0.5];
     [[self.textView layer] setCornerRadius:4.0];
     self.textView.font = montserrat;
+    self.textView.textColor = UIColorFromRGB(0xc8c8c8);
+    self.textView.text = @"Type a message...";
     [self.bottomBar addSubview:self.textView];
     
     self.sendButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - SEND_BUTTON_WIDTH, 0.0, SEND_BUTTON_WIDTH, self.bottomBar.frame.size.height)];
@@ -138,7 +142,32 @@
     [self.sendButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
     self.sendButton.titleLabel.font = montserrat;
     [self.sendButton addTarget:self action:@selector(sendClicked:) forControlEvents:UIControlEventTouchUpInside];
+    [self.sendButton setEnabled:NO];
     [self.bottomBar addSubview:self.sendButton];
+    
+    UISwipeGestureRecognizer * swipeDown = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swipeDown:)];
+    [swipeDown setDirection:(UISwipeGestureRecognizerDirectionDown)];
+    [self.bottomBar addGestureRecognizer:swipeDown];
+    
+    UISwipeGestureRecognizer * swipeDownTextView = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swipeDown:)];
+    [swipeDownTextView setDirection:(UISwipeGestureRecognizerDirectionDown)];
+    [self.textView addGestureRecognizer:swipeDownTextView];
+    
+    if (self.thread.unread) {
+        [self markRead];
+    }
+    
+    if (self.thread && [self.messagesArray count] > 0) {
+        NSIndexPath* ipath = [NSIndexPath indexPathForRow: [self.messagesArray count] -1 inSection: 0];
+        [self.messagesTableView scrollToRowAtIndexPath: ipath atScrollPosition: UITableViewScrollPositionBottom animated: YES];
+    }
+}
+
+-(void)markRead {
+    self.thread.unread = NO;
+    [self.thread.participantObject setObject:[NSNumber numberWithBool:NO] forKey:@"unread"];
+    [self.thread.participantObject saveInBackground];
+    // reload tableview?
 }
 
 -(void)closeMessageView {
@@ -165,6 +194,8 @@
     
     NSIndexPath* ipath = [NSIndexPath indexPathForRow: [self.messagesArray count] -1 inSection: 0];
     [self.messagesTableView scrollToRowAtIndexPath: ipath atScrollPosition: UITableViewScrollPositionBottom animated: YES];
+    
+    [self textViewDidChange:self.textView];
 }
 
 -(void)sendMessage:(Message*)message {
@@ -184,9 +215,17 @@
 #pragma mark UITableViewDataSource Methods
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return MIN_CELL_HEIGHT;
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
+    Message *message = [self.messagesArray objectAtIndex:indexPath.row];
+    
+    NSDictionary *attributes = @{NSFontAttributeName: montserrat};
+    CGRect rect = [message.content boundingRectWithSize:CGSizeMake(MAX_LABEL_WIDTH, 1000.0)
+                                                       options:NSStringDrawingUsesLineFragmentOrigin
+                                                    attributes:attributes
+                                                       context:nil];
+    
+    return MAX(MIN_CELL_HEIGHT, rect.size.height + PADDING*2);
 }
-
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     return [self.messagesArray count];
@@ -194,6 +233,19 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     MessageCell *cell = [[MessageCell alloc] init];
+    Message *message = [self.messagesArray objectAtIndex:indexPath.row];
+    
+    if (self.thread.isGroupMessage) {
+        if (indexPath.row == 0) {
+            cell.showName = YES;
+        } else {
+            Message *previousMessage = [self.messagesArray objectAtIndex:indexPath.row - 1];
+            if (![message.userId isEqualToString:previousMessage.userId]) {
+                cell.showName = YES;
+            }
+        }
+    }
+    
     [cell setMessage:[self.messagesArray objectAtIndex:indexPath.row]];
     return cell;
 }
@@ -207,8 +259,10 @@
     tableFrame.size.height = self.view.frame.size.height - TOP_BAR_HEIGHT - BOTTOM_BAR_HEIGHT - keyboardSize.height;
     self.messagesTableView.frame = tableFrame;
     
-    NSIndexPath* ipath = [NSIndexPath indexPathForRow: [self.messagesArray count] -1 inSection: 0];
-    [self.messagesTableView scrollToRowAtIndexPath: ipath atScrollPosition: UITableViewScrollPositionBottom animated: YES];
+    if (self.thread) {
+        NSIndexPath* ipath = [NSIndexPath indexPathForRow: [self.messagesArray count] -1 inSection: 0];
+        [self.messagesTableView scrollToRowAtIndexPath: ipath atScrollPosition: UITableViewScrollPositionBottom animated: YES];
+    }
     
     [UIView animateWithDuration:0.3
                      animations:^{
@@ -219,12 +273,16 @@
 }
 
 -(void)keyboardWillHide {
+    CGRect tableFrame = self.messagesTableView.frame;
+    tableFrame.size.height = self.view.frame.size.height - TOP_BAR_HEIGHT - BOTTOM_BAR_HEIGHT;
+    
     self.keyboardShowing = NO;
     [UIView animateWithDuration:0.3
                      animations:^{
                          CGRect frame = self.bottomBar.frame;
                          frame.origin.y = self.view.frame.size.height - frame.size.height;
                          self.bottomBar.frame = frame;
+                         self.messagesTableView.frame = tableFrame;
                      }];
 }
 
@@ -248,6 +306,7 @@
         [self.textView resignFirstResponder];
         self.textView.tag = 0;
         [self.sendButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
+        [self.sendButton setEnabled:NO];
     } else {
         UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
         
@@ -257,11 +316,12 @@
                                                attributes:attributes
                                                   context:nil];
         CGRect frame = self.textView.frame;
-        frame.size.height = MAX(MESSAGE_FIELD_HEIGHT, MIN(rect.size.height, MAX_MESSAGE_FIELD_HEIGHT));
+        frame.size.height = MAX(MESSAGE_FIELD_HEIGHT, MIN(rect.size.height + 10.0, MAX_MESSAGE_FIELD_HEIGHT));
         self.textView.frame = frame;
         
         frame = self.bottomBar.frame;
         frame.size.height = self.textView.frame.size.height + 22.0;
+        
         if (self.keyboardShowing) {
             // Works in both portrait and landscape mode
             CGSize keyboardSize = [[[self.notification userInfo] objectForKey:UIKeyboardFrameBeginUserInfoKey] CGRectValue].size;
@@ -273,6 +333,7 @@
         self.bottomBar.frame = frame;
         
         [self.sendButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+        [self.sendButton setEnabled:YES];
     }
 }
 
@@ -290,6 +351,12 @@
     }
     
     return YES;
+}
+
+#pragma mark UIGestureRecognizer
+
+-(void)swipeDown:(UIGestureRecognizer*)recognizer  {
+    [self.view endEditing:YES];
 }
 
 - (void)didReceiveMemoryWarning

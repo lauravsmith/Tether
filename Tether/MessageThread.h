@@ -16,9 +16,11 @@
 @property (nonatomic, strong) PFObject *threadObject;
 @property (nonatomic, strong) NSDate *recentMessageDate;
 @property (nonatomic, strong) NSString *recentMessage;
-@property (nonatomic, assign) BOOL *unread;
+@property (nonatomic, assign) BOOL unread;
 @property (nonatomic, strong) NSMutableSet *participantIds;
 @property (nonatomic, strong) NSMutableSet *participantNames;
 @property (nonatomic, strong) NSMutableDictionary *messages;
+@property (nonatomic, assign) BOOL isGroupMessage;
+@property (nonatomic, strong) PFObject *participantObject;
 
 @end

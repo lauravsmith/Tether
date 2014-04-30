@@ -102,11 +102,19 @@
                 MessageThread *thread = [[MessageThread alloc] init];
                 thread.threadId = threadObject.objectId;
                 thread.threadObject = threadObject;
+                thread.participantObject = participant;
                 thread.recentMessageDate = threadObject.updatedAt;
                 thread.recentMessage = [threadObject objectForKey:@"recentMessage"];
                 thread.participantIds = [NSMutableSet setWithArray:[threadObject objectForKey:@"participantIds"]];
                 thread.participantNames = [NSMutableSet setWithArray:[threadObject objectForKey:@"participantNames"]];
+                if ([thread.participantIds count] > 2) {
+                    thread.isGroupMessage = YES;
+                    thread.participantNames = [NSMutableSet setWithArray:[threadObject objectForKey:@"participantFirstNames"]];
+                } else {
+                    thread.isGroupMessage = NO;
+                }
                 
+                thread.unread = [[participant objectForKey:@"unread"] boolValue];
                 thread.messages = [[NSMutableDictionary alloc] init];
                 
                 [self.messageThreadDictionary setObject:thread forKey:thread.threadId];
@@ -223,6 +231,13 @@
                         }];
 }
 
+#pragma mark IBAction methods
+
+-(IBAction)newMessage:(id)sender {
+    [self.delegate openMessageViewControllerForMessageThread:nil];
+}
+
+
 #pragma mark NotificationCellDelegate Methods
 
 -(void)goToPlace:(id)placeId {
@@ -289,7 +304,7 @@
     
     UIButton *newMessageButton = [[UIButton alloc] initWithFrame:CGRectMake(view.frame.size.width - 45.0, 30.0, 40.0, 40.0)];
     [newMessageButton setImage:[UIImage imageNamed:@"PlusSign"] forState:UIControlStateNormal];
-//    [newMessageButton addTarget:self action:@selector(newMessage:) forControlEvents:UIControlEventTouchUpInside];
+    [newMessageButton addTarget:self action:@selector(newMessage:) forControlEvents:UIControlEventTouchUpInside];
     [view addSubview:newMessageButton];
     
     UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(20.0, view.frame.size.height - 0.5, self.notificationsTableView.frame.size.width - 20.0, 0.5)];

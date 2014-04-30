@@ -14,8 +14,10 @@
 #define MAX_LABEL_WIDTH 150.0
 #define NAME_LABEL_OFFSET_X 80.0
 #define PROFILE_PICTURE_CORNER_RADIUS 22.0
+#define PROFILE_PICTURE_GROUP_CORNER_RADIUS 18.0
 #define PROFILE_PICTURE_OFFSET_X 20.0
 #define PROFILE_PICTURE_SIZE 45.0
+#define PROFILE_PICTURE_GROUP_SIZE 35.0
 
 @interface MessageThreadCellContentView : UIView
 
@@ -23,7 +25,11 @@
 @property (nonatomic, strong) UILabel *friendNamesLabel;
 @property (nonatomic, strong) UILabel *recentMessageLabel;
 @property (nonatomic, strong) FBProfilePictureView *friendProfilePictureView;
+@property (nonatomic, strong) FBProfilePictureView *friendProfilePictureView2;
+@property (nonatomic, strong) FBProfilePictureView *friendProfilePictureView3;
+@property (nonatomic, strong) FBProfilePictureView *friendProfilePictureView4;
 @property (nonatomic, strong) UIButton *arrowButton;
+@property (nonatomic, strong) UIView *unreadDot;
 
 @end
 
@@ -49,7 +55,7 @@
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     
     for (NSString *friendName in self.messageThread.participantNames) {
-        if (![friendName isEqualToString:sharedDataManager.name]) {
+        if (![friendName isEqualToString:sharedDataManager.name] && ![friendName isEqualToString:sharedDataManager.firstName]) {
             if ([names isEqualToString:@""]) {
                 names = friendName;
             } else {
@@ -71,24 +77,53 @@
     [self.recentMessageLabel setTextColor:[UIColor whiteColor]];
     [self.recentMessageLabel setFont:montserrat];
     
-    NSString *friendID = @"";
-    for (NSString *participantID in self.messageThread.participantIds) {
-        if (![participantID isEqualToString:sharedDataManager.facebookId]) {
-            friendID = participantID;
+    if ([self.messageThread.participantIds count] == 2) {
+        NSString *friendID = @"";
+        for (NSString *participantID in self.messageThread.participantIds) {
+            if (![participantID isEqualToString:sharedDataManager.facebookId]) {
+                friendID = participantID;
+            }
+        }
+        self.friendProfilePictureView = [[FBProfilePictureView alloc] initWithProfileID:(NSString *)friendID pictureCropping:FBProfilePictureCroppingSquare];
+        self.friendProfilePictureView.clipsToBounds = YES;
+        self.friendProfilePictureView.frame = CGRectMake(PROFILE_PICTURE_OFFSET_X, 10.0, PROFILE_PICTURE_SIZE, PROFILE_PICTURE_SIZE);
+        self.friendProfilePictureView.layer.cornerRadius = PROFILE_PICTURE_CORNER_RADIUS;
+        self.friendProfilePictureView.tag = 0;
+        [self addSubview:self.friendProfilePictureView];
+    } else {
+        NSArray *userIds = [self.messageThread.participantIds allObjects];
+        int count = 0;
+        while (count < 3 && count < [userIds count]) {
+            NSString *friendID = [userIds objectAtIndex:count];
+            
+            if (![friendID isEqualToString:sharedDataManager.facebookId]) {
+                FBProfilePictureView *fbProfilePictureView = [[FBProfilePictureView alloc] initWithProfileID:(NSString *)friendID pictureCropping:FBProfilePictureCroppingSquare];
+                fbProfilePictureView.clipsToBounds = YES;
+                
+                float leftOffset = PROFILE_PICTURE_OFFSET_X;
+                if (count%2 == 0) {
+                    leftOffset += 15.0;
+                }
+                
+                fbProfilePictureView.frame = CGRectMake(leftOffset, 10.0 + (count - 1) * 15.0, PROFILE_PICTURE_GROUP_SIZE, PROFILE_PICTURE_GROUP_SIZE);
+                fbProfilePictureView.layer.cornerRadius = PROFILE_PICTURE_GROUP_CORNER_RADIUS;
+                fbProfilePictureView.tag = 0;
+                [self addSubview:fbProfilePictureView];
+            }
+            count++;
         }
     }
-    self.friendProfilePictureView = [[FBProfilePictureView alloc] initWithProfileID:(NSString *)friendID pictureCropping:FBProfilePictureCroppingSquare];
-    self.friendProfilePictureView.clipsToBounds = YES;
-    [self addSubview:self.friendProfilePictureView];
-    self.friendProfilePictureView.frame = CGRectMake(PROFILE_PICTURE_OFFSET_X, 10.0, PROFILE_PICTURE_SIZE, PROFILE_PICTURE_SIZE);
-    self.friendProfilePictureView.layer.cornerRadius = 22.0;
-    self.friendProfilePictureView.clipsToBounds = YES;
-    self.friendProfilePictureView.tag = 0;
-    [self addSubview:self.friendProfilePictureView];
     
-    self.arrowButton.frame = CGRectMake(self.frame.size.width - 30.0, (self.frame.size.height - 10.0) / 2, 7.0, 11.0);
+    self.arrowButton.frame = CGRectMake(self.frame.size.width - 25.0, (self.frame.size.height - 10.0) / 2, 7.0, 11.0);
     self.arrowButton.transform = CGAffineTransformMakeRotation(degreesToRadian(180));
     [self.arrowButton setImage:[UIImage imageNamed:@"WhiteTriangle"] forState:UIControlStateNormal];
+    
+    if (self.messageThread.unread) {
+        self.unreadDot = [[UIView alloc] initWithFrame:CGRectMake(self.arrowButton.frame.origin.x - 15.0, self.arrowButton.frame.origin.y, 10.0, 10.0)];
+        self.unreadDot.layer.cornerRadius = 5.0;
+        [self.unreadDot setBackgroundColor:UIColorFromRGB(0x8e0528)];
+        [self addSubview:self.unreadDot];
+    }
 }
 
 - (void)prepareForReuse {

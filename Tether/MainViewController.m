@@ -293,6 +293,7 @@
             NSString *firstName = result[@"first_name"];
             if (firstName && [firstName length] != 0) {
                 [self.currentUser setObject:firstName forKey:@"firstName"];
+                sharedDataManager.firstName = firstName;
             }
             
             NSString *birthday = result[@"birthday"];
@@ -1324,24 +1325,26 @@
 
 #pragma mark RightPanelViewControllerDelegate
 -(void)openMessageViewControllerForMessageThread:(MessageThread *)thread {
-    self.messageViewController = [[MessageViewController alloc] init];
-    self.messageViewController.delegate = self;
-    self.messageViewController.thread = thread;
-    [self.messageViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
-    [self.view addSubview:self.messageViewController.view];
-    [self addChildViewController:self.messageViewController];
-    [self.messageViewController didMoveToParentViewController:self];
-    [UIView animateWithDuration:SLIDE_TIMING
-                          delay:0.0
-         usingSpringWithDamping:1.0
-          initialSpringVelocity:1.0
-                        options:UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
-                         [self.messageViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
-                     }
-                     completion:^(BOOL finished) {
-                         
-                     }];
+    if (!self.messageViewController) {
+        self.messageViewController = [[MessageViewController alloc] init];
+        self.messageViewController.delegate = self;
+        self.messageViewController.thread = thread;
+        [self.messageViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+        [self.view addSubview:self.messageViewController.view];
+        [self addChildViewController:self.messageViewController];
+        [self.messageViewController didMoveToParentViewController:self];
+        [UIView animateWithDuration:SLIDE_TIMING
+                              delay:0.0
+             usingSpringWithDamping:1.0
+              initialSpringVelocity:1.0
+                            options:UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                             [self.messageViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                         }
+                         completion:^(BOOL finished) {
+                             
+                         }];
+    }
 }
 
 -(void)closeMessageView {
@@ -1356,6 +1359,7 @@
                      completion:^(BOOL finished) {
                          [self.messageViewController.view removeFromSuperview];
                          [self.messageViewController removeFromParentViewController];
+                         self.messageViewController = nil;
                      }];
 }
 

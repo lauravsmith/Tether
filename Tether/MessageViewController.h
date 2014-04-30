@@ -12,6 +12,7 @@
 @property (nonatomic, weak) id<MessageViewControllerDelegate> delegate;
 @property (retain, nonatomic) MessageThread *thread;
 @property (retain, nonatomic) PFObject *messageThreadObject;
+@property (retain, nonatomic) PFObject *messageParticipant;
 @property (retain, nonatomic) NSMutableArray *messagesArray;
 
 @end

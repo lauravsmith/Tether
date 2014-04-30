@@ -12,6 +12,7 @@
 
 @synthesize facebookId;
 @synthesize name;
+@synthesize firstName;
 @synthesize facebookFriends;
 @synthesize tetherFriends;
 @synthesize blockedFriends;

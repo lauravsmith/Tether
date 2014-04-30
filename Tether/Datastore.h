@@ -13,6 +13,7 @@
 @interface Datastore : NSObject {
     NSString *facebookId;
     NSString *name;
+    NSString *firstName;
     NSString *statusMessage;
     NSArray *facebookFriends;
     NSMutableArray * tetherFriends;
@@ -42,6 +43,7 @@
 
 @property (nonatomic, retain) NSString *facebookId;
 @property (nonatomic, retain) NSString *name;
+@property (nonatomic, retain) NSString *firstName;
 @property (nonatomic, retain) NSArray *facebookFriends;
 @property (nonatomic, strong) NSMutableArray * tetherFriends;
 @property (nonatomic, strong) NSMutableArray * blockedFriends;
