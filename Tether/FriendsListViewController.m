@@ -651,7 +651,6 @@
 
 -(void)refreshPlaceDetails:(Place*)place {
     self.place = place;
-//    [self viewDidLoad];
 }
 
 #pragma mark UITableViewDataSource Methods

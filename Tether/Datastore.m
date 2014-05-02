@@ -12,6 +12,7 @@
 
 @synthesize facebookId;
 @synthesize name;
+@synthesize firstName;
 @synthesize facebookFriends;
 @synthesize tetherFriends;
 @synthesize blockedFriends;
@@ -37,6 +38,7 @@
 @synthesize hasUpdatedFriends;
 @synthesize placesArray;
 @synthesize userCoordinates;
+@synthesize messageThreadDictionary;
 
 #pragma mark Singleton Methods
 

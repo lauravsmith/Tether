@@ -13,6 +13,8 @@
 @interface RightPanelViewController : UIViewController
 @property (nonatomic, weak) id<RightPanelViewControllerDelegate> delegate;
 @property (retain, nonatomic) NSMutableArray *notificationsArray;
+@property (nonatomic, strong) UITableView *notificationsTableView;
+@property (nonatomic, strong) UITableViewController *notificationsTableViewController;
 -(void)loadNotifications;
 @end
 
@@ -21,5 +23,7 @@
 -(void)openPageForPlaceWithId:(id)placeId;
 -(void)goToPlaceInListView:(id)placeId;
 -(void)userChangedLocationToCityName:(NSString*)city;
+-(void)openMessageViewControllerForMessageThread:(MessageThread *)thread;
+-(void)openNewMessageViewController;
 
 @end

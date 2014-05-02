@@ -13,7 +13,6 @@
 #import "ManageFriendsViewController.h"
 #import "SettingsViewController.h"
 #import "ShareViewController.h"
-#import "TethrTextField.h"
 
 #import "UIImage+ImageEffects.h"
 

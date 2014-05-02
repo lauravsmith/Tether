@@ -74,6 +74,12 @@
 		476F4DC618B2F7E6001A89A1 /* MissionGothicBlackItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 476F4DBB18B2F7E6001A89A1 /* MissionGothicBlackItalic.otf */; };
 		476F4DC718B2F7E6001A89A1 /* MissionGothicBold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 476F4DBC18B2F7E6001A89A1 /* MissionGothicBold.otf */; };
 		476F4DC818B2F7E6001A89A1 /* MissionGothicBoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 476F4DBD18B2F7E6001A89A1 /* MissionGothicBoldItalic.otf */; };
+		4771B192191412BA00A99E05 /* Message.m in Sources */ = {isa = PBXBuildFile; fileRef = 4771B191191412BA00A99E05 /* Message.m */; };
+		4771B195191412FF00A99E05 /* MessageCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 4771B194191412FF00A99E05 /* MessageCell.m */; };
+		4771B1981914134F00A99E05 /* MessageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4771B1971914134F00A99E05 /* MessageViewController.m */; };
+		4771B19B1914139900A99E05 /* MessageThreadCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 4771B19A1914139900A99E05 /* MessageThreadCell.m */; };
+		4771B19E191413E700A99E05 /* MessageThread.m in Sources */ = {isa = PBXBuildFile; fileRef = 4771B19D191413E700A99E05 /* MessageThread.m */; };
+		4771B1A11914177800A99E05 /* NewMessageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4771B1A01914177800A99E05 /* NewMessageViewController.m */; };
 		47746C9A1906D2F700DC73F4 /* Cancel.png in Resources */ = {isa = PBXBuildFile; fileRef = 47746C961906D2F700DC73F4 /* Cancel.png */; };
 		47746C9B1906D2F700DC73F4 /* Cancel@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 47746C971906D2F700DC73F4 /* Cancel@2x.png */; };
 		47746C9C1906D2F700DC73F4 /* Edit.png in Resources */ = {isa = PBXBuildFile; fileRef = 47746C981906D2F700DC73F4 /* Edit.png */; };
@@ -326,6 +332,18 @@
 		476F4DBB18B2F7E6001A89A1 /* MissionGothicBlackItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = MissionGothicBlackItalic.otf; sourceTree = "<group>"; };
 		476F4DBC18B2F7E6001A89A1 /* MissionGothicBold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = MissionGothicBold.otf; sourceTree = "<group>"; };
 		476F4DBD18B2F7E6001A89A1 /* MissionGothicBoldItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = MissionGothicBoldItalic.otf; sourceTree = "<group>"; };
+		4771B190191412BA00A99E05 /* Message.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Message.h; sourceTree = "<group>"; };
+		4771B191191412BA00A99E05 /* Message.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Message.m; sourceTree = "<group>"; };
+		4771B193191412FF00A99E05 /* MessageCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MessageCell.h; sourceTree = "<group>"; };
+		4771B194191412FF00A99E05 /* MessageCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MessageCell.m; sourceTree = "<group>"; };
+		4771B1961914134F00A99E05 /* MessageViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MessageViewController.h; sourceTree = "<group>"; };
+		4771B1971914134F00A99E05 /* MessageViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MessageViewController.m; sourceTree = "<group>"; };
+		4771B1991914139900A99E05 /* MessageThreadCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MessageThreadCell.h; sourceTree = "<group>"; };
+		4771B19A1914139900A99E05 /* MessageThreadCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MessageThreadCell.m; sourceTree = "<group>"; };
+		4771B19C191413E700A99E05 /* MessageThread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MessageThread.h; sourceTree = "<group>"; };
+		4771B19D191413E700A99E05 /* MessageThread.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MessageThread.m; sourceTree = "<group>"; };
+		4771B19F1914177800A99E05 /* NewMessageViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NewMessageViewController.h; sourceTree = "<group>"; };
+		4771B1A01914177800A99E05 /* NewMessageViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NewMessageViewController.m; sourceTree = "<group>"; };
 		47746C961906D2F700DC73F4 /* Cancel.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Cancel.png; sourceTree = "<group>"; };
 		47746C971906D2F700DC73F4 /* Cancel@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Cancel@2x.png"; sourceTree = "<group>"; };
 		47746C981906D2F700DC73F4 /* Edit.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Edit.png; sourceTree = "<group>"; };
@@ -608,6 +626,10 @@
 				4776518018AA691300768D57 /* ManageFriendCell.m */,
 				47AC11E418D13FFC00F60B3A /* TethrButton.h */,
 				47AC11E518D13FFC00F60B3A /* TethrButton.m */,
+				4771B193191412FF00A99E05 /* MessageCell.h */,
+				4771B194191412FF00A99E05 /* MessageCell.m */,
+				4771B1991914139900A99E05 /* MessageThreadCell.h */,
+				4771B19A1914139900A99E05 /* MessageThreadCell.m */,
 			);
 			name = View;
 			sourceTree = "<group>";
@@ -631,6 +653,10 @@
 				472392A618649298000D0C7E /* Notification.m */,
 				47F2EAB81891E5C2007FFEC8 /* TethrTextField.h */,
 				47F2EAB91891E5C2007FFEC8 /* TethrTextField.m */,
+				4771B190191412BA00A99E05 /* Message.h */,
+				4771B191191412BA00A99E05 /* Message.m */,
+				4771B19C191413E700A99E05 /* MessageThread.h */,
+				4771B19D191413E700A99E05 /* MessageThread.m */,
 			);
 			name = Model;
 			sourceTree = "<group>";
@@ -812,6 +838,10 @@
 				4775899B18F30A4B0041AB8F /* CreatePlaceViewController.m */,
 				47746C9E1906D7E000DC73F4 /* EditPlaceViewController.h */,
 				47746C9F1906D7E000DC73F4 /* EditPlaceViewController.m */,
+				4771B1961914134F00A99E05 /* MessageViewController.h */,
+				4771B1971914134F00A99E05 /* MessageViewController.m */,
+				4771B19F1914177800A99E05 /* NewMessageViewController.h */,
+				4771B1A01914177800A99E05 /* NewMessageViewController.m */,
 			);
 			name = Controller;
 			sourceTree = "<group>";
@@ -1358,12 +1388,15 @@
 				472392A718649298000D0C7E /* Notification.m in Sources */,
 				47059D8E18444CBE00CEC50E /* Friend.m in Sources */,
 				47194F3618639AF900E114F5 /* InviteViewController.m in Sources */,
+				4771B1A11914177800A99E05 /* NewMessageViewController.m in Sources */,
 				4705F12A1859298F0095F8B1 /* SearchResultCell.m in Sources */,
 				47EFC43318B1BD7C008A26AA /* UIImage+ImageEffects.m in Sources */,
 				4775D65118AC52B900E80CAC /* JSONKit.m in Sources */,
+				4771B1981914134F00A99E05 /* MessageViewController.m in Sources */,
 				47BB2C57187E074100BB40F5 /* FriendLabel.m in Sources */,
 				472392AA1864D304000D0C7E /* NotificationCell.m in Sources */,
 				472392B51867D08C000D0C7E /* Constants.m in Sources */,
+				4771B192191412BA00A99E05 /* Message.m in Sources */,
 				47EFC41418B116ED008A26AA /* SBJSON.m in Sources */,
 				47064CC4183DA01B00E9228A /* LeftPanelViewController.m in Sources */,
 				47EFC41318B116ED008A26AA /* NSString+SBJSON.m in Sources */,
@@ -1380,11 +1413,13 @@
 				47EFC41718B116ED008A26AA /* SBJsonWriter.m in Sources */,
 				47C7B6C1184AC7BB00358BE1 /* PlaceCell.m in Sources */,
 				47746CA01906D7E000DC73F4 /* EditPlaceViewController.m in Sources */,
+				4771B19B1914139900A99E05 /* MessageThreadCell.m in Sources */,
 				47065F1C185AA8BC0047A564 /* RightPanelViewController.m in Sources */,
 				47064C96183D9E3800E9228A /* AppDelegate.m in Sources */,
 				47064C92183D9E3800E9228A /* main.m in Sources */,
 				4702441618575E14001C19AC /* ILGeoNamesLookup.m in Sources */,
 				470A33B71842CB98006E48F9 /* DecisionViewController.m in Sources */,
+				4771B19E191413E700A99E05 /* MessageThread.m in Sources */,
 				47AC11E618D13FFC00F60B3A /* TethrButton.m in Sources */,
 				47EFC41518B116ED008A26AA /* SBJsonBase.m in Sources */,
 				47EFC41218B116ED008A26AA /* NSObject+SBJSON.m in Sources */,
@@ -1395,6 +1430,7 @@
 				47064CBC183D9FD800E9228A /* MainViewController.m in Sources */,
 				4705F12D185940B60095F8B1 /* FriendsListViewController.m in Sources */,
 				47064CC0183DA00D00E9228A /* CenterViewController.m in Sources */,
+				4771B195191412FF00A99E05 /* MessageCell.m in Sources */,
 				47FB08D61849701400A07908 /* Place.m in Sources */,
 				4776517E18AA615A00768D57 /* ManageFriendsViewController.m in Sources */,
 			);

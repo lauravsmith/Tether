@@ -75,6 +75,11 @@ NSString *const SessionStateChangedNotification =
 didReceiveRemoteNotification:(NSDictionary *)userInfo
 fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
     [self.mainViewController updateNotificationsNumber];
+    [self.mainViewController loadNotifications];
+    
+    if ([UIApplication sharedApplication].applicationState == UIApplicationStateActive) {
+        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
+    }
 }
 
 - (void)showLoginView

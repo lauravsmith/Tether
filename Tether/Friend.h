@@ -11,6 +11,7 @@
 
 @interface Friend : NSObject
 @property (nonatomic, strong) NSString *name;
+@property (nonatomic, strong) NSString *firstName;
 @property (nonatomic, strong) NSString *friendID;
 @property (nonatomic, strong) NSString *statusMessage;
 @property (nonatomic, strong) NSString *city;
