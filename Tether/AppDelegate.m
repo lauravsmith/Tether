@@ -14,6 +14,7 @@
 #import "LoginViewController.h"
 #import "MainViewController.h"
 
+#import <AudioToolbox/AudioServices.h>
 #import <Parse/Parse.h>
 
 NSString *const SessionStateChangedNotification =
@@ -75,6 +76,11 @@ NSString *const SessionStateChangedNotification =
 didReceiveRemoteNotification:(NSDictionary *)userInfo
 fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
     [self.mainViewController updateNotificationsNumber];
+    [self.mainViewController loadNotifications];
+    
+    if ([UIApplication sharedApplication].applicationState == UIApplicationStateActive) {
+        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
+    }
 }
 
 - (void)showLoginView
@@ -168,8 +174,7 @@ fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
 - (void)applicationDidEnterBackground:(UIApplication *)application
 {
     [self.mainViewController.centerViewController.locationManager stopMonitoringSignificantLocationChanges];
-    // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
-    // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
+    
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application

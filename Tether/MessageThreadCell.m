@@ -93,7 +93,8 @@
     } else {
         NSArray *userIds = [self.messageThread.participantIds allObjects];
         int count = 0;
-        while (count < 3 && count < [userIds count]) {
+        int friendsCount = 0;
+        while (count < 4 && count < [userIds count] && friendsCount < 3) {
             NSString *friendID = [userIds objectAtIndex:count];
             
             if (![friendID isEqualToString:sharedDataManager.facebookId]) {
@@ -101,14 +102,15 @@
                 fbProfilePictureView.clipsToBounds = YES;
                 
                 float leftOffset = PROFILE_PICTURE_OFFSET_X;
-                if (count%2 == 0) {
+                if (friendsCount%2 == 1) {
                     leftOffset += 15.0;
                 }
                 
-                fbProfilePictureView.frame = CGRectMake(leftOffset, 10.0 + (count - 1) * 15.0, PROFILE_PICTURE_GROUP_SIZE, PROFILE_PICTURE_GROUP_SIZE);
+                fbProfilePictureView.frame = CGRectMake(leftOffset, 10.0 + (friendsCount) * 15.0, PROFILE_PICTURE_GROUP_SIZE, PROFILE_PICTURE_GROUP_SIZE);
                 fbProfilePictureView.layer.cornerRadius = PROFILE_PICTURE_GROUP_CORNER_RADIUS;
                 fbProfilePictureView.tag = 0;
                 [self addSubview:fbProfilePictureView];
+                friendsCount++;
             }
             count++;
         }

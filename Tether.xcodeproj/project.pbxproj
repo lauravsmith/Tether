@@ -71,6 +71,8 @@
 		476F4DC718B2F7E6001A89A1 /* MissionGothicBold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 476F4DBC18B2F7E6001A89A1 /* MissionGothicBold.otf */; };
 		476F4DC818B2F7E6001A89A1 /* MissionGothicBoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 476F4DBD18B2F7E6001A89A1 /* MissionGothicBoldItalic.otf */; };
 		476F4DCF18B2F7E6001A89A1 /* Personal Use License.txt in Resources */ = {isa = PBXBuildFile; fileRef = 476F4DC418B2F7E6001A89A1 /* Personal Use License.txt */; };
+		4771B18C1911948100A99E05 /* NewMessageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4771B18B1911948100A99E05 /* NewMessageViewController.m */; };
+		4771B18F1911A3B800A99E05 /* HighlightingTextStorage.m in Sources */ = {isa = PBXBuildFile; fileRef = 4771B18E1911A3B800A99E05 /* HighlightingTextStorage.m */; };
 		47746C9A1906D2F700DC73F4 /* Cancel.png in Resources */ = {isa = PBXBuildFile; fileRef = 47746C961906D2F700DC73F4 /* Cancel.png */; };
 		47746C9B1906D2F700DC73F4 /* Cancel@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 47746C971906D2F700DC73F4 /* Cancel@2x.png */; };
 		47746C9C1906D2F700DC73F4 /* Edit.png in Resources */ = {isa = PBXBuildFile; fileRef = 47746C981906D2F700DC73F4 /* Edit.png */; };
@@ -321,6 +323,10 @@
 		476F4DBC18B2F7E6001A89A1 /* MissionGothicBold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = MissionGothicBold.otf; sourceTree = "<group>"; };
 		476F4DBD18B2F7E6001A89A1 /* MissionGothicBoldItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = MissionGothicBoldItalic.otf; sourceTree = "<group>"; };
 		476F4DC418B2F7E6001A89A1 /* Personal Use License.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Personal Use License.txt"; sourceTree = "<group>"; };
+		4771B18A1911948100A99E05 /* NewMessageViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NewMessageViewController.h; sourceTree = "<group>"; };
+		4771B18B1911948100A99E05 /* NewMessageViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NewMessageViewController.m; sourceTree = "<group>"; };
+		4771B18D1911A3B800A99E05 /* HighlightingTextStorage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HighlightingTextStorage.h; sourceTree = "<group>"; };
+		4771B18E1911A3B800A99E05 /* HighlightingTextStorage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HighlightingTextStorage.m; sourceTree = "<group>"; };
 		47746C961906D2F700DC73F4 /* Cancel.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Cancel.png; sourceTree = "<group>"; };
 		47746C971906D2F700DC73F4 /* Cancel@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Cancel@2x.png"; sourceTree = "<group>"; };
 		47746C981906D2F700DC73F4 /* Edit.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Edit.png; sourceTree = "<group>"; };
@@ -799,6 +805,10 @@
 				47746C9F1906D7E000DC73F4 /* EditPlaceViewController.m */,
 				479C188D190AA27900161B02 /* MessageViewController.h */,
 				479C188E190AA27900161B02 /* MessageViewController.m */,
+				4771B18A1911948100A99E05 /* NewMessageViewController.h */,
+				4771B18B1911948100A99E05 /* NewMessageViewController.m */,
+				4771B18D1911A3B800A99E05 /* HighlightingTextStorage.h */,
+				4771B18E1911A3B800A99E05 /* HighlightingTextStorage.m */,
 			);
 			name = Controller;
 			sourceTree = "<group>";
@@ -1342,11 +1352,13 @@
 				472392A718649298000D0C7E /* Notification.m in Sources */,
 				47059D8E18444CBE00CEC50E /* Friend.m in Sources */,
 				47194F3618639AF900E114F5 /* InviteViewController.m in Sources */,
+				4771B18C1911948100A99E05 /* NewMessageViewController.m in Sources */,
 				4705F12A1859298F0095F8B1 /* SearchResultCell.m in Sources */,
 				47EFC43318B1BD7C008A26AA /* UIImage+ImageEffects.m in Sources */,
 				4775D65118AC52B900E80CAC /* JSONKit.m in Sources */,
 				47814E4D19098680004B146A /* MessageThread.m in Sources */,
 				47060A5C1909ACE800C5518D /* Message.m in Sources */,
+				4771B18F1911A3B800A99E05 /* HighlightingTextStorage.m in Sources */,
 				47BB2C57187E074100BB40F5 /* FriendLabel.m in Sources */,
 				472392AA1864D304000D0C7E /* NotificationCell.m in Sources */,
 				472392B51867D08C000D0C7E /* Constants.m in Sources */,

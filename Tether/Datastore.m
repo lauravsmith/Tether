@@ -38,6 +38,7 @@
 @synthesize hasUpdatedFriends;
 @synthesize placesArray;
 @synthesize userCoordinates;
+@synthesize messageThreadDictionary;
 
 #pragma mark Singleton Methods
 

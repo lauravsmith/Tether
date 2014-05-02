@@ -19,6 +19,7 @@
 #import "MainViewController.h"
 #import "MessageThread.h"
 #import "MessageViewController.h"
+#import "NewMessageViewController.h"
 #import "Notification.h"
 #import "Place.h"
 #import "PlacesViewController.h"
@@ -42,7 +43,7 @@
 #define PANEL_WIDTH 45.0
 #define POLLING_INTERVAL 20
 
-@interface MainViewController () <CenterViewControllerDelegate, DecisionViewControllerDelegate, FriendsListViewControllerDelegate, InviteViewControllerDelegate, LeftPanelViewControllerDelegate, PlacesViewControllerDelegate, RightPanelViewControllerDelegate, SettingsViewControllerDelegate, ShareViewControllerDelegate, UIGestureRecognizerDelegate, MessageViewControllerDelegate>
+@interface MainViewController () <CenterViewControllerDelegate, DecisionViewControllerDelegate, FriendsListViewControllerDelegate, InviteViewControllerDelegate, LeftPanelViewControllerDelegate, PlacesViewControllerDelegate, RightPanelViewControllerDelegate, SettingsViewControllerDelegate, ShareViewControllerDelegate, UIGestureRecognizerDelegate, MessageViewControllerDelegate, NewMessageViewControllerDelegate>
 
 @property (nonatomic, strong) LeftPanelViewController *leftPanelViewController;
 @property (nonatomic, strong) DecisionViewController *decisionViewController;
@@ -52,6 +53,7 @@
 @property (nonatomic, strong) FriendsListViewController *friendsListViewController;
 @property (nonatomic, strong) InviteViewController *inviteViewController;
 @property (nonatomic, strong) MessageViewController *messageViewController;
+@property (nonatomic, strong) NewMessageViewController *nMsgViewController;
 @property (nonatomic, assign) BOOL showingRightPanel;
 @property (nonatomic, assign) BOOL showingLeftPanel;
 @property (nonatomic, assign) BOOL showingDecisionView;
@@ -97,6 +99,10 @@
         Datastore *sharedDataManager= [Datastore sharedDataManager];
         sharedDataManager.tetherFriendsDictionary = [[NSMutableDictionary alloc] init];
         sharedDataManager.tetherFriendsNearbyDictionary = [[NSMutableDictionary alloc] init];
+        NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+        if ([userDetails objectForKey:@"facebookId"]) {
+            sharedDataManager.facebookId = [userDetails objectForKey:@"facebookId"];
+        }
         [self queryFriendsStatus];
     }
     return self;
@@ -168,6 +174,9 @@
 
 -(void)loadNotifications {
     [self.rightPanelViewController loadNotifications];
+    if (self.messageViewController) {
+        [self.messageViewController loadMessages];
+    }
 }
 
 -(void)refreshNotificationsNumber {
@@ -270,6 +279,7 @@
 
 -(void)facebookRequestDidLoad:(id)result {
     self.currentUser = [PFUser currentUser];
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     
     NSArray *data = [result objectForKey:@"data"];
     Datastore *sharedDataManager = [Datastore sharedDataManager];
@@ -305,6 +315,7 @@
             if (facebookId && [facebookId length] != 0) {
                 [self.currentUser setObject:facebookId forKey:kUserFacebookIDKey];
                 sharedDataManager.facebookId = facebookId;
+                [userDetails setObject:facebookId forKey:@"facebookId"];
                 [self.decisionViewController addProfileImageView];
                 self.facebookId = facebookId;
                 self.centerViewController.userProfilePictureView = [[FBProfilePictureView alloc] initWithProfileID:(NSString *)sharedDataManager.facebookId pictureCropping:FBProfilePictureCroppingSquare];
@@ -432,6 +443,7 @@
                             friend = [[Friend alloc] init];
                             friend.friendID = user[kUserFacebookIDKey];
                             friend.name = user[kUserDisplayNameKey];
+                            friend.firstName = user[@"firstName"];
                             friend.friendsArray = user[kUserFacebookFriendsKey];
                         }
                         friend.city = user[@"cityLocation"];
@@ -1348,6 +1360,10 @@
 }
 
 -(void)closeMessageView {
+    if (self.messageViewController.shouldUpdateMessageThreadVC) {
+        [self loadNotifications];
+    }
+        
     [UIView animateWithDuration:SLIDE_TIMING
                           delay:0.0
          usingSpringWithDamping:1.0
@@ -1360,6 +1376,42 @@
                          [self.messageViewController.view removeFromSuperview];
                          [self.messageViewController removeFromParentViewController];
                          self.messageViewController = nil;
+                     }];
+}
+
+-(void)openNewMessageViewController {
+    self.nMsgViewController = [[NewMessageViewController alloc] init];
+    self.nMsgViewController.delegate = self;
+    [self.nMsgViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+    [self.view addSubview:self.nMsgViewController.view];
+    [self addChildViewController:self.nMsgViewController];
+    [self.nMsgViewController didMoveToParentViewController:self];
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.nMsgViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                         
+                     }];
+}
+
+-(void)closeNewMessageView {
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.nMsgViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                         [self.nMsgViewController.view removeFromSuperview];
+                         [self.nMsgViewController removeFromParentViewController];
+                         self.nMsgViewController = nil;
                      }];
 }
 

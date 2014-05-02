@@ -26,12 +26,9 @@
 #define STATUS_BAR_HEIGHT 20.0
 
 @interface RightPanelViewController () <NotificationCellDelegate, UITableViewDataSource, UITableViewDelegate>
-@property (nonatomic, strong) UITableView *notificationsTableView;
-@property (nonatomic, strong) UITableViewController *notificationsTableViewController;
 @property (retain, nonatomic) UIRefreshControl * refreshControl;
 @property (retain, nonatomic) UIView * deleteConfirmationView;
 @property (retain, nonatomic) UILabel * deleteConfirmationLabel;
-@property (retain, nonatomic) NSMutableDictionary * messageThreadDictionary;
 @property (retain, nonatomic) UIActivityIndicatorView * activityIndicatorView;
 @property (retain, nonatomic) NSMutableArray * messageThreadObjects;
 @end
@@ -43,7 +40,8 @@
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
         self.notificationsArray = [[NSMutableArray alloc] init];
-        self.messageThreadDictionary = [[NSMutableDictionary alloc] init];
+        Datastore *sharedDataManager = [Datastore sharedDataManager];
+        sharedDataManager.messageThreadDictionary = [[NSMutableDictionary alloc] init];
     }
     return self;
 }
@@ -87,60 +85,63 @@
 -(void)loadNotifications {
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     
-    PFQuery *query = [PFQuery queryWithClassName:@"MessageParticipant"];
-    [query whereKey:@"facebookId" equalTo:sharedDataManager.facebookId];
-    [query includeKey:@"threadId"];
-    [query findObjectsInBackgroundWithBlock:^(NSArray *participants, NSError *error) {
-        if (!error) {
-            self.messageThreadObjects = [[NSMutableArray alloc] init];
-            for (PFObject *participant in participants) {
-                // This does not require a network access.
-                PFObject *threadObject = [participant objectForKey:@"threadId"];
-                [self.messageThreadObjects addObject:threadObject];
-                NSLog(@"recent message: %@", [threadObject objectForKey:@"recentMessage"]);
-                
-                MessageThread *thread = [[MessageThread alloc] init];
-                thread.threadId = threadObject.objectId;
-                thread.threadObject = threadObject;
-                thread.participantObject = participant;
-                thread.recentMessageDate = threadObject.updatedAt;
-                thread.recentMessage = [threadObject objectForKey:@"recentMessage"];
-                thread.participantIds = [NSMutableSet setWithArray:[threadObject objectForKey:@"participantIds"]];
-                thread.participantNames = [NSMutableSet setWithArray:[threadObject objectForKey:@"participantNames"]];
-                if ([thread.participantIds count] > 2) {
-                    thread.isGroupMessage = YES;
-                    thread.participantNames = [NSMutableSet setWithArray:[threadObject objectForKey:@"participantFirstNames"]];
-                } else {
-                    thread.isGroupMessage = NO;
+    if  (sharedDataManager.facebookId) {
+        PFQuery *query = [PFQuery queryWithClassName:@"MessageParticipant"];
+        [query whereKey:@"facebookId" equalTo:sharedDataManager.facebookId];
+        [query includeKey:@"threadId"];
+        [query findObjectsInBackgroundWithBlock:^(NSArray *participants, NSError *error) {
+            if (!error) {
+                self.messageThreadObjects = [[NSMutableArray alloc] init];
+                for (PFObject *participant in participants) {
+                    // This does not require a network access.
+                    PFObject *threadObject = [participant objectForKey:@"threadId"];
+                    [self.messageThreadObjects addObject:threadObject];
+                    NSLog(@"recent message: %@", [threadObject objectForKey:@"recentMessage"]);
+                    
+                    MessageThread *thread = [[MessageThread alloc] init];
+                    thread.threadId = threadObject.objectId;
+                    thread.threadObject = threadObject;
+                    thread.participantObject = participant;
+                    thread.recentMessageDate = threadObject.updatedAt;
+                    thread.recentMessage = [threadObject objectForKey:@"recentMessage"];
+                    thread.participantIds = [NSMutableSet setWithArray:[threadObject objectForKey:@"participantIds"]];
+                    thread.participantNames = [NSMutableSet setWithArray:[threadObject objectForKey:@"participantNames"]];
+                    if ([thread.participantIds count] > 2) {
+                        thread.isGroupMessage = YES;
+                        thread.participantNames = [NSMutableSet setWithArray:[threadObject objectForKey:@"participantFirstNames"]];
+                    } else {
+                        thread.isGroupMessage = NO;
+                    }
+                    
+                    thread.unread = [[participant objectForKey:@"unread"] boolValue];
+                    thread.messages = [[NSMutableDictionary alloc] init];
+                    
+                    [sharedDataManager.messageThreadDictionary setObject:thread forKey:thread.threadId];
                 }
                 
-                thread.unread = [[participant objectForKey:@"unread"] boolValue];
-                thread.messages = [[NSMutableDictionary alloc] init];
+                self.notificationsArray = [[NSMutableArray alloc] init];
                 
-                [self.messageThreadDictionary setObject:thread forKey:thread.threadId];
+                for(id key in sharedDataManager.messageThreadDictionary) {
+                    [self.notificationsArray addObject:[sharedDataManager.messageThreadDictionary objectForKey:key]];
+                }
+                
+                NSSortDescriptor *dateDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"recentMessageDate" ascending:NO];
+                [self.notificationsArray sortUsingDescriptors:[NSArray arrayWithObjects:dateDescriptor, nil]];
+                
+                [self.notificationsTableView reloadData];
+                
+                [self loadMessages];
             }
-            
-            self.notificationsArray = [[NSMutableArray alloc] init];
-            
-            for(id key in self.messageThreadDictionary) {
-                [self.notificationsArray addObject:[self.messageThreadDictionary objectForKey:key]];
-            }
-            
-            NSSortDescriptor *dateDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"recentMessageDate" ascending:NO];
-            [self.notificationsArray sortUsingDescriptors:[NSArray arrayWithObjects:dateDescriptor, nil]];
-            
-            [self.notificationsTableView reloadData];
-            
-            [self loadMessages];
-        }
-    }];
+        }];
+    }
 }
 
 -(void)loadMessages {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
     NSMutableArray *messageThreadIdArray = [[NSMutableArray alloc] init];
     
-    for (id key in self.messageThreadDictionary) {
-        [messageThreadIdArray addObject:[self.messageThreadDictionary objectForKey:key]];
+    for (id key in sharedDataManager.messageThreadDictionary) {
+        [messageThreadIdArray addObject:[sharedDataManager.messageThreadDictionary objectForKey:key]];
     }
     
     PFQuery *query = [PFQuery queryWithClassName:@"Message"];
@@ -150,7 +151,7 @@
         if (!error) {
             for (PFObject *messageObject in messages) {
                 PFObject *threadObject = [messageObject objectForKey:@"threadId"];
-                MessageThread *thread = [self.messageThreadDictionary objectForKey:threadObject.objectId
+                MessageThread *thread = [sharedDataManager.messageThreadDictionary objectForKey:threadObject.objectId
                                          ];
                 Message *message = [[Message alloc] init];
                 message.messageId = messageObject.objectId;
@@ -160,7 +161,7 @@
                 message.date = messageObject.updatedAt;
                 
                 [thread.messages setObject:message forKey:message.messageId];
-                [self.messageThreadDictionary setObject:thread forKey:thread.threadId];
+                [sharedDataManager.messageThreadDictionary setObject:thread forKey:thread.threadId];
             }
         }
     }];
@@ -234,9 +235,8 @@
 #pragma mark IBAction methods
 
 -(IBAction)newMessage:(id)sender {
-    [self.delegate openMessageViewControllerForMessageThread:nil];
+    [self.delegate openNewMessageViewController];
 }
-
 
 #pragma mark NotificationCellDelegate Methods
 
