@@ -15,6 +15,7 @@
 @property (retain, nonatomic) NSMutableArray *notificationsArray;
 @property (nonatomic, strong) UITableView *notificationsTableView;
 @property (nonatomic, strong) UITableViewController *notificationsTableViewController;
+@property (assign, nonatomic) int unreadCount;
 -(void)loadNotifications;
 @end
 
@@ -25,5 +26,6 @@
 -(void)userChangedLocationToCityName:(NSString*)city;
 -(void)openMessageViewControllerForMessageThread:(MessageThread *)thread;
 -(void)openNewMessageViewController;
+-(void)refreshNotificationsNumber;
 
 @end

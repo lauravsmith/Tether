@@ -13,6 +13,7 @@
 #import "Flurry.h"
 #import "Friend.h"
 #import "FriendsListViewController.h"
+#import "Invite.h"
 #import "InviteViewController.h"
 #import "LeftPanelViewController.h"
 #import "Datastore.h"
@@ -176,17 +177,15 @@
     [self.rightPanelViewController loadNotifications];
     if (self.messageViewController) {
         [self.messageViewController loadMessages];
+    } else if (self.nMsgViewController) {
+        [self.nMsgViewController loadMessages];
     }
-    // also load for newmessageviewcontroller
 }
 
 -(void)refreshNotificationsNumber {
     Datastore *sharedDataManager = [Datastore sharedDataManager];
-    PFInstallation *currentInstallation = [PFInstallation currentInstallation];
-    sharedDataManager.notifications = currentInstallation.badge;
+    sharedDataManager.notifications = self.rightPanelViewController.unreadCount;
     [self.centerViewController refreshNotificationsNumber];
-    NSLog(@"%ld", (long)currentInstallation.badge);
-    NSLog(@"%@", currentInstallation.installationId);
 }
 
 -(void)updateNotificationsNumber {
@@ -1385,6 +1384,10 @@
 
 #pragma mark MessageViewControllerDelegate
 
+-(void)tethrToInvite:(Invite*)invite {
+    [self commitToPlace:invite.place];
+}
+
 -(void)closeMessageView {
     if (self.messageViewController.shouldUpdateMessageThreadVC) {
         [self loadNotifications];
@@ -1408,6 +1411,8 @@
 #pragma mark NewMessageViewControllerDelegate
 
 -(void)closeNewMessageView {
+    [self loadNotifications];
+    
     [UIView animateWithDuration:SLIDE_TIMING
                           delay:0.0
          usingSpringWithDamping:1.0

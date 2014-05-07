@@ -36,9 +36,6 @@
 -(void)refreshCommitmentName;
 -(void)removePreviousCommitment;
 -(void)removeCommitmentFromDatabase;
--(void)movePanelToOriginalPosition;
--(void)movePanelRight;
--(void)movePanelLeft;
 -(void)removePlaceMarkFromMapView:(Place*)place;
 -(void)sortFriendsList;
 -(void)pollDatabase;

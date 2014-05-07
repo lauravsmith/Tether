@@ -80,6 +80,10 @@
 		4771B19B1914139900A99E05 /* MessageThreadCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 4771B19A1914139900A99E05 /* MessageThreadCell.m */; };
 		4771B19E191413E700A99E05 /* MessageThread.m in Sources */ = {isa = PBXBuildFile; fileRef = 4771B19D191413E700A99E05 /* MessageThread.m */; };
 		4771B1A11914177800A99E05 /* NewMessageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4771B1A01914177800A99E05 /* NewMessageViewController.m */; };
+		4771B1A41914217300A99E05 /* SelectInviteLocationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4771B1A31914217300A99E05 /* SelectInviteLocationViewController.m */; };
+		4771B1A719144E9D00A99E05 /* Invite.m in Sources */ = {isa = PBXBuildFile; fileRef = 4771B1A619144E9D00A99E05 /* Invite.m */; };
+		4771B1AA1915686200A99E05 /* GreySpeechBubble.png in Resources */ = {isa = PBXBuildFile; fileRef = 4771B1A81915686200A99E05 /* GreySpeechBubble.png */; };
+		4771B1AB1915686200A99E05 /* RedSpeechBubble.png in Resources */ = {isa = PBXBuildFile; fileRef = 4771B1A91915686200A99E05 /* RedSpeechBubble.png */; };
 		47746C9A1906D2F700DC73F4 /* Cancel.png in Resources */ = {isa = PBXBuildFile; fileRef = 47746C961906D2F700DC73F4 /* Cancel.png */; };
 		47746C9B1906D2F700DC73F4 /* Cancel@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 47746C971906D2F700DC73F4 /* Cancel@2x.png */; };
 		47746C9C1906D2F700DC73F4 /* Edit.png in Resources */ = {isa = PBXBuildFile; fileRef = 47746C981906D2F700DC73F4 /* Edit.png */; };
@@ -344,6 +348,12 @@
 		4771B19D191413E700A99E05 /* MessageThread.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MessageThread.m; sourceTree = "<group>"; };
 		4771B19F1914177800A99E05 /* NewMessageViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NewMessageViewController.h; sourceTree = "<group>"; };
 		4771B1A01914177800A99E05 /* NewMessageViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NewMessageViewController.m; sourceTree = "<group>"; };
+		4771B1A21914217300A99E05 /* SelectInviteLocationViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SelectInviteLocationViewController.h; sourceTree = "<group>"; };
+		4771B1A31914217300A99E05 /* SelectInviteLocationViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SelectInviteLocationViewController.m; sourceTree = "<group>"; };
+		4771B1A519144E9D00A99E05 /* Invite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Invite.h; sourceTree = "<group>"; };
+		4771B1A619144E9D00A99E05 /* Invite.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Invite.m; sourceTree = "<group>"; };
+		4771B1A81915686200A99E05 /* GreySpeechBubble.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = GreySpeechBubble.png; sourceTree = "<group>"; };
+		4771B1A91915686200A99E05 /* RedSpeechBubble.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = RedSpeechBubble.png; sourceTree = "<group>"; };
 		47746C961906D2F700DC73F4 /* Cancel.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Cancel.png; sourceTree = "<group>"; };
 		47746C971906D2F700DC73F4 /* Cancel@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Cancel@2x.png"; sourceTree = "<group>"; };
 		47746C981906D2F700DC73F4 /* Edit.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Edit.png; sourceTree = "<group>"; };
@@ -657,6 +667,8 @@
 				4771B191191412BA00A99E05 /* Message.m */,
 				4771B19C191413E700A99E05 /* MessageThread.h */,
 				4771B19D191413E700A99E05 /* MessageThread.m */,
+				4771B1A519144E9D00A99E05 /* Invite.h */,
+				4771B1A619144E9D00A99E05 /* Invite.m */,
 			);
 			name = Model;
 			sourceTree = "<group>";
@@ -762,6 +774,8 @@
 		47064CC6183DB11D00E9228A /* Images */ = {
 			isa = PBXGroup;
 			children = (
+				4771B1A81915686200A99E05 /* GreySpeechBubble.png */,
+				4771B1A91915686200A99E05 /* RedSpeechBubble.png */,
 				47746CA11907080700DC73F4 /* Trash.png */,
 				47746CA21907080700DC73F4 /* Trash@2x.png */,
 				47746C961906D2F700DC73F4 /* Cancel.png */,
@@ -842,6 +856,8 @@
 				4771B1971914134F00A99E05 /* MessageViewController.m */,
 				4771B19F1914177800A99E05 /* NewMessageViewController.h */,
 				4771B1A01914177800A99E05 /* NewMessageViewController.m */,
+				4771B1A21914217300A99E05 /* SelectInviteLocationViewController.h */,
+				4771B1A31914217300A99E05 /* SelectInviteLocationViewController.m */,
 			);
 			name = Controller;
 			sourceTree = "<group>";
@@ -1193,6 +1209,7 @@
 				4775D61918AC0AB700E80CAC /* sync_on.png in Resources */,
 				4775D61B18AC0AB700E80CAC /* tab_b.png in Resources */,
 				4775D60B18AC0AB700E80CAC /* functions_73.html in Resources */,
+				4771B1AA1915686200A99E05 /* GreySpeechBubble.png in Resources */,
 				4775D5F918AC0AB700E80CAC /* functions_63.html in Resources */,
 				4775D60F18AC0AB700E80CAC /* mag_sel.png in Resources */,
 				4775D5A018AC0AB700E80CAC /* bc_s.png in Resources */,
@@ -1329,6 +1346,7 @@
 				47AC11E918D2170600F60B3A /* GreyPinIcon.png in Resources */,
 				4775D62B18AC0AB700E80CAC /* ProjectApiKey.txt in Resources */,
 				4775D65018AC52B900E80CAC /* CHANGELOG.md in Resources */,
+				4771B1AB1915686200A99E05 /* RedSpeechBubble.png in Resources */,
 				47460FFE18821C5B0067545B /* MontserratBold.ttf in Resources */,
 				47FDB6041884B62100841FAD /* poweredByFoursquare.png in Resources */,
 				4775D59C18AC0AB700E80CAC /* _flurry_ad_delegate_8h_source.html in Resources */,
@@ -1395,6 +1413,7 @@
 				4771B1981914134F00A99E05 /* MessageViewController.m in Sources */,
 				47BB2C57187E074100BB40F5 /* FriendLabel.m in Sources */,
 				472392AA1864D304000D0C7E /* NotificationCell.m in Sources */,
+				4771B1A719144E9D00A99E05 /* Invite.m in Sources */,
 				472392B51867D08C000D0C7E /* Constants.m in Sources */,
 				4771B192191412BA00A99E05 /* Message.m in Sources */,
 				47EFC41418B116ED008A26AA /* SBJSON.m in Sources */,
@@ -1427,6 +1446,7 @@
 				47EFC41618B116ED008A26AA /* SBJsonParser.m in Sources */,
 				47059D8A1842E17E00CEC50E /* FriendCell.m in Sources */,
 				47E73EBF187C499A009CA44A /* FriendAtPlaceCell.m in Sources */,
+				4771B1A41914217300A99E05 /* SelectInviteLocationViewController.m in Sources */,
 				47064CBC183D9FD800E9228A /* MainViewController.m in Sources */,
 				4705F12D185940B60095F8B1 /* FriendsListViewController.m in Sources */,
 				47064CC0183DA00D00E9228A /* CenterViewController.m in Sources */,

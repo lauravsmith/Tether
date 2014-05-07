@@ -9,6 +9,7 @@
 #import "CenterViewController.h"
 #import "Constants.h"
 #import "Datastore.h"
+#import "Invite.h"
 #import "Message.h"
 #import "MessageThread.h"
 #import "MessageThreadCell.h"
@@ -91,6 +92,7 @@
         [query includeKey:@"threadId"];
         [query findObjectsInBackgroundWithBlock:^(NSArray *participants, NSError *error) {
             if (!error) {
+                self.unreadCount = 0.0;
                 self.messageThreadObjects = [[NSMutableArray alloc] init];
                 for (PFObject *participant in participants) {
                     // This does not require a network access.
@@ -104,6 +106,13 @@
                     thread.participantObject = participant;
                     thread.recentMessageDate = threadObject.updatedAt;
                     thread.recentMessage = [threadObject objectForKey:@"recentMessage"];
+                    if (sharedDataManager.name) {
+                        if ([thread.recentMessage rangeOfString:sharedDataManager.name].location != NSNotFound && [thread.recentMessage rangeOfString:sharedDataManager.name].location == 0) {
+                            thread.recentMessage = [thread.recentMessage stringByReplacingOccurrencesOfString:sharedDataManager.name withString:@"You"];
+                            
+                        }
+                    }
+                    
                     thread.participantIds = [NSMutableSet setWithArray:[threadObject objectForKey:@"participantIds"]];
                     thread.participantNames = [NSMutableSet setWithArray:[threadObject objectForKey:@"participantNames"]];
                     if ([thread.participantIds count] > 2) {
@@ -114,9 +123,18 @@
                     }
                     
                     thread.unread = [[participant objectForKey:@"unread"] boolValue];
+                    if (thread.unread) {
+                        self.unreadCount += 1;
+                    }
                     thread.messages = [[NSMutableDictionary alloc] init];
                     
                     [sharedDataManager.messageThreadDictionary setObject:thread forKey:thread.threadId];
+                    sharedDataManager.notifications = self.unreadCount;
+                
+                    if ([self.delegate respondsToSelector:@selector(refreshNotificationsNumber)]) {
+                        [self.delegate refreshNotificationsNumber];
+                    }
+                    [UIApplication sharedApplication].applicationIconBadgeNumber = self.unreadCount;
                 }
                 
                 self.notificationsArray = [[NSMutableArray alloc] init];
@@ -147,6 +165,8 @@
     PFQuery *query = [PFQuery queryWithClassName:@"Message"];
     [query whereKey:@"threadId" containedIn:self.messageThreadObjects];
     [query includeKey:@"threadId"];
+    [query includeKey:@"invite"];
+    [query setLimit:10000];
     [query findObjectsInBackgroundWithBlock:^(NSArray *messages, NSError *error) {
         if (!error) {
             for (PFObject *messageObject in messages) {
@@ -159,6 +179,34 @@
                 message.userName = [messageObject objectForKey:@"name"];
                 message.content = [messageObject objectForKey:@"message"];
                 message.date = messageObject.updatedAt;
+                
+                if ([messageObject objectForKey:@"invite"]) {
+                    PFObject *inviteObject = [messageObject objectForKey:@"invite"];
+                    Invite *invite = [[Invite alloc] init];
+                    
+                    Place *place = [[Place alloc] init];
+                    place.placeId = [inviteObject objectForKey:@"placeId"];
+                    place.name = [inviteObject objectForKey:@"placeName"];
+                    place.city = [inviteObject objectForKey:kPlaceCityKey];
+                    place.state = [inviteObject objectForKey:kPlaceStateKey];
+                    place.address = [inviteObject objectForKey:kPlaceAddressKey];
+                    PFGeoPoint *geoPoint = [inviteObject objectForKey:kPlaceCoordinateKey];
+                    place.coord = CLLocationCoordinate2DMake(geoPoint.latitude, geoPoint.longitude);
+                    place.owner = [inviteObject objectForKey:@"owner"];
+                    place.memo = [inviteObject objectForKey:@"memo"];
+                    place.isPrivate = [[inviteObject objectForKey:@"private"] boolValue];
+                    
+                    invite.place = place;
+                    if ([inviteObject objectForKey:@"acceptances"]) {
+                        invite.acceptances = [NSMutableSet setWithArray:[inviteObject objectForKey:@"acceptances"]];
+                    }
+                    
+                    if ([inviteObject objectForKey:@"declines"]) {
+                        invite.declines = [NSMutableSet setWithArray:[inviteObject objectForKey:@"declines"]];
+                    }
+                    message.invite = invite;
+                    message.invite.inviteObject = inviteObject;
+                }
                 
                 [thread.messages setObject:message forKey:message.messageId];
                 [sharedDataManager.messageThreadDictionary setObject:thread forKey:thread.threadId];

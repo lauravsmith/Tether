@@ -229,7 +229,6 @@
     [self.notificationsLabel sizeThatFits:CGSizeMake(10.0, 10.0)];
     self.notificationsLabel.adjustsFontSizeToFitWidth = YES;
     [self.bottomBar addSubview:self.notificationsLabel];
-    [self refreshNotificationsNumber];
     
     UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:14];
     UIFont *montserratExtraSmall = [UIFont fontWithName:@"Montserrat" size:10];

@@ -21,5 +21,8 @@
 @end
 
 @protocol MessageViewControllerDelegate <NSObject>
+-(void)tethrToInvite:(Invite*)invite;
 -(void)closeMessageView;
+-(void)newPlaceAdded;
+-(void)openPageForPlaceWithId:(NSString*)placeId;
 @end

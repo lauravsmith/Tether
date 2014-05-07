@@ -6,6 +6,8 @@
 //  Copyright (c) 2014 Laura Smith. All rights reserved.
 //
 
+#import "Invite.h"
+
 #import <Foundation/Foundation.h>
 
 @interface Message : NSObject
@@ -15,4 +17,5 @@
 @property (nonatomic, strong) NSString *userId;
 @property (nonatomic, strong) NSString *userName;
 @property (nonatomic, strong) NSString *content;
+@property (nonatomic, strong) Invite *invite;
 @end

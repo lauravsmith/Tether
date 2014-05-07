@@ -180,7 +180,7 @@ fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
 - (void)applicationWillEnterForeground:(UIApplication *)application
 {
     [self.mainViewController pollDatabase];
-    [self.mainViewController refreshNotificationsNumber];
+    
     if ([self.mainViewController shouldShowDecisionView]) {
         [self.mainViewController setupView];
         [self.mainViewController showDecisionView];
@@ -197,7 +197,7 @@ fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
 
 - (void)applicationWillTerminate:(UIApplication *)application
 {
-    // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+    // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBa ckground:.
 }
 
 - (BOOL) application:(UIApplication *)application handleOpenURL:(NSURL *)url {

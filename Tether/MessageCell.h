@@ -7,12 +7,24 @@
 //
 
 #import "Message.h"
+#import "MessageThread.h"
 
 #import <UIKit/UIKit.h>
 
-@interface MessageCell : UITableViewCell
+@protocol MessageCellDelegate;
 
+@interface MessageCell : UITableViewCell
+@property (nonatomic, weak) id<MessageCellDelegate> delegate;
 @property (nonatomic, strong) Message *message;
+@property (nonatomic, strong) MessageThread *thread;
 @property (nonatomic, assign) BOOL showName;
+
+@end
+
+@protocol MessageCellDelegate <NSObject>
+
+-(void)tethrToInvite:(Invite*)invite;
+-(void)declineInvite:(Invite*)invite fromMessage:(Message*)message;
+-(void)openPlace:(Place*)place;
 
 @end

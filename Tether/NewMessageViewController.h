@@ -17,6 +17,7 @@
 @property (retain, nonatomic) MessageThread *thread;
 @property (retain, nonatomic) NSMutableArray *messagesArray;
 @property (retain, nonatomic) PFObject *messageThreadObject;
+-(void)loadMessages;
 
 @end
 
