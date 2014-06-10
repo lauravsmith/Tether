@@ -90,7 +90,7 @@
     [segment1 addSubview:messageIcon];
     
     UIButton *messageButton = [[UIButton alloc] init];
-    [messageButton setTitle:@"Tell a Friend" forState:UIControlStateNormal];
+    [messageButton setTitle:@"Send friends the App Store Link" forState:UIControlStateNormal];
     messageButton.titleLabel.font = montserratLarge;
     size = [messageButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratLarge}];
     messageButton.frame = CGRectMake(messageIcon.frame.origin.x + messageIcon.frame.size.width + PADDING, (SEGMENT_HEIGHT - size.height) / 2.0, size.width, size.height);

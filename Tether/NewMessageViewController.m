@@ -973,6 +973,34 @@
             }
             return NO;
         }
+        UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
+        
+        NSDictionary *attributes = @{NSFontAttributeName: montserrat};
+        CGRect rect = [self.textView.text boundingRectWithSize:CGSizeMake(MESSAGE_FIELD_WIDTH, 200.0)
+                                                       options:NSStringDrawingUsesLineFragmentOrigin
+                                                    attributes:attributes
+                                                       context:nil];
+        
+        // resize textview
+        CGRect frame = self.textView.frame;
+        frame.size.height = MAX(MESSAGE_FIELD_HEIGHT, MIN(rect.size.height + 10.0, MAX_MESSAGE_FIELD_HEIGHT));
+        self.textView.frame = frame;
+        if (rect.size.height < MAX_MESSAGE_FIELD_HEIGHT) {
+            [self.textView setScrollEnabled:NO];
+        } else {
+            [self.textView setScrollEnabled:YES];
+        }
+        
+        // resize bottom bar
+        frame = self.bottomBar.frame;
+        frame.size.height = self.textView.frame.size.height + 22.0;
+        if (self.keyboardShowing) {
+            CGSize keyboardSize = [[[self.notification userInfo] objectForKey:UIKeyboardFrameBeginUserInfoKey] CGRectValue].size;
+            frame.origin.y = self.view.frame.size.height - keyboardSize.height - frame.size.height;
+        } else {
+            frame.origin.y = self.view.frame.size.height - frame.size.height;
+        }
+        self.bottomBar.frame = frame;    
     }
     return YES;
 }
@@ -1125,31 +1153,35 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath && [self.searchResults count] > 0) {
         Friend *friend = [self.searchResults objectAtIndex:indexPath.row];
-        [self.friendsInvitedSet addObject:friend];
-        [self.friendsInvitedIdSet addObject:friend.friendID];
-        
-        NSString *newContent = [self.searchFriendsTextView.text stringByReplacingCharactersInRange:self.searchRange withString:[NSString stringWithFormat:@"%@, " ,friend.name]];
-        self.searchFriendsTextView.text = newContent;
-        [self.searchResultsTableView setHidden:YES];
-        [self formatTextInTextView:self.searchFriendsTextView];
-        
-        self.searchFriendsTextView.selectedRange = NSMakeRange([self.searchFriendsTextView.text length], 0);
-        [self adjustSubBar];
-        
-        NSRange searchRange = self.searchRange;
-        searchRange.location = MAX(0.0,self.searchFriendsTextView.text.length - 1);
-        searchRange.length = 0.0;
-        self.searchRange = searchRange;
-        
-        [self.searchResults removeAllObjects];
-        [self.searchResultsTableView reloadData];
-        
-        if (![self.textView.text isEqualToString:@""]) {
-            [self.sendButton setEnabled:YES];
-        }
-        
-        [self.inviteButton setEnabled:YES];
+        [self addFriend:friend];
     }
+}
+
+-(void)addFriend:(Friend*)user {
+    [self.friendsInvitedSet addObject:user];
+    [self.friendsInvitedIdSet addObject:user.friendID];
+    
+    NSString *newContent = [self.searchFriendsTextView.text stringByReplacingCharactersInRange:self.searchRange withString:[NSString stringWithFormat:@"%@, " ,user.name]];
+    self.searchFriendsTextView.text = newContent;
+    [self.searchResultsTableView setHidden:YES];
+    [self formatTextInTextView:self.searchFriendsTextView];
+    
+    self.searchFriendsTextView.selectedRange = NSMakeRange([self.searchFriendsTextView.text length], 0);
+    [self adjustSubBar];
+    
+    NSRange searchRange = self.searchRange;
+    searchRange.location = MAX(0.0,self.searchFriendsTextView.text.length - 1);
+    searchRange.length = 0.0;
+    self.searchRange = searchRange;
+    
+    [self.searchResults removeAllObjects];
+    [self.searchResultsTableView reloadData];
+    
+    if (![self.textView.text isEqualToString:@""]) {
+        [self.sendButton setEnabled:YES];
+    }
+    
+    [self.inviteButton setEnabled:YES];
 }
 
 #pragma mark

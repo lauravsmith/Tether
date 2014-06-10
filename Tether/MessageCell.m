@@ -28,7 +28,8 @@
 @property (nonatomic, strong) UILabel *messageLabel;
 @property (nonatomic, strong) UILabel *nameLabel;
 @property (nonatomic, assign) int showName;
-@property (nonatomic, strong) UIButton *acceptButton;
+@property (nonatomic, strong) TethrButton *acceptButton;
+@property (retain, nonatomic) UIImageView *pinImageView;
 @property (nonatomic, strong) UIButton *declineButton;
 
 @end
@@ -55,7 +56,7 @@
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     
     if (!self.message.userId || [self.message.userId isEqualToString:@""]) {
-        UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:12.0f];
+        UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
         
         if ([self.message.userName isEqualToString:sharedDataManager.name]) {
             self.message.content = [self.message.content stringByReplacingOccurrencesOfString:self.message.userName withString:@"You"];
@@ -76,7 +77,7 @@
         [self addSubview:self.messageLabel];
     } else {    
         if (self.showName && ![self.message.userId isEqualToString:sharedDataManager.facebookId]) {
-            UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:12.0f];
+            UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:14.0f];
             self.nameLabel = [[UILabel alloc] init];
             self.nameLabel.text = self.message.userName;
             [self.nameLabel setFont:montserratSmall];
@@ -86,7 +87,7 @@
             [self addSubview:self.nameLabel];
         }
         
-        UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
+        UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:16.0f];
         self.messageLabel.text = self.message.content;
         [self.messageLabel setFont:montserrat];
         
@@ -119,30 +120,30 @@
         }
         
         if ([self.message.userId isEqualToString:sharedDataManager.facebookId]) {
-            UIImage *bubble = [[UIImage imageNamed:@"RedSpeechBubble.png"] resizableImageWithCapInsets:UIEdgeInsetsMake(30.0, 30.0, 69.0, 69.0) resizingMode:UIImageResizingModeTile];
+            UIImage *bubble = [[UIImage imageNamed:@"RedSpeechBubble.png"] resizableImageWithCapInsets:UIEdgeInsetsMake(6.0, 6.0, 20.0, 26.0)];
             
             self.dialog = [[UIImageView alloc] initWithImage:bubble];
-            self.dialog.frame = CGRectZero;
             
-             self.dialog.frame = CGRectMake(self.frame.size.width - rect.size.width - NAME_LABEL_OFFSET_X - 20.0, 0.0, MIN(rect.size.width, MAX_LABEL_WIDTH)+ 40.0, rect.size.height + 36.0);
+             self.dialog.frame = CGRectMake(self.frame.size.width - rect.size.width - NAME_LABEL_OFFSET_X - 10.0, 5.0, MIN(rect.size.width, MAX_LABEL_WIDTH)+ 20.0, rect.size.height + 20.0);
             
-            self.messageLabel.frame = CGRectMake(20.0, 12.0, MIN(rect.size.width, MAX_LABEL_WIDTH), rect.size.height);
+            self.messageLabel.frame = CGRectMake(10.0, 5.0, MIN(rect.size.width, MAX_LABEL_WIDTH), rect.size.height);
             [self.messageLabel setTextColor:[UIColor whiteColor]];
             
             [self.dialog addSubview:self.messageLabel];
+            self.dialog.alpha = 0.8;
             [self addSubview:self.dialog];
         } else {
-            CGFloat yOrigin = 0.0;
+            CGFloat yOrigin = 5.0;
             if (self.nameLabel) {
-                yOrigin = 10.0;
+                yOrigin += 10.0;
             }
-            UIImage *bubble = [[UIImage imageNamed:@"GreySpeechBubble.png"] resizableImageWithCapInsets:UIEdgeInsetsMake(34.0, 50.0, 45.0, 23.0) resizingMode:UIImageResizingModeTile];
+            UIImage *bubble = [[UIImage imageNamed:@"GreySpeechBubble.png"] resizableImageWithCapInsets:UIEdgeInsetsMake(6.0, 26.0, 20.0, 6.0) resizingMode:UIImageResizingModeTile];
             self.dialog = [[UIImageView alloc] initWithImage:bubble];
             self.dialog.frame = CGRectZero;
             
-            self.dialog.frame = CGRectMake(NAME_LABEL_OFFSET_X - 20.0, yOrigin, MIN(rect.size.width, MAX_LABEL_WIDTH) + 40.0, rect.size.height + 36.0);
+            self.dialog.frame = CGRectMake(10.0, yOrigin, MIN(rect.size.width, MAX_LABEL_WIDTH) + 20.0, rect.size.height + 20.0);
             
-            self.messageLabel.frame = CGRectMake(20.0, 12.0, MIN(rect.size.width, MAX_LABEL_WIDTH), rect.size.height);
+            self.messageLabel.frame = CGRectMake(10.0, 5.0, MIN(rect.size.width, MAX_LABEL_WIDTH), rect.size.height);
             [self.messageLabel setTextColor:[UIColor blackColor]];
             [self.dialog addSubview:self.messageLabel];
             [self addSubview:self.dialog];
@@ -153,24 +154,28 @@
                 Datastore *sharedDataManager = [Datastore sharedDataManager];
                 NSMutableSet *acceptanceSet = self.message.invite.acceptances;
                 if ((!acceptanceSet || ![acceptanceSet containsObject:sharedDataManager.facebookId]) && (!self.message.invite.declines || ![self.message.invite.declines containsObject:sharedDataManager.facebookId])) {
-                    self.acceptButton = [[UIButton alloc] initWithFrame:CGRectMake(40.0, self.dialog.frame.size.height - 10.0, 41.0, 38.0)];
-                    [self.acceptButton addTarget:self action:@selector(tethrToInvite:) forControlEvents:UIControlEventTouchUpInside];
-                    UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(10.0, 0.0, 21.0, 38.0)];
-                    [imageView setImage:[UIImage imageNamed:@"PinIcon"]];
-                    [self.acceptButton addSubview:imageView];
-                    [self addSubview:self.acceptButton];
-                    
+                    self.acceptButton = [[TethrButton alloc] init];
+                    [self.acceptButton setTitle:@"  tethr  " forState:UIControlStateNormal];
+                    UIFont *missionGothic = [UIFont fontWithName:@"MissionGothic-BoldItalic" size:14.0f];
+                    [self.acceptButton setNormalColor:[UIColor whiteColor]];
+                    [self.acceptButton setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
+                    self.acceptButton.titleLabel.font = missionGothic;
+                    [self.acceptButton addTarget:self
+                                          action:@selector(tethrToInvite:)
+                                forControlEvents:UIControlEventTouchUpInside];
+                    self.acceptButton.titleEdgeInsets = UIEdgeInsetsMake(20.0, 0.0, 0.0, 0.0);
+                    self.acceptButton.frame = CGRectMake(self.frame.size.width - 100.0, 0.0, 70.0, 70.0);
+                    [self.acceptButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
                     [[self.acceptButton layer] setBorderWidth:2.0f];
                     [[self.acceptButton layer] setCornerRadius:20.0];
                     [[self.acceptButton layer] setBorderColor:UIColorFromRGB(0xc8c8c8).CGColor];
                     
-                    self.declineButton = [[UIButton alloc] initWithFrame:CGRectMake(100.0, self.dialog.frame.size.height - 10.0, 41.0, 38.0)];
-                    [self.declineButton addTarget:self action:@selector(declineInvite:) forControlEvents:UIControlEventTouchUpInside];
-                    [self addSubview:self.declineButton];
+                    self.pinImageView = [[UIImageView alloc] initWithFrame:CGRectMake((self.acceptButton.frame.size.width - 25.0) / 2.0, 10.0, 25.0, 25.0)];
+                    self.pinImageView.image = [UIImage imageNamed:@"PinIcon"];
+                    self.pinImageView.contentMode = UIViewContentModeScaleAspectFit;
+                    [self.acceptButton addSubview:self.pinImageView];
                     
-                    [[self.declineButton layer] setBorderWidth:2.0f];
-                    [[self.declineButton layer] setCornerRadius:20.0];
-                    [[self.declineButton layer] setBorderColor:UIColorFromRGB(0xc8c8c8).CGColor];
+                    [self addSubview:self.acceptButton];
                 }
             } else {
                 [self.acceptButton removeFromSuperview];

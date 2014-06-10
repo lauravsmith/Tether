@@ -18,6 +18,7 @@
     NSArray *facebookFriends;
     NSMutableArray * tetherFriends;
     NSMutableArray * blockedFriends;
+    NSMutableSet * friendsOfFriends;
     NSMutableDictionary *tetherFriendsNearbyDictionary;
     NSMutableDictionary *tetherFriendsDictionary;
     NSMutableArray * tetherFriendsGoingOut;
@@ -29,6 +30,7 @@
     NSMutableDictionary *foursquarePlacesDictionary;
     NSMutableDictionary *tethrPlacesDictionary;
     NSMutableDictionary *placesDictionary;
+    NSMutableDictionary *historicalTethrsDictionary;
     PFObject *currentCommitmentParseObject;
     Place *currentCommitmentPlace;
     NSInteger notifications;
@@ -40,6 +42,7 @@
     NSMutableArray * placesArray;
     CLLocation *userCoordinates;
     NSMutableDictionary * messageThreadDictionary;
+    UIImage * profilePicture;
 }
 
 @property (nonatomic, retain) NSString *facebookId;
@@ -48,6 +51,7 @@
 @property (nonatomic, retain) NSArray *facebookFriends;
 @property (nonatomic, strong) NSMutableArray * tetherFriends;
 @property (nonatomic, strong) NSMutableArray * blockedFriends;
+@property (nonatomic, strong) NSMutableSet * friendsOfFriends;
 @property (nonatomic, retain) NSMutableDictionary *tetherFriendsNearbyDictionary;
 @property (nonatomic, retain) NSMutableDictionary *tetherFriendsDictionary;
 @property (nonatomic, retain) NSString *statusMessage;
@@ -61,6 +65,7 @@
 @property (nonatomic, strong) NSMutableDictionary *foursquarePlacesDictionary;
 @property (nonatomic, strong) NSMutableDictionary *tethrPlacesDictionary;
 @property (nonatomic, strong) NSMutableDictionary *placesDictionary;
+@property (nonatomic, strong) NSMutableDictionary *historicalTethrsDictionary;
 @property (retain, nonatomic) PFObject *currentCommitmentParseObject;
 @property (retain, nonatomic) Place *currentCommitmentPlace;
 @property (nonatomic, assign) NSInteger notifications;
@@ -71,6 +76,7 @@
 @property (nonatomic, strong) NSMutableArray * placesArray;
 @property (strong, nonatomic) CLLocation *userCoordinates;
 @property (retain, nonatomic) NSMutableDictionary * messageThreadDictionary;
+@property (retain, nonatomic) UIImage * profilePicture;
 
 + (id)sharedDataManager;
 

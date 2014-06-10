@@ -123,12 +123,32 @@
         if (changesMade) {
             [placeObject saveInBackground];
             
+            [self updateActivities];
+            
             if ([self.delegate respondsToSelector:@selector(refreshPlaceDetails:)]) {
                 [self.delegate refreshPlaceDetails:self.place];
             }
         }
     }
     [self showConfirmationForAction:@"save"];
+}
+
+-(void)updateActivities {
+    PFQuery *query = [PFQuery queryWithClassName:@"Activity"];
+    [query whereKey:@"placeId" equalTo:self.place.placeId];
+    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+        for (PFObject *activity in objects) {
+            [activity setObject:self.nameTextField.text forKey:@"placeName"];
+            
+            [activity setObject:self.addressTextField.text forKey:@"address"];
+            
+            [activity setObject:self.memoTextField.text forKey:@"memo"];
+            
+            [activity setObject:[PFGeoPoint geoPointWithLatitude:self.annotation.coordinate.latitude
+                                                      longitude:self.annotation.coordinate.longitude]  forKey:@"coordinate"];
+            [activity saveInBackground];
+        }
+    }];
 }
 
 -(IBAction)deleteClicked:(id)sender {
@@ -155,11 +175,19 @@
         if (alertView.tag) {
             Datastore *sharedDataManager = [Datastore sharedDataManager];
             [sharedDataManager.tethrPlacesDictionary removeObjectForKey:self.place.placeId];
-            
+            [self showConfirmationForAction:@"delete"];
             PFObject *placeObject = [PFObject objectWithoutDataWithClassName:@"TethrPlace"
                                                                     objectId:self.place.placeId];
+            
             [placeObject deleteEventually];
-            [self showConfirmationForAction:@"delete"];
+            
+            PFQuery *query = [PFQuery queryWithClassName:@"Activity"];
+            [query whereKey:@"placeId" equalTo:placeObject.objectId];
+            [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+                for (PFObject *activity in objects) {
+                    [activity deleteInBackground];
+                }
+            }];
         } else {
             [self.delegate closeCreatePlaceVC];
         }

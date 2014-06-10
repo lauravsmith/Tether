@@ -78,6 +78,21 @@
     
     self.placeSearchResultsArray = [[NSMutableArray alloc] init];
     
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    
+    NSString *currentTethrKey = @"";
+    currentTethrKey = sharedDataManager.currentCommitmentPlace.placeId;
+    for (id key in sharedDataManager.placesDictionary) {
+        if (![currentTethrKey isEqualToString:key]) {
+            Place *place = [sharedDataManager.placesDictionary objectForKey:key];
+            [self.placeSearchResultsArray addObject:place];
+        }
+    }
+    
+    if (currentTethrKey) {
+        [self.placeSearchResultsArray insertObject:sharedDataManager.currentCommitmentPlace atIndex:0];
+    }
+    
     self.placeSearchResultsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, TOP_BAR_HEIGHT + self.searchBar.frame.size.height, self.view.frame.size.width, self.view.frame.size.height - TOP_BAR_HEIGHT - self.searchBar.frame.size.height)];
     [self.placeSearchResultsTableView setDataSource:self];
     [self.placeSearchResultsTableView setDelegate:self];

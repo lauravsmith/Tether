@@ -49,7 +49,6 @@
 @property (assign, nonatomic) bool openingInviteView;
 @property (retain, nonatomic) UIView *confirmationView;
 @property (retain, nonatomic) UIActivityIndicatorView *activityIndicatorView;
-@property (retain, nonatomic) FriendsListViewController *friendsListViewController;
 @property (retain, nonatomic) CreatePlaceViewController *createVC;
 
 @end
@@ -185,6 +184,7 @@
         
     [query whereKey:kCommitmentDateKey greaterThan:startTime];
     query.limit = 5000; // is this an appropriate limit?
+    [query orderByDescending:@"dateCommitted"];
 
     [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
         if (!error) {
@@ -193,12 +193,13 @@
 
             sharedDataManager.friendsToPlacesMap = [[NSMutableDictionary alloc] init];
             for (PFObject *object in objects) {
-                if (![object objectForKey:@"placeOwner"] || ![object objectForKey:@"private"] || [friendsArrayWithMe containsObject:[object objectForKey:@"placeOwner"]]) {
+                if (![object objectForKey:@"placeOwner"] || [[object objectForKey:@"placeOwner"] isEqualToString:@""] || ![[object objectForKey:@"private"] boolValue] ||[friendsArrayWithMe containsObject:[object objectForKey:@"placeOwner"]]) {
                     Place *place = [[Place alloc] init];
                     geoPoint = [object objectForKey:kCommitmentGeoPointKey];
                     id friendID =[object objectForKey:kUserFacebookIDKey];
                     if (![tempDictionary objectForKey:[object objectForKey:kCommitmentPlaceIDKey]]) {
                         place.city = [object objectForKey:kCommitmentCityKey];
+                        place.state = [object objectForKey:@"state"];
                         place.name = [object objectForKey:kCommitmentPlaceKey];
                         place.address = [object objectForKey:kCommitmentAddressKey];
                         place.coord = CLLocationCoordinate2DMake(geoPoint.latitude, geoPoint.longitude);
@@ -298,6 +299,10 @@
         if (!self.tethrPlacesDataHasLoaded) {
             [self loadTethrPlaces];
         }
+        
+        if (!sharedDataManager.historicalTethrsDictionary) {
+            [self loadHistoricalTethrPlaces];
+        }
     }
 }
 
@@ -333,6 +338,13 @@
         }
     }
     
+    for (id key in sharedDataManager.historicalTethrsDictionary) {
+        if (![sharedDataManager.placesDictionary objectForKey:key]) {
+            Place *place = [sharedDataManager.historicalTethrsDictionary objectForKey:key];
+            [sharedDataManager.placesDictionary setObject:place forKey:place.placeId];
+        }
+    }
+    
     [self addPinsToMap];
     
     // update current commitment
@@ -343,12 +355,12 @@
         }
     }
     
-    if (sharedDataManager.placeIDForNotification && ![sharedDataManager.placeIDForNotification isEqualToString:@""]) {
-        if ([self.delegate respondsToSelector:@selector(openPageForPlaceWithId:)]) {
-            [self.delegate openPageForPlaceWithId:sharedDataManager.placeIDForNotification];
-            sharedDataManager.placeIDForNotification = @"";
-        }
-    }
+//    if (sharedDataManager.placeIDForNotification && ![sharedDataManager.placeIDForNotification isEqualToString:@""]) {
+//        if ([self.delegate respondsToSelector:@selector(openPageForPlaceWithId:)]) {
+//            [self.delegate openPageForPlaceWithId:sharedDataManager.placeIDForNotification];
+//            sharedDataManager.placeIDForNotification = @"";
+//        }
+//    }
     
     self.tethrPlacesDataHasLoaded = NO;
 }
@@ -388,7 +400,6 @@
     
     [self.placesTableView reloadData];
     if (self.disableSort && sharedDataManager.currentCommitmentPlace) {
-        [self scrollToPlaceWithId:sharedDataManager.currentCommitmentPlace.placeId];
         self.disableSort = NO;
     }
 }
@@ -479,7 +490,7 @@
     CGPoint velocity = [(UIPanGestureRecognizer*)sender velocityInView:[sender view]];
     
     if([(UIPanGestureRecognizer*)sender state] == UIGestureRecognizerStateEnded) {
-        if(velocity.x > 0 && !self.friendsListViewController) {
+        if(velocity.x > 0) {
             [self closeListView];
         }
     }
@@ -512,42 +523,40 @@
 }
 
 -(void)showFriendsViewFromCell:(PlaceCell*) placeCell {
-    if  (!self.friendsListViewController) {
-        if ([self.delegate respondsToSelector:@selector(canUpdatePlaces:)]) {
-            [self.delegate canUpdatePlaces:NO];
-        }
-        Datastore *sharedDataManager = [Datastore sharedDataManager];
-        Place *place =  [sharedDataManager.placesDictionary objectForKey:placeCell.place.placeId];
-        self.friendsListViewController = [[FriendsListViewController alloc] init];
-        self.friendsListViewController.delegate = self;
-        NSMutableSet *friends = [[NSMutableSet alloc] init];
-        for (id friendId in place.friendsCommitted) {
-            if ([sharedDataManager.tetherFriendsDictionary objectForKey:friendId]) {
-                Friend *friend = [sharedDataManager.tetherFriendsDictionary objectForKey:friendId];
-                [friends addObject:friend];
-            }
-        }
-
-        self.friendsListViewController.friendsArray = [[friends allObjects] mutableCopy];
-        self.friendsListViewController.place = placeCell.place;
-        [self.friendsListViewController loadFriendsOfFriends];
-        [self.friendsListViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
-        [self.view addSubview:self.friendsListViewController.view];
-        [self addChildViewController:self.friendsListViewController];
-        [self.friendsListViewController didMoveToParentViewController:self];
-        
-        [UIView animateWithDuration:SLIDE_TIMING
-                              delay:0.0
-             usingSpringWithDamping:1.0
-              initialSpringVelocity:1.0
-                            options:UIViewAnimationOptionBeginFromCurrentState
-                         animations:^{
-                             [self.friendsListViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
-                         }
-                         completion:^(BOOL finished) {
-                             [self searchBarCancelButtonClicked:self.searchBar];
-                         }];
+    if ([self.delegate respondsToSelector:@selector(canUpdatePlaces:)]) {
+        [self.delegate canUpdatePlaces:NO];
     }
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    Place *place =  [sharedDataManager.placesDictionary objectForKey:placeCell.place.placeId];
+    FriendsListViewController *friendsListViewController = [[FriendsListViewController alloc] init];
+    friendsListViewController.delegate = self;
+    NSMutableSet *friends = [[NSMutableSet alloc] init];
+    for (id friendId in place.friendsCommitted) {
+        if ([sharedDataManager.tetherFriendsDictionary objectForKey:friendId]) {
+            Friend *friend = [sharedDataManager.tetherFriendsDictionary objectForKey:friendId];
+            [friends addObject:friend];
+        }
+    }
+
+    friendsListViewController.friendsArray = [[friends allObjects] mutableCopy];
+    friendsListViewController.place = placeCell.place;
+    [friendsListViewController loadFriendsOfFriends];
+    [friendsListViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+    [self.view addSubview:friendsListViewController.view];
+    [self addChildViewController:friendsListViewController];
+    [friendsListViewController didMoveToParentViewController:self];
+    
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [friendsListViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                         [self searchBarCancelButtonClicked:self.searchBar];
+                     }];
 }
 
 -(void)inviteToPlace:(Place *)place {
@@ -578,19 +587,18 @@
     }
 }
 
--(void)closeFriendsView {
+-(void)closeFriendsView:(FriendsListViewController*)friendsListVC {
         [UIView animateWithDuration:SLIDE_TIMING
                               delay:0.0
              usingSpringWithDamping:1.0
               initialSpringVelocity:1.0
                             options:UIViewAnimationOptionBeginFromCurrentState
                          animations:^{
-                             [self.friendsListViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                             [friendsListVC.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
                          }
                          completion:^(BOOL finished) {
-                             [self.friendsListViewController.view removeFromSuperview];
-                             [self.friendsListViewController removeFromParentViewController];
-                             self.friendsListViewController = nil;
+                             [friendsListVC.view removeFromSuperview];
+                             [friendsListVC removeFromParentViewController];
                          }];
 }
 
@@ -606,6 +614,12 @@
 }
 
 #pragma mark FriendsListViewControllerDelegate
+
+-(void)showProfileOfFriend:(Friend*)user {
+    if ([self.delegate respondsToSelector:@selector(showProfileOfFriend:)]) {
+        [self.delegate showProfileOfFriend:user];
+    }
+}
 
 -(void)commitToPlace:(Place *)place {
     Datastore *sharedDataManager = [Datastore sharedDataManager];
@@ -672,6 +686,45 @@
     self.searchResultsTableView.hidden = NO;
 }
 
+-(void)loadHistoricalTethrPlaces {
+//    historicalTethrsDictionary
+    
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    
+    PFUser *user = [PFUser currentUser];
+    PFQuery *query = [PFQuery queryWithClassName:@"Activity"];
+    [query whereKey:@"user" equalTo:user];
+    [query whereKey:@"type" equalTo:@"tethr"];
+    [query orderByDescending:@"date"];
+    [query setLimit:500];
+    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+        sharedDataManager.historicalTethrsDictionary = [[NSMutableDictionary alloc] init];
+        for (PFObject *object in objects) {
+            
+            Place *place = [[Place alloc] init];
+            PFGeoPoint * geoPoint = [object objectForKey:@"coordinate"];
+            place.city = [object objectForKey:@"city"];
+            place.state = [object objectForKey:@"state"];
+            place.name = [object objectForKey:@"placeName"];
+            place.address = [object objectForKey:@"address"];
+            place.coord = CLLocationCoordinate2DMake(geoPoint.latitude, geoPoint.longitude);
+            place.placeId = [object objectForKey:@"placeId"];
+            place.numberCommitments = 0;
+            place.numberPastCommitments = 0;
+            place.friendsCommitted = [[NSMutableSet alloc] init];
+            place.memo = [object objectForKey:@"memo"];
+            place.owner = [object objectForKey:@"owner"];
+            
+            [sharedDataManager.historicalTethrsDictionary setObject:place forKey:place.placeId];
+        }
+        
+        if (self.friendStatusDetailsHaveLoaded) {
+            [self addDictionaries];
+            [self sortPlacesByPopularity];
+        }
+    }];
+}
+
 -(void)loadTethrPlaces {
     NSString *city = [self.userDetails objectForKey:@"city"];
     NSString *state = [self.userDetails objectForKey:@"state"];
@@ -691,7 +744,7 @@
                         if ([sharedDataManager.tetherFriends containsObject:[placeObject objectForKey:@"owner"]] || [sharedDataManager.facebookId isEqualToString:[placeObject objectForKey:@"owner"]] || [startTime compare:placeObject.createdAt] == NSOrderedAscending) {
                         
                             Place *newPlace = [[Place alloc] init];
-                            newPlace.placeId = [placeObject objectForKey:@"placeId"];
+                            newPlace.placeId = placeObject.objectId;
                             newPlace.name = [placeObject objectForKey:kPlaceNameKey];
                             newPlace.city = [placeObject objectForKey:kPlaceCityKey];
                             newPlace.state = [self.userDetails objectForKey:kPlaceStateKey];
@@ -1006,25 +1059,29 @@
     NSArray *venues = [response objectForKey:@"venues"];
     
     Datastore *sharedDataManager = [Datastore sharedDataManager];
-    for (id key in sharedDataManager.tethrPlacesDictionary) {
-        Place *place = [sharedDataManager.tethrPlacesDictionary objectForKey:key];
-        if ([[place.name lowercaseString] rangeOfString:[search lowercaseString]].location != NSNotFound) {
-            [self.searchResultsArray addObject:place];
+    
+    for (Place *place in self.placesArray) {
+        if (place.name ) {
+            if ([[place.name lowercaseString] rangeOfString:[search lowercaseString]].location != NSNotFound) {
+                [self.searchResultsArray addObject:place];
+            }
         }
     }
     
     for (NSDictionary *venue in venues) {
         Place *newPlace = [[Place alloc] init];
         newPlace.placeId = [venue objectForKey:@"id"];
-        newPlace.name = [venue objectForKey:@"name"];
-        CLLocationCoordinate2D location = CLLocationCoordinate2DMake([(NSString*)[[venue objectForKey:@"location"] objectForKey:@"lat"] doubleValue], [[[venue objectForKey:@"location"] objectForKey:@"lng"] doubleValue]);
-        newPlace.coord = location;
-        newPlace.city = [self.userDetails objectForKey:@"city"];
-        newPlace.state = [self.userDetails objectForKey:@"state"];
-        NSDictionary *locationDetails = [venue objectForKey:@"location"];
-        newPlace.address = [locationDetails objectForKey:@"address"];
-        
-        [self.searchResultsArray addObject:newPlace];
+        if (![sharedDataManager.placesDictionary objectForKey:newPlace.placeId]) {
+            newPlace.name = [venue objectForKey:@"name"];
+            CLLocationCoordinate2D location = CLLocationCoordinate2DMake([(NSString*)[[venue objectForKey:@"location"] objectForKey:@"lat"] doubleValue], [[[venue objectForKey:@"location"] objectForKey:@"lng"] doubleValue]);
+            newPlace.coord = location;
+            newPlace.city = [self.userDetails objectForKey:@"city"];
+            newPlace.state = [self.userDetails objectForKey:@"state"];
+            NSDictionary *locationDetails = [venue objectForKey:@"location"];
+            newPlace.address = [locationDetails objectForKey:@"address"];
+            
+            [self.searchResultsArray addObject:newPlace];
+        }
     }
     
     [self.searchResultsTableView reloadData];
@@ -1158,10 +1215,8 @@
         [self scrollToPlaceWithId:cell.place.placeId];
         [self searchBarCancelButtonClicked:self.searchBar];
     } else {
-        if (!self.friendsListViewController) {
-            PlaceCell *cell = (PlaceCell*)[tableView cellForRowAtIndexPath:indexPath];
-            [self showFriendsViewFromCell:cell];
-        }
+        PlaceCell *cell = (PlaceCell*)[tableView cellForRowAtIndexPath:indexPath];
+        [self showFriendsViewFromCell:cell];
         [tableView deselectRowAtIndexPath:indexPath animated:YES];
         
         NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
@@ -1189,7 +1244,6 @@
                      completion:^(BOOL finished) {
                          [self.createVC.view removeFromSuperview];
                          [self.createVC removeFromParentViewController];
-                         self.createVC = nil;
                      }];
 }
 

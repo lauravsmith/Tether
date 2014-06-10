@@ -20,6 +20,8 @@
 #define PROFILE_PICTURE_OFFSET_X 10.0
 #define PROFILE_PICTURE_SIZE 45.0
 
+#define degreesToRadian(x) (M_PI * (x) / 180.0)
+
 @protocol FriendCellContentViewDelegate;
 
 @interface FriendCellContentView : UIView
@@ -31,18 +33,15 @@
 @property (nonatomic, strong) FBProfilePictureView *friendProfilePictureView;
 @property (nonatomic, strong) UILabel *statusLabel;
 @property (nonatomic, assign) BOOL showingStatusMessage;
-@property (nonatomic, strong) TethrButton *inviteButton;
-@property (nonatomic, strong) TethrButton *inviteButtonLarge;
+@property (nonatomic, strong) UIImageView *arrow;
 - (void)prepareForReuse;
 @end
 
 @protocol FriendCellContentViewDelegate <NSObject>
 -(void)goToPlaceInListView:(id)placeId;
--(void)inviteFriend:(Friend*)friend;
 @end
 
 @implementation FriendCellContentView
-
 
 - (id) initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
@@ -53,10 +52,8 @@
         self.placeButton = [[UIButton alloc] init];
         [self addSubview:self.placeButton];
         self.showingStatusMessage = NO;
-        self.inviteButtonLarge = [[TethrButton alloc] init];
-        [self addSubview:self.inviteButtonLarge];
-        self.inviteButton = [[TethrButton alloc] init];
-        [self addSubview:self.inviteButton];
+        self.arrow = [[UIImageView alloc] init];
+        [self addSubview:self.arrow];
     }
     return self;
 }
@@ -121,27 +118,9 @@
     self.statusLabel.adjustsFontSizeToFitWidth = YES;
     [self addSubview:self.statusLabel];
     
-    self.inviteButton.tag = 0;
-    UIFont *missionGothic = [UIFont fontWithName:@"MissionGothic-BoldItalic" size:11.0f];
-    [self.inviteButton setTitle:@"invite" forState:UIControlStateNormal];
-    self.inviteButton.titleLabel.font = missionGothic;
-    size = [self.inviteButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName: missionGothic}];
-    if (self.friend && ![self.friend.friendID isEqualToString:sharedDataManager.facebookId]) {
-        self.inviteButton.frame = CGRectMake(self.frame.size.width - PANEL_WIDTH - size.width - 10.0, self.friendNameLabel.frame.origin.y, size.width, size.height + 8.0);
-    } else {
-        self.inviteButton.frame = CGRectMake(0, 0, 0, 0);
-    }
-    [self.inviteButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
-    [self.inviteButton addTarget:self
-                          action:@selector(inviteClicked:)
-                forControlEvents:UIControlEventTouchUpInside];
-    self.inviteButton.contentMode = UIViewContentModeScaleAspectFit;
-    self.inviteButtonLarge.frame = CGRectMake(self.inviteButton.frame.origin.x - 20.0, 0.0, 70.0, self.frame.size.height);
-    [self.inviteButtonLarge setNormalColor:[UIColor clearColor]];
-    [self.inviteButtonLarge setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
-    [self.inviteButtonLarge addTarget:self
-                               action:@selector(inviteClicked:)
-                     forControlEvents:UIControlEventTouchUpInside];
+    self.arrow.frame = CGRectMake(self.frame.size.width - 30.0 - PANEL_WIDTH, (self.frame.size.height - 10.0) / 2, 7.0, 11.0);
+    self.arrow.transform = CGAffineTransformMakeRotation(degreesToRadian(180));
+    [self.arrow setImage:[UIImage imageNamed:@"GreyTriangle"]];
 }
 
 -(void)friendsCommitmentPressed {
@@ -166,17 +145,6 @@
     
     [self setNeedsLayout];
     [self setNeedsDisplay];
-}
-
--(IBAction)inviteClicked:(id)sender {
-    if (self.inviteButton.tag == 0) {
-        if ([self.delegate respondsToSelector:@selector(inviteFriend:)]) {
-            [self.delegate inviteFriend:self.friend];
-            self.inviteButton.tag = 1;
-        }
-    } else {
-        self.inviteButton.tag = 0;
-    }
 }
 
 @end
@@ -226,12 +194,6 @@
 -(void)goToPlaceInListView:(id)placeId {
     if ([self.delegate respondsToSelector:@selector(goToPlaceInListView:)]) {
         [self.delegate goToPlaceInListView:placeId];
-    }
-}
-
--(void)inviteFriend:(Friend *)friend {
-    if ([self.delegate respondsToSelector:@selector(inviteFriend:)]) {
-        [self.delegate inviteFriend:friend];
     }
 }
 

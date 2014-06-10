@@ -53,15 +53,24 @@
     UIFont *montserratBold = [UIFont fontWithName:@"Montserrat-Bold" size:14.0f];
     NSString *names = @"";
     Datastore *sharedDataManager = [Datastore sharedDataManager];
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     
+    int count = 0;
     for (NSString *friendName in self.messageThread.participantNames) {
-        if (![friendName isEqualToString:sharedDataManager.name] && ![friendName isEqualToString:sharedDataManager.firstName]) {
-            if ([names isEqualToString:@""]) {
-                names = friendName;
-            } else {
-                names = [NSString stringWithFormat:@"%@, %@", names,friendName];
+        if (![friendName isEqualToString:[userDetails stringForKey:@"name"]] && ![friendName isEqualToString:[userDetails stringForKey:@"firstName"]]) {
+            if (count < 3) {
+                if ([names isEqualToString:@""]) {
+                    names = friendName;
+                } else {
+                    names = [NSString stringWithFormat:@"%@, %@", names,friendName];
+                }
             }
+            count++;
         }
+    }
+    
+    if (count > 3) {
+        names = [NSString stringWithFormat:@"%@ + %d", names, count - 3];
     }
     
     self.friendNamesLabel.text = names;

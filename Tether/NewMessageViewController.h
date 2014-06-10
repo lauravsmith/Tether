@@ -18,6 +18,7 @@
 @property (retain, nonatomic) NSMutableArray *messagesArray;
 @property (retain, nonatomic) PFObject *messageThreadObject;
 -(void)loadMessages;
+-(void)addFriend:(Friend*)user;
 
 @end
 

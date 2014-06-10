@@ -6,11 +6,15 @@
 //  Copyright (c) 2013 Laura Smith. All rights reserved.
 //
 
+#import "ActivityCell.h"
 #import "AppDelegate.h"
 #import "CenterViewController.h"
+#import "CommentViewController.h"
 #import "Constants.h"
+#import "CreatePlaceViewController.h"
 #import "Datastore.h"
 #import "Flurry.h"
+#import "ParticipantsListViewController.h"
 #import "Place.h"
 #import "SearchResultCell.h"
 #import "TetherAnnotation.h"
@@ -18,7 +22,6 @@
 
 #import <AFNetworking/AFHTTPRequestOperationManager.h>
 #import <FacebookSDK/FacebookSDK.h>
-#import <MapKit/MapKit.h> 
 
 #define BOTTOM_BAR_HEIGHT 45.0
 #define CORNER_RADIUS 20.0
@@ -30,6 +33,7 @@
 #define SEARCH_BAR_HEIGHT 45.0
 #define SEARCH_BAR_WIDTH 270.0
 #define SEARCH_RESULTS_CELL_HEIGHT 60.0
+#define SLIDE_TIMING 0.6
 #define SPINNER_SIZE 30.0
 #define STATUS_BAR_HEIGHT 20.0
 #define TOP_BAR_HEIGHT 70.0
@@ -37,10 +41,12 @@
 
 #define degreesToRadian(x) (M_PI * (x) / 180.0)
 
-@interface CenterViewController () <MKMapViewDelegate, CLLocationManagerDelegate, UISearchBarDelegate, UITableViewDelegate, UITableViewDataSource>
+@interface CenterViewController () <ActivityCellDelegate, MKMapViewDelegate, CLLocationManagerDelegate, UISearchBarDelegate, UITableViewDelegate, UITableViewDataSource, CreatePlaceViewControllerDelegate, UIActionSheetDelegate, PartcipantsListViewControllerDelegate,CommentViewControllerDelegate>
 @property (retain, nonatomic) NSString * cityLocation;
 @property (retain, nonatomic) UIView * topBar;
 @property (retain, nonatomic) UISearchBar *searchBar;
+@property (retain, nonatomic) UISearchBar *feedSearchBar;
+@property (retain, nonatomic) UISearchBar *popularSearchBar;
 @property (retain, nonatomic) NSMutableArray *searchResultsArray;
 @property (nonatomic, strong) UITableView *searchResultsTableView;
 @property (nonatomic, strong) UITableViewController *searchResultsTableViewController;
@@ -49,6 +55,24 @@
 @property (retain, nonatomic) UITapGestureRecognizer * cityTapGesture;
 @property (strong, nonatomic) UIButton *commitmentButton;
 @property (strong, nonatomic) UIView *dismissSearchView;
+@property (assign, nonatomic) bool hasSearched;
+@property (retain, nonatomic) CreatePlaceViewController *createVC;
+@property (retain, nonatomic) NSMutableArray *followingActivityArray;
+@property (nonatomic, strong) UITableView *followingActivitytsTableView;
+@property (nonatomic, strong) UITableViewController *followingActivityTableViewController;
+@property (nonatomic, assign) CGFloat lastContentOffset;
+@property (nonatomic, strong) UIView *backView;
+@property (retain, nonatomic) NSMutableArray *nearbyActivityArray;
+@property (nonatomic, strong) UITableView *nearbyActivitytsTableView;
+@property (nonatomic, strong) UITableViewController *nearbyActivityTableViewController;
+@property (nonatomic, strong) ParticipantsListViewController *participantsListViewController;
+@property (retain, nonatomic) CommentViewController * commentVC;
+@property (retain, nonatomic) PFObject * postToDelete;
+@property (strong, nonatomic) UIView *separatorBar;
+@property (strong, nonatomic) UIImageView *switchPicker;
+@property (strong, nonatomic) UIButton *popularSwitchButton;
+@property (strong, nonatomic) UIButton *mapSwitchButton;
+@property (strong, nonatomic) UIButton *feedSwitchButton;
 
 @end
 
@@ -69,13 +93,15 @@
 {
     [super viewDidLoad];
     
+    self.backView = [[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.frame.size.width, self.view.frame.size.height + 20.0)];
+    [self.view addSubview:self.backView];
+    
     self.listViewOpen = NO;
     
     // mapview setup
     self.mv = [[MKMapView alloc] initWithFrame:CGRectMake(0, TOP_BAR_HEIGHT, self.view.frame.size.width, self.view.frame.size.height - TOP_BAR_HEIGHT)];
-    
     self.mv.delegate = self;
-    [self.view addSubview:self.mv];
+    [self.backView addSubview:self.mv];
     
     UIView *legalView = nil;
     
@@ -93,13 +119,41 @@
     // top bar setup
     self.topBar = [[UIView alloc] initWithFrame:CGRectMake(0, 0.0, self.view.frame.size.width,TOP_BAR_HEIGHT)];
     self.topBar.layer.backgroundColor = UIColorFromRGB(0x8e0528).CGColor;
-    [self.view addSubview:self.topBar];
+    [self.backView addSubview:self.topBar];
+    
+    self.switchBar = [[UIView alloc] initWithFrame:CGRectMake(0.0, TOP_BAR_HEIGHT - 10.0, self.view.frame.size.width, 40.0)];
+    [self.switchBar setBackgroundColor:UIColorFromRGB(0x8e0528)];
+    [self.switchBar setHidden:YES];
+    [self.backView addSubview:self.switchBar];
+    
+    UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:14];
+    
+    self.popularSwitchButton = [[UIButton alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.frame.size.width / 3.0, 40.0)];
+    [self.popularSwitchButton addTarget:self action:@selector(popularClicked:) forControlEvents:UIControlEventTouchUpInside];
+    self.popularSwitchButton.titleLabel.font = montserratSmall;
+    [self.popularSwitchButton setTitle:@"Popular" forState:UIControlStateNormal];
+    [self.popularSwitchButton setTitleEdgeInsets:UIEdgeInsetsMake(0.0, 0.0, 8.0, 0.0)];
+    [self.switchBar addSubview:self.popularSwitchButton];
+
+    self.mapSwitchButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width / 3.0, 0.0, self.view.frame.size.width / 3.0, 40.0)];
+    [self.mapSwitchButton setTitleEdgeInsets:UIEdgeInsetsMake(0.0, 0.0, 8.0, 0.0)];
+    [self.mapSwitchButton addTarget:self action:@selector(mapClicked:) forControlEvents:UIControlEventTouchUpInside];
+    self.mapSwitchButton.titleLabel.font = montserratSmall;
+    [self.mapSwitchButton setTitle:@"Map" forState:UIControlStateNormal];
+    [self.switchBar addSubview:self.mapSwitchButton];
+
+    self.feedSwitchButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width / 3.0 * 2.0, 0.0, self.view.frame.size.width / 3.0, 40.0)];
+    [self.feedSwitchButton setTitleEdgeInsets:UIEdgeInsetsMake(0.0, 0.0, 8.0, 0.0)];
+    [self.feedSwitchButton addTarget:self action:@selector(feedClicked:) forControlEvents:UIControlEventTouchUpInside];
+    self.feedSwitchButton.titleLabel.font = montserratSmall;
+    [self.feedSwitchButton setTitle:@"Following" forState:UIControlStateNormal];
+    [self.switchBar addSubview:self.feedSwitchButton];
     
     // set up search bar and corresponding search results tableview
-    self.searchBarBackground = [[UIView alloc] initWithFrame:CGRectMake(0, self.topBar.frame.size.height, self.view.frame.size.width,SEARCH_BAR_HEIGHT)];
+    self.searchBarBackground = [[UIView alloc] initWithFrame:CGRectMake(0, self.topBar.frame.size.height + self.switchBar.frame.size.height - 10.0, self.view.frame.size.width,SEARCH_BAR_HEIGHT)];
     [self.searchBarBackground setBackgroundColor:[UIColor whiteColor]];
-    [self.searchBarBackground setAlpha:0.85];
-    [self.view addSubview:self.searchBarBackground];
+    [self.searchBarBackground setAlpha:0.95];
+    [self.backView addSubview:self.searchBarBackground];
     self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake((self.view.frame.size.width - SEARCH_BAR_WIDTH) / 2.0, 0.0, SEARCH_BAR_WIDTH,SEARCH_BAR_HEIGHT)];
     self.searchBar.delegate = self;
     [self.searchBar setBackgroundImage:[UIImage new]];
@@ -109,6 +163,40 @@
     [self.searchBarBackground addSubview:self.searchBar];
     self.searchBarBackground.hidden = YES;
     
+    // activity table view
+    self.followingActivityArray = [[NSMutableArray alloc] init];
+    
+    self.followingActivitytsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, TOP_BAR_HEIGHT + 30.0, self.view.frame.size.width, self.view.frame.size.height)];
+    [self.followingActivitytsTableView setShowsVerticalScrollIndicator:NO];
+    self.followingActivitytsTableView.hidden = YES;
+    [self.followingActivitytsTableView setDataSource:self];
+    [self.followingActivitytsTableView setDelegate:self];
+    [self.backView addSubview:self.followingActivitytsTableView];
+    
+    self.followingActivityTableViewController = [[UITableViewController alloc] init];
+    UIRefreshControl *refreshControl = [[UIRefreshControl alloc] init];
+    [refreshControl addTarget:self action:@selector(loadFollowingActivity) forControlEvents:UIControlEventValueChanged];
+    self.followingActivityTableViewController.refreshControl = refreshControl;
+    self.followingActivityTableViewController.tableView = self.followingActivitytsTableView;
+    [self.followingActivitytsTableView reloadData];
+    
+    // nearby table view
+    self.nearbyActivityArray = [[NSMutableArray alloc] init];
+    
+    self.nearbyActivitytsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, TOP_BAR_HEIGHT + 30.0, self.view.frame.size.width, self.view.frame.size.height)];
+    [self.nearbyActivitytsTableView setShowsVerticalScrollIndicator:NO];
+    self.nearbyActivitytsTableView.hidden = YES;
+    [self.nearbyActivitytsTableView setDataSource:self];
+    [self.nearbyActivitytsTableView setDelegate:self];
+    [self.backView addSubview:self.nearbyActivitytsTableView];
+    
+    self.nearbyActivityTableViewController = [[UITableViewController alloc] init];
+    UIRefreshControl *refreshControlNearby = [[UIRefreshControl alloc] init];
+    [refreshControlNearby addTarget:self action:@selector(loadNearbyActivity) forControlEvents:UIControlEventValueChanged];
+    self.nearbyActivityTableViewController.refreshControl = refreshControlNearby;
+    self.nearbyActivityTableViewController.tableView = self.nearbyActivitytsTableView;
+    [self.nearbyActivitytsTableView reloadData];
+    
     self.dismissSearchView = [[UIView alloc] initWithFrame:CGRectMake(0, self.searchBarBackground.frame.origin.y + self.searchBarBackground.frame.size.height, self.view.frame.size.width, self.view.frame.size.height - self.searchBarBackground.frame.origin.y - self.searchBarBackground.frame.size.height)];
     [self.dismissSearchView setHidden:YES];
     [self.dismissSearchView setUserInteractionEnabled:YES];
@@ -116,13 +204,14 @@
     [[UITapGestureRecognizer alloc] initWithTarget:self
                                             action:@selector(handleDismissSearchTap:)];
     [self.dismissSearchView addGestureRecognizer:dismissSearchTap];
-    [self.view addSubview:self.dismissSearchView];
+    [self.backView addSubview:self.dismissSearchView];
     
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
     self.searchResultsArray = [[NSMutableArray alloc] init];
+    self.searchResultsArray = [sharedDataManager.placesArray mutableCopy];
     
     self.searchResultsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, self.searchBarBackground.frame.origin.y + self.searchBarBackground.frame.size.height, self.view.frame.size.width, self.view.frame.size.height)];
     self.searchResultsTableView.hidden = YES;
-    [self.searchResultsTableView setAlpha:0.85];
     [self.searchResultsTableView setDataSource:self];
     [self.searchResultsTableView setDelegate:self];
     [self.view addSubview:self.searchResultsTableView];
@@ -168,6 +257,10 @@
     self.numberButton.tag = 1;
     [self.topBar addSubview:self.numberButton];
     
+    self.activityIndicatorView = [[UIActivityIndicatorView alloc] initWithFrame:self.numberButton.frame];
+    self.activityIndicatorView.color = UIColorFromRGB(0x8e0528);
+    [self.view addSubview:self.activityIndicatorView];
+    
     UIImage *triangleImage = [UIImage imageNamed:@"WhiteTriangle"];
     self.triangleButton = [[UIButton alloc] initWithFrame:CGRectMake(5.0, 38.5, 7.0, 11.0)];
     [self.triangleButton setImage:triangleImage forState:UIControlStateNormal];
@@ -202,6 +295,11 @@
     [self.bottomBar setBackgroundColor:[UIColor whiteColor]];
     [self.bottomBar setAlpha:0.85];
     
+    self.separatorBar = [[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.frame.size.width, 1.0)];
+    [self.separatorBar setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
+    [self.separatorBar setHidden:YES];
+    [self.bottomBar addSubview:self.separatorBar];
+    
     // large background button to increase touch surface area
     self.settingsButtonLarge = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, self.bottomBar.frame.size.width / 4.0, self.bottomBar.frame.size.height)];
     [self.settingsButtonLarge addTarget:self action:@selector(settingsPressed:) forControlEvents:UIControlEventTouchDown];
@@ -230,14 +328,12 @@
     self.notificationsLabel.adjustsFontSizeToFitWidth = YES;
     [self.bottomBar addSubview:self.notificationsLabel];
     
-    UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:14];
     UIFont *montserratExtraSmall = [UIFont fontWithName:@"Montserrat" size:10];
     UIFont *montserratMedium = [UIFont fontWithName:@"Montserrat" size:16];
     
     self.cityButton = [[UIButton alloc] init];
     self.cityButton.titleLabel.font = montserratMedium;
     [self.cityButton setTitleColor: UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
-    [self.cityButton addTarget:self action:@selector(cityNameTap:) forControlEvents:UIControlEventTouchUpInside];
     [self.bottomBar addSubview:self.cityButton];
     
     self.placeButton = [[UIButton alloc] init];
@@ -257,7 +353,37 @@
     [self.commitmentButton addTarget:self action:@selector(commitmentClicked:) forControlEvents:UIControlEventTouchUpInside];
     [self.bottomBar addSubview:self.commitmentButton];
     
+    UIButton *cameraButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    cameraButton.frame = CGRectMake(225.0, (self.bottomBar.frame.size.height - 30.0) / 2.0, 30.0, 30.0);
+    [cameraButton setImage:[UIImage imageNamed:@"Camera.png"] forState:UIControlStateNormal];
+    [cameraButton addTarget:self action:@selector(photoCaptureButtonAction:) forControlEvents:UIControlEventTouchUpInside];
+    [self.bottomBar addSubview:cameraButton];
+    
+    UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(cameraButton.frame.origin.x + cameraButton.frame.size.width + 10.0, 5.0, 1.0, BOTTOM_BAR_HEIGHT - 10.0)];
+    [separator setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
+    [self.bottomBar addSubview:separator];
+    
     [self.view addSubview:self.bottomBar];
+    
+    self.switchPicker = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"RedPicker"]];
+    self.switchPicker.frame = CGRectMake((self.view.frame.size.width - 11.0) / 2.0, self.switchBar.frame.origin.y + self.switchBar.frame.size.height - 1.0, 11.0, 5.0);
+    [self.backView addSubview:self.switchPicker];
+    
+    self.feedSearchBar = [[UISearchBar alloc] initWithFrame:CGRectMake((self.view.frame.size.width - SEARCH_BAR_WIDTH) / 2.0, 0.0, SEARCH_BAR_WIDTH,SEARCH_BAR_HEIGHT)];
+    self.feedSearchBar.delegate = self;
+    [self.feedSearchBar setBackgroundImage:[UIImage new]];
+    [self.feedSearchBar setTranslucent:YES];
+    self.feedSearchBar.layer.cornerRadius = 5.0;
+    self.feedSearchBar.placeholder = @"Where are you going?";
+    
+    self.popularSearchBar = [[UISearchBar alloc] initWithFrame:CGRectMake((self.view.frame.size.width - SEARCH_BAR_WIDTH) / 2.0, 0.0, SEARCH_BAR_WIDTH,SEARCH_BAR_HEIGHT)];
+    self.popularSearchBar.delegate = self;
+    [self.popularSearchBar setBackgroundImage:[UIImage new]];
+    [self.popularSearchBar setTranslucent:YES];
+    self.popularSearchBar.layer.cornerRadius = 5.0;
+    self.popularSearchBar.placeholder = @"Where are you going?";
+    
+    [self mapClicked:nil];
     
     [self layoutCurrentCommitment];
     [self restartTimer];
@@ -265,8 +391,56 @@
     [self setNeedsStatusBarAppearanceUpdate];
 }
 
--(void)movePanelEdge:(id)sender {
-    NSLog(@"Edge swipe Map");
+-(void)loadFollowingActivity {
+    [self.feedSearchBar setHidden:YES];
+    [self.followingActivityTableViewController.refreshControl beginRefreshing];
+    [self.followingActivitytsTableView setContentOffset:CGPointMake(0, -self.followingActivityTableViewController.refreshControl.frame.size.height) animated:YES];
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    PFQuery *query = [PFQuery queryWithClassName:@"Activity"];
+    [query whereKey:@"facebookId" containedIn:sharedDataManager.tetherFriends];
+    [query includeKey:@"photo"];
+    [query includeKey:@"user"];
+    [query orderByDescending:@"updatedAt"];
+    [query setLimit:100];
+    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+        self.followingActivityArray = [[NSMutableArray alloc] initWithArray:objects];
+        [self.followingActivitytsTableView reloadData];
+        [self.followingActivityTableViewController.refreshControl endRefreshing];
+        if (self.followingActivitytsTableView.contentOffset.y == -self.followingActivityTableViewController.refreshControl.frame.size.height) {
+            [self.followingActivitytsTableView setContentOffset:CGPointMake(0, 0) animated:YES];
+            [self.feedSearchBar setHidden:NO];
+        }
+    }];
+}
+
+-(void)loadNearbyActivity {
+    [self.popularSearchBar setHidden:YES];
+    [self.nearbyActivityTableViewController.refreshControl beginRefreshing];
+    [self.nearbyActivitytsTableView setContentOffset:CGPointMake(0, -self.nearbyActivityTableViewController.refreshControl.frame.size.height) animated:YES];
+    PFQuery *query = [PFQuery queryWithClassName:@"Activity"];
+    [query whereKey:@"coordinate" nearGeoPoint:[PFGeoPoint geoPointWithLatitude:self.userCoordinates.coordinate.latitude
+                                                                       longitude:self.userCoordinates.coordinate.longitude] withinKilometers:80.0];
+    [query whereKey:@"private" notEqualTo:[NSNumber numberWithBool:YES]];
+    [query includeKey:@"photo"];
+    [query includeKey:@"user"];
+    [query orderByDescending:@"updatedAt"];
+    [query whereKey:@"user" notEqualTo:[PFUser currentUser]];
+    [query setLimit:100];
+    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+        self.nearbyActivityArray = [[NSMutableArray alloc] initWithArray:objects];
+        [self.nearbyActivitytsTableView reloadData];
+        [self.nearbyActivityTableViewController.refreshControl endRefreshing];
+        if (self.nearbyActivitytsTableView.contentOffset.y == -self.nearbyActivityTableViewController.refreshControl.frame.size.height) {
+            [self.nearbyActivitytsTableView setContentOffset:CGPointMake(0, 0) animated:YES];
+            [self.popularSearchBar setHidden:NO];
+        }
+    }];
+}
+
+- (void)photoCaptureButtonAction:(id)sender {
+    if ([self.delegate respondsToSelector:@selector(photoCapture)]) {
+        [self.delegate photoCapture];
+    }
 }
 
 -(void)setNeedsStatusBarAppearanceUpdate {
@@ -281,7 +455,6 @@
     self.numberButton.frame = CGRectMake(PADDING, STATUS_BAR_HEIGHT + (TOP_BAR_HEIGHT - STATUS_BAR_HEIGHT - size.height) / 2.0, size.width, size.height);
     self.numberButton.tag = 1;
     [self.topBar addSubview:self.numberButton];
-    [self refreshComplete];
 }
 
 -(void)layoutCurrentCommitment {
@@ -350,12 +523,6 @@
 }
 
 #pragma UIGestureRecognizers
-
--(void)cityNameTap:(UIGestureRecognizer*)recognizer {
-    if ([self.delegate respondsToSelector:@selector(showSettingsView)]) {
-        [self.delegate showSettingsView];
-    }
-}
 
 - (void)refreshTapped:(UIGestureRecognizer*)recognizer {
     if ([self.delegate respondsToSelector:@selector(pollDatabase)]) {
@@ -566,10 +733,92 @@
 #pragma mark -
 #pragma mark Button Actions
 
+- (IBAction)popularClicked:(id)sender {
+    if (self.nearbyActivitytsTableView.hidden == YES) {
+        [self.followingActivitytsTableView setHidden:YES];
+        [self.searchResultsTableView setHidden:YES];
+        [self.nearbyActivitytsTableView setHidden:NO];
+        [self.view endEditing:YES];
+        self.bottomBar.alpha = 1.0;
+        if ([self.nearbyActivityArray count] == 0) {
+            [self loadNearbyActivity];
+        }
+        [self.separatorBar setHidden:NO];
+        UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:14];
+        UIFont *montserratBold = [UIFont fontWithName:@"Montserrat-Bold" size:16];
+         CGRect frame = self.switchPicker.frame;
+        frame.origin.x = (self.view.frame.size.width) / 6.0 - 11.0 / 2.0;
+        [UIView animateWithDuration:0.1
+                         animations:^{
+                             self.switchPicker.frame = frame;
+                             self.mapSwitchButton.titleLabel.font = montserratSmall;
+                             self.popularSwitchButton.titleLabel.font = montserratBold;
+                             self.feedSwitchButton.titleLabel.font = montserratSmall;
+    } completion:^(BOOL finished) {
+        
+    }];
+    } else {
+        [self.nearbyActivitytsTableView scrollRectToVisible:CGRectMake(0.0, 0.0, 1.0, 1.0) animated:YES];
+        [self.popularSearchBar setHidden:NO];
+    }
+}
+
+- (IBAction)feedClicked:(id)sender {
+    if (self.followingActivitytsTableView.hidden == YES) {
+        [self.searchResultsTableView setHidden:YES];
+        [self.nearbyActivitytsTableView setHidden:YES];
+        [self.followingActivitytsTableView setHidden:NO];
+        [self.view endEditing:YES];
+        self.bottomBar.alpha = 1.0;
+        if ([self.followingActivityArray count] == 0) {
+             [self loadFollowingActivity];
+        }
+        [self.separatorBar setHidden:NO];
+        UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:14];
+        UIFont *montserratBold = [UIFont fontWithName:@"Montserrat-Bold" size:16];
+        CGRect frame = self.switchPicker.frame;
+        frame.origin.x = (self.view.frame.size.width) / 6.0 *5.0 - 11.0 / 2.0;
+        [UIView animateWithDuration:0.1
+                         animations:^{
+                             self.switchPicker.frame = frame;
+                             self.mapSwitchButton.titleLabel.font = montserratSmall;
+                             self.popularSwitchButton.titleLabel.font = montserratSmall;
+                             self.feedSwitchButton.titleLabel.font = montserratBold;
+                         } completion:^(BOOL finished) {
+                             
+                         }];
+    } else {
+        [self.followingActivitytsTableView scrollRectToVisible:CGRectMake(0.0, 0.0, 1.0, 1.0) animated:YES];
+        [self.feedSearchBar setHidden:NO];
+    }
+}
+
+- (IBAction)mapClicked:(id)sender {
+    self.bottomBar.alpha = 0.85;
+    [self.nearbyActivitytsTableView setHidden:YES];
+    [self.followingActivitytsTableView setHidden:YES];
+    [self.searchResultsTableView setHidden:YES];
+    [self.view endEditing:YES];
+    [self.separatorBar setHidden:YES];
+    UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:14];
+    UIFont *montserratBold = [UIFont fontWithName:@"Montserrat-Bold" size:16];
+    CGRect frame = self.switchPicker.frame;
+    frame.origin.x = (self.view.frame.size.width - 11.0) / 2.0;
+    [UIView animateWithDuration:0.1
+                     animations:^{
+                         self.switchPicker.frame = frame;
+                         self.mapSwitchButton.titleLabel.font = montserratBold;
+                         self.popularSwitchButton.titleLabel.font = montserratSmall;
+                         self.feedSwitchButton.titleLabel.font = montserratSmall;
+                     } completion:^(BOOL finished) {
+                         
+                     }];
+}
+
 - (IBAction)settingsPressed:(id)sender
 {
-    if ([self.delegate respondsToSelector:@selector(showSettingsView)]) {
-        [self.delegate showSettingsView];
+    if ([self.delegate respondsToSelector:@selector(showYourProfileScrollToPost:)]) {
+        [self.delegate showYourProfileScrollToPost:nil];
     }
 }
 
@@ -656,6 +905,143 @@
 - (void)handleDismissSearchTap:(UITapGestureRecognizer *)recognizer {
     [self searchBarCancelButtonClicked:self.searchBar];
 }
+
+#pragma mark ActivityCell delegate
+
+-(void)openPlace:(Place*)place {
+    if ([self.delegate respondsToSelector:@selector(openPageForPlaceWithId:)]) {
+        [self.delegate openPageForPlaceWithId:place.placeId];
+    }
+}
+
+-(void)showLikes:(NSMutableSet*)friendIdSet {
+    self.participantsListViewController = [[ParticipantsListViewController alloc] init];
+    self.participantsListViewController.participantIds = [[friendIdSet allObjects] mutableCopy];
+    self.participantsListViewController.topBarLabel = [[UILabel alloc] init];
+    [self.participantsListViewController.topBarLabel setText:@"Likes"];
+    self.participantsListViewController.delegate = self;
+    [self.participantsListViewController didMoveToParentViewController:self];
+    [self.participantsListViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+    [self.view addSubview:self.participantsListViewController.view];
+    
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.participantsListViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                     }];
+}
+
+-(void)showComments:(PFObject *)activityObject {
+    self.commentVC = [[CommentViewController alloc] init];
+    self.commentVC.delegate = self;
+    self.commentVC.activityObject = activityObject;
+    [self.commentVC didMoveToParentViewController:self];
+    [self.commentVC.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+    [self.view addSubview:self.commentVC.view];
+    
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.commentVC.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                     }];
+}
+
+-(void)postSettingsClicked:(PFObject*)postObject {
+    UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:nil delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Delete Post", nil];
+    [actionSheet showInView:self.view];
+    self.postToDelete = postObject;
+}
+
+#pragma mark CommentViewControllerDelegate
+
+-(void)closeCommentView {
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.commentVC.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                         [self.commentVC.view removeFromSuperview];
+                         [self.commentVC removeFromParentViewController];
+                     }];
+}
+
+#pragma mark - UIActionSheetDelegate
+
+- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if (buttonIndex == 0) {
+        if ([[self.postToDelete objectForKey:@"type"] isEqualToString:@"photo"]) {
+            PFObject *photoObject = [self.postToDelete objectForKey:@"photo"];
+            [photoObject deleteInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+                [self.postToDelete deleteInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+                    if (succeeded) {
+                    } else {
+                        UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Could not delete your post, please try again" message:nil delegate: nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+                        [alert show];
+                    }
+                }];
+            }];
+        } else {
+            [self.postToDelete deleteInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+                if (succeeded) {
+                }
+                else {
+                    UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Could not delete your post, please try again" message:nil delegate: nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+                    [alert show];
+                }
+            }];
+        }
+    }
+}
+
+- (void)willPresentActionSheet:(UIActionSheet *)actionSheet
+{
+    for (UIView *subview in actionSheet.subviews) {
+        if ([subview isKindOfClass:[UIButton class]]) {
+            UIButton *button = (UIButton *)subview;
+            if ([button.titleLabel.text isEqualToString:@"Delete Post"]) {
+                [button setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
+            }
+        }
+    }
+}
+
+#pragma mark ParticipantsListViewControllerDelegate
+
+-(void)closeParticipantsView {
+    [UIView animateWithDuration:SLIDE_TIMING*1.2
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.participantsListViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                         [self.participantsListViewController.view removeFromSuperview];
+                         [self.participantsListViewController removeFromParentViewController];
+                     }];
+}
+
+-(void)showProfileOfFriend:(Friend*)user {
+    if ([self.delegate respondsToSelector:@selector(showProfileOfFriend:)]) {
+        [self.delegate showProfileOfFriend:user];
+    }
+}
+
 
 #pragma mark MapView delegate
 
@@ -1001,17 +1387,68 @@
     }
 }
 
-- (void)didReceiveMemoryWarning
-{
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+-(void)openNewPlaceWithId:(NSString*)placeId {
+    if ([self.delegate respondsToSelector:@selector(openNewPlaceWithId:)]) {
+        [self.delegate openNewPlaceWithId:placeId];
+    }
+}
+
+-(void)createPlace {
+    [self searchBarCancelButtonClicked:self.searchBar];
+    [self searchBarCancelButtonClicked:self.feedSearchBar];
+    [self searchBarCancelButtonClicked:self.popularSearchBar];
+    self.createVC = [[CreatePlaceViewController alloc] init];
+    self.createVC.delegate = self;
+    self.createVC.view.frame = CGRectMake(self.view.frame.size.width, 0.0, self.view.frame.size.width, self.view.frame.size.height);
+    [self.view addSubview:self.createVC.view];
+    [self addChildViewController:self.createVC];
+    [self.createVC didMoveToParentViewController:self];
+    
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.createVC.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                          [self searchBarCancelButtonClicked:self.searchBar];
+                     }
+                     completion:^(BOOL finished) {
+                     }];
+}
+
+#pragma mark CreatePlaceViewControllerDelegate
+
+-(void)closeCreatePlaceVC {
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.createVC.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                         [self.createVC.view removeFromSuperview];
+                         [self.createVC removeFromParentViewController];
+                         self.createVC = nil;
+                     }];
 }
 
 #pragma mark SearchBarDelegate methods
 
 - (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
-    [self.searchBar setShowsCancelButton:YES animated:YES];
+    [searchBar setShowsCancelButton:YES animated:YES];
     [self.dismissSearchView setHidden:NO];
+    self.searchResultsTableView.hidden = NO;
+    
+    
+    if ([self.searchResultsArray count] == 0) {
+        Datastore *sharedDataManager = [Datastore sharedDataManager];
+        self.searchResultsArray = [[NSMutableArray alloc] init];
+        self.searchResultsArray = [sharedDataManager.placesArray mutableCopy];
+        [self.searchResultsTableView reloadData];
+    }
 }
 
 - (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
@@ -1024,6 +1461,7 @@
     [self.searchResultsTableView reloadData];
     self.searchResultsTableView.hidden = YES;
     [self.dismissSearchView setHidden:YES];
+    self.hasSearched = NO;
 }
 
 - (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar {
@@ -1031,46 +1469,189 @@
     [self loadPlacesForSearch:searchBar.text];
     [self.dismissSearchView setHidden:YES];
     [Flurry logEvent:@"User_searches_from_main_page"];
+    self.hasSearched = YES;
 }
 
 #pragma mark UITableViewDataSource Methods
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (tableView == self.searchResultsTableView) {
         return SEARCH_RESULTS_CELL_HEIGHT;
+    } else {
+        if (indexPath.row == 0) {
+            return SEARCH_BAR_HEIGHT;
+        }
+        PFObject *object;
+        if (tableView == self.followingActivitytsTableView) {
+            object = [self.followingActivityArray objectAtIndex:indexPath.row - 1];
+        } else {
+            object = [self.nearbyActivityArray objectAtIndex:indexPath.row - 1];
+        }
+        if ([[object objectForKey:@"type"] isEqualToString:@"photo"]) {
+            NSString *content = [object objectForKey:@"content"];
+            UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
+            CGRect textRect = [content boundingRectWithSize:CGSizeMake(self.view.frame.size.width - 60.0, 1000.0)
+                                                    options:NSStringDrawingUsesLineFragmentOrigin
+                                                 attributes:@{NSFontAttributeName:montserrat}
+                                                    context:nil];
+            return self.view.frame.size.width + 100.0 + textRect.size.height;
+        } else if ([[object objectForKey:@"type"] isEqualToString:@"comment"]) {
+            NSString *userName = [[object objectForKey:@"user"] objectForKey:@"firstName"];
+            NSString * placeName = [object objectForKey:@"placeName"];
+            NSString *content = [object objectForKey:@"content"];
+            NSString *contentString = [NSString stringWithFormat:@"%@ commented on %@: \n\n\"%@\"", userName, placeName, content];
+            UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
+            CGRect textRect = [contentString boundingRectWithSize:CGSizeMake(self.view.frame.size.width - 60.0, 1000.0)
+                                                          options:NSStringDrawingUsesLineFragmentOrigin
+                                                       attributes:@{NSFontAttributeName:montserrat}
+                                                          context:nil];
+            return textRect.size.height + 80.0;
+        } else {
+            NSString *userName = [[object objectForKey:@"user"] objectForKey:@"firstName"];
+            NSString * placeName = [object objectForKey:@"placeName"];
+            NSString *contentString = [NSString stringWithFormat:@"%@ tethred to %@", userName, placeName];
+            UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
+            CGRect textRect = [contentString boundingRectWithSize:CGSizeMake(self.view.frame.size.width - 60.0, 1000.0)
+                                                          options:NSStringDrawingUsesLineFragmentOrigin
+                                                       attributes:@{NSFontAttributeName:montserrat}
+                                                          context:nil];
+            return textRect.size.height + 70.0;
+        }
+    }
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return [self.searchResultsArray count] + 1;
+    if (tableView == self.searchResultsTableView) {
+        return [self.searchResultsArray count] + 1;
+    } else if (tableView == self.followingActivitytsTableView){
+        return [self.followingActivityArray count] + 1;
+    } else {
+        return [self.nearbyActivityArray count] + 1;
+    }
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-        if (indexPath.row == [self.searchResultsArray count]) {
-            UIImageView *foursquareImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"poweredByFoursquare"]];
-            foursquareImageView.frame = CGRectMake(0, 0, self.view.frame.size.width, SEARCH_RESULTS_CELL_HEIGHT);
-            foursquareImageView.contentMode = UIViewContentModeScaleAspectFit;
-            UITableViewCell *cell = [[UITableViewCell alloc] init];
-            [cell addSubview:foursquareImageView];
+    if (tableView == self.searchResultsTableView) {
+        if (!self.hasSearched) {
+            if (indexPath.row == 0) {
+                UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:18];
+                UIButton *button = [[UIButton alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.frame.size.width, 60.0)];
+                [button setTitle:@"Create a location" forState:UIControlStateNormal];
+                [button setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+                button.titleLabel.font = montserrat;
+                [button addTarget:self action:@selector(createPlace) forControlEvents:UIControlEventTouchUpInside];
+                UIImageView *pinImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"PinIcon"]];
+                pinImageView.frame = CGRectMake(self.view.frame.size.width - 80.0 + 10.0, 10.0, 21, 38);
+                UITableViewCell *cell = [[UITableViewCell alloc] init];
+                [cell addSubview:button];
+                [cell addSubview:pinImageView];
+                return cell;
+            }
+            SearchResultCell *cell = [[SearchResultCell alloc] init];
+            Place *p = [self.searchResultsArray objectAtIndex:indexPath.row];
+            cell.place = p;
+            UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:18];
+            UIFont *montserratSubLabelFont = [UIFont fontWithName:@"Montserrat" size:12];
+            UILabel *placeNameLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 20.0)];
+            placeNameLabel.text = p.name;
+            placeNameLabel.font = montserrat;
+            [cell addSubview:placeNameLabel];
+            UILabel *placeAddressLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 30.0, self.view.frame.size.width, 15.0)];
+            placeAddressLabel.text = p.address;
+            placeAddressLabel.font = montserratSubLabelFont;
+            [cell addSubview:placeAddressLabel];
+            
+            return cell;
+        } else {
+            if (indexPath.row == [self.searchResultsArray count]) {
+                UIImageView *foursquareImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"poweredByFoursquare"]];
+                foursquareImageView.frame = CGRectMake(0, 0, self.view.frame.size.width, SEARCH_RESULTS_CELL_HEIGHT);
+                foursquareImageView.contentMode = UIViewContentModeScaleAspectFit;
+                UITableViewCell *cell = [[UITableViewCell alloc] init];
+                [cell addSubview:foursquareImageView];
+                return cell;
+            }
+            SearchResultCell *cell = [[SearchResultCell alloc] init];
+            Place *p = [self.searchResultsArray objectAtIndex:indexPath.row];
+            cell.place = p;
+            UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:18];
+            UIFont *montserratSubLabelFont = [UIFont fontWithName:@"Montserrat" size:12];
+            UILabel *placeNameLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 20.0)];
+            placeNameLabel.text = p.name;
+            placeNameLabel.font = montserrat;
+            [cell addSubview:placeNameLabel];
+            UILabel *placeAddressLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 30.0, self.view.frame.size.width, 15.0)];
+            placeAddressLabel.text = p.address;
+            placeAddressLabel.font = montserratSubLabelFont;
+            [cell addSubview:placeAddressLabel];
+            
             return cell;
         }
-        SearchResultCell *cell = [[SearchResultCell alloc] init];
-        Place *p = [self.searchResultsArray objectAtIndex:indexPath.row];
-        cell.place = p;
-        UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:18];
-        UIFont *montserratSubLabelFont = [UIFont fontWithName:@"Montserrat" size:12];
-        UILabel *placeNameLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 20.0)];
-        placeNameLabel.text = p.name;
-        placeNameLabel.font = montserrat;
-        [cell addSubview:placeNameLabel];
-        UILabel *placeAddressLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 30.0, self.view.frame.size.width, 15.0)];
-        placeAddressLabel.text = p.address;
-        placeAddressLabel.font = montserratSubLabelFont;
-        [cell addSubview:placeAddressLabel];
+    } else {
+        if (indexPath.row == 0) {
+            UITableViewCell *cell = [[UITableViewCell alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.frame.size.width, SEARCH_BAR_HEIGHT)];
+            
+            UIView *searchBarBackground = [[UIView alloc] initWithFrame:cell.frame];
+            [searchBarBackground setBackgroundColor:[UIColor whiteColor]];
+            [searchBarBackground setAlpha:0.95];
+            [cell addSubview:searchBarBackground];
+            if (tableView == self.followingActivitytsTableView) {
+                [searchBarBackground addSubview:self.feedSearchBar];
+            } else {
+                [searchBarBackground addSubview:self.popularSearchBar];
+            }
+            return cell;
+        } else {
+            if (tableView == self.followingActivitytsTableView) {
+                ActivityCell *cell = [[ActivityCell alloc] init];
+                cell.delegate = self;
+                [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+                [cell setActivityObject:[self.followingActivityArray objectAtIndex:indexPath.row - 1]];
+                return cell;
+            } else {
+                ActivityCell *cell = [[ActivityCell alloc] init];
+                cell.delegate = self;
+                [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+                [cell setActivityObject:[self.nearbyActivityArray objectAtIndex:indexPath.row - 1]];
+                return cell;
+            }
+        }
+    }
+}
+
+-(void)scrollViewDidScroll:(UIScrollView *)scrollView {
     
-        return cell;
+    if (scrollView == self.followingActivitytsTableView || scrollView == self.nearbyActivitytsTableView) {
+        if (scrollView.contentOffset.y > 0) {
+            if (self.lastContentOffset < scrollView.contentOffset.y) {
+                if (self.backView.frame.origin.y == 0.0) {
+                    [UIView animateWithDuration:0.2
+                                     animations:^{
+                                         self.backView.frame = CGRectMake(0.0, -82.0, self.view.frame.size.width, self.view.frame.size.height + 20.0);
+                                     }];
+                }
+                self.lastContentOffset = scrollView.contentOffset.y;
+            } else if (self.lastContentOffset > scrollView.contentOffset.y) {
+                if (self.backView.frame.origin.y == -82.0) {
+                    [UIView animateWithDuration:0.2
+                                     animations:^{
+                                         self.backView.frame = CGRectMake(0.0, 0.0, self.view.frame.size.width, self.view.frame.size.height);
+                                     }];
+                }
+                self.lastContentOffset = scrollView.contentOffset.y;
+            }
+        }
+    }
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (tableView == self.searchResultsTableView ) {
+        [self.view endEditing:YES];
+        if (!self.hasSearched && indexPath.row == 0) {
+            [self createPlace];
+            return;
+        }
+        
         if (indexPath.row >= [self.searchResultsArray count]) {
             return;
         }
@@ -1087,7 +1668,10 @@
             [self.delegate openPageForPlaceWithId:cell.place.placeId];
           [Flurry logEvent:@"User_opens_place_page_from_main_search"];
         }
+        self.hasSearched = NO;
         [self searchBarCancelButtonClicked:self.searchBar];
+        [self searchBarCancelButtonClicked:self.feedSearchBar];
+        [self searchBarCancelButtonClicked:self.popularSearchBar];
     }
 }
 

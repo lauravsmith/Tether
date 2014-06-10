@@ -23,7 +23,7 @@
 -(void)openPageForPlaceWithId:(id)placeId;
 -(void)setCellForPlace:(Place*)place tethered:(BOOL)tethered;
 -(void)addDictionaries;
--(void)sortPlacesByPopularity;
+-(void)openNewPlaceWithId:(NSString *)placeId;
 @end
 
 @protocol PlacesViewControllerDelegate <NSObject>
@@ -42,5 +42,6 @@
 -(void)openPageForPlaceWithId:(id)placeId;
 -(void)selectAnnotationForPlace:(Place*)place;
 -(void)dismissConfirmation;
+-(void)showProfileOfFriend:(Friend*)user;
 
 @end

@@ -27,4 +27,5 @@
 -(void)inviteFriend:(Friend*)friend;
 -(void)sortTetherFriends;
 -(void)showShareViewController;
+-(void)showProfileOfFriend:(Friend*)friend;
 @end

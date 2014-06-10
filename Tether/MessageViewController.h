@@ -17,6 +17,7 @@
 @property (retain, nonatomic) NSMutableArray *messagesArray;
 @property (nonatomic, assign) BOOL shouldUpdateMessageThreadVC;
 -(void)loadMessages;
+-(void)loadMessagesFromThreadId:(NSString*)threadId;
 
 @end
 
@@ -25,4 +26,5 @@
 -(void)closeMessageView;
 -(void)newPlaceAdded;
 -(void)openPageForPlaceWithId:(NSString*)placeId;
+-(void)showProfileOfFriend:(Friend*)user;
 @end

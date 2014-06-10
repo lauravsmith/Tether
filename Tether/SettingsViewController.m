@@ -384,7 +384,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.userProfilePictureView.clipsToBounds = YES;
     [self.userProfilePictureView.layer setBorderColor:[[UIColor whiteColor] CGColor]];
     self.userProfilePictureView.frame = CGRectMake((self.view.frame.size.width - PROFILE_IMAGE_VIEW_SIZE - 3) / 2.0 , STATUS_BAR_HEIGHT + PADDING, PROFILE_IMAGE_VIEW_SIZE, PROFILE_IMAGE_VIEW_SIZE);
-    // mask test
+    
     UIImage *maskingImage = [UIImage imageNamed:@"LocationIcon"];
     CALayer *maskingLayer = [CALayer layer];
     CGRect frame = self.userProfilePictureView.bounds;

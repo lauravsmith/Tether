@@ -38,6 +38,10 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 -(void)removePreviousCommitment;
 -(void)removeCommitmentFromDatabase;
 -(void)newPlaceAdded;
+-(void)photoCapture;
+-(void)showYourProfileScrollToPost:(NSString*)postId;
+-(void)openNewPlaceWithId:(NSString*)placeId;
+-(void)showProfileOfFriend:(Friend*)user;
 @end
 
 @interface CenterViewController : ViewController <MKMapViewDelegate>
@@ -69,7 +73,10 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 @property (strong, nonatomic) CLLocation *userCoordinates;
 @property (assign, nonatomic) bool listViewOpen;
 @property (assign, nonatomic) bool dragging;
+@property (retain, nonatomic) UIView * switchBar;
 @property (strong, nonatomic) UIView *searchBarBackground;
+@property (retain, nonatomic) UIActivityIndicatorView *activityIndicatorView;
+- (IBAction)mapClicked:(id)sender;
 -(void)updateLocation;
 -(void)setCityFromCLLocation:(CLLocation*)location;
 -(void)layoutNumberButton;
@@ -78,4 +85,5 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 -(void)refreshNotificationsNumber;
 - (void)movePanelLeft:(UIGestureRecognizer*)recognizer;
 -(void)setUserLocationToCity:(NSString*)city;
+-(void)refreshComplete;
 @end

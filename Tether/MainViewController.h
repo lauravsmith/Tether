@@ -8,9 +8,12 @@
 
 #import "ViewController.h"
 
+#import <UIKit/UIKit.h>
+
 @interface MainViewController : ViewController
 @property (nonatomic, strong) CenterViewController *centerViewController;
 @property (strong, nonatomic) NSMutableDictionary *friendsDictionary;
+@property (assign, nonatomic) BOOL openMessage;
 -(void)pollDatabase;
 -(void)movePanelLeft;
 -(void)loadNotifications;
@@ -20,4 +23,6 @@
 -(BOOL)shouldShowDecisionView;
 -(void)setupView;
 -(void)queryFriendsStatus;
+-(void)showPostFromPush:(NSString*)postId;
+-(void)openMessageWithThreadId:(NSString*)threadId;
 @end

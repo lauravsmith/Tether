@@ -32,6 +32,7 @@
 @property (retain, nonatomic) UILabel * deleteConfirmationLabel;
 @property (retain, nonatomic) UIActivityIndicatorView * activityIndicatorView;
 @property (retain, nonatomic) NSMutableArray * messageThreadObjects;
+@property (nonatomic, assign) BOOL messagesLoaded;
 @end
 
 @implementation RightPanelViewController
@@ -85,6 +86,11 @@
 
 -(void)loadNotifications {
     Datastore *sharedDataManager = [Datastore sharedDataManager];
+    NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    if ([userDetails objectForKey:@"deletedThreads"]) {
+        dict = [userDetails objectForKey:@"deletedThreads"];
+    }
     
     if  (sharedDataManager.facebookId) {
         PFQuery *query = [PFQuery queryWithClassName:@"MessageParticipant"];
@@ -140,7 +146,10 @@
                 self.notificationsArray = [[NSMutableArray alloc] init];
                 
                 for(id key in sharedDataManager.messageThreadDictionary) {
-                    [self.notificationsArray addObject:[sharedDataManager.messageThreadDictionary objectForKey:key]];
+                    MessageThread *thread = [sharedDataManager.messageThreadDictionary objectForKey:key];
+                    if (![dict objectForKey:thread.threadId] || ![[dict objectForKey:thread.threadId] isEqualToString:thread.recentMessage]) {
+                        [self.notificationsArray addObject:thread];
+                    }
                 }
                 
                 NSSortDescriptor *dateDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"recentMessageDate" ascending:NO];
@@ -166,7 +175,8 @@
     [query whereKey:@"threadId" containedIn:self.messageThreadObjects];
     [query includeKey:@"threadId"];
     [query includeKey:@"invite"];
-    [query setLimit:10000];
+    [query setLimit:1000];
+    [query orderByDescending:@"createdAt"];
     [query findObjectsInBackgroundWithBlock:^(NSArray *messages, NSError *error) {
         if (!error) {
             for (PFObject *messageObject in messages) {
@@ -211,6 +221,8 @@
                 [thread.messages setObject:message forKey:message.messageId];
                 [sharedDataManager.messageThreadDictionary setObject:thread forKey:thread.threadId];
             }
+            self.messagesLoaded = YES;
+            [self.delegate finishedLoadingMessages];
         }
     }];
 }

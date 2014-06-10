@@ -27,5 +27,6 @@
 -(void)openMessageViewControllerForMessageThread:(MessageThread *)thread;
 -(void)openNewMessageViewController;
 -(void)refreshNotificationsNumber;
+-(void)finishedLoadingMessages;
 
 @end

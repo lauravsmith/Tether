@@ -32,7 +32,7 @@
 #define TABLE_HEIGHT 400.0
 #define TUTORIAL_HEADER_HEIGHT 50.0
 
-@interface LeftPanelViewController ()<UIAlertViewDelegate ,UITableViewDelegate, UITableViewDataSource, FriendCellDelegate, UIScrollViewDelegate, UISearchBarDelegate, ShareViewControllerDelegate>
+@interface LeftPanelViewController ()<UIAlertViewDelegate ,UITableViewDelegate, UITableViewDataSource, FriendCellDelegate, UIScrollViewDelegate, UISearchBarDelegate>
 
 @property (nonatomic, strong) UITableView *friendsGoingOutTableView;
 @property (nonatomic, strong) UITableViewController *friendsGoingOutTableViewController;
@@ -97,12 +97,12 @@
 }
 
 -(void)updateFriendsList {
-    NSSortDescriptor *nameDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"name" ascending:YES];
+    NSSortDescriptor *dateDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"timeLastUpdated" ascending:NO];
     Datastore *sharedDataManager = [Datastore sharedDataManager];
-    [sharedDataManager.tetherFriendsGoingOut sortUsingDescriptors:[NSArray arrayWithObjects:nameDescriptor, nil]];
-    [sharedDataManager.tetherFriendsNotGoingOut sortUsingDescriptors:[NSArray arrayWithObjects:nameDescriptor, nil]];
-    [sharedDataManager.tetherFriendsUndecided sortUsingDescriptors:[NSArray arrayWithObjects:nameDescriptor, nil]];
-    [sharedDataManager.tetherFriendsUnseen sortUsingDescriptors:[NSArray arrayWithObjects:nameDescriptor, nil]];
+    [sharedDataManager.tetherFriendsGoingOut sortUsingDescriptors:[NSArray arrayWithObjects:dateDescriptor, nil]];
+    [sharedDataManager.tetherFriendsNotGoingOut sortUsingDescriptors:[NSArray arrayWithObjects:dateDescriptor, nil]];
+    [sharedDataManager.tetherFriendsUndecided sortUsingDescriptors:[NSArray arrayWithObjects:dateDescriptor, nil]];
+    [sharedDataManager.tetherFriendsUnseen sortUsingDescriptors:[NSArray arrayWithObjects:dateDescriptor, nil]];
     
     [self.friendsGoingOutTableView reloadData];
 }
@@ -377,10 +377,21 @@
         }
         [self searchBarCancelButtonClicked:self.searchBar];
     } else {
-        if (indexPath.section == 3 && indexPath.row == [sharedDataManager.tetherFriendsUndecided count]) {
-            [self showShare];
+        // show profile of person
+        Friend *friend;
+        if (indexPath.section == 1) {
+            friend = [sharedDataManager.tetherFriendsGoingOut objectAtIndex:indexPath.row];
+        } else if (indexPath.section == 2) {
+            friend = [sharedDataManager.tetherFriendsNotGoingOut objectAtIndex:indexPath.row];
+        } else if (indexPath.section == 3) {
+            friend = [sharedDataManager.tetherFriendsUndecided objectAtIndex:indexPath.row];
+        } else {
+            friend = [sharedDataManager.tetherFriendsUnseen objectAtIndex:indexPath.row];
         }
-        [tableView deselectRowAtIndexPath:indexPath animated:YES];
+        
+        if ([self.delegate respondsToSelector:@selector(showProfileOfFriend:)]) {
+            [self.delegate showProfileOfFriend:friend];
+        }
     }
 }
 
@@ -390,14 +401,6 @@
     if ([self.delegate respondsToSelector:@selector(openPageForPlaceWithId:)]) {
         [self.delegate openPageForPlaceWithId:placeId];
     }
-}
-
--(void)inviteFriend:(Friend *)friend {
-    if ([self.delegate respondsToSelector:@selector(inviteFriend:)]) {
-        [self.delegate inviteFriend:friend];
-    }
-    
-     [Flurry logEvent:@"User_views_invite_page_from_friend_list"];
 }
 
 #pragma mark UIScrollView Delegate methods

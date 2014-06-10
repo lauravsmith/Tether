@@ -18,11 +18,14 @@
 #import "LeftPanelViewController.h"
 #import "Datastore.h"
 #import "MainViewController.h"
+#import "MessageThread.h"
 #import "MessageViewController.h"
 #import "NewMessageViewController.h"
 #import "Notification.h"
+#import "PhotoEditViewController.h"
 #import "Place.h"
 #import "PlacesViewController.h"
+#import "ProfileViewController.h"
 #import "RightPanelViewController.h"
 #import "SettingsViewController.h"
 #import "ShareViewController.h"
@@ -33,6 +36,7 @@
 #import <FacebookSDK/FacebookSDK.h>
 #import <Parse/Parse.h>
 #import <QuartzCore/QuartzCore.h>
+#import <MobileCoreServices/MobileCoreServices.h>
 
 #define CENTER_TAG 1
 #define LEFT_PANEL_TAG 2
@@ -41,16 +45,15 @@
 #define SLIDE_TIMING 0.6
 #define SPINNER_SIZE 30.0
 #define PANEL_WIDTH 45.0
-#define POLLING_INTERVAL 20
+#define POLLING_INTERVAL 30
 
-@interface MainViewController () <CenterViewControllerDelegate, DecisionViewControllerDelegate, FriendsListViewControllerDelegate, InviteViewControllerDelegate, LeftPanelViewControllerDelegate, PlacesViewControllerDelegate, RightPanelViewControllerDelegate, SettingsViewControllerDelegate, ShareViewControllerDelegate, UIGestureRecognizerDelegate, MessageViewControllerDelegate, NewMessageViewControllerDelegate>
+@interface MainViewController () <CenterViewControllerDelegate, DecisionViewControllerDelegate, FriendsListViewControllerDelegate, InviteViewControllerDelegate, LeftPanelViewControllerDelegate, PlacesViewControllerDelegate, RightPanelViewControllerDelegate, SettingsViewControllerDelegate, ShareViewControllerDelegate, UIGestureRecognizerDelegate, MessageViewControllerDelegate, NewMessageViewControllerDelegate, ProfileViewControllerDelegate, UIActionSheetDelegate, UIImagePickerControllerDelegate, PhotoEditViewControllerDelegate>
 
 @property (nonatomic, strong) LeftPanelViewController *leftPanelViewController;
 @property (nonatomic, strong) DecisionViewController *decisionViewController;
 @property (nonatomic, strong) SettingsViewController *settingsViewController;
 @property (nonatomic, strong) PlacesViewController *placesViewController;
 @property (nonatomic, strong) RightPanelViewController *rightPanelViewController;
-@property (nonatomic, strong) FriendsListViewController *friendsListViewController;
 @property (nonatomic, strong) InviteViewController *inviteViewController;
 @property (nonatomic, strong) MessageViewController *messageViewController;
 @property (nonatomic, strong) NewMessageViewController *nMsgViewController;
@@ -77,6 +80,9 @@
 @property (nonatomic, assign) BOOL openingPlacePage;
 @property (nonatomic, strong) UIPanGestureRecognizer *panRecognizerBottom;
 @property (retain, nonatomic) ShareViewController *shareVC;
+@property (retain, nonatomic) ProfileViewController *profileVC;
+@property (retain, nonatomic) PhotoEditViewController *photoEditVC;
+@property (nonatomic, assign) BOOL hasLoadedFriends;
 
 @end
 
@@ -104,6 +110,7 @@
         if ([userDetails objectForKey:@"facebookId"]) {
             sharedDataManager.facebookId = [userDetails objectForKey:@"facebookId"];
         }
+        
         [self queryFriendsStatus];
     }
     return self;
@@ -115,7 +122,7 @@
     [super viewDidLoad];
     
     [self.navigationController setNavigationBarHidden:YES];
-    [self setNeedsStatusBarAppearanceUpdate];
+    
     [self setupView];
     
     [[NSNotificationCenter defaultCenter]
@@ -145,11 +152,6 @@
 }
 
 -(void)pollDatabase {
-    if (self.parseError || self.centerViewController.userCoordinates.coordinate.longitude == 0.0) {
-        // check if parse timed out?
-        [self setupView];
-    }
-    NSLog(@"POLLING DATABASE");
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     if (sharedDataManager.facebookFriends) {
         [self queryFriendsStatus];
@@ -162,6 +164,40 @@
                                                          selector:@selector(timerFired)
                                                          userInfo:nil
                                                         repeats:YES];
+}
+
+-(void)openMessageWithThreadId:(NSString*)threadId {
+    if (!self.messageViewController) {
+        self.messageViewController = [[MessageViewController alloc] init];
+        [self.messageViewController loadMessagesFromThreadId:threadId];
+        self.messageViewController.delegate = self;
+        [self.messageViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+        [self.view addSubview:self.messageViewController.view];
+        [self addChildViewController:self.messageViewController];
+        [self.messageViewController didMoveToParentViewController:self];
+        [UIView animateWithDuration:SLIDE_TIMING
+                              delay:0.0
+             usingSpringWithDamping:1.0
+              initialSpringVelocity:1.0
+                            options:UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                             [self.messageViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                         }
+                         completion:^(BOOL finished) {
+                             
+                         }];
+    } else {
+        [self closeMessageView];
+    }
+}
+
+-(void)openRecentMessage {
+    MessageThread *thread = [self.rightPanelViewController.notificationsArray objectAtIndex:0];
+    [self openMessageViewControllerForMessageThread:thread];
+}
+
+-(void)showPostFromPush:(NSString*)postId {
+    [self showYourProfileScrollToPost:postId];
 }
 
 -(void)timerFired{
@@ -272,9 +308,7 @@
     [self.currentUser setObject:sharedDataManager.facebookFriends forKey:kUserFacebookFriendsKey];
     [self.currentUser saveInBackground];
     
-    if (!sharedDataManager.tetherFriends) {
-        [self queryFriendsStatus];
-    }
+    [self queryFriendsStatus];
 }
 
 -(void)facebookRequestDidLoad:(id)result {
@@ -299,12 +333,14 @@
             } else {
                 [self.currentUser setObject:@"Someone" forKey:@"displayName"];
             }
+            [userDetails setObject:facebookName forKey:@"name"];
             
             NSString *firstName = result[@"first_name"];
             if (firstName && [firstName length] != 0) {
                 [self.currentUser setObject:firstName forKey:@"firstName"];
                 sharedDataManager.firstName = firstName;
             }
+            [userDetails setObject:firstName forKey:@"firstName"];
             
             NSString *birthday = result[@"birthday"];
             if (birthday) {
@@ -313,6 +349,7 @@
             
             NSString *facebookId = result[@"id"];
             if (facebookId && [facebookId length] != 0) {
+                
                 [self.currentUser setObject:facebookId forKey:kUserFacebookIDKey];
                 sharedDataManager.facebookId = facebookId;
                 [userDetails setObject:facebookId forKey:@"facebookId"];
@@ -331,10 +368,6 @@
                 [self.centerViewController.bottomBar addSubview:self.centerViewController.userProfilePictureView];
                 [self.centerViewController.bottomBar addSubview:self.centerViewController.settingsButtonLarge];
                 [self.centerViewController.bottomBar bringSubviewToFront:self.centerViewController.notificationsLabel];
-                
-                self.settingsViewController = [[SettingsViewController alloc] init];
-                self.settingsViewController.delegate = self;
-                self.settingsViewController.userProfilePictureView = [[FBProfilePictureView alloc] initWithProfileID:facebookId pictureCropping:FBProfilePictureCroppingSquare];
                 
                 [Flurry setUserID:facebookId];
             }
@@ -409,11 +442,13 @@
     
     NSMutableArray *facebookFriends = [[NSMutableArray alloc] init];
     if (sharedDataManager.facebookFriends) {
+        sharedDataManager.hasUpdatedFriends = NO;
         facebookFriends = [sharedDataManager.facebookFriends mutableCopy];
     } else {
+        sharedDataManager.hasUpdatedFriends = YES;
         facebookFriends = [userDetails objectForKey:@"tethrFriends"];
     }
-    
+
     if (![self.currentUser objectForKey:kUserCityKey]) {
         [self saveCity:city state:state];
     }
@@ -422,6 +457,11 @@
         PFQuery *facebookFriendsQuery = [PFUser query];
         facebookFriendsQuery.limit = 5000;
         [facebookFriendsQuery whereKey:kUserFacebookIDKey containedIn:facebookFriends];
+        
+        if (!self.hasLoadedFriends) {
+            [facebookFriendsQuery whereKey:@"timeLastUpdated" greaterThan:[self getStartTime]];
+            [self.centerViewController.spinner startAnimating];
+        }
 
         [facebookFriendsQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
             if (!error) {
@@ -444,7 +484,10 @@
                             friend.friendID = user[kUserFacebookIDKey];
                             friend.name = user[kUserDisplayNameKey];
                             friend.firstName = user[@"firstName"];
-                            friend.friendsArray = user[kUserFacebookFriendsKey];
+                            friend.friendsArray = user[@"tethrFriends"];
+                            friend.followersArray = user[@"followers"];
+                            friend.tethrCount = [user[@"tethrs"] intValue];
+                            friend.object = user;
                         }
                         friend.city = user[@"cityLocation"];
                         friend.timeLastUpdated = user[kUserTimeLastUpdatedKey];
@@ -494,10 +537,15 @@
                     [self saveTethrFriends];
                 }
                 
+                if (!sharedDataManager.friendsOfFriends) {
+                    [self loadFriendsOfFriends];
+                }
+                
                 if ([userDetails boolForKey:@"isNew"]) {
                     [self notifyFriendsInCity];
                 }
                 
+                self.hasLoadedFriends = YES;
             } else {
                 // The network was inaccessible and we have no cached data for r
                 // this query.
@@ -505,6 +553,18 @@
                 self.parseError = YES;
             }
         }];
+    }
+}
+
+-(void) loadFriendsOfFriends {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    sharedDataManager.friendsOfFriends = [[NSMutableSet alloc] init];
+    
+    for (id key in sharedDataManager.tetherFriendsDictionary) {
+        Friend *friend = [sharedDataManager.tetherFriendsDictionary objectForKey:key];
+        if (![friend.friendID isEqualToString:sharedDataManager.facebookId]) {
+            [sharedDataManager.friendsOfFriends addObjectsFromArray:friend.friendsArray];
+        }
     }
 }
 
@@ -519,6 +579,7 @@
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     [userDetails setObject:tetherFriends forKey:@"tethrFriends"];
     [userDetails setObject:sharedDataManager.facebookFriends forKey:@"facebookFriends"];
+    [userDetails setObject:[self.currentUser objectForKey:@"followers"] forKey:@"followers"];
     [userDetails synchronize];
     
     [self.currentUser setObject:tetherFriends forKey:@"tethrFriends"];
@@ -627,6 +688,11 @@
     }
     
     [self.centerViewController.numberButton setTitle:[NSString stringWithFormat:@"%lu", (unsigned long)([sharedDataManager.tetherFriendsGoingOut count] + [sharedDataManager.tetherFriendsNotGoingOut count])] forState:UIControlStateNormal];
+    if ([sharedDataManager.tetherFriendsGoingOut count] + [sharedDataManager.tetherFriendsNotGoingOut count] == 0) {
+        [self.centerViewController.numberButton setHidden:YES];
+    } else {
+        [self.centerViewController.numberButton setHidden:NO];
+    }
     [self.centerViewController layoutNumberButton];
     
     if (self.showingDecisionView) {
@@ -643,6 +709,8 @@
     }
     [self refreshCommitmentName];
     self.listsHaveChanged = NO;
+    
+    [self.centerViewController refreshComplete];
 }
 
 -(NSDate*)getStartTime{
@@ -680,6 +748,9 @@
         self.centerViewController = [[CenterViewController alloc] init];
         self.centerViewController.view.tag = CENTER_TAG;
         self.centerViewController.delegate = self;
+        [self.centerViewController.tethrLabel setHidden:YES];
+        [self.centerViewController.spinner startAnimating];
+        [self.centerViewController.tethrLabel setHidden:YES];
         self.centerViewController.placeToAnnotationDictionary = [[NSMutableDictionary alloc] init];
         self.centerViewController.placeToAnnotationViewDictionary = [[NSMutableDictionary alloc] init];
         
@@ -761,6 +832,7 @@
         [self.view bringSubviewToFront:self.decisionViewController.view];
     } else {
         self.centerViewController.searchBarBackground.hidden = NO;
+        self.centerViewController.switchBar.hidden = NO;
     }
 }
 
@@ -1062,7 +1134,6 @@
 
 - (void)movePanelRight // to show left panel
 {
-    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     if (!self.centerViewController.listViewOpen) {
         self.centerViewController.dragging = YES;
         UIView *childView = [self getLeftView];
@@ -1171,7 +1242,6 @@
     }
     
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-    [self.settingsViewController resettingNewLocationHasFinished];
     [self saveCity:[userDetails objectForKey:@"city"] state:[userDetails objectForKey:@"state"]];
     [self refreshCommitmentName];
 }
@@ -1188,6 +1258,13 @@
     }];
 }
 
+-(void)openNewPlaceWithId:(NSString *)placeId {
+    [self.placesViewController addDictionaries];
+    [self.placesViewController sortPlacesByPopularity];
+    
+    [self openPageForPlaceWithId:placeId];
+}
+
 -(void)openPageForPlaceWithId:(id)placeId {
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     if (!self.openingPlacePage) {
@@ -1195,8 +1272,8 @@
         if ([sharedDataManager.placesDictionary objectForKey:placeId]) {
             Place *place;
             place = [sharedDataManager.placesDictionary objectForKey:placeId];
-            self.friendsListViewController = [[FriendsListViewController alloc] init];
-            self.friendsListViewController.delegate = self;
+            FriendsListViewController *friendsListViewController = [[FriendsListViewController alloc] init];
+            friendsListViewController.delegate = self;
             NSMutableSet *friends = [[NSMutableSet alloc] init];
             for (id friendId in place.friendsCommitted) {
                 if ([sharedDataManager.tetherFriendsDictionary objectForKey:friendId]) {
@@ -1204,13 +1281,13 @@
                     [friends addObject:friend];
                 }
             }
-            self.friendsListViewController.friendsArray = [[friends allObjects] mutableCopy];
-            self.friendsListViewController.place = place;
-            [self.friendsListViewController loadFriendsOfFriends];
-            [self.friendsListViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
-            [self.view addSubview:self.friendsListViewController.view];
-            [self addChildViewController:self.friendsListViewController];
-            [self.friendsListViewController didMoveToParentViewController:self.centerViewController];
+            friendsListViewController.friendsArray = [[friends allObjects] mutableCopy];
+            friendsListViewController.place = place;
+            [friendsListViewController loadFriendsOfFriends];
+            [friendsListViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+            [self.view addSubview:friendsListViewController.view];
+            [self addChildViewController:friendsListViewController];
+            [friendsListViewController didMoveToParentViewController:self.centerViewController];
             
 
             [UIView animateWithDuration:SLIDE_TIMING
@@ -1219,17 +1296,157 @@
                   initialSpringVelocity:1.0
                                 options:UIViewAnimationOptionBeginFromCurrentState
                              animations:^{
-                                 [self.friendsListViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                                 [friendsListViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
                              }
                              completion:^(BOOL finished) {
                                  self.openingPlacePage = NO;
                              }];
         } else {
-            // TODO: fetch place from foursquare
             self.centerViewController.dragging = NO;
             [self showListViewNoReset];
         }
     }
+}
+
+#pragma mark - UIActionSheetDelegate
+
+- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if (buttonIndex == 0) {
+        [self shouldStartCameraController];
+    } else if (buttonIndex == 1) {
+        [self shouldStartPhotoLibraryPickerController];
+    }
+}
+
+- (BOOL)shouldStartCameraController {
+    
+    if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera] == NO) {
+        return NO;
+    }
+    
+    UIImagePickerController *cameraUI = [[UIImagePickerController alloc] init];
+    
+    if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]
+        && [[UIImagePickerController availableMediaTypesForSourceType:
+             UIImagePickerControllerSourceTypeCamera] containsObject:(NSString *)kUTTypeImage]) {
+        
+        cameraUI.mediaTypes = [NSArray arrayWithObject:(NSString *) kUTTypeImage];
+        cameraUI.sourceType = UIImagePickerControllerSourceTypeCamera;
+        
+        if ([UIImagePickerController isCameraDeviceAvailable:UIImagePickerControllerCameraDeviceRear]) {
+            cameraUI.cameraDevice = UIImagePickerControllerCameraDeviceRear;
+        } else if ([UIImagePickerController isCameraDeviceAvailable:UIImagePickerControllerCameraDeviceFront]) {
+            cameraUI.cameraDevice = UIImagePickerControllerCameraDeviceFront;
+        }
+        
+    } else {
+        return NO;
+    }
+    
+    cameraUI.allowsEditing = YES;
+    cameraUI.showsCameraControls = YES;
+    cameraUI.delegate = self;
+    
+    [self presentViewController:cameraUI animated:YES completion:nil];
+    
+    return YES;
+}
+
+
+- (BOOL)shouldStartPhotoLibraryPickerController {
+    if (([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary] == NO
+         && [UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeSavedPhotosAlbum] == NO)) {
+        return NO;
+    }
+    
+    UIImagePickerController *cameraUI = [[UIImagePickerController alloc] init];
+    if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary]
+        && [[UIImagePickerController availableMediaTypesForSourceType:UIImagePickerControllerSourceTypePhotoLibrary] containsObject:(NSString *)kUTTypeImage]) {
+        
+        cameraUI.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+        cameraUI.mediaTypes = [NSArray arrayWithObject:(NSString *) kUTTypeImage];
+        
+    } else if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeSavedPhotosAlbum]
+               && [[UIImagePickerController availableMediaTypesForSourceType:UIImagePickerControllerSourceTypeSavedPhotosAlbum] containsObject:(NSString *)kUTTypeImage]) {
+        
+        cameraUI.sourceType = UIImagePickerControllerSourceTypeSavedPhotosAlbum;
+        cameraUI.mediaTypes = [NSArray arrayWithObject:(NSString *) kUTTypeImage];
+        
+    } else {
+        return NO;
+    }
+    
+    cameraUI.allowsEditing = YES;
+    cameraUI.delegate = self;
+    
+    [self presentViewController:cameraUI animated:YES completion:nil];
+    
+    return YES;
+}
+
+-(void)photoCapture {
+    BOOL cameraDeviceAvailable = [UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera];
+    BOOL photoLibraryAvailable = [UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary];
+    
+    if (cameraDeviceAvailable && photoLibraryAvailable) {
+        UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:nil delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Take Photo", @"Choose Photo", nil];
+        [actionSheet showInView:self.view];
+    } else {
+        BOOL presentedPhotoCaptureController = [self shouldStartCameraController];
+        
+        if (!presentedPhotoCaptureController) {
+            presentedPhotoCaptureController = [self shouldStartPhotoLibraryPickerController];
+        }
+    }
+}
+
+#pragma mark - UIImagePickerDelegate
+
+- (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker {
+    [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
+    [self dismissViewControllerAnimated:NO completion:nil];
+    
+    UIImage *image = [info objectForKey:UIImagePickerControllerEditedImage];
+    
+    self.photoEditVC = [[PhotoEditViewController alloc] initWithImage:image];
+    self.photoEditVC.delegate = self;
+    [self.photoEditVC setModalTransitionStyle:UIModalTransitionStyleCrossDissolve];
+    
+    [self addChildViewController:self.photoEditVC];
+    [self.photoEditVC didMoveToParentViewController:self];
+    [self.photoEditVC.view setFrame:CGRectMake(self.view.frame.size.width, 0.0, self.view.frame.size.width, self.view.frame.size.height)]; //notice this is OFF screen!
+    [self.view addSubview:self.photoEditVC.view];
+    
+    [UIView animateWithDuration:0.6*1.2
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.photoEditVC.view setFrame:CGRectMake( 0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                     }];
+}
+
+#pragma mark - PhotoEditViewControllerDelegate
+
+-(void)closePhotoEditView {
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.photoEditVC.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                         [self.photoEditVC.view removeFromSuperview];
+                         [self.photoEditVC removeFromParentViewController];
+                     }];
 }
 
 #pragma mark QuestionViewControllerDelegate
@@ -1247,6 +1464,7 @@
             self.decisionViewController.view.alpha = 1.0;
             [self pollDatabase];
             self.centerViewController.searchBarBackground.hidden = NO;
+            self.centerViewController.switchBar.hidden = NO;
         }];
 
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
@@ -1339,6 +1557,13 @@
 
 #pragma mark RightPanelViewControllerDelegate
 
+-(void)finishedLoadingMessages {
+    if (self.openMessage) {
+        [self openRecentMessage];
+        self.openMessage = NO;
+    }
+}
+
 -(void)openMessageViewControllerForMessageThread:(MessageThread *)thread {
     if (!self.messageViewController) {
         self.messageViewController = [[MessageViewController alloc] init];
@@ -1359,9 +1584,13 @@
                          completion:^(BOOL finished) {
                              
                          }];
+    } else {
+        [self.messageViewController.view removeFromSuperview];
+        [self.messageViewController removeFromParentViewController];
+        self.messageViewController = nil;
+        [self openMessageViewControllerForMessageThread:thread];
     }
 }
-
 
 -(void)openNewMessageViewController {
     self.nMsgViewController = [[NewMessageViewController alloc] init];
@@ -1494,6 +1723,66 @@
                      }];
 }
 
+-(void)showProfileOfFriend:(Friend*)friend {
+    ProfileViewController *profileVC = [[ProfileViewController alloc] init];
+    profileVC.user = friend;
+    profileVC.delegate = self;
+    
+    [profileVC.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+    profileVC.view.tag = 1;
+    [self.view addSubview:profileVC.view];
+    [self addChildViewController:profileVC];
+    [profileVC didMoveToParentViewController:self];
+    
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [profileVC.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                     }];
+}
+
+-(void)showYourProfileScrollToPost:(NSString*)postId{
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    Friend *friend = [[Friend alloc] init];
+    friend.name = [userDetails objectForKey:@"name"];
+    friend.firstName = [userDetails objectForKey:@"firstName"];
+    friend.friendID = [userDetails objectForKey:@"facebookId"];
+    friend.object = [PFUser currentUser];
+    friend.friendsArray = [userDetails objectForKey:@"tethrFriends"];
+    friend.followersArray = [userDetails objectForKey:@"followers"];
+    PFUser *user = [PFUser currentUser];
+    friend.tethrCount = [[user objectForKey:@"tethrs"] intValue];
+    friend.city = [userDetails objectForKey:@"city"];
+    
+    ProfileViewController *profileVC = [[ProfileViewController alloc] init];
+    profileVC.user = friend;
+    profileVC.delegate = self;
+    if (postId) {
+        profileVC.postId = postId;
+    }
+    [profileVC.view setFrame:CGRectMake(0.0f, self.view.frame.size.height, self.view.frame.size.width, self.view.frame.size.height)];
+    profileVC.view.tag = 1;
+    [self.view addSubview:profileVC.view];
+    [self addChildViewController:profileVC];
+    [profileVC didMoveToParentViewController:self];
+    
+    [UIView animateWithDuration:SLIDE_TIMING*1.2
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [profileVC.view setFrame:CGRectMake( 0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                     }];
+}
+
 -(void)newPlaceAdded {
     [self.placesViewController addDictionaries];
     [self.placesViewController sortPlacesByPopularity];
@@ -1513,6 +1802,45 @@
                      completion:^(BOOL finished) {
                          [self.shareVC.view removeFromSuperview];
                          [self.shareVC removeFromParentViewController];
+                     }];
+}
+
+#pragma mark ProfileViewControllerDelegate
+
+-(void)openMessageForFriend:(Friend*)user {
+    NSMutableSet *set = [[NSMutableSet alloc] initWithObjects:user.friendID, nil];
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    [set addObject:sharedDataManager.facebookId];
+    MessageThread *exisitingThread;
+    
+    for (id key in sharedDataManager.messageThreadDictionary) {
+        MessageThread *thread = [sharedDataManager.messageThreadDictionary objectForKey:key];
+        if ([thread.participantIds isEqualToSet:set]) {
+            exisitingThread = thread;
+            break;
+        }
+    }
+    
+    if (!exisitingThread) {
+        [self openNewMessageViewController];
+        [self.nMsgViewController addFriend:user];
+    } else {
+        [self openMessageViewControllerForMessageThread:exisitingThread];
+    }
+}
+
+-(void)closeProfileViewController:(ProfileViewController*)profileVC {    
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [profileVC.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                         [profileVC.view removeFromSuperview];
+                         [profileVC removeFromParentViewController];
                      }];
 }
 
@@ -1579,6 +1907,14 @@
 }
 
 -(void)selectAnnotationForPlace:(Place*)place {
+    if (self.messageViewController) {
+        [self closeMessageView];
+    } else if (self.nMsgViewController) {
+        [self closeNewMessageView];
+    }
+    
+    [self.centerViewController mapClicked:nil];
+    
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     if ([place.city isEqualToString:[userDetails objectForKey:@"city"]] && [self.centerViewController.placeToAnnotationViewDictionary objectForKey:place.placeId]) {
        [self zoomToFitMapAnnotationsInCity:self.centerViewController.mv];
@@ -1594,6 +1930,13 @@
             [self.centerViewController.mv selectAnnotation:((MKAnnotationView*)annotationView).annotation animated:YES];
             annotationView.placeTouchView.userInteractionEnabled = YES;
             annotationView.tag = 0;
+        }
+    }
+    
+    for (UIViewController *childVC in self.childViewControllers ) {
+        if ([childVC.class isSubclassOfClass:[ProfileViewController class]]) {
+            [childVC.view removeFromSuperview];
+            [childVC removeFromParentViewController];
         }
     }
 }
@@ -1776,8 +2119,11 @@
                     [commitment setObject:@"" forKey:@"memo"];
                 }
                 
+                PFUser *user = [PFUser currentUser];
                 if (place.isPrivate) {
                     [commitment setObject:[NSNumber numberWithBool:place.isPrivate] forKey:@"private"];
+                } else if ([user objectForKey:@"private"]) {
+                    [commitment setObject:[NSNumber numberWithBool:YES] forKey:@"private"];
                 }
                 
                 NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
@@ -1785,7 +2131,6 @@
                 [userDetails setObject:[NSDate date] forKey:kUserDefaultsTimeLastUpdatedKey];
                 [userDetails synchronize];
                 
-                PFUser *user = [PFUser currentUser];
                 [user setObject:[NSNumber numberWithBool:YES] forKey:kUserStatusKey];
                 [user setObject:[NSDate date] forKey:kUserTimeLastUpdatedKey];
                 [user saveInBackground];
@@ -1800,7 +2145,7 @@
                         self.committingToPlace = NO;
                         self.listsHaveChanged = YES;
                         [self pollDatabase];
-                        
+                        [self dismissConfirmation];
                         if (place) {
                             NSDictionary *commitmentParams =
                             [NSDictionary dictionaryWithObjectsAndKeys:
@@ -1811,6 +2156,7 @@
                             [Flurry logEvent:@"Tethrd" withParameters:commitmentParams];
                         }
                     } else {
+                        [self dismissConfirmation];
                         NSLog(@"Committing Error: %@ %@", error, [error userInfo]);
                         [Flurry logError:@"Error_committing" message:nil error:error];
                     }
@@ -1820,6 +2166,7 @@
             } else {
                 // Log details of the failure
                 NSLog(@"Error: %@ %@", error, [error userInfo]);
+                [self dismissConfirmation];
             }
         }];
     }
@@ -1854,35 +2201,28 @@
 -(void)notifyFriendsForCommitmentToPlace:(Place *)place {
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     NSMutableArray *recipents = [[NSMutableArray alloc] init];
-    for (Notification *notification in sharedDataManager.todaysNotificationsArray) {
-        if ([notification.placeId isEqualToString:place.placeId] || [notification.placeName isEqualToString:place.name]) {
-            [recipents addObject:notification.sender];
+    for (NSString *friendId in place.friendsCommitted) {
+        if (![friendId isEqualToString:sharedDataManager.facebookId]) {
+            [recipents addObject:[sharedDataManager.tetherFriendsDictionary objectForKey:friendId]];
         }
     }
     
     for (Friend *friend in recipents) {
-        PFQuery *friendQuery = [PFUser query];
-        [friendQuery whereKey:kUserFacebookIDKey equalTo:friend.friendID];
-
-       [friendQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
-            if (!error) {
-                // Create our Installation query
-                PFUser * user = [objects objectAtIndex:0];
-                PFQuery *pushQuery = [PFInstallation query];
-                [pushQuery whereKey:@"owner" equalTo:user]; //change this to use friends installation
-                NSString *messageHeader = [NSString stringWithFormat:@"%@ tethred to %@", sharedDataManager.name, place.name];
-                NSDictionary *data = [NSDictionary dictionaryWithObjectsAndKeys:
-                                      messageHeader, @"alert",
-                                      @"Increment", @"badge",
-                                      nil];
-                
-                // Send push notification to query
-                PFPush *push = [[PFPush alloc] init];
-                [push setQuery:pushQuery]; // Set our Installation query
-                [push setData:data];
-                [push sendPushInBackground];
-           }
-        }];
+            // Create our Installation query
+        PFUser * user = friend.object;
+        PFQuery *pushQuery = [PFInstallation query];
+        [pushQuery whereKey:@"owner" equalTo:user]; //change this to use friends installation
+        NSString *messageHeader = [NSString stringWithFormat:@"%@ tethred to %@", sharedDataManager.name, place.name];
+        NSDictionary *data = [NSDictionary dictionaryWithObjectsAndKeys:
+                              messageHeader, @"alert",
+                              @"Increment", @"badge",
+                              nil];
+        
+        // Send push notification to query
+        PFPush *push = [[PFPush alloc] init];
+        [push setQuery:pushQuery]; // Set our Installation query
+        [push setData:data];
+        [push sendPushInBackground];
     }
 }
 
@@ -1938,18 +2278,18 @@
 
 #pragma mark FriendsListViewControllerDelegate
 
--(void)closeFriendsView {
+-(void)closeFriendsView:(FriendsListViewController*)friendsListVC {
         [UIView animateWithDuration:SLIDE_TIMING
                               delay:0.0
              usingSpringWithDamping:1.0
               initialSpringVelocity:1.0
                             options:UIViewAnimationOptionBeginFromCurrentState
                          animations:^{
-                             [self.friendsListViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                             [friendsListVC.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
                          }
                          completion:^(BOOL finished) {
-                             [self.friendsListViewController.view removeFromSuperview];
-                             [self.friendsListViewController removeFromParentViewController];
+                             [friendsListVC.view removeFromSuperview];
+                             [friendsListVC removeFromParentViewController];
                               self.centerViewController.listViewOpen = NO;
                          }];
 }

@@ -76,9 +76,15 @@ didReceiveRemoteNotification:(NSDictionary *)userInfo
 fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
     [self.mainViewController updateNotificationsNumber];
     [self.mainViewController loadNotifications];
-    
-    if ([UIApplication sharedApplication].applicationState == UIApplicationStateActive) {
-        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
+    if ([[userInfo objectForKey:@"type"] isEqualToString:@"msg"] && [userInfo objectForKey:@"threadId"]) {
+        [self.mainViewController openMessageWithThreadId:[userInfo objectForKey:@"threadId"]];
+        if ([UIApplication sharedApplication].applicationState == UIApplicationStateActive) {
+            AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
+        }
+    } else if ([[userInfo objectForKey:@"type"] isEqualToString:@"like"] || [[userInfo objectForKey:@"type"] isEqualToString:@"comment"]) {
+        if ([UIApplication sharedApplication].applicationState != UIApplicationStateActive) {
+            [self.mainViewController showPostFromPush:[userInfo objectForKey:@"postId"]];
+        }
     }
 }
 
@@ -155,13 +161,11 @@ fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
 
 - (void)logoutPressed
 {
-    
     [self.navController popToRootViewControllerAnimated:YES];
     [self showLoginView];
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     [userDetails setBool:YES forKey:@"loggedOut"];
-    PFUser *user = [PFUser currentUser];
-    [user deleteInBackground];
+    [PFUser logOut];
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application

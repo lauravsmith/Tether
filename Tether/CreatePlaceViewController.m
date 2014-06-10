@@ -309,9 +309,37 @@
             [placeObject setObject:placeObject.objectId forKey:@"placeId"];
             [placeObject saveInBackground];
             [self addNewLocationToPlacesListForId:placeObject.objectId];
+            [self createActivityObjectForPlace:placeObject];
         }
     }];
     [self showConfirmationForAction:@"create"];
+}
+
+-(void)createActivityObjectForPlace:(PFObject*)placeObject {
+    PFObject *activity = [PFObject objectWithClassName:@"Activity"];
+    PFUser *user = [PFUser currentUser];
+    NSString *content = [NSString stringWithFormat:@"%@ created a location %@", [user objectForKey:@"firstName"], self.nameTextField.text];
+    [activity setObject:content forKey:@"content"];
+    [activity setObject:@"createLocation" forKey:@"type"];
+    [activity setObject:[NSDate date] forKey:@"date"];
+    [activity setObject:user forKey:@"user"];
+    [activity setObject:[user objectForKey:@"facebookId"] forKey:@"facebookId"];
+    [activity setObject:[user objectForKey:@"cityLocation"] forKey:@"city"];
+    [activity setObject:[user objectForKey:@"stateLocation"] forKey:@"state"];
+    [activity setObject:placeObject.objectId forKey:@"placeId"];
+    [activity setObject:[placeObject objectForKey:@"name"] forKey:@"placeName"];
+    if ([placeObject objectForKey:@"address"]) {
+        [activity setObject:[placeObject objectForKey:@"address"] forKey:@"address"];
+    }
+    [activity setObject:[placeObject objectForKey:@"coordinate"] forKey:@"coordinate"];
+    if ([placeObject objectForKey:@"memo"]) {
+        [activity setObject:[placeObject objectForKey:@"memo"] forKey:@"memo"];
+    }
+    [activity setObject:[placeObject objectForKey:@"owner"] forKey:@"owner"];
+    if ([user objectForKey:@"private"] || self.privateSwitch.on) {
+        [activity setObject:[NSNumber numberWithBool:YES] forKey:@"private"];
+    }
+    [activity saveInBackground];
 }
 
 -(void)addNewLocationToPlacesListForId:(NSString*)placeId {
@@ -439,12 +467,14 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherG
 }
 
 -(void)textFieldDidEndEditing:(UITextField *)textField {
-    if (![textField.text isEqualToString:@""] && [self.mv.annotations count]  > 0) {
-        [self.createButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
-        [self.createButton setEnabled:YES];
-    } else {
-        [self.createButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
-        [self.createButton setEnabled:NO];
+    if (textField == self.nameTextField) {
+        if (![textField.text isEqualToString:@""] && [self.mv.annotations count]  > 0) {
+            [self.createButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+            [self.createButton setEnabled:YES];
+        } else {
+            [self.createButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
+            [self.createButton setEnabled:NO];
+        }
     }
 }
 

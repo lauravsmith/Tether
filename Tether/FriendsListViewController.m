@@ -6,7 +6,9 @@
 //  Copyright (c) 2013 Laura Smith. All rights reserved.
 //
 
+#import "ActivityCell.h"
 #import "CenterViewController.h"
+#import "CommentViewController.h"
 #import "Constants.h"
 #import "Datastore.h"
 #import "EditPlaceViewController.h"
@@ -15,11 +17,15 @@
 #import "FriendAtPlaceCell.h"
 #import "FriendsListViewController.h"
 #import "InviteViewController.h"
+#import "ParticipantsListViewController.h"
+#import "PhotoEditViewController.h"
+#import "PlaceCommentViewController.h"
 #import "PlacesViewController.h"
 #import "TethrButton.h"
 
-#import <FacebookSDK/FacebookSDK.h>
 #import <AddressBookUI/AddressBookUI.h>
+#import <FacebookSDK/FacebookSDK.h>
+#import <MobileCoreServices/MobileCoreServices.h>
 
 #define degreesToRadian(x) (M_PI * (x) / 180.0)
 
@@ -33,16 +39,18 @@
 #define PROFILE_PICTURE_OFFSET_X 10.0
 #define PROFILE_PICTURE_SIZE 50.0
 #define SLIDE_TIMING 0.6
+#define SPINNER_SIZE 30.0
 #define STATUS_BAR_HEIGHT 20.0
 #define SUB_BAR_HEIGHT 65.0
 #define TOP_BAR_HEIGHT 70.0
 #define MEMO_HEIGHT 15.0
 #define TUTORIAL_HEADER_HEIGHT 50.0
 
-@interface FriendsListViewController () <InviteViewControllerDelegate, UIGestureRecognizerDelegate, UITableViewDataSource, UITableViewDelegate>
+@interface FriendsListViewController () <InviteViewControllerDelegate, UIGestureRecognizerDelegate, UITableViewDataSource, UITableViewDelegate, ActivityCellDelegate, UIActionSheetDelegate, UIImagePickerControllerDelegate, PhotoEditViewControllerDelegate, PartcipantsListViewControllerDelegate, PlaceCommentViewControllerDelegate, CommentViewControllerDelegate>
 @property (retain, nonatomic) UITableView * friendsTableView;
 @property (retain, nonatomic) UITableViewController * friendsTableViewController;
 @property (retain, nonatomic) NSMutableArray * friendsOfFriendsArray;
+@property (retain, nonatomic) NSMutableArray * activityArray;
 @property (retain, nonatomic) UIView * topBar;
 @property (retain, nonatomic) UIView * subBar;
 @property (nonatomic, strong) UILabel *placeLabel;
@@ -50,6 +58,7 @@
 @property (nonatomic, strong) UILabel *memoLabel;
 @property (retain, nonatomic) TethrButton * commitButton;
 @property (nonatomic, strong) TethrButton *inviteButton;
+@property (retain, nonatomic) TethrButton * postButton;
 @property (retain, nonatomic) TethrButton * mapButton;
 @property (nonatomic, strong) UILabel *plusIconLabel;
 @property (retain, nonatomic) UIButton * backButton;
@@ -60,8 +69,23 @@
 @property (retain, nonatomic) InviteViewController *inviteViewController;
 @property (retain, nonatomic) UIImageView *inviteImageView;
 @property (retain, nonatomic) UIImageView *pinImageView;
+@property (retain, nonatomic) UIImageView *postImageView;
 @property (retain, nonatomic) UIImageView *mapImageView;
 @property (retain, nonatomic) EditPlaceViewController *editViewController;
+@property (retain, nonatomic) UIView *greyView;
+@property (retain, nonatomic) UIView *postView;
+@property (retain, nonatomic) UIView *switchView;
+@property (retain, nonatomic) UIView *sliderView;
+@property (assign, nonatomic) BOOL sliderOn;
+@property (nonatomic, strong) UILabel *friendsLabel;
+@property (nonatomic, strong) UILabel *newsLabel;
+@property (retain, nonatomic) PhotoEditViewController *photoEditVC;
+@property (retain, nonatomic) ParticipantsListViewController * participantsListViewController;
+@property (retain, nonatomic) PFObject * postToDelete;
+@property (retain, nonatomic) UIActionSheet * postActionSheet;
+@property (retain, nonatomic) PlaceCommentViewController * placeCommentViewController;
+@property (retain, nonatomic) CommentViewController * commentVC;
+@property (retain, nonatomic) UIActivityIndicatorView *activityIndicatorView;
 @end
 
 @implementation FriendsListViewController
@@ -78,6 +102,8 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
+    [self.view setBackgroundColor:UIColorFromRGB(0xf8f8f8)];
     
     UIPanGestureRecognizer *panRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(moveBack:)];
     [panRecognizer setMinimumNumberOfTouches:1];
@@ -102,9 +128,44 @@
     [self.subBar addSubview:subBarLine];
     [self.view addSubview:self.subBar];
     
+    self.switchView = [[UIView alloc] initWithFrame:CGRectMake((self.view.frame.size.width - 184.0) / 2.0, self.subBar.frame.origin.y + self.subBar.frame.size.height + (40.0 - 30.0) / 2.0, 180.0, 30.0)];
+    [self.switchView setBackgroundColor:UIColorFromRGB(0x8e0528)];
+    self.switchView.layer.cornerRadius = 5.0;
+    [self.view addSubview:self.switchView];
+    
+    self.sliderView = [[UIView alloc] initWithFrame:CGRectMake(2.0, 2.0, 90.0, 30.0 - 4.0)];
+    [self.sliderView setBackgroundColor:[UIColor whiteColor]];
+    self.sliderView.layer.cornerRadius = 5.0;
+    [self.switchView addSubview:self.sliderView];
+
+    UIButton *friendsButton = [[UIButton alloc] initWithFrame:CGRectMake(0.0, 0.0, 90.0, 30.0)];
+    [friendsButton addTarget:self action:@selector(friendsTapped:) forControlEvents:UIControlEventTouchUpInside];
+    [self.switchView addSubview:friendsButton];
+    
+    UIButton *newsButton = [[UIButton alloc] initWithFrame:CGRectMake(90.0, 0.0, 90.0, 30.0)];
+    [newsButton addTarget:self action:@selector(newsTapped:) forControlEvents:UIControlEventTouchUpInside];
+    [self.switchView addSubview:newsButton];
+    
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
+    
+    self.friendsLabel = [[UILabel alloc] init];
+    self.friendsLabel.text = @"friends";
+    self.friendsLabel.font = montserrat;
+    CGSize size = [self.friendsLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
+    self.friendsLabel.textColor = UIColorFromRGB(0x1d1d1d);
+    self.friendsLabel.frame = CGRectMake((90.0 - size.width) / 2.0, (30.0 - size.height) / 2.0, size.width, size.height);
+    [self.switchView addSubview:self.friendsLabel];
+    
+    self.newsLabel = [[UILabel alloc] init];
+    self.newsLabel.text = @"news";
+    self.newsLabel.font = montserrat;
+    size = [self.newsLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
+    self.newsLabel.textColor = [UIColor whiteColor];
+    self.newsLabel.frame = CGRectMake(90.0 + (90.0 - size.width) / 2.0, (30.0 - size.height) / 2.0, size.width, size.height);
+    [self.switchView addSubview:self.newsLabel];
+    
     self.placeLabel = [[UILabel alloc] init];
     self.placeLabel.text = self.place.name;
-    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
     [self.placeLabel setTextColor:[UIColor whiteColor]];
     self.placeLabel.font = montserrat;
     self.placeLabel.adjustsFontSizeToFitWidth = YES;
@@ -118,7 +179,7 @@
     [self.addressLabel setTextColor:UIColorFromRGB(0xc8c8c8)];
     [self.topBar addSubview:self.addressLabel];
     
-    CGSize size = [self.placeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
+    size = [self.placeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
     CGSize addressLabelSize = [self.addressLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratTiny}];
     self.placeLabel.frame = CGRectMake(MAX(LEFT_PADDING, (self.view.frame.size.width - size.width) / 2.0), STATUS_BAR_HEIGHT + (TOP_BAR_HEIGHT - STATUS_BAR_HEIGHT - size.height - addressLabelSize.height) / 2.0, MIN(self.view.frame.size.width - LEFT_PADDING*2, size.width), size.height);
     self.addressLabel.frame = CGRectMake(MAX(LEFT_PADDING, (self.view.frame.size.width - addressLabelSize.width) / 2.0), STATUS_BAR_HEIGHT + (TOP_BAR_HEIGHT - STATUS_BAR_HEIGHT + size.height - addressLabelSize.height) / 2.0, addressLabelSize.width, addressLabelSize.height);
@@ -147,6 +208,11 @@
     self.numberButton.titleLabel.font = helveticaNeueLarge;
     size = [self.numberButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:helveticaNeueLarge}];
     self.numberButton.frame = CGRectMake(self.backButton.frame.origin.x + self.backButton.frame.size.width + 5.0, (TOP_BAR_HEIGHT - STATUS_BAR_HEIGHT - size.height) / 2 + STATUS_BAR_HEIGHT, MIN(60.0,size.width), size.height);
+    if ([self.friendsArray count] == 0) {
+        [self.numberButton setHidden:YES];
+    } else {
+        [self.numberButton setHidden:NO];
+    }
     [self.topBar addSubview:self.numberButton];
     
     self.backButtonLarge = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, (self.view.frame.size.width) / 4.0, TOP_BAR_HEIGHT)];
@@ -162,7 +228,6 @@
     [self.inviteButton setTitleEdgeInsets:UIEdgeInsetsMake(20.0, 0.0, 0.0, 0.0)];
     [self.inviteButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
     self.inviteButton.titleLabel.font = missionGothic;
-    [self.inviteButton setBackgroundColor:[UIColor whiteColor]];
     self.inviteImageView = [[UIImageView alloc] initWithFrame:CGRectMake(((self.view.frame.size.width - PADDING * 2) / 3.0 - 20.0) / 2.0, 10.0, 20.0, 20.0)];
     self.inviteImageView.image = [UIImage imageNamed:@"PlusSign"];
     [self.inviteButton addSubview:self.inviteImageView];
@@ -178,7 +243,6 @@
     self.commitButton = [[TethrButton alloc] initWithFrame:CGRectMake(self.inviteButton.frame.origin.x + self.inviteButton.frame.size.width + PADDING, 0.0, (self.view.frame.size.width - PADDING * 2) / 3.0, SUB_BAR_HEIGHT - PADDING)];
     [self.commitButton setNormalColor:[UIColor whiteColor]];
     [self.commitButton setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
-    [self.commitButton setBackgroundColor:[UIColor whiteColor]];
     self.commitButton.titleLabel.font = missionGothic;
     [self.commitButton addTarget:self
                           action:@selector(commitClicked:)
@@ -204,23 +268,19 @@
     
     [self.subBar addSubview:self.commitButton];
     
-    self.mapButton = [[TethrButton alloc] initWithFrame:CGRectMake(self.commitButton.frame.origin.x + self.commitButton.frame.size.width + PADDING, 0.0, (self.view.frame.size.width  - PADDING * 2) / 3.0, SUB_BAR_HEIGHT - PADDING)];
-    [self.mapButton setNormalColor:[UIColor whiteColor]];
-    [self.mapButton setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
-    [self.mapButton setBackgroundColor:[UIColor whiteColor]];
-    [self.mapButton setTitle:@"map" forState:UIControlStateNormal];
-    [self.mapButton setTitleEdgeInsets:UIEdgeInsetsMake(20.0, 0.0, 0.0, 0.0)];
-    [self.mapButton setTitleColor:UIColorFromRGB(0x8e0528)  forState:UIControlStateNormal];
-    self.mapButton.titleLabel.font = missionGothic;
-    [self.mapButton addTarget:self
-                            action:@selector(showMapViewAnnotation:)
-     
-                  forControlEvents:UIControlEventTouchUpInside];
-    [self.subBar addSubview:self.mapButton];
+    self.postButton = [[TethrButton alloc] initWithFrame:CGRectMake(self.commitButton.frame.origin.x + self.commitButton.frame.size.width + PADDING, 0.0, (self.view.frame.size.width  - PADDING * 2) / 3.0, SUB_BAR_HEIGHT - PADDING)];
+    [self.postButton setNormalColor:[UIColor whiteColor]];
+    [self.postButton setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
+    [self.postButton setTitle:@"post" forState:UIControlStateNormal];
+    [self.postButton setTitleEdgeInsets:UIEdgeInsetsMake(20.0, 0.0, 0.0, 0.0)];
+    [self.postButton setTitleColor:UIColorFromRGB(0x8e0528)  forState:UIControlStateNormal];
+    self.postButton.titleLabel.font = missionGothic;
+    [self.postButton addTarget:self action:@selector(postClicked:) forControlEvents:UIControlEventTouchUpInside];
+    [self.subBar addSubview:self.postButton];
     
-    self.mapImageView = [[UIImageView alloc] initWithFrame:CGRectMake(((self.view.frame.size.width - PADDING * 2) / 3.0 - 25.0) / 2.0, 8.0, 25.0, 25.0)];
-    self.mapImageView.image = [UIImage imageNamed:@"LocationSpotter"];
-    [self.mapButton addSubview:self.mapImageView];
+    self.postImageView = [[UIImageView alloc] initWithFrame:CGRectMake(((self.view.frame.size.width - PADDING * 2) / 3.0 - 30.0) / 2.0, 5.0, 30.0, 30.0)];
+    self.postImageView.image = [UIImage imageNamed:@"Post"];
+    [self.postButton addSubview:self.postImageView];
     
     UIView *verticalDivider1 = [[UIView alloc] initWithFrame:CGRectMake(self.inviteButton.frame.size.width, (SUB_BAR_HEIGHT - 45.0) / 2.0, 1.0, 45.0)];
     [verticalDivider1 setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
@@ -233,7 +293,7 @@
     [self.subBar addSubview:verticalDivider2];
     
     //set up friends going out table view
-    self.friendsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, self.subBar.frame.origin.y + self.subBar.frame.size.height, self.view.frame.size.width, self.view.frame.size.height - TOP_BAR_HEIGHT - SUB_BAR_HEIGHT)];
+    self.friendsTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, self.subBar.frame.origin.y + self.subBar.frame.size.height + 40.0, self.view.frame.size.width, self.view.frame.size.height - self.topBar.frame.size.height - SUB_BAR_HEIGHT - 40.0)];
     [self.friendsTableView setSeparatorColor:UIColorFromRGB(0xc8c8c8)];
     [self.friendsTableView setDataSource:self];
     [self.friendsTableView setDelegate:self];
@@ -244,26 +304,92 @@
     self.friendsTableViewController.tableView = self.friendsTableView;
     
     self.friendsOfFriendsArray = [[NSMutableArray alloc] init];
+    
+    if ([self.place.friendsCommitted count] == 0) {
+        self.sliderOn = YES;
+        [self setupSlider];
+        self.activityIndicatorView = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake((self.view.frame.size.width - SPINNER_SIZE) / 2.0, self.topBar.frame.size.height +SUB_BAR_HEIGHT + self.switchView.frame.size.height + 20.0, SPINNER_SIZE, SPINNER_SIZE)];
+        self.activityIndicatorView.color = UIColorFromRGB(0x8e0528);
+        [self.view addSubview:self.activityIndicatorView];
+        [self.activityIndicatorView startAnimating];
+    }
 
     self.moreInfoButton = [[UIButton alloc] init];
     
-    if (!self.place.owner) {
-        self.moreInfoButton.frame = CGRectMake(self.view.frame.size.width - 40.0, (self.topBar.frame.size.height - 25.0 + STATUS_BAR_HEIGHT) / 2.0, 25.0, 25.0);
+    if (!self.place.owner && [self.place.friendsCommitted count] == 0) {
+        self.moreInfoButton.frame = CGRectMake(self.view.frame.size.width - 40.0, self.placeLabel.frame.origin.y, 25.0, 25.0);
         [self.moreInfoButton setImage:[UIImage imageNamed:@"InfoPinGrey"] forState:UIControlStateNormal];
         [self.moreInfoButton addTarget:self action:@selector(moreInfoClicked:) forControlEvents:UIControlEventTouchUpInside];
+    } else if (!self.place.owner || ![self.place.owner isEqualToString:sharedDataManager.facebookId]) {
+        self.moreInfoButton.frame = CGRectMake(self.view.frame.size.width / 3.0 *2, 0.0, (self.view.frame.size.width  - PADDING * 2) / 3.0, TOP_BAR_HEIGHT);
+        [self.moreInfoButton setImage:[UIImage imageNamed:@"LocationSpotter"] forState:UIControlStateNormal];
+        [self.moreInfoButton setImageEdgeInsets:UIEdgeInsetsMake(20.0, 50.0, 0.0, 0.0)];
+        [self.moreInfoButton addTarget:self
+                           action:@selector(showMapViewAnnotation:)
+                 forControlEvents:UIControlEventTouchUpInside];
     } else if ([self.place.owner isEqualToString:sharedDataManager.facebookId]) {
-        self.moreInfoButton.frame = CGRectMake(self.view.frame.size.width - 50.0, (TOP_BAR_HEIGHT - 25.0 + STATUS_BAR_HEIGHT) / 2.0, 34.0, 32.0);
+        self.moreInfoButton.frame = CGRectMake(self.view.frame.size.width - 50.0, self.placeLabel.frame.origin.y, 34.0, 32.0);
         [self.moreInfoButton setImage:[UIImage imageNamed:@"Edit"] forState:UIControlStateNormal];
         [self.moreInfoButton addTarget:self action:@selector(editClicked:) forControlEvents:UIControlEventTouchUpInside];
     }
     [self.topBar addSubview:self.moreInfoButton];
     
     [Flurry logEvent:@"User_views_place_specific_page"];
+    
+    [self loadActivity];
+}
+
+-(void)showComments:(PFObject *)activityObject {
+    self.commentVC = [[CommentViewController alloc] init];
+    self.commentVC.delegate = self;
+    self.commentVC.activityObject = activityObject;
+    [self.commentVC didMoveToParentViewController:self];
+    [self.commentVC.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+    [self.view addSubview:self.commentVC.view];
+    
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.commentVC.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                     }];
+}
+
+-(void)setupSlider {
+    CGRect frame;
+    UIColor *friendsLabelColor;
+    UIColor *newsLabelColor;
+    if (self.sliderOn) {
+        frame = CGRectMake(88.0, 2.0, 90.0, 30.0 - 4.0);
+        friendsLabelColor = [UIColor whiteColor];
+        newsLabelColor = [UIColor blackColor];
+    } else {
+        frame = CGRectMake(2.0, 2.0, 90.0, 30.0 - 4.0);
+        friendsLabelColor  = [UIColor blackColor];
+        newsLabelColor = [UIColor whiteColor];
+    }
+    [self.friendsTableView reloadData];
+    [UIView animateWithDuration:SLIDE_TIMING*0.5
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         self.sliderView.frame = frame;
+                         self.friendsLabel.textColor = friendsLabelColor;
+                         self.newsLabel.textColor = newsLabelColor;
+                     }
+                     completion:^(BOOL finished) {
+                     }];
 }
 
 -(void)closeFriendsView {
-    if ([self.delegate respondsToSelector:@selector(closeFriendsView)]) {
-        [self.delegate closeFriendsView];
+    if ([self.delegate respondsToSelector:@selector(closeFriendsView:)]) {
+        [self.delegate closeFriendsView:self];
         NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
         if (![userDetails boolForKey:kUserDefaultsHasSeenPlaceInviteTutorialKey] || ![userDetails boolForKey:kUserDefaultsHasSeenPlaceTethrTutorialKey]) {
             [userDetails setBool:YES forKey:kUserDefaultsHasSeenPlaceInviteTutorialKey];
@@ -281,13 +407,17 @@
     
     NSMutableArray *allFriendsOfFriends = [[NSMutableArray alloc] init];
     
-    for (Friend *friend in self.friendsArray) {
-        if (![friend.friendID isEqualToString:sharedDataManager.facebookId]) {
-            [allFriendsOfFriends addObjectsFromArray:friend.friendsArray];   
+    if (sharedDataManager.friendsOfFriends) {
+        allFriendsOfFriends = [[sharedDataManager.friendsOfFriends allObjects] mutableCopy];
+    } else {
+        for (Friend *friend in self.friendsArray) {
+            if (![friend.friendID isEqualToString:sharedDataManager.facebookId]) {
+                [allFriendsOfFriends addObjectsFromArray:friend.friendsArray];
+            }
         }
     }
     
-    NSMutableArray *facebookFriendsArray = [sharedDataManager.facebookFriends mutableCopy];
+    NSMutableArray *facebookFriendsArray = [sharedDataManager.tetherFriends mutableCopy];
     [facebookFriendsArray addObject:sharedDataManager.facebookId];
     
     NSMutableSet *friendsOfFriendsSet = [[NSMutableSet alloc] initWithArray:allFriendsOfFriends];
@@ -320,21 +450,23 @@
                 if (!error) {
                     NSMutableDictionary* friendsOfFriendsDictionary = [[NSMutableDictionary alloc] init];
                     for (PFUser *user in userObjects) {
-                        Friend *friend;
-                        friend = [[Friend alloc] init];
-                        if ([friendsOfFriendsDictionary objectForKey:user[kUserFacebookIDKey]]) {
-                            friend = [friendsOfFriendsDictionary objectForKey:user[kUserFacebookIDKey]];
-                            friend.mutualFriendsCount += 1;
-                        } else {
-                            friend.friendID = user[kUserFacebookIDKey];
-                            friend.name = user[kUserDisplayNameKey];
-                            friend.placeId = self.place.placeId;
-                            friend.status = [user[kUserStatusKey] boolValue];
-                            friend.statusMessage = user[kUserStatusMessageKey];
-                            friend.mutualFriendsCount = 1;
+                        if (![[user objectForKey:@"facebookId"] isEqualToString:sharedDataManager.facebookId]) {
+                            Friend *friend;
+                            friend = [[Friend alloc] init];
+                            if ([friendsOfFriendsDictionary objectForKey:user[kUserFacebookIDKey]]) {
+                                friend = [friendsOfFriendsDictionary objectForKey:user[kUserFacebookIDKey]];
+                                friend.mutualFriendsCount += 1;
+                            } else {
+                                friend.friendID = user[kUserFacebookIDKey];
+                                friend.name = user[kUserDisplayNameKey];
+                                friend.placeId = self.place.placeId;
+                                friend.status = [user[kUserStatusKey] boolValue];
+                                friend.statusMessage = user[kUserStatusMessageKey];
+                                friend.mutualFriendsCount = 1;
+                            }
+                            
+                            [friendsOfFriendsDictionary setObject:friend forKey:friend.friendID];
                         }
-                        
-                        [friendsOfFriendsDictionary setObject:friend forKey:friend.friendID];
                     }
                     for (id key in friendsOfFriendsDictionary) {
                         [self.friendsOfFriendsArray addObject:[friendsOfFriendsDictionary objectForKey:key]];
@@ -402,6 +534,47 @@
                      }];
 }
 
+-(void)loadActivity {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    PFQuery *friendsQuery = [PFQuery queryWithClassName:@"Activity"];
+    [friendsQuery whereKey:@"placeId" equalTo:self.place.placeId];
+    [friendsQuery whereKey:@"facebookId" containedIn:sharedDataManager.tetherFriends];
+    
+    PFQuery *othersQuery = [PFQuery queryWithClassName:@"Activity"];
+    [othersQuery whereKey:@"facebookId" notContainedIn:sharedDataManager.tetherFriends];
+    [othersQuery whereKey:@"placeId" equalTo:self.place.placeId];
+    [othersQuery whereKey:@"private" notEqualTo:[NSNumber numberWithBool:YES]];
+    
+    PFQuery *query = [PFQuery orQueryWithSubqueries:@[friendsQuery, othersQuery]];
+    [query includeKey:@"photo"];
+    [query includeKey:@"user"];
+    
+    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+        self.activityArray = [[NSMutableArray alloc] initWithArray:objects];
+        NSSortDescriptor *dateDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"date" ascending:NO];
+        [self.activityArray sortUsingDescriptors:[NSArray arrayWithObjects:dateDescriptor, nil]];
+        [self.friendsTableView reloadData];
+        [self.activityIndicatorView stopAnimating];
+    }];
+}
+
+#pragma mark CommentViewControllerDelegate
+
+-(void)closeCommentView {
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.commentVC.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                         [self.commentVC.view removeFromSuperview];
+                         [self.commentVC removeFromParentViewController];
+                     }];
+}
+
 #pragma mark gesture handlers
 
 -(void)moveBack:(id)sender {
@@ -418,12 +591,265 @@
 
 #pragma mark UIButton action methods
 
+-(IBAction)friendsTapped:(id)sender {
+    self.sliderOn = NO;
+    [self setupSlider];
+}
+
+-(IBAction)newsTapped:(id)sender {
+    self.sliderOn = YES;
+    [self setupSlider];
+}
+
+-(IBAction)postClicked:(id)sender {
+    self.greyView = [[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.frame.size.width, self.view.frame.size.height)];
+    [self.greyView setBackgroundColor:[UIColor blackColor]];
+    self.greyView.alpha = 0.2;
+    [self.view addSubview:self.greyView];
+    
+    self.postView = [[UIView alloc] initWithFrame:CGRectMake((self.view.frame.size.width - 250.0) / 2.0, 200.0, 250.0, 150.0)];
+    [self.postView setBackgroundColor:[UIColor whiteColor]];
+    self.postView.layer.cornerRadius = 5.0;
+    self.postView.layer.masksToBounds = YES;
+    [self.view addSubview:self.postView];
+    
+    TethrButton *cameraButton = [[TethrButton alloc] initWithFrame:CGRectMake(0.0, 0.0, self.postView.frame.size.width / 2.0, self.postView.frame.size.height - 50.0)];
+    [cameraButton addTarget:self action:@selector(photoClicked:) forControlEvents:UIControlEventTouchUpInside];
+    [cameraButton setNormalColor:[UIColor whiteColor]];
+    [cameraButton setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
+    UIFont *missionGothic = [UIFont fontWithName:@"MissionGothic-BoldItalic" size:16.0f];
+    cameraButton.titleLabel.font = missionGothic;
+    [cameraButton setTitle:@"Photo" forState:UIControlStateNormal];
+    [cameraButton setTitleEdgeInsets:UIEdgeInsetsMake(30.0, 0.0, 0.0, 0.0)];
+    [cameraButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+    
+    UIImageView *cameraImage = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"Camera.png"]];
+    cameraImage.frame = CGRectMake((cameraButton.frame.size.width - 30.0) / 2.0, 15.0, 30.0, 30.0);
+    [cameraButton addSubview:cameraImage];
+    [self.postView addSubview:cameraButton];
+    
+    TethrButton *commentButton = [[TethrButton alloc] initWithFrame:CGRectMake(self.postView.frame.size.width / 2.0, 0.0, self.postView.frame.size.width / 2.0, self.postView.frame.size.height - 50.0)];
+    [commentButton addTarget:self action:@selector(showPlaceCommentViewController) forControlEvents:UIControlEventTouchUpInside];
+    [commentButton setNormalColor:[UIColor whiteColor]];
+    [commentButton setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
+    commentButton.titleLabel.font = missionGothic;
+    [commentButton setTitle:@"Comment" forState:UIControlStateNormal];
+    [commentButton setTitleEdgeInsets:UIEdgeInsetsMake(30.0, 0.0, 0.0, 0.0)];
+    [commentButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+    [self.postView addSubview:commentButton];
+    
+    UIImageView *commentImage = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"Comment.png"]];
+    commentImage.frame = CGRectMake((cameraButton.frame.size.width - 30.0) / 2.0, 15.0, 30.0, 30.0);
+    [commentButton addSubview:commentImage];
+    
+    UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0.0, 100.0, self.postView.frame.size.width, 1.0)];
+    [separator setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
+    [self.postView addSubview:separator];
+    
+    TethrButton *cancelButton = [[TethrButton alloc] initWithFrame:CGRectMake(0.0, separator.frame.origin.y + 1.0, self.postView.frame.size.width, 50.0)];
+    [cancelButton addTarget:self action:@selector(cancelClicked:) forControlEvents:UIControlEventTouchUpInside];
+    [cancelButton setNormalColor:[UIColor whiteColor]];
+    [cancelButton setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
+    [cancelButton setTitle:@"Cancel" forState:UIControlStateNormal];
+    [cancelButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+    UIFont *monsterrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
+    cancelButton.titleLabel.font = monsterrat;
+    [self.postView addSubview:cancelButton];
+}
+
+-(IBAction)photoClicked:(id)sender {
+    [self.postView removeFromSuperview];
+    [self.greyView removeFromSuperview];
+    [self photoCapture];
+}
+
+-(void)photoCapture {
+    BOOL cameraDeviceAvailable = [UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera];
+    BOOL photoLibraryAvailable = [UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary];
+    
+    if (cameraDeviceAvailable && photoLibraryAvailable) {
+        self.postActionSheet = [[UIActionSheet alloc] initWithTitle:nil delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Take Photo", @"Choose Photo", nil];
+        [self.postActionSheet showInView:self.view];
+    } else {
+        BOOL presentedPhotoCaptureController = [self shouldStartCameraController];
+        
+        if (!presentedPhotoCaptureController) {
+            presentedPhotoCaptureController = [self shouldStartPhotoLibraryPickerController];
+        }
+    }
+}
+
+-(void)showPlaceCommentViewController {
+    [self.postView removeFromSuperview];
+    [self.greyView removeFromSuperview];
+    self.placeCommentViewController = [[PlaceCommentViewController alloc] init];
+    self.placeCommentViewController.delegate = self;
+    self.placeCommentViewController.place = self.place;
+    [self.placeCommentViewController didMoveToParentViewController:self];
+    [self.placeCommentViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+    [self.view addSubview:self.placeCommentViewController.view];
+    
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.placeCommentViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                     }];
+}
+
+#pragma mark - PlaceCommentViewControllerDelegate
+
+-(void)closePlaceCommentView {
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.placeCommentViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                         [self.placeCommentViewController.view removeFromSuperview];
+                         [self.placeCommentViewController removeFromParentViewController];
+                         self.placeCommentViewController = nil;
+                     }];
+}
+
+#pragma mark - UIActionSheetDelegate
+
+- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if (actionSheet == self.postActionSheet) {
+        if (buttonIndex == 0) {
+            [self shouldStartCameraController];
+        } else if (buttonIndex == 1) {
+            [self shouldStartPhotoLibraryPickerController];
+        }
+    } else {
+        if (buttonIndex == 0) {
+            if ([[self.postToDelete objectForKey:@"type"] isEqualToString:@"photo"]) {
+                PFObject *photoObject = [self.postToDelete objectForKey:@"photo"];
+                [photoObject deleteInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+                    [self.postToDelete deleteInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+                        if (succeeded) {
+                            [self loadActivity];
+                        } else {
+                            UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Could not delete your post, please try again" message:nil delegate: nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+                            [alert show];
+                        }
+                    }];
+                }];
+            } else {
+                [self.postToDelete deleteInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+                    if (succeeded) {
+                        [self loadActivity];
+                    } else {
+                        UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Could not delete your post, please try again" message:nil delegate: nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+                        [alert show];
+                    }
+                }];
+            }
+        }
+    }
+}
+
+- (void)willPresentActionSheet:(UIActionSheet *)actionSheet
+{
+    for (UIView *subview in actionSheet.subviews) {
+        if ([subview isKindOfClass:[UIButton class]]) {
+            UIButton *button = (UIButton *)subview;
+            if ([button.titleLabel.text isEqualToString:@"Delete Post"]) {
+                [button setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
+            }
+        }
+    }
+}
+
+- (BOOL)shouldStartCameraController {
+    
+    if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera] == NO) {
+        return NO;
+    }
+    
+    UIImagePickerController *cameraUI = [[UIImagePickerController alloc] init];
+    
+    if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]
+        && [[UIImagePickerController availableMediaTypesForSourceType:
+             UIImagePickerControllerSourceTypeCamera] containsObject:(NSString *)kUTTypeImage]) {
+        
+        cameraUI.mediaTypes = [NSArray arrayWithObject:(NSString *) kUTTypeImage];
+        cameraUI.sourceType = UIImagePickerControllerSourceTypeCamera;
+        
+        if ([UIImagePickerController isCameraDeviceAvailable:UIImagePickerControllerCameraDeviceRear]) {
+            cameraUI.cameraDevice = UIImagePickerControllerCameraDeviceRear;
+        } else if ([UIImagePickerController isCameraDeviceAvailable:UIImagePickerControllerCameraDeviceFront]) {
+            cameraUI.cameraDevice = UIImagePickerControllerCameraDeviceFront;
+        }
+        
+    } else {
+        return NO;
+    }
+    
+    cameraUI.allowsEditing = YES;
+    cameraUI.showsCameraControls = YES;
+    cameraUI.delegate = self;
+    
+    [self presentViewController:cameraUI animated:YES completion:nil];
+    
+    return YES;
+}
+
+
+- (BOOL)shouldStartPhotoLibraryPickerController {
+    if (([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary] == NO
+         && [UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeSavedPhotosAlbum] == NO)) {
+        return NO;
+    }
+    
+    UIImagePickerController *cameraUI = [[UIImagePickerController alloc] init];
+    if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary]
+        && [[UIImagePickerController availableMediaTypesForSourceType:UIImagePickerControllerSourceTypePhotoLibrary] containsObject:(NSString *)kUTTypeImage]) {
+        
+        cameraUI.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+        cameraUI.mediaTypes = [NSArray arrayWithObject:(NSString *) kUTTypeImage];
+        
+    } else if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeSavedPhotosAlbum]
+               && [[UIImagePickerController availableMediaTypesForSourceType:UIImagePickerControllerSourceTypeSavedPhotosAlbum] containsObject:(NSString *)kUTTypeImage]) {
+        
+        cameraUI.sourceType = UIImagePickerControllerSourceTypeSavedPhotosAlbum;
+        cameraUI.mediaTypes = [NSArray arrayWithObject:(NSString *) kUTTypeImage];
+        
+    } else {
+        return NO;
+    }
+    
+    cameraUI.allowsEditing = YES;
+    cameraUI.delegate = self;
+    
+    [self presentViewController:cameraUI animated:YES completion:nil];
+    
+    return YES;
+}
+
+-(IBAction)cancelClicked:(id)sender {
+    [self.postView removeFromSuperview];
+    [self.greyView removeFromSuperview];
+}
+
 -(IBAction)commitClicked:(id)sender {
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     if (self.commitButton.tag == 1 && ![sharedDataManager.currentCommitmentPlace.placeId isEqualToString:self.place.placeId]) {
         if([self.delegate respondsToSelector:@selector(commitToPlace:)]) {
             NSLog(@"CONTENT VIEW: commiting to %@", self.place.name);
             [self.delegate commitToPlace:self.place];
+            
+            self.sliderOn = NO;
+            [self setupSlider];
+            
+            [self reloadActivity];
             
             [self performSelector:@selector(showCommitment) withObject:self afterDelay:1.0];
             [Flurry logEvent:@"Tethrd_from_place_specific_page"];
@@ -453,6 +879,11 @@
         [self layoutCommitButton];
         
         [self.numberButton setTitle:[NSString stringWithFormat:@"%lu", (unsigned long)[self.friendsArray count]] forState:UIControlStateNormal];
+        if ([self.friendsArray count] == 0) {
+            [self.numberButton setHidden:YES];
+        } else {
+            [self.numberButton setHidden:NO];
+        }
     }
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     if ([userDetails boolForKey:kUserDefaultsHasSeenPlaceInviteTutorialKey] && ![userDetails boolForKey:kUserDefaultsHasSeenPlaceTethrTutorialKey]) {
@@ -467,10 +898,7 @@
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     
     Friend *friend = [[Friend alloc] init];
-    friend = [[Friend alloc] init];
-    friend.friendID = sharedDataManager.facebookId;
-    friend.name = sharedDataManager.name;
-    friend.statusMessage = sharedDataManager.statusMessage;
+    friend = [sharedDataManager.tetherFriendsDictionary objectForKey:sharedDataManager.facebookId];
     [self.friendsArray addObject:friend];
     
     NSSortDescriptor *nameDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"name" ascending:YES];
@@ -615,6 +1043,61 @@
     }
 }
 
+#pragma mark - UIImagePickerDelegate
+
+- (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker {
+    [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
+    [self dismissViewControllerAnimated:NO completion:nil];
+    
+    UIImage *image = [info objectForKey:UIImagePickerControllerEditedImage];
+    
+    self.photoEditVC = [[PhotoEditViewController alloc] initWithImage:image];
+    self.photoEditVC.delegate = self;
+    self.photoEditVC.place = self.place;
+
+    [self.photoEditVC setModalTransitionStyle:UIModalTransitionStyleCrossDissolve];
+    
+    [self addChildViewController:self.photoEditVC];
+    [self.photoEditVC didMoveToParentViewController:self];
+    [self.photoEditVC.view setFrame:CGRectMake(self.view.frame.size.width, 0.0, self.view.frame.size.width, self.view.frame.size.height)]; //notice this is OFF screen!
+    [self.view addSubview:self.photoEditVC.view];
+    
+    [UIView animateWithDuration:0.6*1.2
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.photoEditVC.view setFrame:CGRectMake( 0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                     }];
+}
+
+#pragma mark - PhotoEditViewControllerDelegate
+
+-(void)closePhotoEditView {
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.photoEditVC.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                         [self.photoEditVC.view removeFromSuperview];
+                         [self.photoEditVC removeFromParentViewController];
+                     }];
+}
+
+-(void)reloadActivity {
+    [self loadActivity];
+}
+
 #pragma mark CreatePlaceViewControllerDelegate
 
 -(void)closeCreatePlaceVC {
@@ -644,8 +1127,8 @@
         [self.delegate refreshList];
     }
     
-    if([self.delegate respondsToSelector:@selector(closeFriendsView)]) {
-        [self.delegate closeFriendsView];
+    if([self.delegate respondsToSelector:@selector(closeFriendsView:)]) {
+        [self.delegate closeFriendsView:self];
     }
 }
 
@@ -653,14 +1136,103 @@
     self.place = place;
 }
 
+#pragma mark ActivityCellDelegate
+
+-(void)showProfileOfFriend:(Friend*)user {
+    if ([self.delegate respondsToSelector:@selector(showProfileOfFriend:)]) {
+        [self.delegate showProfileOfFriend:user];
+    }
+}
+
+-(void)showLikes:(NSMutableSet*)friendIdSet {
+    self.participantsListViewController = [[ParticipantsListViewController alloc] init];
+    self.participantsListViewController.participantIds = [[friendIdSet allObjects] mutableCopy];
+    self.participantsListViewController.topBarLabel = [[UILabel alloc] init];
+    [self.participantsListViewController.topBarLabel setText:@"Likes"];
+    self.participantsListViewController.delegate = self;
+    [self.participantsListViewController didMoveToParentViewController:self];
+    [self.participantsListViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+    [self.view addSubview:self.participantsListViewController.view];
+    
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.participantsListViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                     }];
+}
+
+-(void)postSettingsClicked:(PFObject*)postObject {
+    UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:nil delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Delete Post", nil];
+    [actionSheet showInView:self.view];
+    self.postToDelete = postObject;
+}
+
+#pragma mark ParticpiantsListViewControllerDelegate
+
+-(void)closeParticipantsView {
+    [UIView animateWithDuration:SLIDE_TIMING*1.2
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.participantsListViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                         [self.participantsListViewController.view removeFromSuperview];
+                         [self.participantsListViewController removeFromParentViewController];
+                     }];
+}
+
 #pragma mark UITableViewDataSource Methods
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return CELL_HEIGHT;
+    if (!self.sliderOn) {
+        return CELL_HEIGHT;
+    } else {
+        PFObject *object = [self.activityArray objectAtIndex:indexPath.row];
+        if ([[object objectForKey:@"type"] isEqualToString:@"photo"] ) {
+            NSString *content = [object objectForKey:@"content"];
+            UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
+            CGRect textRect = [content boundingRectWithSize:CGSizeMake(self.view.frame.size.width - 60.0, 1000.0)
+                                                    options:NSStringDrawingUsesLineFragmentOrigin
+                                                 attributes:@{NSFontAttributeName:montserrat}
+                                                    context:nil];
+            return self.view.frame.size.width + 100.0 + textRect.size.height;
+        } else if ([[object objectForKey:@"type"] isEqualToString:@"comment"]) {
+            NSString *userName = [[object objectForKey:@"user"] objectForKey:@"firstName"];
+            NSString *content = [object objectForKey:@"content"];
+            NSString *contentString = [NSString stringWithFormat:@"%@ commented: \n\n\"%@\"", userName, content];
+            UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
+            CGRect textRect = [contentString boundingRectWithSize:CGSizeMake(self.view.frame.size.width - 60.0, 1000.0)
+                                                          options:NSStringDrawingUsesLineFragmentOrigin
+                                                       attributes:@{NSFontAttributeName:montserrat}
+                                                          context:nil];
+            return textRect.size.height + 80.0;
+        } else {
+            NSString *userName = [[object objectForKey:@"user"] objectForKey:@"firstName"];
+            NSString *contentString = [NSString stringWithFormat:@"%@ tethred here", userName];
+            UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
+            CGRect textRect = [contentString boundingRectWithSize:CGSizeMake(self.view.frame.size.width - 60.0, 1000.0)
+                                                          options:NSStringDrawingUsesLineFragmentOrigin
+                                                       attributes:@{NSFontAttributeName:montserrat}
+                                                          context:nil];
+            return textRect.size.height + 80.0;
+        }
+    }
 }
 
 -(CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+    if (!self.sliderOn) {
         return HEADER_HEIGHT;
+    } else {
+        return 0.0;
+    }
 }
 
 -(UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
@@ -696,31 +1268,62 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    if (section == 0) {
-        return [self.friendsArray count];
+    if (!self.sliderOn) {
+        if (section == 0) {
+            return [self.friendsArray count];
+        } else {
+            return [self.friendsOfFriendsArray count];
+        }
     } else {
-        return [self.friendsOfFriendsArray count];
+        return [self.activityArray count];
     }
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    if (!self.sliderOn) {
         return 2;
+    } else {
+        return 1;
+    }
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    FriendAtPlaceCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell"];
-    if (!cell) {
-        cell = [[FriendAtPlaceCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Cell"];
-    }
-    
-    if (indexPath.section == 0) {
-       [cell setFriend:[self.friendsArray objectAtIndex:indexPath.row]];
+    if (!self.sliderOn) {
+        FriendAtPlaceCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell"];
+        if (!cell) {
+            cell = [[FriendAtPlaceCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Cell"];
+        }
+        
+        if (indexPath.section == 0) {
+            [cell setFriend:[self.friendsArray objectAtIndex:indexPath.row]];
+        } else {
+            [cell setFriend:[self.friendsOfFriendsArray objectAtIndex:indexPath.row]];
+        }
+        cell.selectionStyle = UITableViewCellSelectionStyleNone;
+        
+        return cell;
     } else {
-        [cell setFriend:[self.friendsOfFriendsArray objectAtIndex:indexPath.row]];
+        ActivityCell *cell = [[ActivityCell alloc] init];
+        [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+        cell.delegate = self;
+        cell.feedType = @"place";
+        [cell setActivityObject:[self.activityArray objectAtIndex:indexPath.row]];
+        return cell;
     }
-    cell.selectionStyle = UITableViewCellSelectionStyleNone;
+}
 
-    return cell;
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (!self.sliderOn) {
+        Friend *friend;
+        if (indexPath.section == 0) {
+            friend = [self.friendsArray objectAtIndex:indexPath.row];
+        } else if (indexPath.section == 1){
+            friend = [self.friendsOfFriendsArray objectAtIndex:indexPath.row];
+        }
+        if ([self.delegate respondsToSelector:@selector(showProfileOfFriend:)]) {
+            [self.delegate showProfileOfFriend:friend];
+        }
+    }
 }
 
 - (void)didReceiveMemoryWarning

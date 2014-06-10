@@ -16,6 +16,7 @@
 @synthesize facebookFriends;
 @synthesize tetherFriends;
 @synthesize blockedFriends;
+@synthesize friendsOfFriends;
 @synthesize statusMessage;
 @synthesize tetherFriendsNearbyDictionary;
 @synthesize tetherFriendsDictionary;
@@ -28,6 +29,7 @@
 @synthesize foursquarePlacesDictionary;
 @synthesize tethrPlacesDictionary;
 @synthesize placesDictionary;
+@synthesize historicalTethrsDictionary;
 @synthesize currentCommitmentParseObject;
 @synthesize currentCommitmentPlace;
 @synthesize notifications;
@@ -39,6 +41,7 @@
 @synthesize placesArray;
 @synthesize userCoordinates;
 @synthesize messageThreadDictionary;
+@synthesize profilePicture;
 
 #pragma mark Singleton Methods
 

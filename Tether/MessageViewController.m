@@ -7,12 +7,15 @@
 //
 
 #import "CenterViewController.h"
+#import "Constants.h"
 #import "Datastore.h"
 #import "Flurry.h"
 #import "Message.h"
 #import "MessageCell.h"
 #import "MessageThread.h"
 #import "MessageViewController.h"
+#import "ParticipantsListViewController.h"
+#import "ProfileViewController.h"
 #import "SelectInviteLocationViewController.h"
 
 #define BOTTOM_BAR_HEIGHT 50.0
@@ -24,11 +27,13 @@
 #define PADDING 15.0
 #define POLLING_INTERVAL 10
 #define SEND_BUTTON_WIDTH 48.0
+#define SETTINGS_BAR_HEIGHT 40.0
 #define SLIDE_TIMING 0.6
+#define SPINNER_SIZE 30.0
 #define STATUS_BAR_HEIGHT 20.0
 #define TOP_BAR_HEIGHT 70.0
 
-@interface MessageViewController () <MessageCellDelegate, SelectInviteLocationViewControllerDelegate, UIGestureRecognizerDelegate, UITableViewDataSource, UITableViewDelegate, UITextViewDelegate>
+@interface MessageViewController () <MessageCellDelegate, SelectInviteLocationViewControllerDelegate, UIGestureRecognizerDelegate, UITableViewDataSource, UITableViewDelegate, UITextViewDelegate, UIActionSheetDelegate, PartcipantsListViewControllerDelegate>
 
 @property (retain, nonatomic) UIView * topBar;
 @property (retain, nonatomic) UILabel * nameLabel;
@@ -46,6 +51,11 @@
 @property (retain, nonatomic) UIButton *inviteButton;
 @property (retain, nonatomic) UIImageView *inviteImageView;
 @property (nonatomic, strong) SelectInviteLocationViewController *selectInviteViewController;
+@property (retain, nonatomic) UIButton *settingsButton;
+@property (retain, nonatomic) UIView * settingsBar;
+@property (retain, nonatomic) UIView * settingsBarBorder;
+@property (retain, nonatomic) ParticipantsListViewController * participantsListViewController;
+@property (retain, nonatomic) UIActivityIndicatorView *activityIndicatorView;
 
 @end
 
@@ -87,16 +97,24 @@
     // name labels setup
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
     NSString *names = @"";
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     
+    int count = 0;
     for (NSString *friendName in self.thread.participantNames) {
-        if (![friendName isEqualToString:sharedDataManager.name] && ![friendName isEqualToString:sharedDataManager.firstName]) {
-            if ([names isEqualToString:@""]) {
-                names = friendName;
-            } else {
-                names = [NSString stringWithFormat:@"%@, %@", names,friendName];
+        if (![friendName isEqualToString:[userDetails stringForKey:@"name"]] && ![friendName isEqualToString:[userDetails stringForKey:@"firstName"]]) {
+            if (count < 3) {
+                if ([names isEqualToString:@""]) {
+                    names = friendName;
+                } else {
+                    names = [NSString stringWithFormat:@"%@, %@", names,friendName];
+                }
             }
+            count++;
         }
+    }
+    
+    if (count > 3) {
+        names = [NSString stringWithFormat:@"%@ + %d", names, count - 3];
     }
     
     self.nameLabel = [[UILabel alloc] init];
@@ -105,7 +123,10 @@
     [self.nameLabel setText:names];
     CGSize size = [self.nameLabel.text sizeWithAttributes:@{NSFontAttributeName: montserrat}];
     self.nameLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2.0, (TOP_BAR_HEIGHT - size.height + STATUS_BAR_HEIGHT) / 2.0, size.width, size.height);
+    self.nameLabel.userInteractionEnabled = YES;
     [self.topBar addSubview:self.nameLabel];
+    UITapGestureRecognizer *gestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(showParticipants)];
+    [self.nameLabel addGestureRecognizer:gestureRecognizer];
     
     self.messagesArray = [[NSMutableArray alloc] init];
     
@@ -129,7 +150,13 @@
         NSSortDescriptor *dateDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"date" ascending:YES];
         [self.messagesArray sortUsingDescriptors:[NSArray arrayWithObjects:dateDescriptor, nil]];
     } else {
-        [self loadMessages];
+        if (self.thread) {
+            [self loadMessages];
+        }
+        self.activityIndicatorView = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake((self.view.frame.size.width - SPINNER_SIZE) / 2.0, self.topBar.frame.size.height + 20.0, SPINNER_SIZE, SPINNER_SIZE)];
+        self.activityIndicatorView.color = UIColorFromRGB(0x8e0528);
+        [self.view addSubview:self.activityIndicatorView];
+        [self.activityIndicatorView startAnimating];
     }
     [self.messagesTableView reloadData];
     
@@ -157,7 +184,8 @@
     [[self.textView layer] setBorderColor:UIColorFromRGB(0xc8c8c8).CGColor];
     [[self.textView layer] setBorderWidth:0.5];
     [[self.textView layer] setCornerRadius:4.0];
-    self.textView.font = montserrat;
+    UIFont *montserratLarge = [UIFont fontWithName:@"Montserrat" size:16.0f];
+    self.textView.font = montserratLarge;
     self.textView.textColor = UIColorFromRGB(0xc8c8c8);
     self.textView.text = @"Type a message...";
     [self.textView setScrollEnabled:NO];
@@ -196,6 +224,14 @@
     [self.bottomBar addSubview:self.inviteButton];
     
     self.keyboardHeight = 0.0;
+    
+    self.settingsButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 50.0, 0.0, 50.0, TOP_BAR_HEIGHT)];
+    [self.settingsButton addTarget:self action:@selector(settingsClicked:) forControlEvents:UIControlEventTouchUpInside];
+    [self.settingsButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    self.settingsButton.titleLabel.font = montserrat;
+    [self.settingsButton setImageEdgeInsets:UIEdgeInsetsMake(28.0, 10.0, 12.0, 10.0)];
+    [self.settingsButton setImage:[UIImage imageNamed:@"Gear"] forState:UIControlStateNormal];
+    [self.topBar addSubview:self.settingsButton];
 }
 
 -(void)markRead {
@@ -243,12 +279,79 @@
                 
                 [self.messagesTableView reloadData];
                 
+                [self.activityIndicatorView stopAnimating];
+                
                 NSIndexPath* ipath = [NSIndexPath indexPathForRow: MAX(0, [self.messagesArray count] -1) inSection: 0];
                 [self.messagesTableView scrollToRowAtIndexPath: ipath atScrollPosition: UITableViewScrollPositionBottom animated: NO];
                 
                 [sharedDataManager.messageThreadDictionary setObject:self.thread forKey:self.thread.threadId];
                 self.shouldUpdateMessageThreadVC = YES;
             }
+        }
+    }];
+}
+
+-(void)loadMessagesFromThreadId:(NSString*)threadId {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    PFQuery *query = [PFQuery queryWithClassName:@"MessageThread"];
+    [query whereKey:@"objectId" equalTo:threadId];
+    [query findObjectsInBackgroundWithBlock:^(NSArray *threadObjects, NSError *error) {
+        if (!error) {
+            PFObject *threadObject = [threadObjects objectAtIndex:0];
+            MessageThread *thread = [[MessageThread alloc] init];
+            thread.threadId = threadObject.objectId;
+            thread.threadObject = threadObject;
+            thread.recentMessageDate = threadObject.updatedAt;
+            thread.recentMessage = [threadObject objectForKey:@"recentMessage"];
+            if (sharedDataManager.name) {
+                if ([thread.recentMessage rangeOfString:sharedDataManager.name].location != NSNotFound && [thread.recentMessage rangeOfString:sharedDataManager.name].location == 0) {
+                    thread.recentMessage = [thread.recentMessage stringByReplacingOccurrencesOfString:sharedDataManager.name withString:@"You"];
+                }
+            }
+            
+            thread.participantIds = [NSMutableSet setWithArray:[threadObject objectForKey:@"participantIds"]];
+            thread.participantNames = [NSMutableSet setWithArray:[threadObject objectForKey:@"participantNames"]];
+            if ([thread.participantIds count] > 2) {
+                thread.isGroupMessage = YES;
+                thread.participantNames = [NSMutableSet setWithArray:[threadObject objectForKey:@"participantFirstNames"]];
+            } else {
+                thread.isGroupMessage = NO;
+            }
+            
+            NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+            NSString *names = @"";
+            int count = 0;
+            for (NSString *friendName in self.thread.participantNames) {
+                if (![friendName isEqualToString:[userDetails stringForKey:@"name"]] && ![friendName isEqualToString:[userDetails stringForKey:@"firstName"]]) {
+                    if (count < 3) {
+                        if ([names isEqualToString:@""]) {
+                            names = friendName;
+                        } else {
+                            names = [NSString stringWithFormat:@"%@, %@", names,friendName];
+                        }
+                    }
+                    count++;
+                }
+            }
+            
+            if (count > 3) {
+                names = [NSString stringWithFormat:@"%@ + %d", names, count - 3];
+            }
+            
+            UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
+            self.nameLabel = [[UILabel alloc] init];
+            [self.nameLabel setTextColor:[UIColor whiteColor]];
+            self.nameLabel.font = montserrat;
+            [self.nameLabel setText:names];
+            CGSize size = [self.nameLabel.text sizeWithAttributes:@{NSFontAttributeName: montserrat}];
+            self.nameLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2.0, (TOP_BAR_HEIGHT - size.height + STATUS_BAR_HEIGHT) / 2.0, size.width, size.height);
+            self.nameLabel.userInteractionEnabled = YES;
+            [self.topBar addSubview:self.nameLabel];
+            UITapGestureRecognizer *gestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(showParticipants)];
+            [self.nameLabel addGestureRecognizer:gestureRecognizer];
+            
+            self.thread = thread;
+            [self loadMessages];
         }
     }];
 }
@@ -261,6 +364,89 @@
     if([(UIPanGestureRecognizer*)sender state] == UIGestureRecognizerStateEnded) {
         if(velocity.x > 0) {
             [self closeMessageView];
+        }
+    }
+}
+
+-(void)showParticipants {
+    if ([self.thread.participantIds count] == 2) {
+        NSString *friendId = @"";
+        Datastore *sharedDataManager = [Datastore sharedDataManager];
+        for (NSString *string in self.thread.participantIds) {
+            if (![string isEqualToString:sharedDataManager.facebookId]) {
+                friendId = string;
+            }
+        }
+        
+        if ([sharedDataManager.tetherFriendsDictionary objectForKey:friendId]) {
+            Friend *friend = [sharedDataManager.tetherFriendsDictionary objectForKey:friendId];
+            [self showProfileOfFriend:friend];
+        }
+        // TODO: if not a friend, fetch the user
+    } else {
+        self.participantsListViewController = [[ParticipantsListViewController alloc] init];
+        self.participantsListViewController.participantIds = [[self.thread.participantIds allObjects] mutableCopy];
+        Datastore *sharedDataManager = [Datastore sharedDataManager];
+        self.participantsListViewController.dontShowId = sharedDataManager.facebookId;
+        self.participantsListViewController.topBarLabel = [[UILabel alloc] init];
+        [self.participantsListViewController.topBarLabel setText:@"Participants"];
+        self.participantsListViewController.delegate = self;
+        [self.participantsListViewController didMoveToParentViewController:self];
+        [self.participantsListViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+        [self.view addSubview:self.participantsListViewController.view];
+        
+        [UIView animateWithDuration:SLIDE_TIMING
+                              delay:0.0
+             usingSpringWithDamping:1.0
+              initialSpringVelocity:1.0
+                            options:UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                             [self.participantsListViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                         }
+                         completion:^(BOOL finished) {
+                         }];
+    }
+}
+
+-(void)showProfileOfFriend:(Friend*)user {
+    if ([self.delegate respondsToSelector:@selector(showProfileOfFriend:)]) {
+        [self.delegate showProfileOfFriend:user];
+    }
+}
+
+-(void)deleteThread {
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    if ([userDetails objectForKey:@"deletedThreads"]) {
+        NSMutableDictionary *dict = [userDetails objectForKey:@"deletedThreads"];
+        [dict setObject:self.thread.recentMessage forKey:self.thread.threadId];
+        [userDetails setObject:dict forKey:@"deletedThreads"];
+    } else {
+        NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
+        [dict setObject:self.thread.recentMessage forKey:self.thread.threadId];
+        [userDetails setObject:dict forKey:@"deletedThreads"];
+    }
+    
+    self.shouldUpdateMessageThreadVC = YES;
+    
+    [self closeMessageView];
+}
+
+#pragma mark - UIActionSheetDelegate
+
+- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if (buttonIndex == 0) {
+        [self deleteThread];
+    }
+}
+
+- (void)willPresentActionSheet:(UIActionSheet *)actionSheet
+{
+    for (UIView *subview in actionSheet.subviews) {
+        if ([subview isKindOfClass:[UIButton class]]) {
+            UIButton *button = (UIButton *)subview;
+            if ([button.titleLabel.text isEqualToString:@"Delete Conversation"]) {
+                [button setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
+            }
         }
     }
 }
@@ -297,6 +483,11 @@
 
 #pragma mark IBAction Delegate
 
+-(IBAction)settingsClicked:(id)sender {
+    UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:nil delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Delete Conversation", nil];
+    [actionSheet showInView:self.view];
+}
+
 -(IBAction)inviteClicked:(id)sender {
     if (!self.selectInviteViewController) {
         self.selectInviteViewController = [[SelectInviteLocationViewController alloc] init];
@@ -316,31 +507,38 @@
                              [self.selectInviteViewController.view setFrame:CGRectMake( 0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
                          }
                          completion:^(BOOL finished) {
-                             [Flurry logEvent:@"User_Views_Select_Location_Invite_Page"];
                          }];
     }
 }
 
 -(IBAction)sendClicked:(id)sender {
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
-    Message *newMessage = [[Message alloc] init];
-    newMessage.content = self.textView.text;
-    newMessage.date = [NSDate date];
-    newMessage.userId = sharedDataManager.facebookId;
-    newMessage.userName = sharedDataManager.name;
-    newMessage.threadId = self.thread.threadId;
-    
-    [self sendMessage:newMessage withInvite:nil];
-    
-    [self.messagesArray addObject:newMessage];
-    [self.messagesTableView reloadData];
-    
-    self.textView.text = @"";
-    
-    NSIndexPath* ipath = [NSIndexPath indexPathForRow: MAX(0, [self.messagesArray count] -1) inSection: 0];
-    [self.messagesTableView scrollToRowAtIndexPath: ipath atScrollPosition: UITableViewScrollPositionBottom animated: YES];
-    
-    [self textViewDidChange:self.textView];
+    NSString *string = self.textView.text;
+    NSString *trimmedString = [string stringByTrimmingCharactersInSet:
+                               [NSCharacterSet whitespaceCharacterSet]];
+    self.textView.text = trimmedString;
+    if (![self.textView.text isEqualToString:@""]) {
+        Datastore *sharedDataManager = [Datastore sharedDataManager];
+        Message *newMessage = [[Message alloc] init];
+        newMessage.content = self.textView.text;
+        newMessage.date = [NSDate date];
+        newMessage.userId = sharedDataManager.facebookId;
+        newMessage.userName = sharedDataManager.name;
+        newMessage.threadId = self.thread.threadId;
+        
+        self.thread.recentMessage = newMessage.content;
+        
+        [self sendMessage:newMessage withInvite:nil];
+        
+        [self.messagesArray addObject:newMessage];
+        [self.messagesTableView reloadData];
+        
+        self.textView.text = @"";
+        
+        NSIndexPath* ipath = [NSIndexPath indexPathForRow: MAX(0, [self.messagesArray count] -1) inSection: 0];
+        [self.messagesTableView scrollToRowAtIndexPath: ipath atScrollPosition: UITableViewScrollPositionBottom animated: YES];
+        
+        [self textViewDidChange:self.textView];
+    }
 }
 
 -(void)sendMessage:(Message*)message withInvite:(PFObject*)inviteObject{
@@ -378,6 +576,8 @@
                         NSDictionary *data = [NSDictionary dictionaryWithObjectsAndKeys:
                                               messageHeader, @"alert",
                                               @"Increment", @"badge",
+                                              @"msg", @"type",
+                                              self.thread.threadObject.objectId, @"threadId",
                                               nil];
                         
                         // Send push notification to query
@@ -412,8 +612,7 @@
     self.bottomBar.frame = frame;
     
     self.textView.frame = CGRectMake((self.bottomBar.frame.size.width - MESSAGE_FIELD_WIDTH) / 2.0,(self.bottomBar.frame.size.height - MESSAGE_FIELD_HEIGHT) / 2.0, MESSAGE_FIELD_WIDTH, MESSAGE_FIELD_HEIGHT);
-    self.textView.textColor = UIColorFromRGB(0xc8c8c8);
-    self.textView.text = @"Type a message...";
+    self.textView.text = @"";
     [self.textView setScrollEnabled:NO];
 }
 
@@ -446,6 +645,23 @@
     
     NSIndexPath* ipath = [NSIndexPath indexPathForRow: MAX(0, [self.messagesArray count] -1) inSection: 0];
     [self.messagesTableView scrollToRowAtIndexPath: ipath atScrollPosition: UITableViewScrollPositionBottom animated: YES];
+}
+
+#pragma mark ParticipantsListViewControllerDelegate
+
+-(void)closeParticipantsView {
+        [UIView animateWithDuration:SLIDE_TIMING*1.2
+                              delay:0.0
+             usingSpringWithDamping:1.0
+              initialSpringVelocity:1.0
+                            options:UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                             [self.participantsListViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0, self.view.frame.size.width, self.view.frame.size.height)];
+                         }
+                         completion:^(BOOL finished) {
+                             [self.participantsListViewController.view removeFromSuperview];
+                             [self.participantsListViewController removeFromParentViewController];
+                         }];
 }
 
 #pragma mark SelectInviteViewControllerDelegate
@@ -530,7 +746,7 @@
 #pragma mark UITableViewDataSource Methods
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:16.0f];
     Message *message = [self.messagesArray objectAtIndex:indexPath.row];
     
     NSDictionary *attributes = @{NSFontAttributeName: montserrat};
@@ -549,9 +765,9 @@
         
         Datastore *sharedDataManager = [Datastore sharedDataManager];
         if (message.invite && ![message.userId isEqualToString:sharedDataManager.facebookId] && ![message.invite.acceptances containsObject:sharedDataManager.facebookId] && ![message.invite.declines containsObject:sharedDataManager.facebookId]) {
-            return MAX(MIN_CELL_HEIGHT, rect.size.height + PADDING*3 + 30.0);
+            return MAX(MIN_CELL_HEIGHT, rect.size.height + PADDING*2.0 + 10.0);
         } else {
-            return MAX(MIN_CELL_HEIGHT, rect.size.height + PADDING*3);
+            return MAX(MIN_CELL_HEIGHT, rect.size.height + PADDING*2.0);
         }
     }
 }
@@ -643,11 +859,11 @@
 - (void)textViewDidChange:(UITextView *)textView {
     if(self.textView.text.length == 0){
         self.textView.tag = 0;
-    } else {
-        UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
+    }
+        UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:16.0f];
         
         NSDictionary *attributes = @{NSFontAttributeName: montserrat};
-        CGRect rect = [self.textView.text boundingRectWithSize:CGSizeMake(MESSAGE_FIELD_WIDTH, 200.0)
+        CGRect rect = [[NSString stringWithFormat:@"      %@", self.textView.text] boundingRectWithSize:CGSizeMake(MESSAGE_FIELD_WIDTH, 200.0)
                                                        options:NSStringDrawingUsesLineFragmentOrigin
                                                     attributes:attributes
                                                        context:nil];
@@ -675,7 +891,6 @@
         
         [self.sendButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
         [self.sendButton setEnabled:YES];
-    }
 }
 
 - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
@@ -689,6 +904,35 @@
         }
         return NO;
     }
+    
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:16.0f];
+    
+    NSDictionary *attributes = @{NSFontAttributeName: montserrat};
+    CGRect rect = [[NSString stringWithFormat:@"      %@", self.textView.text] boundingRectWithSize:CGSizeMake(MESSAGE_FIELD_WIDTH, 200.0)
+                                                   options:NSStringDrawingUsesLineFragmentOrigin
+                                                attributes:attributes
+                                                   context:nil];
+    
+    // resize textview
+    CGRect frame = self.textView.frame;
+    frame.size.height = MAX(MESSAGE_FIELD_HEIGHT, MIN(rect.size.height + 10.0, MAX_MESSAGE_FIELD_HEIGHT));
+    self.textView.frame = frame;
+    if (rect.size.height < MAX_MESSAGE_FIELD_HEIGHT) {
+        [self.textView setScrollEnabled:NO];
+    } else {
+        [self.textView setScrollEnabled:YES];
+    }
+    
+    // resize bottom bar
+    frame = self.bottomBar.frame;
+    frame.size.height = self.textView.frame.size.height + 22.0;
+    if (self.keyboardShowing) {
+        CGSize keyboardSize = [[[self.notification userInfo] objectForKey:UIKeyboardFrameBeginUserInfoKey] CGRectValue].size;
+        frame.origin.y = self.view.frame.size.height - keyboardSize.height - frame.size.height;
+    } else {
+        frame.origin.y = self.view.frame.size.height - frame.size.height;
+    }
+    self.bottomBar.frame = frame;
     
     return YES;
 }
