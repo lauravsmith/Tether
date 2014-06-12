@@ -225,6 +225,7 @@
 		477BFE7A193637D2003C0E99 /* ParticipantsListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 477BFE79193637D2003C0E99 /* ParticipantsListViewController.m */; };
 		477C0CD5193384B7009A58F9 /* ProfileViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 477C0CD4193384B7009A58F9 /* ProfileViewController.m */; };
 		477C0CDA1933A509009A58F9 /* PhotoEditViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 477C0CD91933A509009A58F9 /* PhotoEditViewController.m */; };
+		478426E1194A48D100DDE682 /* FollowRequestCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 478426E0194A48D100DDE682 /* FollowRequestCell.m */; };
 		4785EC3B1945F51A00A6FD7A /* Comment.png in Resources */ = {isa = PBXBuildFile; fileRef = 4785EC391945F51A00A6FD7A /* Comment.png */; };
 		4785EC3C1945F51A00A6FD7A /* Comment@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4785EC3A1945F51A00A6FD7A /* Comment@2x.png */; };
 		4785EC3E1945F5A000A6FD7A /* greyHeart.png in Resources */ = {isa = PBXBuildFile; fileRef = 4785EC3D1945F5A000A6FD7A /* greyHeart.png */; };
@@ -233,6 +234,7 @@
 		4785EC441945F60000A6FD7A /* redHeart@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4785EC421945F60000A6FD7A /* redHeart@2x.png */; };
 		4785EC4719474AE700A6FD7A /* RedPicker.png in Resources */ = {isa = PBXBuildFile; fileRef = 4785EC4519474AE700A6FD7A /* RedPicker.png */; };
 		4785EC4819474AE700A6FD7A /* RedPicker@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4785EC4619474AE700A6FD7A /* RedPicker@2x.png */; };
+		478A82D81948BE9900897BD0 /* redHeartBig.png in Resources */ = {isa = PBXBuildFile; fileRef = 478A82D71948BE9900897BD0 /* redHeartBig.png */; };
 		478C4BFF18482B78004C6BD0 /* SettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 478C4BFE18482B78004C6BD0 /* SettingsViewController.m */; };
 		4790C4811889B0F100DB9759 /* HelveticaNeueLTStd-UltLt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4790C4321889B0F100DB9759 /* HelveticaNeueLTStd-UltLt.otf */; };
 		47AC11DF18D13D7100F60B3A /* InfoPinGrey.png in Resources */ = {isa = PBXBuildFile; fileRef = 47AC11DD18D13D7100F60B3A /* InfoPinGrey.png */; };
@@ -579,6 +581,8 @@
 		477C0CD4193384B7009A58F9 /* ProfileViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ProfileViewController.m; sourceTree = "<group>"; };
 		477C0CD81933A509009A58F9 /* PhotoEditViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PhotoEditViewController.h; sourceTree = "<group>"; };
 		477C0CD91933A509009A58F9 /* PhotoEditViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PhotoEditViewController.m; sourceTree = "<group>"; };
+		478426DF194A48D100DDE682 /* FollowRequestCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FollowRequestCell.h; sourceTree = "<group>"; };
+		478426E0194A48D100DDE682 /* FollowRequestCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FollowRequestCell.m; sourceTree = "<group>"; };
 		4785EC391945F51A00A6FD7A /* Comment.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Comment.png; sourceTree = "<group>"; };
 		4785EC3A1945F51A00A6FD7A /* Comment@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Comment@2x.png"; sourceTree = "<group>"; };
 		4785EC3D1945F5A000A6FD7A /* greyHeart.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = greyHeart.png; sourceTree = "<group>"; };
@@ -587,6 +591,7 @@
 		4785EC421945F60000A6FD7A /* redHeart@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "redHeart@2x.png"; sourceTree = "<group>"; };
 		4785EC4519474AE700A6FD7A /* RedPicker.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = RedPicker.png; sourceTree = "<group>"; };
 		4785EC4619474AE700A6FD7A /* RedPicker@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RedPicker@2x.png"; sourceTree = "<group>"; };
+		478A82D71948BE9900897BD0 /* redHeartBig.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = redHeartBig.png; sourceTree = "<group>"; };
 		478C4BFD18482B78004C6BD0 /* SettingsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SettingsViewController.h; sourceTree = "<group>"; };
 		478C4BFE18482B78004C6BD0 /* SettingsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SettingsViewController.m; sourceTree = "<group>"; };
 		4790C4321889B0F100DB9759 /* HelveticaNeueLTStd-UltLt.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HelveticaNeueLTStd-UltLt.otf"; sourceTree = "<group>"; };
@@ -710,6 +715,8 @@
 				47E6C5591933F66C005C328B /* ActivityCell.m */,
 				4773708C193FAB7C00DCC060 /* CommentCell.h */,
 				4773708D193FAB7C00DCC060 /* CommentCell.m */,
+				478426DF194A48D100DDE682 /* FollowRequestCell.h */,
+				478426E0194A48D100DDE682 /* FollowRequestCell.m */,
 			);
 			name = View;
 			sourceTree = "<group>";
@@ -850,6 +857,7 @@
 				4777F6EB1940BF8E00B4D1B9 /* Post@2x.png */,
 				4785EC391945F51A00A6FD7A /* Comment.png */,
 				4785EC3F1945F5A800A6FD7A /* greyHeart@2x.png */,
+				478A82D71948BE9900897BD0 /* redHeartBig.png */,
 				4785EC3D1945F5A000A6FD7A /* greyHeart.png */,
 				4785EC411945F60000A6FD7A /* redHeart.png */,
 				4785EC421945F60000A6FD7A /* redHeart@2x.png */,
@@ -1376,6 +1384,7 @@
 				47460FF9188079BE0067545B /* Montserrat.ttf in Resources */,
 				4777F6F71940EEC300B4D1B9 /* Lock@2x.png in Resources */,
 				476F4DC818B2F7E6001A89A1 /* MissionGothicBoldItalic.otf in Resources */,
+				478A82D81948BE9900897BD0 /* redHeartBig.png in Resources */,
 				4775D60118AC0AB700E80CAC /* functions_67.html in Resources */,
 				4775D5BC18AC0AB700E80CAC /* ftv2mnode.png in Resources */,
 				4775D59D18AC0AB700E80CAC /* _flurry_ads_8h_source.html in Resources */,
@@ -1538,6 +1547,7 @@
 				4775D65118AC52B900E80CAC /* JSONKit.m in Sources */,
 				4771B1981914134F00A99E05 /* MessageViewController.m in Sources */,
 				47BB2C57187E074100BB40F5 /* FriendLabel.m in Sources */,
+				478426E1194A48D100DDE682 /* FollowRequestCell.m in Sources */,
 				472392AA1864D304000D0C7E /* NotificationCell.m in Sources */,
 				4771B1A719144E9D00A99E05 /* Invite.m in Sources */,
 				472392B51867D08C000D0C7E /* Constants.m in Sources */,

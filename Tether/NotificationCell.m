@@ -7,18 +7,17 @@
 //
 
 #import "CenterViewController.h"
+#import "Constants.h"
 #import "Datastore.h"
 #import "NotificationCell.h"
 
 #import <FacebookSDK/FacebookSDK.h>
 
-#define CELL_HEIGHT 70.0
 #define PADDING 10.0
-#define PANEL_WIDTH 45.0
 #define PROFILE_PICTURE_CORNER_RADIUS 14.0
 #define PROFILE_PICTURE_SIZE 28.0
 
-@interface NotificationCell () <TTTAttributedLabelDelegate, UIAlertViewDelegate>
+@interface NotificationCell () <UIGestureRecognizerDelegate>
 
 @end
 
@@ -28,162 +27,164 @@
 {
     self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
     if (self) {
-        self.profileView = [[FBProfilePictureView alloc] initWithFrame: CGRectMake(PADDING, PADDING - 1.0, PROFILE_PICTURE_SIZE, PROFILE_PICTURE_SIZE)];
+        self.profileView = [[FBProfilePictureView alloc] initWithFrame: CGRectMake(PADDING, PADDING, PROFILE_PICTURE_SIZE, PROFILE_PICTURE_SIZE)];
         [self addSubview:self.profileView];
-        self.messageHeaderLabel = [[TTTAttributedLabel alloc] init];
-        [self addSubview:self.messageHeaderLabel];
+        self.contentLabel = [[UILabel alloc] init];
+        [self addSubview:self.contentLabel];
         self.timeLabel = [[UILabel alloc] init];
         [self addSubview:self.timeLabel];
+        self.followButton = [[UIButton alloc] init];
+        [self addSubview:self.followButton];
     }
     return self;
 }
 
--(void)loadNotification {
+-(void)layoutSubviews {
     [self setBackgroundColor:[UIColor clearColor]];
     
-    if (self.notification.sender) {
-        self.profileView.profileID = self.notification.sender.friendID;
-        self.profileView.pictureCropping = FBProfilePictureCroppingSquare;
-        self.profileView.layer.cornerRadius = PROFILE_PICTURE_CORNER_RADIUS;
-    }
+    self.profileView.profileID = [[self.notificationObject objectForKey:@"fromUser"]  objectForKey:@"facebookId"];
+    self.profileView.pictureCropping = FBProfilePictureCroppingSquare;
+    self.profileView.layer.cornerRadius = PROFILE_PICTURE_CORNER_RADIUS;
+    
+    UITapGestureRecognizer *tapGesture =
+    [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(openProfile)];
+    [self.profileView addGestureRecognizer:tapGesture];
+    self.profileView.userInteractionEnabled = YES;
     
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:12.0f];
-    [self.messageHeaderLabel setFont:montserrat];
-    if([self.notification.type isEqualToString:@"newUser"]) {
-        self.text = [[NSMutableAttributedString alloc] initWithString:self.notification.messageHeader];
-        self.messageHeaderLabel.text = self.notification.messageHeader;
-    } else if([self.notification.type isEqualToString:@"invitation"]) {
-        NSString *friendListString = [[NSString alloc] init];
-        if ([self.notification.allRecipients count] > 10.0) {
-            friendListString = [NSString stringWithFormat:@" and %lu other friends", (unsigned long)[self.notification.allRecipients count]];
-        } else {
-            for (Friend *friend in self.notification.allRecipients) {
-                if ([self.notification.allRecipients indexOfObject:friend] == [self.notification.allRecipients count] - 1) {
-                    friendListString = [NSString stringWithFormat:@"%@ and %@", friendListString, friend.name];
-                } else {
-                    friendListString = [NSString stringWithFormat:@"%@, %@", friendListString, friend.name];
-                }
-            }
-        }
-        
-        NSString *messageHeader = [NSString stringWithFormat:@"%@ invited you%@ to %@", self.notification.sender.name, friendListString, self.notification.placeName];
-        if (!self.notification.message || [self.notification.message isEqualToString:@""]) {
-            self.messageHeaderLabel.text = messageHeader;
-        } else {
-            self.messageHeaderLabel.text = [NSString stringWithFormat:@"%@ : \n%@", messageHeader, self.notification.message];
-        }
-        self.text = [[NSMutableAttributedString alloc] initWithString:self.messageHeaderLabel.text];
-    } else {
-        self.text = [[NSMutableAttributedString alloc] initWithString:self.notification.messageHeader];
-        self.messageHeaderLabel.text = self.notification.messageHeader;
-    }
     
-    // add font and color attributes
-    NSRange stringRange = (NSRange){0, [self.messageHeaderLabel.text length]};
-    CTFontRef fontNormal = CTFontCreateWithName((__bridge CFStringRef)montserrat.fontName, montserrat.pointSize, NULL);
-    [self.text addAttribute:(NSString *)kCTFontAttributeName value:(__bridge id)fontNormal range:stringRange];
-    [self.text addAttribute:(NSString *)kCTForegroundColorAttributeName value:(id)[UIColor whiteColor].CGColor range:stringRange];
+    NSString *contentText = [self.notificationObject objectForKey:@"content"];
+    self.contentLabel.text = contentText;
     
-    [self.messageHeaderLabel setText:self.text];
-    
-    CGRect contentRect;
-    contentRect = [self.text boundingRectWithSize:CGSizeMake(200.0, 500.f)
-                                          options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading)
-                                          context:nil];
-    self.messageHeaderLabel.lineBreakMode = NSLineBreakByWordWrapping;
-    self.messageHeaderLabel.numberOfLines = 0;
-    self.messageHeaderLabel.frame = CGRectMake(PANEL_WIDTH, PADDING / 2.0, ceil(contentRect.size.width) + 1.0, ceil(contentRect.size.height) + 1.0);
-    
-    self.messageHeaderLabel.delegate = self;
-    
-    // bold place names and link to open place
-    NSRange placeRange = [self.messageHeaderLabel.text rangeOfString:self.notification.placeName];
-    UIFont *montserratBold = [UIFont fontWithName:@"Montserrat-Bold" size:12.0f];
-    CTFontRef font = CTFontCreateWithName((__bridge CFStringRef)montserratBold.fontName, montserratBold.pointSize, NULL);
-    
-    NSArray *keys = [[NSArray alloc] initWithObjects:(id)kCTForegroundColorAttributeName,(id)kCTUnderlineStyleAttributeName
-                     ,(id)kCTFontAttributeName, nil];
-    NSArray *objects = [[NSArray alloc] initWithObjects:UIColorFromRGB(0xc8c8c8),[NSNumber numberWithInt:kCTUnderlineStyleSingle],(__bridge id)font, nil];
-    NSDictionary *linkAttributes = [[NSDictionary alloc] initWithObjects:objects forKeys:keys];
-    self.messageHeaderLabel.linkAttributes = linkAttributes;
-    self.messageHeaderLabel.activeLinkAttributes = [NSDictionary dictionaryWithObjectsAndKeys:
-                                                    (id)[UIColorFromRGB(0x8e0528) CGColor], (NSString*)kCTForegroundColorAttributeName, nil];
-    [self.messageHeaderLabel addLinkToURL:[NSURL URLWithString:@"action://show-place"] withRange:placeRange];
-    
+    CGRect textRect = [contentText boundingRectWithSize:CGSizeMake(self.frame.size.width - 70.0, 1000.0)
+                                                options:NSStringDrawingUsesLineFragmentOrigin
+                                             attributes:@{NSFontAttributeName:montserrat}
+                                                context:nil];
+    self.contentLabel.frame = CGRectMake(50.0, 10.0, textRect.size.width, textRect.size.height);
+    self.contentLabel.lineBreakMode = NSLineBreakByWordWrapping;
+    self.contentLabel.numberOfLines = 0.0;
+    self.contentLabel.font = montserrat;
+
     [self.timeLabel setFont:montserrat];
-    NSTimeInterval timeInterval = [self.notification.time timeIntervalSinceNow];
-    
-    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-    [dateFormatter setDateFormat:@"HHmmss"];
-    NSInteger ti = abs((int)timeInterval);
-    NSInteger seconds = ti % 60;
-    NSInteger minutes = (ti / 60) % 60;
-    NSInteger hours = (ti / 3600);
-    NSInteger days = (ti / 86400);
-    NSInteger weeks = (ti / 604800);
-    
-    NSString *plural = @"";
-    if (weeks > 0) {
-        if (weeks > 1)
-            plural = @"s";
-        self.timeLabel.text = [NSString stringWithFormat:@"%ld week%@ ago", (long)weeks, plural];
-    } else if (days > 0) {
-        if (days > 1)
-            plural = @"s";
-        self.timeLabel.text = [NSString stringWithFormat:@"%ld day%@ ago", (long)days, plural];
-    } else if (hours > 0) {
-        if (hours > 1)
-            plural = @"s";
-        self.timeLabel.text = [NSString stringWithFormat:@"%ld hour%@ ago", (long)hours, plural];
-    } else if (minutes > 0) {
-        if (minutes > 1)
-            plural = @"s";
-        self.timeLabel.text = [NSString stringWithFormat:@"%ld minute%@ ago", (long)minutes, plural];
-    } else if (seconds > 0) {
-        if (seconds > 1)
-            plural = @"s";
-        self.timeLabel.text = [NSString stringWithFormat:@"%ld second%@ ago", (long)seconds, plural];
+    NSDate *date = self.notificationObject.createdAt;
+    NSTimeInterval interval = [[NSDate date] timeIntervalSinceDate:date];
+    if (interval < 60) {
+        self.timeLabel.text = [NSString stringWithFormat:@"%ld s", (long)interval %60];
+    } else if (interval > 60 && interval < 60*60) {
+        int minutes = floor(interval / 60.0);
+        self.timeLabel.text = [NSString stringWithFormat:@"%d m", minutes];
+    } else if (interval > 60*60 && interval < 60*60*24) {
+        int hours = floor(interval / (60.0*60.0));
+        self.timeLabel.text = [NSString stringWithFormat:@"%d h", hours];
+    } else if (interval > 60*60*24 && interval < 60*60*24*7) {
+        int days = floor(interval / (60*60*24));
+        self.timeLabel.text = [NSString stringWithFormat:@"%d d", days];
+    } else {
+        int weeks = floor(interval / (60*60*24*7));
+        self.timeLabel.text = [NSString stringWithFormat:@"%d w", weeks];
     }
-    self.time = self.timeLabel.text;
     
     CGSize size = [self.timeLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
-    self.timeLabel.frame = CGRectMake(self.frame.size.width - PANEL_WIDTH - size.width - PADDING, MAX(self.messageHeaderLabel.frame.size.height, CELL_HEIGHT - size.height - PADDING / 2.0), size.width, size.height);
-    [self.timeLabel setTextColor:[UIColor whiteColor]];
-}
-
-#pragma mark TTTAttributedLabelDelegate
-
-- (void)attributedLabel:(TTTAttributedLabel *)label didSelectLinkWithURL:(NSURL *)url {
-    if ([[url scheme] hasPrefix:@"action"]) {
-        if ([[url host] hasPrefix:@"show-place"]) {
+    self.timeLabel.frame = CGRectMake(self.contentLabel.frame.origin.x, self.contentLabel.frame.origin.y + self.contentLabel.frame.size.height, size.width, size.height);
+    self.timeLabel.font = montserrat;
+    self.timeLabel.textColor = UIColorFromRGB(0xc8c8c8);
+    
+    if ([[self.notificationObject objectForKey:@"type"] isEqualToString:@"following"]) {
+        self.followButton.frame = CGRectMake(self.frame.size.width - 70.0, 5.0, 65.0, 35.0);
+        self.followButton.titleLabel.font = montserrat;
+        self.followButton.layer.cornerRadius = 4.0;
+        self.followButton.layer.masksToBounds = YES;
+        self.followButton.layer.borderWidth = 1.0;
+        self.followButton.layer.borderColor = UIColorFromRGB(0x8e0528).CGColor;
+        [self.followButton addTarget:self action:@selector(followClicked:) forControlEvents:UIControlEventTouchUpInside];
+        Datastore *sharedDataManager = [Datastore sharedDataManager];
+        if ([sharedDataManager.tetherFriendsDictionary objectForKey:[[self.notificationObject objectForKey:@"fromUser"] objectForKey:@"facebookId"]]) {
+            self.followButton.tag = 0;
+        } else {
             NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-            if ([self.notification.city isEqualToString:[userDetails objectForKey:@"city"]] || !self.notification.city) {
-                    if ([self.delegate respondsToSelector:@selector(goToPlace:)]) {
-                        [self.delegate goToPlace:self.notification.placeId];
-                    }
-                    return;
+            NSMutableArray *requestArray = [userDetails objectForKey:@"requests"];
+            if ([requestArray containsObject:[[self.notificationObject objectForKey:@"fromUser"] objectForKey:@"facebookId"]]) {
+                self.followButton.tag = 2;
             } else {
-                self.cityChange = self.notification.city;
-                UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:[NSString stringWithFormat:@"%@ is located in %@", self.notification.placeName, self.notification.city]
-                                                                    message:[NSString stringWithFormat:@"Would you like to change your city to %@?", self.notification.city]
-                                                                   delegate:self
-                                                          cancelButtonTitle:@"Stay here"
-                                                          otherButtonTitles:@"Change", nil];
-                [alertView show];
+                self.followButton.tag = 1;
             }
         }
+        [self setupFollowButton];
     }
 }
 
-#pragma mark UIAlertViewDelegate
+-(void)setupFollowButton {
+    if (self.followButton.tag == 0) {
+        [self.followButton setTitle:@"following" forState:UIControlStateNormal];
+        [self.followButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [self.followButton setBackgroundColor:UIColorFromRGB(0x8e0528)];
+    } else if (self.followButton.tag == 1) {
+        [self.followButton setTitle:@"follow" forState:UIControlStateNormal];
+        [self.followButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+        [self.followButton setBackgroundColor:[UIColor whiteColor]];
+    } else {
+        [self.followButton setTitle:@"pending" forState:UIControlStateNormal];
+        [self.followButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
+        [self.followButton setBackgroundColor:[UIColor whiteColor]];
+    }
+}
 
-- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
-    if (buttonIndex == 1) {
-        if([self.delegate respondsToSelector:@selector(userChangedLocationToCityName:)]) {
-            [self.delegate userChangedLocationToCityName:self.cityChange];
-            Datastore *sharedDataManager = [Datastore sharedDataManager];
-            sharedDataManager.placeIDForNotification = self.notification.placeId;
+-(IBAction)followClicked:(id)sender {
+    PFUser *user = [self.notificationObject objectForKey:@"fromUser"];
+    Friend *friend = [[Friend alloc] init];
+    friend.friendID = user[kUserFacebookIDKey];
+    friend.name = user[kUserDisplayNameKey];
+    friend.firstName = user[@"firstName"];
+    friend.friendsArray = user[@"tethrFriends"];
+    friend.followersArray = user[@"followers"];
+    friend.tethrCount = [user[@"tethrs"] intValue];
+    friend.object = user;
+    friend.isPrivate = [user[@"private"] boolValue];
+    friend.city = user[@"cityLocation"];
+    friend.timeLastUpdated = user[kUserTimeLastUpdatedKey];
+    friend.status = [user[kUserStatusKey] boolValue];
+    friend.statusMessage = user[kUserStatusMessageKey];
+    
+    if (self.followButton.tag == 0) {
+        self.followButton.tag = 1;
+        if ([self.delegate respondsToSelector:@selector(followUser:following:)]) {
+            [self.delegate followUser:friend following:NO];
         }
+    } else if (self.followButton.tag == 1) {
+        if (friend.isPrivate) {
+            self.followButton.tag = 2;
+        } else {
+            self.followButton.tag = 0;
+        }
+        if ([self.delegate respondsToSelector:@selector(followUser:following:)]) {
+            [self.delegate followUser:friend following:YES];
+        }
+    }
+    [self setupFollowButton];
+}
+
+-(void)setNotificationObject:(PFObject *)notificationObject {
+    _notificationObject = notificationObject;
+    [self layoutSubviews];
+}
+
+-(void)openProfile {
+    if ([self.delegate respondsToSelector:@selector(showProfileOfFriend:)]) {
+        PFUser *user = [self.notificationObject objectForKey:@"fromUser"];
+        Friend *friend = [[Friend alloc] init];
+        friend.friendID = user[kUserFacebookIDKey];
+        friend.name = user[kUserDisplayNameKey];
+        friend.firstName = user[@"firstName"];
+        friend.friendsArray = user[@"tethrFriends"];
+        friend.followersArray = user[@"followers"];
+        friend.tethrCount = [user[@"tethrs"] intValue];
+        friend.object = user;
+        friend.isPrivate = [user[@"private"] boolValue];
+        friend.city = user[@"cityLocation"];
+        friend.timeLastUpdated = user[kUserTimeLastUpdatedKey];
+        friend.status = [user[kUserStatusKey] boolValue];
+        friend.statusMessage = user[kUserStatusMessageKey];
+        [self.delegate showProfileOfFriend:friend];
     }
 }
 

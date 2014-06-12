@@ -36,6 +36,7 @@
     NSInteger notifications;
     NSMutableArray *todaysNotificationsArray;
     NSMutableArray * blockedList;
+    NSMutableArray * blockedByList;
     NSMutableSet *bestFriendSet;
     NSString *placeIDForNotification;
     BOOL hasUpdatedFriends;
@@ -60,6 +61,7 @@
 @property (nonatomic, strong) NSMutableArray * tetherFriendsUndecided;
 @property (nonatomic, strong) NSMutableArray * tetherFriendsUnseen;
 @property (nonatomic, strong) NSMutableArray * blockedList;
+@property (nonatomic, strong) NSMutableArray * blockedByList;
 @property (nonatomic, strong) NSMutableDictionary *friendsToPlacesMap;
 @property (nonatomic, strong) NSMutableDictionary *popularPlacesDictionary;
 @property (nonatomic, strong) NSMutableDictionary *foursquarePlacesDictionary;

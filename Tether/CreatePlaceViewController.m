@@ -336,7 +336,7 @@
         [activity setObject:[placeObject objectForKey:@"memo"] forKey:@"memo"];
     }
     [activity setObject:[placeObject objectForKey:@"owner"] forKey:@"owner"];
-    if ([user objectForKey:@"private"] || self.privateSwitch.on) {
+    if (self.privateSwitch.on) {
         [activity setObject:[NSNumber numberWithBool:YES] forKey:@"private"];
     }
     [activity saveInBackground];

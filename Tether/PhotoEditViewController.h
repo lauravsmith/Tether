@@ -26,5 +26,6 @@
 
 -(void)reloadActivity;
 -(void)closePhotoEditView;
+-(void)confirmPosting:(NSString*)postType;
 
 @end

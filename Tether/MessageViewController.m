@@ -251,6 +251,7 @@
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     PFQuery *query = [PFQuery queryWithClassName:@"Message"];
     [query whereKey:@"threadId" equalTo:self.thread.threadObject];
+    [query orderByDescending:@"createdAt"];
     [query findObjectsInBackgroundWithBlock:^(NSArray *messages, NSError *error) {
         if (!error) {
             NSMutableDictionary *tempMessageDictionary = [[NSMutableDictionary alloc] init];

@@ -35,6 +35,7 @@
 @synthesize notifications;
 @synthesize todaysNotificationsArray;
 @synthesize blockedList;
+@synthesize blockedByList;
 @synthesize bestFriendSet;
 @synthesize placeIDForNotification;
 @synthesize hasUpdatedFriends;

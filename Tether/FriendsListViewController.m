@@ -86,6 +86,8 @@
 @property (retain, nonatomic) PlaceCommentViewController * placeCommentViewController;
 @property (retain, nonatomic) CommentViewController * commentVC;
 @property (retain, nonatomic) UIActivityIndicatorView *activityIndicatorView;
+@property (retain, nonatomic) UIView *confirmationView;
+@property (retain, nonatomic) UIActivityIndicatorView *confirmActivityIndicatorView;
 @end
 
 @implementation FriendsListViewController
@@ -149,7 +151,7 @@
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
     
     self.friendsLabel = [[UILabel alloc] init];
-    self.friendsLabel.text = @"friends";
+    self.friendsLabel.text = @"status";
     self.friendsLabel.font = montserrat;
     CGSize size = [self.friendsLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
     self.friendsLabel.textColor = UIColorFromRGB(0x1d1d1d);
@@ -1094,8 +1096,48 @@
                      }];
 }
 
+-(void)confirmPosting:(NSString*)postType {
+    self.confirmationView = [[UIView alloc] init];
+    [self.confirmationView setBackgroundColor:[UIColor whiteColor]];
+    self.confirmationView.alpha = 0.8;
+    self.confirmationView.layer.cornerRadius = 10.0;
+    
+    UILabel *confirmationLabel = [[UILabel alloc] init];
+    confirmationLabel.text = postType;
+    confirmationLabel.textColor = UIColorFromRGB(0x8e0528);
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
+    confirmationLabel.font = montserrat;
+    CGSize size = [confirmationLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
+    self.confirmationView.frame = CGRectMake((self.view.frame.size.width - MAX(200.0,size.width)) / 2.0, (self.view.frame.size.height - 100.0) / 2.0, MIN(self.view.frame.size.width,MAX(200.0,size.width)), 100.0);
+    confirmationLabel.frame = CGRectMake((self.confirmationView.frame.size.width - size.width) / 2.0, (self.confirmationView.frame.size.height - size.height) / 2.0, MIN(size.width, self.view.frame.size.width), size.height);
+    confirmationLabel.adjustsFontSizeToFitWidth = YES;
+    [self.confirmationView addSubview:confirmationLabel];
+    
+    [self.view addSubview:self.confirmationView];
+    
+    self.confirmActivityIndicatorView = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake((self.confirmationView.frame.size.width - SPINNER_SIZE) / 2.0, confirmationLabel.frame.origin.y + confirmationLabel.frame.size.height + 2.0, SPINNER_SIZE, SPINNER_SIZE)];
+    self.confirmActivityIndicatorView.color = UIColorFromRGB(0x8e0528);
+    [self.confirmationView addSubview:self.confirmActivityIndicatorView];
+    [self.confirmActivityIndicatorView startAnimating];
+    
+    self.view.userInteractionEnabled = NO;
+}
+
+-(void)dismissConfirmation {
+    [UIView animateWithDuration:0.2
+                          delay:0.5
+                        options:UIViewAnimationOptionAllowAnimatedContent animations:^{
+                            self.confirmationView.alpha = 0.2;
+                        } completion:^(BOOL finished) {
+                            [self.confirmActivityIndicatorView stopAnimating];
+                            [self.confirmationView removeFromSuperview];
+                            self.view.userInteractionEnabled = YES;
+                        }];
+}
+
 -(void)reloadActivity {
     [self loadActivity];
+    [self dismissConfirmation];
 }
 
 #pragma mark CreatePlaceViewControllerDelegate

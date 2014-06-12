@@ -58,9 +58,9 @@
 @property (assign, nonatomic) bool hasSearched;
 @property (retain, nonatomic) CreatePlaceViewController *createVC;
 @property (retain, nonatomic) NSMutableArray *followingActivityArray;
-@property (nonatomic, strong) UITableView *followingActivitytsTableView;
 @property (nonatomic, strong) UITableViewController *followingActivityTableViewController;
 @property (nonatomic, assign) CGFloat lastContentOffset;
+@property (nonatomic, assign) CGFloat difference;
 @property (nonatomic, strong) UIView *backView;
 @property (retain, nonatomic) NSMutableArray *nearbyActivityArray;
 @property (nonatomic, strong) UITableView *nearbyActivitytsTableView;
@@ -73,6 +73,9 @@
 @property (strong, nonatomic) UIButton *popularSwitchButton;
 @property (strong, nonatomic) UIButton *mapSwitchButton;
 @property (strong, nonatomic) UIButton *feedSwitchButton;
+@property (strong, nonatomic) UITapGestureRecognizer *refreshTapGesture;
+@property (strong, nonatomic) UITapGestureRecognizer *feedTapGesture;
+@property (strong, nonatomic) UITapGestureRecognizer *nearbyTapGesture;
 
 @end
 
@@ -85,6 +88,8 @@
         // Custom initialization
         self.mapHasAdjusted = NO;
         self.annotationsArray = [[NSMutableArray alloc] init];
+        
+        self.difference = 0.0;
     }
     return self;
 }
@@ -131,7 +136,7 @@
     self.popularSwitchButton = [[UIButton alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.frame.size.width / 3.0, 40.0)];
     [self.popularSwitchButton addTarget:self action:@selector(popularClicked:) forControlEvents:UIControlEventTouchUpInside];
     self.popularSwitchButton.titleLabel.font = montserratSmall;
-    [self.popularSwitchButton setTitle:@"Popular" forState:UIControlStateNormal];
+    [self.popularSwitchButton setTitle:@"Trending" forState:UIControlStateNormal];
     [self.popularSwitchButton setTitleEdgeInsets:UIEdgeInsetsMake(0.0, 0.0, 8.0, 0.0)];
     [self.switchBar addSubview:self.popularSwitchButton];
 
@@ -239,11 +244,14 @@
     CGSize size = [self.tethrLabel.text sizeWithAttributes:@{NSFontAttributeName:mission}];
     self.tethrLabel.frame = CGRectMake((self.topBar.frame.size.width - size.width) / 2, (self.topBar.frame.size.height - size.height + STATUS_BAR_HEIGHT) / 2, size.width, size.height);
     self.tethrLabel.userInteractionEnabled = YES;
-    UITapGestureRecognizer *refreshTapGesture =
+    self.refreshTapGesture =
     [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(refreshTapped:)];
-    [self.tethrLabel addGestureRecognizer:refreshTapGesture];
+    [self.tethrLabel addGestureRecognizer:self.refreshTapGesture];
     [self.tethrLabel setHidden:YES];
     [self.topBar addSubview:self.tethrLabel];
+    
+    self.feedTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(feedClicked:)];
+    self.nearbyTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(popularClicked:)];
     
     // number of friends going out label setup
     self.numberButton = [[UIButton alloc] init];
@@ -383,7 +391,9 @@
     self.popularSearchBar.layer.cornerRadius = 5.0;
     self.popularSearchBar.placeholder = @"Where are you going?";
     
-    [self mapClicked:nil];
+    self.coverView = [[UIView alloc] initWithFrame:self.view.frame];
+    [self.coverView setHidden:YES];
+    [self.view addSubview:self.coverView];
     
     [self layoutCurrentCommitment];
     [self restartTimer];
@@ -395,9 +405,11 @@
     [self.feedSearchBar setHidden:YES];
     [self.followingActivityTableViewController.refreshControl beginRefreshing];
     [self.followingActivitytsTableView setContentOffset:CGPointMake(0, -self.followingActivityTableViewController.refreshControl.frame.size.height) animated:YES];
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
     PFQuery *query = [PFQuery queryWithClassName:@"Activity"];
-    [query whereKey:@"facebookId" containedIn:sharedDataManager.tetherFriends];
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    [query whereKey:@"facebookId" containedIn:[userDetails objectForKey:@"tethrFriends"]];
+    [query whereKey:@"facebookId" notContainedIn:[userDetails objectForKey:@"blockedList"]];
+    [query whereKey:@"facebookId" notContainedIn:[userDetails objectForKey:@"blockedByList"]];
     [query includeKey:@"photo"];
     [query includeKey:@"user"];
     [query orderByDescending:@"updatedAt"];
@@ -419,8 +431,39 @@
     [self.nearbyActivitytsTableView setContentOffset:CGPointMake(0, -self.nearbyActivityTableViewController.refreshControl.frame.size.height) animated:YES];
     PFQuery *query = [PFQuery queryWithClassName:@"Activity"];
     [query whereKey:@"coordinate" nearGeoPoint:[PFGeoPoint geoPointWithLatitude:self.userCoordinates.coordinate.latitude
-                                                                       longitude:self.userCoordinates.coordinate.longitude] withinKilometers:80.0];
+                                                                       longitude:self.userCoordinates.coordinate.longitude] withinKilometers:20.0];
+    NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];
+    [query whereKey:@"facebookId" notContainedIn:[standardUserDefaults objectForKey:@"blockedList"]];
+    [query whereKey:@"facebookId" notContainedIn:[standardUserDefaults objectForKey:@"blockedByList"]];
     [query whereKey:@"private" notEqualTo:[NSNumber numberWithBool:YES]];
+    [query whereKey:@"privatePlace" notEqualTo:[NSNumber numberWithBool:YES]];
+    [query includeKey:@"photo"];
+    [query includeKey:@"user"];
+    [query orderByDescending:@"updatedAt"];
+    [query whereKey:@"user" notEqualTo:[PFUser currentUser]];
+    [query setLimit:100];
+    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+        self.nearbyActivityArray = [[NSMutableArray alloc] initWithArray:objects];
+        if ([objects count]  > 0) {
+            [self.nearbyActivitytsTableView reloadData];
+            [self.nearbyActivityTableViewController.refreshControl endRefreshing];
+            if (self.nearbyActivitytsTableView.contentOffset.y == -self.nearbyActivityTableViewController.refreshControl.frame.size.height) {
+                [self.nearbyActivitytsTableView setContentOffset:CGPointMake(0, 0) animated:YES];
+                [self.popularSearchBar setHidden:NO];
+            }
+        } else {
+            [self loadGlobalPopularActivity];
+        }
+    }];
+}
+
+-(void)loadGlobalPopularActivity {
+    PFQuery *query = [PFQuery queryWithClassName:@"Activity"];
+    [query whereKey:@"private" notEqualTo:[NSNumber numberWithBool:YES]];
+    [query whereKey:@"privatePlace" notEqualTo:[NSNumber numberWithBool:YES]];
+    NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];
+    [query whereKey:@"facebookId" notContainedIn:[standardUserDefaults objectForKey:@"blockedList"]];
+    [query whereKey:@"facebookId" notContainedIn:[standardUserDefaults objectForKey:@"blockedByList"]];
     [query includeKey:@"photo"];
     [query includeKey:@"user"];
     [query orderByDescending:@"updatedAt"];
@@ -754,6 +797,9 @@
                              self.mapSwitchButton.titleLabel.font = montserratSmall;
                              self.popularSwitchButton.titleLabel.font = montserratBold;
                              self.feedSwitchButton.titleLabel.font = montserratSmall;
+                             [self.tethrLabel removeGestureRecognizer:self.feedTapGesture];
+                             [self.tethrLabel addGestureRecognizer:self.nearbyTapGesture];
+                             [self.tethrLabel removeGestureRecognizer:self.refreshTapGesture];
     } completion:^(BOOL finished) {
         
     }];
@@ -784,6 +830,9 @@
                              self.mapSwitchButton.titleLabel.font = montserratSmall;
                              self.popularSwitchButton.titleLabel.font = montserratSmall;
                              self.feedSwitchButton.titleLabel.font = montserratBold;
+                             [self.tethrLabel addGestureRecognizer:self.feedTapGesture];
+                             [self.tethrLabel removeGestureRecognizer:self.nearbyTapGesture];
+                             [self.tethrLabel removeGestureRecognizer:self.refreshTapGesture];
                          } completion:^(BOOL finished) {
                              
                          }];
@@ -810,6 +859,9 @@
                          self.mapSwitchButton.titleLabel.font = montserratBold;
                          self.popularSwitchButton.titleLabel.font = montserratSmall;
                          self.feedSwitchButton.titleLabel.font = montserratSmall;
+                         [self.tethrLabel removeGestureRecognizer:self.feedTapGesture];
+                        [self.tethrLabel removeGestureRecognizer:self.nearbyTapGesture];
+                         [self.tethrLabel addGestureRecognizer:self.refreshTapGesture];
                      } completion:^(BOOL finished) {
                          
                      }];
@@ -984,10 +1036,17 @@
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
     if (buttonIndex == 0) {
         if ([[self.postToDelete objectForKey:@"type"] isEqualToString:@"photo"]) {
+            if ([self.delegate respondsToSelector:@selector(confirmPosting:)]) {
+                [self.delegate confirmPosting:@"Deleting your photo"];
+            }
+            
             PFObject *photoObject = [self.postToDelete objectForKey:@"photo"];
             [photoObject deleteInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
                 [self.postToDelete deleteInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
                     if (succeeded) {
+                        if ([self.delegate respondsToSelector:@selector(reloadActivity)]) {
+                            [self.delegate reloadActivity];
+                        }
                     } else {
                         UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Could not delete your post, please try again" message:nil delegate: nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
                         [alert show];
@@ -995,8 +1054,15 @@
                 }];
             }];
         } else {
+            if ([self.delegate respondsToSelector:@selector(confirmPosting:)]) {
+                [self.delegate confirmPosting:@"Deleting your post"];
+            }
+            
             [self.postToDelete deleteInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
                 if (succeeded) {
+                    if ([self.delegate respondsToSelector:@selector(reloadActivity)]) {
+                        [self.delegate reloadActivity];
+                    }
                 }
                 else {
                     UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Could not delete your post, please try again" message:nil delegate: nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
@@ -1488,13 +1554,21 @@
             object = [self.nearbyActivityArray objectAtIndex:indexPath.row - 1];
         }
         if ([[object objectForKey:@"type"] isEqualToString:@"photo"]) {
+            NSString *userName = [[object objectForKey:@"user"] objectForKey:@"firstName"];
+            NSString * placeName = [object objectForKey:@"placeName"];
             NSString *content = [object objectForKey:@"content"];
+            NSString *contentString;
+            if (content && ![content isEqualToString:@""]) {
+               contentString = [NSString stringWithFormat:@"%@ posted a photo to %@: \n\"%@\"", userName, placeName, content];
+            } else {
+               contentString = [NSString stringWithFormat:@"%@ posted a photo to %@", userName, placeName];
+            }
             UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
-            CGRect textRect = [content boundingRectWithSize:CGSizeMake(self.view.frame.size.width - 60.0, 1000.0)
-                                                    options:NSStringDrawingUsesLineFragmentOrigin
-                                                 attributes:@{NSFontAttributeName:montserrat}
-                                                    context:nil];
-            return self.view.frame.size.width + 100.0 + textRect.size.height;
+            CGRect textRect = [contentString boundingRectWithSize:CGSizeMake(self.view.frame.size.width - 60.0, 1000.0)
+                                                          options:NSStringDrawingUsesLineFragmentOrigin
+                                                       attributes:@{NSFontAttributeName:montserrat}
+                                                          context:nil];
+            return self.view.frame.size.width + textRect.size.height + 70.0;
         } else if ([[object objectForKey:@"type"] isEqualToString:@"comment"]) {
             NSString *userName = [[object objectForKey:@"user"] objectForKey:@"firstName"];
             NSString * placeName = [object objectForKey:@"placeName"];
@@ -1505,7 +1579,7 @@
                                                           options:NSStringDrawingUsesLineFragmentOrigin
                                                        attributes:@{NSFontAttributeName:montserrat}
                                                           context:nil];
-            return textRect.size.height + 80.0;
+            return textRect.size.height + 70.0;
         } else {
             NSString *userName = [[object objectForKey:@"user"] objectForKey:@"firstName"];
             NSString * placeName = [object objectForKey:@"placeName"];
@@ -1624,6 +1698,7 @@
     if (scrollView == self.followingActivitytsTableView || scrollView == self.nearbyActivitytsTableView) {
         if (scrollView.contentOffset.y > 0) {
             if (self.lastContentOffset < scrollView.contentOffset.y) {
+                self.difference = 0.0;
                 if (self.backView.frame.origin.y == 0.0) {
                     [UIView animateWithDuration:0.2
                                      animations:^{
@@ -1633,10 +1708,21 @@
                 self.lastContentOffset = scrollView.contentOffset.y;
             } else if (self.lastContentOffset > scrollView.contentOffset.y) {
                 if (self.backView.frame.origin.y == -82.0) {
-                    [UIView animateWithDuration:0.2
-                                     animations:^{
-                                         self.backView.frame = CGRectMake(0.0, 0.0, self.view.frame.size.width, self.view.frame.size.height);
-                                     }];
+                    self.difference += (self.lastContentOffset - scrollView.contentOffset.y);
+                    CGFloat offset = 0.0;
+                    if (!self.followingActivitytsTableView.hidden) {
+                        offset = self.followingActivitytsTableView.contentOffset.y;
+                    } else {
+                        offset = self.nearbyActivitytsTableView.contentOffset.y;
+                    }
+                    
+                    if (self.difference > 200.0 || offset < 40.0) {
+                        [UIView animateWithDuration:0.2
+                                         animations:^{
+                                             self.backView.frame = CGRectMake(0.0, 0.0, self.view.frame.size.width, self.view.frame.size.height);
+                                             self.difference = 0.0;
+                                         }];
+                    }
                 }
                 self.lastContentOffset = scrollView.contentOffset.y;
             }

@@ -80,7 +80,6 @@
 @property (nonatomic, assign) BOOL openingPlacePage;
 @property (nonatomic, strong) UIPanGestureRecognizer *panRecognizerBottom;
 @property (retain, nonatomic) ShareViewController *shareVC;
-@property (retain, nonatomic) ProfileViewController *profileVC;
 @property (retain, nonatomic) PhotoEditViewController *photoEditVC;
 @property (nonatomic, assign) BOOL hasLoadedFriends;
 
@@ -387,6 +386,8 @@
             if ([self.currentUser objectForKey:kUserBlockedListKey]) {
                 sharedDataManager.blockedList = [[NSMutableArray alloc] init];
                 [sharedDataManager.blockedList addObjectsFromArray:[self.currentUser objectForKey:kUserBlockedListKey]];
+                NSUserDefaults *standardUserDefaults = [NSUserDefaults standardUserDefaults];
+                [standardUserDefaults setObject:sharedDataManager.blockedList forKey:@"blockedList"];
             }
         }
         
@@ -414,6 +415,7 @@
 -(void)blockFriend:(Friend*)friend block:(BOOL)block {
     NSLog(@"Blocking Friend");
     Datastore *sharedDataManager = [Datastore sharedDataManager];
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     if (!sharedDataManager.blockedList) {
         sharedDataManager.blockedList = [[NSMutableArray alloc] init];
     }
@@ -421,12 +423,25 @@
         if (![sharedDataManager.blockedList containsObject:friend.friendID]) {
             [sharedDataManager.blockedList addObject:friend.friendID];
         }
-        [sharedDataManager.tetherFriendsDictionary removeObjectForKey:friend.friendID];
+        friend.blocked =YES;
+        [sharedDataManager.tetherFriendsDictionary setObject:friend forKey:friend.friendID];
+        [sharedDataManager.tetherFriendsNearbyDictionary setObject:friend forKey:friend.friendID];
+        
+        NSMutableArray *tethrFriendsArray = [userDetails objectForKey:@"tethrFriends"];
+        [tethrFriendsArray removeObject:friend.friendID];
+        [userDetails setObject:tethrFriendsArray forKey:@"tethrFriends"];
     } else {
         [sharedDataManager.blockedList removeObject:friend.friendID];
         friend.blocked = NO;
         [sharedDataManager.tetherFriendsDictionary setObject:friend forKey:friend.friendID];
+        
+        NSMutableArray *tethrFriendsArray = [userDetails objectForKey:@"tethrFriends"];
+        [tethrFriendsArray addObject:friend.friendID];
+        [userDetails setObject:tethrFriendsArray forKey:@"tethrFriends"];
     }
+
+    [userDetails setObject:sharedDataManager.blockedList forKey:@"blockedList"];
+    [userDetails synchronize];
     
     [self.currentUser setObject:sharedDataManager.blockedList forKey:kUserBlockedListKey];
     [self.currentUser saveEventually];
@@ -441,13 +456,8 @@
     NSLog(@"Your city: %@ state: %@", city, state);
     
     NSMutableArray *facebookFriends = [[NSMutableArray alloc] init];
-    if (sharedDataManager.facebookFriends) {
-        sharedDataManager.hasUpdatedFriends = NO;
-        facebookFriends = [sharedDataManager.facebookFriends mutableCopy];
-    } else {
-        sharedDataManager.hasUpdatedFriends = YES;
-        facebookFriends = [userDetails objectForKey:@"tethrFriends"];
-    }
+    sharedDataManager.hasUpdatedFriends = YES;
+    facebookFriends = [userDetails objectForKey:@"tethrFriends"];
 
     if (![self.currentUser objectForKey:kUserCityKey]) {
         [self saveCity:city state:state];
@@ -471,6 +481,7 @@
                 sharedDataManager.tetherFriendsNearbyDictionary = [[NSMutableDictionary alloc] init];
                 sharedDataManager.tetherFriends = [[NSMutableArray alloc] init];
                 sharedDataManager.blockedFriends = [[NSMutableArray alloc] init];
+                sharedDataManager.blockedByList = [[NSMutableArray alloc] init];
                 
                 for (PFUser *user in objects) {
                     // check that you are no on their block list
@@ -518,12 +529,16 @@
                             [sharedDataManager.tetherFriendsDictionary setObject:friend forKey:friend.friendID];
                             [sharedDataManager.tetherFriends addObject:friend.friendID];
                         }
+                        
                     } else {
+                        [sharedDataManager.blockedByList addObject:user[kUserFacebookIDKey]];
                         if ([sharedDataManager.tetherFriendsDictionary objectForKey:user[kUserFacebookIDKey]]) {
                             [sharedDataManager.tetherFriendsDictionary setObject:Nil forKey:user[kUserFacebookIDKey]];
                         }
                     }
                 }
+                
+                [userDetails setObject:sharedDataManager.blockedByList forKey:@"blockedByList"];
                 
                 [self sortTetherFriends];
                 
@@ -533,9 +548,7 @@
                     [self loadNotifications];
                 }
                 
-                if (!sharedDataManager.hasUpdatedFriends) {
-                    [self saveTethrFriends];
-                }
+                [self saveTethrFriends];
                 
                 if (!sharedDataManager.friendsOfFriends) {
                     [self loadFriendsOfFriends];
@@ -577,13 +590,10 @@
     }
     
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-    [userDetails setObject:tetherFriends forKey:@"tethrFriends"];
+    [userDetails setObject:[[PFUser currentUser] objectForKey:@"tethrFriends"] forKey:@"tethrFriends"];
     [userDetails setObject:sharedDataManager.facebookFriends forKey:@"facebookFriends"];
     [userDetails setObject:[self.currentUser objectForKey:@"followers"] forKey:@"followers"];
     [userDetails synchronize];
-    
-    [self.currentUser setObject:tetherFriends forKey:@"tethrFriends"];
-    [self.currentUser saveEventually];
     
     sharedDataManager.hasUpdatedFriends = YES;
 }
@@ -833,6 +843,7 @@
     } else {
         self.centerViewController.searchBarBackground.hidden = NO;
         self.centerViewController.switchBar.hidden = NO;
+        [self.centerViewController feedClicked:nil];
     }
 }
 
@@ -1136,6 +1147,7 @@
 {
     if (!self.centerViewController.listViewOpen) {
         self.centerViewController.dragging = YES;
+        [self.centerViewController.coverView setHidden:NO];
         UIView *childView = [self getLeftView];
         [self.view sendSubviewToBack:childView];
         
@@ -1168,6 +1180,7 @@
     if (!self.centerViewController.listViewOpen) {
         if (![self.view.subviews containsObject:self.decisionViewController]) {
             self.centerViewController.dragging = YES;
+            [self.centerViewController.coverView setHidden:NO];
             UIView *childView = [self getRightView];
             [self.view sendSubviewToBack:childView];
             [childView setNeedsLayout];
@@ -1226,6 +1239,7 @@
                          [self resetMainView];
                           self.centerViewController.dragging = NO;
                          [self.centerViewController.mv setScrollEnabled:YES];
+                         [self.centerViewController.coverView setHidden:YES];
                      }];
 }
 
@@ -1434,6 +1448,38 @@
 
 #pragma mark - PhotoEditViewControllerDelegate
 
+-(void)reloadActivity {
+    [self.centerViewController loadFollowingActivity];
+    [self dismissConfirmation];
+}
+
+-(void)confirmPosting:(NSString*)postType {
+    self.confirmationView = [[UIView alloc] init];
+    [self.confirmationView setBackgroundColor:[UIColor whiteColor]];
+    self.confirmationView.alpha = 0.8;
+    self.confirmationView.layer.cornerRadius = 10.0;
+    
+    UILabel *confirmationLabel = [[UILabel alloc] init];
+    confirmationLabel.text = postType;
+    confirmationLabel.textColor = UIColorFromRGB(0x8e0528);
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
+    confirmationLabel.font = montserrat;
+    CGSize size = [confirmationLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
+    self.confirmationView.frame = CGRectMake((self.view.frame.size.width - MAX(200.0,size.width)) / 2.0, (self.view.frame.size.height - 100.0) / 2.0, MIN(self.view.frame.size.width,MAX(200.0,size.width)), 100.0);
+    confirmationLabel.frame = CGRectMake((self.confirmationView.frame.size.width - size.width) / 2.0, (self.confirmationView.frame.size.height - size.height) / 2.0, MIN(size.width, self.view.frame.size.width), size.height);
+    confirmationLabel.adjustsFontSizeToFitWidth = YES;
+    [self.confirmationView addSubview:confirmationLabel];
+    
+    [self.view addSubview:self.confirmationView];
+    
+    self.activityIndicatorView = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake((self.confirmationView.frame.size.width - SPINNER_SIZE) / 2.0, confirmationLabel.frame.origin.y + confirmationLabel.frame.size.height + 2.0, SPINNER_SIZE, SPINNER_SIZE)];
+    self.activityIndicatorView.color = UIColorFromRGB(0x8e0528);
+    [self.confirmationView addSubview:self.activityIndicatorView];
+    [self.activityIndicatorView startAnimating];
+    
+    self.view.userInteractionEnabled = NO;
+}
+
 -(void)closePhotoEditView {
     [UIView animateWithDuration:SLIDE_TIMING
                           delay:0.0
@@ -1465,6 +1511,7 @@
             [self pollDatabase];
             self.centerViewController.searchBarBackground.hidden = NO;
             self.centerViewController.switchBar.hidden = NO;
+            [self.centerViewController feedClicked:nil];
         }];
 
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
@@ -1728,6 +1775,11 @@
     profileVC.user = friend;
     profileVC.delegate = self;
     
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    if ([sharedDataManager.blockedList containsObject:friend.friendID]) {
+        friend.blocked = YES;
+    }
+    
     [profileVC.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
     profileVC.view.tag = 1;
     [self.view addSubview:profileVC.view];
@@ -1765,6 +1817,12 @@
     if (postId) {
         profileVC.postId = postId;
     }
+    
+    if (self.openComment) {
+        profileVC.openComment = YES;
+        self.openComment = NO;
+    }
+    
     [profileVC.view setFrame:CGRectMake(0.0f, self.view.frame.size.height, self.view.frame.size.width, self.view.frame.size.height)];
     profileVC.view.tag = 1;
     [self.view addSubview:profileVC.view];
@@ -2107,6 +2165,9 @@
                     if (![place.owner isEqualToString:@""]) {
                         [commitment setObject:place.owner forKey:@"placeOwner"];
                     }
+                    if (place.isPrivate) {
+                        [commitment setObject:@"" forKey:@"privatePlace"];
+                    }
                 } else {
                     [commitment setObject:@"" forKey:@"placeOwner"];
                 }
@@ -2120,9 +2181,7 @@
                 }
                 
                 PFUser *user = [PFUser currentUser];
-                if (place.isPrivate) {
-                    [commitment setObject:[NSNumber numberWithBool:place.isPrivate] forKey:@"private"];
-                } else if ([user objectForKey:@"private"]) {
+                if ([[user objectForKey:@"private"] boolValue]) {
                     [commitment setObject:[NSNumber numberWithBool:YES] forKey:@"private"];
                 }
                 

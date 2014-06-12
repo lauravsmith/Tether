@@ -45,8 +45,6 @@ NSString *const SessionStateChangedNotification =
                                                                                                   nil]
                                                                                         forState:UIControlStateNormal];
     
-    [application setStatusBarStyle:UIStatusBarStyleDefault];
-    
     [application registerForRemoteNotificationTypes:UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound | UIRemoteNotificationTypeNone];
     
     // See if the app has a valid token for the current state.
@@ -77,12 +75,17 @@ fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
     [self.mainViewController updateNotificationsNumber];
     [self.mainViewController loadNotifications];
     if ([[userInfo objectForKey:@"type"] isEqualToString:@"msg"] && [userInfo objectForKey:@"threadId"]) {
-        [self.mainViewController openMessageWithThreadId:[userInfo objectForKey:@"threadId"]];
+
         if ([UIApplication sharedApplication].applicationState == UIApplicationStateActive) {
             AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
+        } else {
+                    [self.mainViewController openMessageWithThreadId:[userInfo objectForKey:@"threadId"]];
         }
     } else if ([[userInfo objectForKey:@"type"] isEqualToString:@"like"] || [[userInfo objectForKey:@"type"] isEqualToString:@"comment"]) {
         if ([UIApplication sharedApplication].applicationState != UIApplicationStateActive) {
+            if ([[userInfo objectForKey:@"type"] isEqualToString:@"comment"]) {
+                self.mainViewController.openComment = YES;
+            }
             [self.mainViewController showPostFromPush:[userInfo objectForKey:@"postId"]];
         }
     }

@@ -109,7 +109,7 @@
     
     self.postButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - SEND_BUTTON_WIDTH, 0.0, SEND_BUTTON_WIDTH, self.bottomBar.frame.size.height)];
     [self.postButton setTitle:@"Post" forState:UIControlStateNormal];
-    [self.postButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
+    [self.postButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateDisabled];
     self.postButton.titleLabel.font = montserratLarge;
     [self.postButton addTarget:self action:@selector(postClicked) forControlEvents:UIControlEventTouchUpInside];
     [self.postButton setEnabled:NO];
@@ -198,10 +198,24 @@
 }
 
 -(void)sendCommentPush:(NSString*)comment {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    
+    NSString *type = [self.activityObject objectForKey:@"type"];
+    if ([type isEqualToString:@"createLocation"]) {
+        type = @"location";
+    }
+    
+    NSString *messageHeader = [NSString stringWithFormat:@"%@ commented on your %@: %@", sharedDataManager.firstName, type, comment];
+    PFObject *personalNotificationObject = [PFObject objectWithClassName:@"PersonalNotification"];
+    [personalNotificationObject setObject:[PFUser currentUser] forKey:@"fromUser"];
+    [personalNotificationObject setObject:[self.activityObject objectForKey:@"user"] forKey:@"toUser"];
+    [personalNotificationObject setObject:messageHeader forKey:@"content"];
+    [personalNotificationObject setObject:self.activityObject forKey:@"activity"];
+    [personalNotificationObject setObject:@"comment" forKey:@"type"];
+    [personalNotificationObject saveInBackground];
+    
     PFQuery *pushQuery = [PFInstallation query];
     [pushQuery whereKey:@"owner" equalTo:[self.activityObject objectForKey:@"user"]];
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
-    NSString *messageHeader = [NSString stringWithFormat:@"%@ commented on your %@: %@", sharedDataManager.name, [self.activityObject objectForKey:@"type"], comment];
     NSDictionary *data = [NSDictionary dictionaryWithObjectsAndKeys:
                           messageHeader, @"alert",
                           @"comment", @"type",
@@ -245,6 +259,7 @@
 - (void)textViewDidChange:(UITextView *)textView {
     if(self.textView.text.length == 0){
         self.textView.tag = 0;
+        [self.postButton setEnabled:NO];
     }
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:16.0f];
     
@@ -365,7 +380,14 @@
 #pragma mark UITableViewDataSource Methods
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return 60.0;
+    PFObject *commentObject = [self.commentsArray objectAtIndex:indexPath.row];
+    NSString *content = [commentObject objectForKey:@"content"];
+    UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
+    CGRect textRect = [content boundingRectWithSize:CGSizeMake(self.view.frame.size.width - 60.0, 1000.0)
+                                            options:NSStringDrawingUsesLineFragmentOrigin
+                                         attributes:@{NSFontAttributeName:montserrat}
+                                            context:nil];
+    return textRect.size.height + 40.0;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {

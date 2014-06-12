@@ -175,7 +175,7 @@
     [query whereKey:@"threadId" containedIn:self.messageThreadObjects];
     [query includeKey:@"threadId"];
     [query includeKey:@"invite"];
-    [query setLimit:1000];
+    [query setLimit:500];
     [query orderByDescending:@"createdAt"];
     [query findObjectsInBackgroundWithBlock:^(NSArray *messages, NSError *error) {
         if (!error) {

@@ -73,6 +73,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [self.view addGestureRecognizer:panRecognizer];
 
     self.topBar = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, TOP_BAR_HEIGHT)];
+    [self.topBar setBackgroundColor:UIColorFromRGB(0x8e0528)];
     [self.view addSubview:self.topBar];
     
     self.scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0.0, TOP_BAR_HEIGHT, self.view.frame.size.width, self.view.frame.size.height - TOP_BAR_HEIGHT)];
@@ -82,7 +83,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.pageTitleLabel = [[UILabel alloc] init];
     self.pageTitleLabel.text = @"Edit Profile";
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
-    [self.pageTitleLabel setTextColor:UIColorFromRGB(0x8e0528)];
+    [self.pageTitleLabel setTextColor:[UIColor whiteColor]];
     self.pageTitleLabel.font = montserrat;
     self.pageTitleLabel.adjustsFontSizeToFitWidth = YES;
     CGSize size = [self.pageTitleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
@@ -92,7 +93,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.doneButton = [[TethrButton alloc] init];
     self.doneButton.titleLabel.font = montserrat;
     [self.doneButton setTitle:@"Done" forState:UIControlStateNormal];
-    [self.doneButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+    [self.doneButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     size = [self.doneButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
     [self.doneButton setFrame:CGRectMake(self.view.frame.size.width - 80.0, STATUS_BAR_HEIGHT + (TOP_BAR_HEIGHT - STATUS_BAR_HEIGHT - 50.0) / 2.0, 80.0, 50.0)];
     [self.doneButton addTarget:self action:@selector(doneClicked:) forControlEvents:UIControlEventTouchUpInside];
@@ -102,7 +103,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [self.separatorBar setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
     [self.topBar addSubview:self.separatorBar];
     
-    UIImage *triangleImage = [UIImage imageNamed:@"RedTriangle"];
+    UIImage *triangleImage = [UIImage imageNamed:@"WhiteTriangle"];
     self.backButton = [[UIButton alloc] initWithFrame:CGRectMake(0.0, 0.0, 50.0, TOP_BAR_HEIGHT)];
     [self.backButton setImage:triangleImage forState:UIControlStateNormal];
     [self.backButton setImageEdgeInsets:UIEdgeInsetsMake(17.0, 0.0, 0.0, 32.0)];
@@ -275,8 +276,8 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     [activity setObject:[user objectForKey:@"facebookId"] forKey:@"facebookId"];
     [activity setObject:[user objectForKey:@"cityLocation"] forKey:@"city"];
     [activity setObject:[user objectForKey:@"stateLocation"] forKey:@"state"];
-    if ([user objectForKey:@"private"]) {
-        [activity setObject:[user objectForKey:@"private"] forKey:@"private"];
+    if ([[user objectForKey:@"private"] boolValue]) {
+        [activity setObject:[NSNumber numberWithBool:[user objectForKey:@"private"]] forKey:@"private"];
     }
     [activity saveInBackground];
 }
@@ -312,7 +313,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.searchResultsTableViewController = [[UITableViewController alloc] init];
     self.searchResultsTableViewController.tableView = self.searchResultsTableView;
     
-    [UIView animateWithDuration:SLIDE_TIMING*1.2
+    [UIView animateWithDuration:SLIDE_TIMING*0.5
                           delay:0.0
          usingSpringWithDamping:1.0
           initialSpringVelocity:1.0
@@ -328,6 +329,10 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     PFUser *user = [PFUser currentUser];
     [user setObject:[NSNumber numberWithBool:self.privateSwitch.on] forKey:@"private"];
     [user saveInBackground];
+    
+    [[PFUser currentUser] refreshInBackgroundWithBlock:^(PFObject *object, NSError *error) {
+        
+    }];
     
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
     [userDetails setBool:self.privateSwitch.on forKey:@"private"];

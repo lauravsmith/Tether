@@ -70,8 +70,13 @@
     self.commentLabel.text = [self.commentObject objectForKey:@"content"];
     [self.commentLabel setTextColor:UIColorFromRGB(0x1d1d1d)];
     self.commentLabel.font = montserrat;
-    size = [self.commentLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
-    self.commentLabel.frame = CGRectMake(50.0, self.nameLabel.frame.size.height + 15.0, size.width, size.height);
+    CGRect textRect = [self.commentLabel.text boundingRectWithSize:CGSizeMake(self.frame.size.width - 60.0, 1000.0)
+                                            options:NSStringDrawingUsesLineFragmentOrigin
+                                         attributes:@{NSFontAttributeName:montserrat}
+                                            context:nil];
+    self.commentLabel.lineBreakMode = NSLineBreakByWordWrapping;
+    self.commentLabel.numberOfLines = 0;
+    self.commentLabel.frame = CGRectMake(50.0, self.nameLabel.frame.size.height + 15.0, textRect.size.width, textRect.size.height);
     
     Datastore *sharedDataManager = [Datastore sharedDataManager];
     if ([[self.commentObject objectForKey:@"facebookId"] isEqualToString:sharedDataManager.facebookId]) {
@@ -79,7 +84,7 @@
         [self.settingsButton setTitle:@"..." forState:UIControlStateNormal];
         [self.settingsButton setTitleEdgeInsets:UIEdgeInsetsMake(0.0, 0.0, 8.0, 0.0)];
         [self.settingsButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-        self.settingsButton.frame= CGRectMake(self.frame.size.width - 32.0, self.frame.size.height - 12.0, 30.0, 10.0);
+        self.settingsButton.frame= CGRectMake(self.frame.size.width - 32.0, self.frame.size.height - 12.0,  30.0, 17.0);
         [self.settingsButton setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
         self.settingsButton.layer.cornerRadius = 2.0;
         self.settingsButton.layer.masksToBounds = YES;

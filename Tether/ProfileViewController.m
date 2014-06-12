@@ -12,6 +12,8 @@
 #import "Constants.h"
 #import "Datastore.h"
 #import "EditProfileViewController.h"
+#import "FollowRequestCell.h"
+#import "NotificationCell.h"
 #import "ParticipantsListViewController.h"
 #import "ProfileViewController.h"
 
@@ -26,14 +28,16 @@
 #define SPINNER_SIZE 30.0
 #define TOP_BAR_HEIGHT 70.0
 
-@interface ProfileViewController () <UIGestureRecognizerDelegate, UITableViewDelegate, UITableViewDataSource, ActivityCellDelegate, PartcipantsListViewControllerDelegate, EditProfileViewControllerDelegate, UIActionSheetDelegate, CommentViewControllerDelegate>
+@interface ProfileViewController () <UIGestureRecognizerDelegate, UITableViewDelegate, UITableViewDataSource, ActivityCellDelegate, PartcipantsListViewControllerDelegate, EditProfileViewControllerDelegate, UIActionSheetDelegate, CommentViewControllerDelegate, NotificationCellDelegate, FollowRequestCellDelegate>
 
 @property (retain, nonatomic) UIView * topBar;
 @property (nonatomic, strong) UILabel *nameLabel;
 @property (nonatomic, strong) UILabel *statusLabel;
 @property (nonatomic, strong) TethrButton *tethrsButton;
 @property (nonatomic, strong) TethrButton *followersButton;
+@property (retain, nonatomic) UILabel * followersLabel;
 @property (nonatomic, strong) TethrButton *followingButton;
+@property (retain, nonatomic) UILabel * followingLabel;
 @property (retain, nonatomic) UIView * separatorBar;
 @property (nonatomic, strong) FBProfilePictureView *userProfilePictureView;
 @property (retain, nonatomic) TethrButton * messageButton;
@@ -53,7 +57,13 @@
 @property (nonatomic, strong) NSMutableDictionary *activityObjectsDictionary;
 @property (retain, nonatomic) PFObject * postToDelete;
 @property (retain, nonatomic) CommentViewController * commentVC;
+@property (retain, nonatomic) UIImageView * followImageView;
+@property (assign, nonatomic) BOOL isFriend;
 @property (assign, nonatomic) BOOL isPrivate;
+@property (nonatomic, strong) UITableView *notificationTableView;
+@property (nonatomic, strong) UITableViewController *notificationsTableViewController;
+@property (retain, nonatomic) NSMutableArray * notificationsArray;
+@property (retain, nonatomic) NSMutableArray * requestsArray;
 
 @end
 
@@ -89,9 +99,10 @@
     [self.view setBackgroundColor:[UIColor whiteColor]];
     
     self.topBar = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, TOP_BAR_HEIGHT)];
+    [self.topBar setBackgroundColor:UIColorFromRGB(0x8e0528)];
     [self.view addSubview:self.topBar];
     
-    UIImage *triangleImage = [UIImage imageNamed:@"RedTriangle"];
+    UIImage *triangleImage = [UIImage imageNamed:@"WhiteTriangle"];
     self.backButton = [[UIButton alloc] initWithFrame:CGRectMake(0.0, 0.0, 50.0, TOP_BAR_HEIGHT)];
     [self.backButton setImage:triangleImage forState:UIControlStateNormal];
     [self.backButton setImageEdgeInsets:UIEdgeInsetsMake(17.0, 0.0, 0.0, 32.0)];
@@ -99,13 +110,16 @@
     [self.view addSubview:self.backButton];
     
     self.nameLabel = [[UILabel alloc] init];
-    if (self.isPrivate) {
+    if ([sharedDataManager.tetherFriends containsObject:self.user.friendID]) {
+        self.isFriend = YES;
+    }
+    if (!self.isFriend) {
         self.nameLabel.text = self.user.firstName;
     } else {
         self.nameLabel.text = self.user.name;
     }
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
-    [self.nameLabel setTextColor:UIColorFromRGB(0x8e0528)];
+    [self.nameLabel setTextColor:[UIColor whiteColor]];
     self.nameLabel.font = montserrat;
     self.nameLabel.adjustsFontSizeToFitWidth = YES;
     CGSize size = [self.nameLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
@@ -116,6 +130,18 @@
         self.settingsButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 50.0, STATUS_BAR_HEIGHT, 50.0, 50.0)];
         [self.settingsButton setImage:[UIImage imageNamed:@"Gear.png"] forState:UIControlStateNormal];
         [self.settingsButton addTarget:self action:@selector(openEditProfileView) forControlEvents:UIControlEventTouchUpInside];
+        [self.topBar addSubview:self.settingsButton];
+    } else {
+        self.settingsButton = [[UIButton alloc] init];
+        [self.settingsButton addTarget:self action:@selector(friendSettingsClicked:) forControlEvents:UIControlEventTouchUpInside];
+        [self.settingsButton setTitle:@"..." forState:UIControlStateNormal];
+        [self.settingsButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateNormal];
+        [self.settingsButton setTitleEdgeInsets:UIEdgeInsetsMake(0.0, 0.0, 8.0, 0.0)];
+        self.settingsButton.frame= CGRectMake(self.view.frame.size.width - 50.0, (TOP_BAR_HEIGHT + STATUS_BAR_HEIGHT - 17.0) / 2.0, 30.0, 17.0);
+        self.settingsButton.layer.borderWidth = 1.0;
+        self.settingsButton.layer.borderColor = UIColorFromRGB(0xc8c8c8).CGColor;
+        self.settingsButton.layer.cornerRadius = 2.0;
+        self.settingsButton.layer.masksToBounds = YES;
         [self.topBar addSubview:self.settingsButton];
     }
     
@@ -187,7 +213,6 @@
 #pragma mark EditProfileViewControllerDelegate
 
 -(void)closeEditProfileVC {
-    [self loadActivity];
     [UIView animateWithDuration:SLIDE_TIMING
                           delay:0.0
          usingSpringWithDamping:1.0
@@ -199,6 +224,8 @@
                      completion:^(BOOL finished) {
                          [self.editProfileVC.view removeFromSuperview];
                          [self.editProfileVC removeFromParentViewController];
+                         self.editProfileVC = nil;
+                         [self loadActivity];
                      }];
 }
 
@@ -216,12 +243,50 @@
 
 #pragma mark IBAction
 
+-(void)friendSettingsClicked:(id)sender {
+    UIActionSheet *actionSheet;
+    if (self.user.blocked) {
+        actionSheet = [[UIActionSheet alloc] initWithTitle:nil delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Unblock User", nil];
+        actionSheet.delegate = self;
+        actionSheet.tag = 1;
+        [actionSheet showInView:self.view];
+    } else {
+        actionSheet = [[UIActionSheet alloc] initWithTitle:nil delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Block User", nil];
+        actionSheet.delegate = self;
+        actionSheet.tag = 2;
+        [actionSheet showInView:self.view];
+    }
+}
+
 -(void)viewFollowers:(id)sender {
+    self.participantsListViewController = [[ParticipantsListViewController alloc] init];
+    self.participantsListViewController.participantIds = [self.user.followersArray mutableCopy];
+    self.participantsListViewController.dontShowId = self.user.friendID;
+    self.participantsListViewController.topBarLabel = [[UILabel alloc] init];
+    [self.participantsListViewController.topBarLabel setText:@"Followers"];
+    self.participantsListViewController.delegate = self;
+    [self.participantsListViewController didMoveToParentViewController:self];
+    [self.participantsListViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+    [self.view addSubview:self.participantsListViewController.view];
+    
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.participantsListViewController.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                     }];
+}
+
+-(void)viewFollowing:(id)sender {
     self.participantsListViewController = [[ParticipantsListViewController alloc] init];
     self.participantsListViewController.participantIds = [self.user.friendsArray mutableCopy];
     self.participantsListViewController.dontShowId = self.user.friendID;
     self.participantsListViewController.topBarLabel = [[UILabel alloc] init];
-    [self.participantsListViewController.topBarLabel setText:@"Followers"];
+    [self.participantsListViewController.topBarLabel setText:@"Following"];
     self.participantsListViewController.delegate = self;
     [self.participantsListViewController didMoveToParentViewController:self];
     [self.participantsListViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
@@ -257,8 +322,164 @@
     }
 }
 
+-(void)setupFollowButton {
+    if (self.isFriend) {
+        self.followImageView.image = [UIImage imageNamed:@"PinIcon"];
+        [self.followButton setTitle:@"following" forState:UIControlStateNormal];
+    } else {
+        if (self.followButton.tag == 1) {
+            self.followImageView.image = [UIImage imageNamed:@"GreyPinIcon"];
+            [self.followButton setTitle:@"pending" forState:UIControlStateNormal];
+        } else {
+            self.followImageView.image = [UIImage imageNamed:@"GreyPinIcon"];
+            [self.followButton setTitle:@"follow" forState:UIControlStateNormal];
+        }
+    }
+}
+
 -(void)followClicked:(id)sender {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+
+    if (!self.isFriend) {
+        // different if private user -> send request
+
+        if (self.user.isPrivate) {
+            self.followButton.tag = 1;
+        } else {
+             self.isFriend = YES;
+            self.followersLabel.text = [NSString stringWithFormat:@"%d", MAX(0,[self.user.followersArray count] - 1)];
+        }
+        
+        [self setupFollowButton];
+        [self followerUser:self.user following:YES];
+        
+    } else {
+        [sharedDataManager.tetherFriendsDictionary removeObjectForKey:self.user.friendID];
+        [sharedDataManager.tetherFriendsNearbyDictionary removeObjectForKey:self.user.friendID];
+        
+        self.followersLabel.text = [NSString stringWithFormat:@"%d", MAX(0,[self.user.followersArray count] - 1)];
+        
+        self.isFriend = NO;
+        [self setupFollowButton];
+        
+        [self followerUser:self.user following:NO];
+    }
+}
+
+-(void)followerUser:(Friend*)friend following:(BOOL)adding {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    if (adding) {
+        if (friend.isPrivate) {
+            // create a request
+            PFObject *personalNotificationObject = [PFObject objectWithClassName:@"Request"];
+            [personalNotificationObject setObject:[PFUser currentUser] forKey:@"fromUser"];
+            [personalNotificationObject setObject:friend.object forKey:@"toUser"];
+            [personalNotificationObject saveInBackground];
+            
+            NSString *messageHeader = [NSString stringWithFormat:@"%@ would like to follow you", sharedDataManager.firstName];
+            [self sendUserPush:friend.object withMessage:messageHeader];
+            
+            NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+            NSMutableArray *requestArray = [userDetails objectForKey:@"requests"];
+            if (!requestArray) {
+                requestArray= [[NSMutableArray alloc] init];
+            }
+            [requestArray addObject:friend.friendID];
+            [userDetails setObject:requestArray forKey:@"requests"];
+        } else {
+            PFUser *user = [PFUser currentUser];
+            NSMutableSet *tethrFriendsSet = [NSMutableSet setWithArray:[user objectForKey:@"tethrFriends"]];
+            [tethrFriendsSet addObject:friend.friendID];
+            [user setObject:[tethrFriendsSet allObjects] forKey:@"tethrFriends"];
+            [user saveInBackground];
+            
+            NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+            [userDetails setObject:[tethrFriendsSet allObjects] forKey:@"tethrFriends"];
+            [userDetails synchronize];
+            if ([self.delegate respondsToSelector:@selector(pollDatabase)]) {
+                [self.delegate pollDatabase];
+            }
+            
+            NSMutableSet *followersSet = [NSMutableSet setWithArray:[[friend.object objectForKey:@"followers"] mutableCopy]];
+            [followersSet addObject:sharedDataManager.facebookId];
+            NSArray *followersArray = [followersSet allObjects];
+            
+            [PFCloud callFunctionInBackground:@"SetFollowers"
+                               withParameters:@{@"userId": friend.friendID, @"followers": followersArray}
+                                        block:^(NSArray *results, NSError *error) {
+                                            if (!error) {
+                                                // this is where you handle the results and change the UI.
+                                                
+                                                
+                                            } else {
+                                                NSLog(@"%@", [error description]);
+                                            }
+                                        }];
+            
+            NSString *messageHeader = [NSString stringWithFormat:@"%@ started following you", sharedDataManager.firstName];
+            PFObject *personalNotificationObject = [PFObject objectWithClassName:@"PersonalNotification"];
+            [personalNotificationObject setObject:[PFUser currentUser] forKey:@"fromUser"];
+            [personalNotificationObject setObject:friend.object forKey:@"toUser"];
+            [personalNotificationObject setObject:messageHeader forKey:@"content"];
+            [personalNotificationObject setObject:@"following" forKey:@"type"];
+            [personalNotificationObject saveInBackground];
+            
+            friend.followersArray = followersArray;
+            [sharedDataManager.tetherFriendsDictionary setObject:friend forKey:friend.friendID];
+            
+            [self sendUserPush:friend.object withMessage:messageHeader];
+        }
+    } else {
+        // unfollow user
+        PFUser *user = [PFUser currentUser];
+        NSMutableSet *tethrFriendsSet = [NSMutableSet setWithArray:[user objectForKey:@"tethrFriends"]];
+        [tethrFriendsSet removeObject:friend.friendID];
+        [user setObject:[tethrFriendsSet allObjects] forKey:@"tethrFriends"];
+        [user saveInBackground];
+        
+        NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+        [userDetails setObject:[tethrFriendsSet allObjects] forKey:@"tethrFriends"];
+        [userDetails synchronize];
+        if ([self.delegate respondsToSelector:@selector(pollDatabase)]) {
+            [self.delegate pollDatabase];
+        }
+        
+        // remove yourself from this users folowers
+        NSMutableSet *followersSet = [NSMutableSet setWithArray:[[friend.object objectForKey:@"followers"] mutableCopy]];
+        [followersSet removeObject:sharedDataManager.facebookId];
+        NSArray *followersArray = [followersSet allObjects];
+        
+        [PFCloud callFunctionInBackground:@"SetFollowers"
+                           withParameters:@{@"userId": friend.friendID, @"followers": followersArray}
+                                    block:^(NSArray *results, NSError *error) {
+                                        if (!error) {
+                                            // this is where you handle the results and change the UI.
+                                            
+                                            
+                                        } else {
+                                            NSLog(@"%@", [error description]);
+                                        }
+                                    }];
+        
+        friend.followersArray = followersArray;
+        [sharedDataManager.tetherFriendsDictionary removeObjectForKey:friend.friendID];
+    }
+}
+
+-(void)sendUserPush:(PFUser*)user withMessage:(NSString*)message {
+    PFQuery *pushQuery = [PFInstallation query];
+    [pushQuery whereKey:@"owner" equalTo:user];
     
+    NSDictionary *data = [NSDictionary dictionaryWithObjectsAndKeys:
+                          message, @"alert",
+                          @"notification", @"type",
+                          nil];
+    
+    // Send push notification to query
+    PFPush *push = [[PFPush alloc] init];
+    [push setQuery:pushQuery]; // Set our Installation query
+    [push setData:data];
+    [push sendPushInBackground];
 }
 
 -(void)showProfileOfFriend:(Friend*)user {
@@ -272,6 +493,11 @@
     
     [self.activityTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:([self.activityArray indexOfObject:object] + 1) inSection:0]
                                   atScrollPosition:UITableViewScrollPositionTop animated:YES];
+    
+    if (self.openComment) {
+        [self showComments:object];
+        self.openComment = NO;
+    }
 }
 
 #pragma mark ParticipantsListViewControllerDelegate
@@ -344,8 +570,57 @@
 
 -(void)postSettingsClicked:(PFObject*)postObject {
     UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:nil delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Delete Post", nil];
+    actionSheet.delegate = self;
     [actionSheet showInView:self.view];
     self.postToDelete = postObject;
+}
+
+#pragma mark RequestCellDelegate
+
+-(void)acceptRequest:(PFObject*)requestObject {
+    PFUser *user = [requestObject objectForKey:@"fromUser"];
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    NSMutableSet *followingSet = [NSMutableSet setWithArray:[[user objectForKey:@"tethrFriends"] mutableCopy]];
+    [followingSet addObject:sharedDataManager.facebookId];
+    NSArray *followingArray = [followingSet allObjects];
+    
+    [PFCloud callFunctionInBackground:@"SetTethrFriends"
+                       withParameters:@{@"userId": [user objectForKey:@"facebookId"], @"tethrFriends": followingArray}
+                                block:^(NSArray *results, NSError *error) {
+                                    if (!error) {
+                                        
+                                    } else {
+                                        NSLog(@"%@", [error description]);
+                                    }
+                                }];
+    
+    NSMutableSet *followersSet = [NSMutableSet setWithArray:[[[PFUser currentUser] objectForKey:@"followers"] mutableCopy]];
+    [followersSet addObject:[user objectForKey:@"facebookId"]];
+    NSArray *followersArray = [followersSet allObjects];
+    
+    [PFCloud callFunctionInBackground:@"SetFollowers"
+                       withParameters:@{@"userId": sharedDataManager.facebookId, @"followers": followersArray}
+                                block:^(NSArray *results, NSError *error) {
+                                    if (!error) {
+                                        
+                                    } else {
+                                        NSLog(@"%@", [error description]);
+                                    }
+                                }];
+    
+
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    [userDetails setObject:followersArray forKey:@"followers"];
+    
+    [self.requestsArray removeObject:requestObject];
+    [self.notificationTableView reloadData];
+    [requestObject deleteInBackground];
+}
+
+-(void)declineRequest:(PFObject*)requestObject {
+    [self.requestsArray removeObject:requestObject];
+    [self.notificationTableView reloadData];
+    [requestObject deleteInBackground];
 }
 
 #pragma mark CommentViewControllerDelegate
@@ -369,29 +644,45 @@
 #pragma mark - UIActionSheetDelegate
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
-    if (buttonIndex == 0) {
-        if ([[self.postToDelete objectForKey:@"type"] isEqualToString:@"photo"]) {
-            PFObject *photoObject = [self.postToDelete objectForKey:@"photo"];
-            [photoObject deleteInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+    if (actionSheet.tag == 2) {
+        if (buttonIndex == 0) {
+            if ([self.delegate respondsToSelector:@selector(blockFriend:block:)]) {
+                [self.delegate blockFriend:self.user block:YES];
+            }
+            
+            [self closeView];
+        }
+    } else if (actionSheet.tag == 1) {
+        if (buttonIndex == 0) {
+            if ([self.delegate respondsToSelector:@selector(blockFriend:block:)]) {
+                [self.delegate blockFriend:self.user block:NO];
+            }
+        }
+    } else {
+        if (buttonIndex == 0) {
+            if ([[self.postToDelete objectForKey:@"type"] isEqualToString:@"photo"]) {
+                PFObject *photoObject = [self.postToDelete objectForKey:@"photo"];
+                [photoObject deleteInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+                    [self.postToDelete deleteInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+                        if (succeeded) {
+                            [self loadActivity];
+                        } else {
+                            UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Could not delete your post, please try again" message:nil delegate: nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+                            [alert show];
+                        }
+                    }];
+                }];
+            } else {
                 [self.postToDelete deleteInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
                     if (succeeded) {
                         [self loadActivity];
-                    } else {
+                    }
+                    else {
                         UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Could not delete your post, please try again" message:nil delegate: nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
                         [alert show];
                     }
                 }];
-            }];
-        } else {
-            [self.postToDelete deleteInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
-                if (succeeded) {
-                    [self loadActivity];
-                }
-                else {
-                    UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Could not delete your post, please try again" message:nil delegate: nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
-                    [alert show];
-                }
-            }];
+            }
         }
     }
 }
@@ -401,7 +692,7 @@
     for (UIView *subview in actionSheet.subviews) {
         if ([subview isKindOfClass:[UIButton class]]) {
             UIButton *button = (UIButton *)subview;
-            if ([button.titleLabel.text isEqualToString:@"Delete Post"]) {
+            if ([button.titleLabel.text isEqualToString:@"Delete Post"] || [button.titleLabel.text isEqualToString:@"Block User"]) {
                 [button setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
             }
         }
@@ -411,63 +702,83 @@
 #pragma mark UITableViewDelegate
 
 -(void)loadActivity {
-    PFQuery *query = [PFQuery queryWithClassName:@"Activity"];
-    [query whereKey:@"user" equalTo:self.user.object];
-    [query includeKey:@"photo"];
-    [query includeKey:@"user"];
-    [query orderByDescending:@"date"];
-    [query setLimit:50.0];
-    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
-        self.activityArray = [[NSMutableArray alloc] initWithArray:objects];
-        [self.activityTableView reloadData];
-        [self.view addSubview:self.activityTableView];
-        [self.activityIndicatorView stopAnimating];
-        
-        self.activityObjectsDictionary = [[NSMutableDictionary alloc] init];
-        for (PFObject *object in self.activityArray) {
-            [self.activityObjectsDictionary setObject:object forKey:object.objectId];
-        }
-        if (self.postId) {
-            [self scrollToPost:self.postId];
-        }
-    }];
+    if (!self.editProfileVC) {
+        PFQuery *query = [PFQuery queryWithClassName:@"Activity"];
+        [query whereKey:@"user" equalTo:self.user.object];
+        [query includeKey:@"photo"];
+        [query includeKey:@"user"];
+        [query orderByDescending:@"date"];
+        [query setLimit:50.0];
+        [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+            self.activityArray = [[NSMutableArray alloc] initWithArray:objects];
+            if (!self.editProfileVC) {
+                [self.activityTableView reloadData];
+                [self.view addSubview:self.activityTableView];
+                [self.activityIndicatorView stopAnimating];
+                
+                self.activityObjectsDictionary = [[NSMutableDictionary alloc] init];
+                for (PFObject *object in self.activityArray) {
+                    [self.activityObjectsDictionary setObject:object forKey:object.objectId];
+                }
+                if (self.postId) {
+                    [self scrollToPost:self.postId];
+                }
+            }
+        }];
+    }
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.row == 0) {
-        return 180.0;
-    } else {
-        PFObject *object = [self.activityArray objectAtIndex:indexPath.row - 1];
-        if ([[object objectForKey:@"type"] isEqualToString:@"photo"]) {
-            NSString *content = [object objectForKey:@"content"];
-            UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
-            CGRect textRect = [content boundingRectWithSize:CGSizeMake(self.view.frame.size.width - 60.0, 1000.0)
-                                                    options:NSStringDrawingUsesLineFragmentOrigin
-                                                 attributes:@{NSFontAttributeName:montserrat}
-                                                    context:nil];
-            return self.view.frame.size.width + 100.0 + textRect.size.height;
-        } else if ([[object objectForKey:@"type"] isEqualToString:@"comment"]) {
-            NSString *userName = [[object objectForKey:@"user"] objectForKey:@"firstName"];
-            NSString * placeName = [object objectForKey:@"placeName"];
-            NSString *content = [object objectForKey:@"content"];
-            NSString *contentString = [NSString stringWithFormat:@"%@ commented on %@: \n\n\"%@\"", userName, placeName, content];
-            UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
-            CGRect textRect = [contentString boundingRectWithSize:CGSizeMake(self.view.frame.size.width - 60.0, 1000.0)
-                                                                           options:NSStringDrawingUsesLineFragmentOrigin
-                                                                        attributes:@{NSFontAttributeName:montserrat}
-                                                                           context:nil];
-            return textRect.size.height + 80.0;
+    if (tableView == self.activityTableView) {
+        if (indexPath.row == 0) {
+            return 180.0;
         } else {
-            NSString *userName = [[object objectForKey:@"user"] objectForKey:@"firstName"];
-            NSString * placeName = [object objectForKey:@"placeName"];
-            NSString *contentString = [NSString stringWithFormat:@"%@ tethred to %@", userName, placeName];
-            UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
-            CGRect textRect = [contentString boundingRectWithSize:CGSizeMake(self.view.frame.size.width - 60.0, 1000.0)
-                                                          options:NSStringDrawingUsesLineFragmentOrigin
-                                                       attributes:@{NSFontAttributeName:montserrat}
-                                                          context:nil];
-            return textRect.size.height + 70.0;
+            PFObject *object = [self.activityArray objectAtIndex:indexPath.row - 1];
+            if ([[object objectForKey:@"type"] isEqualToString:@"photo"]) {
+                NSString *content = [object objectForKey:@"content"];
+                UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
+                CGRect textRect = [content boundingRectWithSize:CGSizeMake(self.view.frame.size.width - 60.0, 1000.0)
+                                                        options:NSStringDrawingUsesLineFragmentOrigin
+                                                     attributes:@{NSFontAttributeName:montserrat}
+                                                        context:nil];
+                return self.view.frame.size.width + 100.0 + textRect.size.height;
+            } else if ([[object objectForKey:@"type"] isEqualToString:@"comment"]) {
+                NSString *userName = [[object objectForKey:@"user"] objectForKey:@"firstName"];
+                NSString * placeName = [object objectForKey:@"placeName"];
+                NSString *content = [object objectForKey:@"content"];
+                NSString *contentString = [NSString stringWithFormat:@"%@ commented on %@: \n\n\"%@\"", userName, placeName, content];
+                UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
+                CGRect textRect = [contentString boundingRectWithSize:CGSizeMake(self.view.frame.size.width - 60.0, 1000.0)
+                                                              options:NSStringDrawingUsesLineFragmentOrigin
+                                                           attributes:@{NSFontAttributeName:montserrat}
+                                                              context:nil];
+                return textRect.size.height + 80.0;
+            } else {
+                NSString *userName = [[object objectForKey:@"user"] objectForKey:@"firstName"];
+                NSString * placeName = [object objectForKey:@"placeName"];
+                NSString *contentString = [NSString stringWithFormat:@"%@ tethred to %@", userName, placeName];
+                UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
+                CGRect textRect = [contentString boundingRectWithSize:CGSizeMake(self.view.frame.size.width - 60.0, 1000.0)
+                                                              options:NSStringDrawingUsesLineFragmentOrigin
+                                                           attributes:@{NSFontAttributeName:montserrat}
+                                                              context:nil];
+                return textRect.size.height + 70.0;
+            }
         }
+    } else {
+        if (indexPath.section == 0) {
+            return 80.0;
+        } else {
+            UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:12.0f];
+            NSString *contentText = [[self.notificationsArray objectAtIndex:indexPath.row] objectForKey:@"content"];
+            CGRect textRect = [contentText boundingRectWithSize:CGSizeMake(self.view.frame.size.width - 70.0, 1000.0)
+                                                        options:NSStringDrawingUsesLineFragmentOrigin
+                                                     attributes:@{NSFontAttributeName:montserrat}
+                                                        context:nil];
+            
+            return MAX(28.0 + 10.0, textRect.size.height) + 20.0;
+        }
+
     }
 }
 
@@ -475,186 +786,300 @@
     return 0.0;
 }
 
+-(NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    if (tableView == self.activityTableView) {
+        return 1;
+    } else {
+        return 2;
+    }
+}
+
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return [self.activityArray count] + 1;
+    if (tableView == self.activityTableView) {
+        return [self.activityArray count] + 1;
+    } else {
+        if (section == 0) {
+            return [self.requestsArray count];
+        } else {
+            return [self.notificationsArray count];
+        }
+    }
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.row == 0) {
-        UITableViewCell *cell = [[UITableViewCell alloc] init];
+    if (tableView == self.activityTableView) {
+        if (indexPath.row == 0) {
+            UITableViewCell *cell = [[UITableViewCell alloc] init];
+            [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+            UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.frame.size.width, 180.0)];
+            self.userProfilePictureView = [[FBProfilePictureView alloc] initWithProfileID:self.user.friendID pictureCropping:FBProfilePictureCroppingSquare];
+            self.userProfilePictureView.layer.cornerRadius = 12.0;
+            self.userProfilePictureView.clipsToBounds = YES;
+            [self.userProfilePictureView.layer setBorderColor:[[UIColor whiteColor] CGColor]];
+            self.userProfilePictureView.frame = CGRectMake(PADDING, PADDING, PROFILE_IMAGE_VIEW_SIZE, PROFILE_IMAGE_VIEW_SIZE);
+            
+            UIImage *maskingImage = [UIImage imageNamed:@"LocationIcon"];
+            CALayer *maskingLayer = [CALayer layer];
+            CGRect frame = self.userProfilePictureView.bounds;
+            frame.origin.x = -7.0;
+            frame.origin.y = -7.0;
+            frame.size.width += 14.0;
+            frame.size.height += 14.0;
+            maskingLayer.frame = frame;
+            [maskingLayer setContents:(id)[maskingImage CGImage]];
+            [self.userProfilePictureView.layer setMask:maskingLayer];
+            [headerView addSubview:self.userProfilePictureView];
+            
+            UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
+            UIFont *mission = [UIFont fontWithName:@"MissionGothic-BlackItalic" size:16];
+            
+            self.tethrsButton = [[TethrButton alloc] initWithFrame:CGRectMake(90.0, 10.0, 50.0, 50.0)];
+            [self.tethrsButton setTitle:@"tethrs" forState:UIControlStateNormal];
+            self.tethrsButton.titleLabel.font = mission;
+            [self.tethrsButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+            [self.tethrsButton setNormalColor:[UIColor clearColor]];
+            [self.tethrsButton setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
+            [self.tethrsButton setTitleEdgeInsets:UIEdgeInsetsMake(20.0, 0.0, 0.0, 0.0)];
+            
+            UILabel *tethrsLabel = [[UILabel alloc] initWithFrame:CGRectMake(10.0, 5.0, 50.0, 15)];
+            tethrsLabel.text = [NSString stringWithFormat:@"%d", self.user.tethrCount];
+            tethrsLabel.font = montserrat;
+            [self.tethrsButton addSubview:tethrsLabel];
+            
+            [headerView addSubview:self.tethrsButton];
+            
+            self.followersButton = [[TethrButton alloc] initWithFrame:CGRectMake(150.0, 10.0, 70.0, 50.0)];
+            [self.followersButton addTarget:self action:@selector(viewFollowers:) forControlEvents:UIControlEventTouchUpInside];
+            [self.followersButton setTitle:@"followers" forState:UIControlStateNormal];
+            self.followersButton.titleLabel.font = mission;
+            [self.followersButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+            [self.followersButton setNormalColor:[UIColor clearColor]];
+            [self.followersButton setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
+            [self.followersButton setTitleEdgeInsets:UIEdgeInsetsMake(20.0, 0.0, 0.0, 0.0)];
+            
+            self.followersLabel = [[UILabel alloc] initWithFrame:CGRectMake(10.0, 5.0, 50.0, 15.0)];
+            self.followersLabel.text = [NSString stringWithFormat:@"%d", MAX(0,[self.user.followersArray count] - 1)];
+            self.followersLabel.font = montserrat;
+            [self.followersButton addSubview:self.followersLabel];
+            
+            [headerView addSubview:self.followersButton];
+            
+            self.followingButton = [[TethrButton alloc] initWithFrame:CGRectMake(230.0, 10.0, 70.0, 50.0)];
+            [self.followingButton addTarget:self action:@selector(viewFollowing:) forControlEvents:UIControlEventTouchUpInside];
+            [self.followingButton setTitle:@"following" forState:UIControlStateNormal];
+            self.followingButton.titleLabel.font = mission;
+            [self.followingButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+            [self.followingButton setNormalColor:[UIColor clearColor]];
+            [self.followingButton setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
+            [self.followingButton setTitleEdgeInsets:UIEdgeInsetsMake(20.0, 0.0, 0.0, 0.0)];
+            
+            self.followingLabel = [[UILabel alloc] initWithFrame:CGRectMake(10.0, 5.0, 50.0, 15.0)];
+            self.followingLabel.text = [NSString stringWithFormat:@"%d", MAX(0, [self.user.friendsArray count] - 1)];
+            self.followingLabel.font = montserrat;
+            [self.followingButton addSubview:self.followingLabel];
+            
+            [headerView addSubview:self.followingButton];
+            
+            UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:12.0f];
+            if (self.user.statusMessage && ![self.user.statusMessage isEqualToString:@""]) {
+                self.statusLabel = [[UILabel alloc] init];
+                self.statusLabel.text = [NSString stringWithFormat:@"\"%@\"", self.user.statusMessage];
+                self.statusLabel.font = montserratSmall;
+                self.statusLabel.lineBreakMode = NSLineBreakByWordWrapping;
+                self.statusLabel.numberOfLines = 0;
+                CGRect textRect = [self.statusLabel.text boundingRectWithSize:CGSizeMake(self.view.frame.size.width - self.tethrsButton.frame.origin.x, 1000.0)
+                                                                      options:NSStringDrawingUsesLineFragmentOrigin
+                                                                   attributes:@{NSFontAttributeName:montserratSmall}
+                                                                      context:nil];
+                self.statusLabel.frame = CGRectMake((self.view.frame.size.width - textRect.size.width + self.tethrsButton.frame.origin.x) / 2.0, 60.0, MIN(self.view.frame.size.width - LEFT_PADDING*2, textRect.size.width), textRect.size.height);
+                [headerView addSubview:self.statusLabel];
+            }
+            
+            if (!self.isCurrentUser) {
+                self.messageButton = [[TethrButton alloc] initWithFrame:CGRectMake(0.0, 120.0, self.view.frame.size.width / 2.0, 60.0)];
+                [self.messageButton addTarget:self action:@selector(messageClicked:) forControlEvents:UIControlEventTouchUpInside];
+                [self.messageButton setTitle:@"message" forState:UIControlStateNormal];
+                self.messageButton.titleLabel.font = mission;
+                [self.messageButton setTitleEdgeInsets:UIEdgeInsetsMake(15.0, 0.0, 0.0, 0.0)];
+                [self.messageButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+                [self.messageButton setNormalColor:[UIColor clearColor]];
+                [self.messageButton setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
+                [headerView addSubview:self.messageButton];
+                
+                if (self.isPrivate) {
+                    [self.messageButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateDisabled];
+                    [self.messageButton setEnabled:NO];
+                }
+                
+                UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(self.view.frame.size.width / 2.0, 125.0, 1.0, 35.0)];
+                [separator setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
+                [headerView addSubview:separator];
+                
+                self.followButton = [[TethrButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width / 2.0, 120.0, self.view.frame.size.width / 2.0, 60.0)];
+                [self.followButton addTarget:self action:@selector(followClicked:) forControlEvents:UIControlEventTouchUpInside];
+                Datastore *sharedDataManager = [Datastore sharedDataManager];
+                self.followImageView = [[UIImageView alloc] initWithFrame:CGRectMake(((self.view.frame.size.width - PADDING * 2) / 2.0 - 25.0) / 2.0, 0.0, 30.0, 30.0)];
+                self.followImageView.contentMode = UIViewContentModeScaleAspectFit;
+                [self.followButton addSubview:self.followImageView];
+                
+                if ([sharedDataManager.tetherFriends containsObject:self.user.friendID]) {
+                    self.isFriend = YES;
+                }
+                
+                if (self.isFriend) {
+                    self.followImageView.image = [UIImage imageNamed:@"PinIcon"];
+                    [self.followButton setTitle:@"following" forState:UIControlStateNormal];
+                } else {
+                self.followImageView.image = [UIImage imageNamed:@"GreyPinIcon"];
+                    [self.followButton setTitle:@"follow" forState:UIControlStateNormal];
+                }
+                self.followButton.titleLabel.font = mission;
+                [self.followButton setTitleEdgeInsets:UIEdgeInsetsMake(15.0, 0.0, 0.0, 0.0)];
+                [self.followButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
+                [self.followButton setNormalColor:[UIColor clearColor]];
+                [self.followButton setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
+                [headerView addSubview:self.followButton];
+            } else {
+                NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+                BOOL goingOut = [userDetails boolForKey:@"status"];
+                UIFont *montserratLarge = [UIFont fontWithName:@"Montserrat" size:16.0f];
+                self.goingOutLabel = [[UILabel alloc] init];
+                self.goingOutLabel.text = @"Going out";
+                
+                self.goingOutSwitch = [[UISwitch alloc] init];
+                self.goingOutSwitch.frame = CGRectMake(self.view.frame.size.width - 125.0, 80.0, 0, 0);
+                [self.goingOutSwitch setOnTintColor:UIColorFromRGB(0x8e0528)];
+                [self.goingOutSwitch addTarget:self action:@selector(switchChange:) forControlEvents:UIControlEventValueChanged];
+                self.goingOutSwitch.on = goingOut;
+                [headerView addSubview:self.goingOutSwitch];
+                
+                self.goingOutLabel.font = montserratLarge;
+                self.goingOutLabel.textColor = UIColorFromRGB(0x1d1d1d);
+                CGSize size = [self.goingOutLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratLarge}];
+                self.goingOutLabel.frame = CGRectMake(self.goingOutSwitch.frame.origin.x - size.width - PADDING, 85.0, size.width, size.height);
+                [headerView addSubview:self.goingOutLabel];
+                
+                if (self.statusLabel) {
+                    CGRect frame = self.statusLabel.frame;
+                    frame.origin.y = self.goingOutLabel.frame.origin.y + self.goingOutLabel.frame.size.height + PADDING;
+                    self.statusLabel.frame = frame;
+                }
+                
+                self.cityLabel = [[UILabel alloc] init];
+                NSString *location = [NSString stringWithFormat:@"%@, %@",[userDetails objectForKey:@"city"], [userDetails objectForKey:@"state"]];
+                if ([userDetails objectForKey:@"city"] == NULL || [userDetails objectForKey:@"state"] == NULL) {
+                    location = @"Edit profile to set your location";
+                }
+                [self.cityLabel setText:location];
+                self.cityLabel.textColor = UIColorFromRGB(0x1d1d1d);
+                self.cityLabel.font = montserrat;
+                size = [self.cityLabel.text sizeWithAttributes:@{NSFontAttributeName: montserrat}];
+                CGFloat originY;
+                if (self.statusLabel) {
+                    originY = self.statusLabel.frame.origin.y + self.statusLabel.frame.size.height;
+                } else {
+                    originY = self.goingOutLabel.frame.origin.y + self.goingOutLabel.frame.size.height;
+                }
+                self.cityLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2.0, originY + PADDING, size.width, size.height);
+                [headerView addSubview:self.cityLabel];
+                
+                UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(self.view.frame.size.width / 2.0, 145.0, 1.0, 25.0)];
+                [separator setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
+                [headerView addSubview:separator];
+                
+                UIButton *feedButton = [[UIButton alloc] initWithFrame:CGRectMake(0.0, 140.0, self.view.frame.size.width / 2.0, 40.0)];
+                [feedButton addTarget:self action:@selector(showFeed:) forControlEvents:UIControlEventTouchUpInside];
+                [feedButton setBackgroundColor:UIColorFromRGB(0xf8f8f8)];
+                [feedButton setImage:[UIImage imageNamed:@"LineNavigator.png"] forState:UIControlStateNormal];
+                [headerView addSubview:feedButton];
+                
+                UIButton *bellButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width / 2.0, 140.0, self.view.frame.size.width / 2.0, 40.0)];
+                [bellButton addTarget:self action:@selector(showNotifications:) forControlEvents:UIControlEventTouchUpInside];
+                [bellButton setImage:[UIImage imageNamed:@"Bell.png"] forState:UIControlStateNormal];
+                [headerView addSubview:bellButton];
+                
+                self.notificationTableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, 180., self.view.frame.size.width, self.view.frame.size.height - 180.0 - TOP_BAR_HEIGHT)];
+                [self.notificationTableView setDataSource:self];
+                [self.notificationTableView setDelegate:self];
+                self.notificationTableView.showsVerticalScrollIndicator = NO;
+                [self.notificationTableView setHidden:YES];
+                
+                self.notificationsTableViewController = [[UITableViewController alloc] init];
+                self.notificationsTableViewController.tableView = self.self.notificationTableView;
+                
+                [self.activityTableView addSubview:self.notificationTableView];
+            }
+            
+            [cell addSubview:headerView];
+            
+            
+            return cell;
+        }
+        
+        ActivityCell *cell = [[ActivityCell alloc] init];
+        [cell setFeedType:@"profile"];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-        UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.view.frame.size.width, 180.0)];
-        self.userProfilePictureView = [[FBProfilePictureView alloc] initWithProfileID:self.user.friendID pictureCropping:FBProfilePictureCroppingSquare];
-        self.userProfilePictureView.layer.cornerRadius = 12.0;
-        self.userProfilePictureView.clipsToBounds = YES;
-        [self.userProfilePictureView.layer setBorderColor:[[UIColor whiteColor] CGColor]];
-        self.userProfilePictureView.frame = CGRectMake(PADDING, PADDING, PROFILE_IMAGE_VIEW_SIZE, PROFILE_IMAGE_VIEW_SIZE);
-        
-        UIImage *maskingImage = [UIImage imageNamed:@"LocationIcon"];
-        CALayer *maskingLayer = [CALayer layer];
-        CGRect frame = self.userProfilePictureView.bounds;
-        frame.origin.x = -7.0;
-        frame.origin.y = -7.0;
-        frame.size.width += 14.0;
-        frame.size.height += 14.0;
-        maskingLayer.frame = frame;
-        [maskingLayer setContents:(id)[maskingImage CGImage]];
-        [self.userProfilePictureView.layer setMask:maskingLayer];
-        [headerView addSubview:self.userProfilePictureView];
-        
-        UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
-        UIFont *mission = [UIFont fontWithName:@"MissionGothic-BlackItalic" size:16];
-        
-        self.tethrsButton = [[TethrButton alloc] initWithFrame:CGRectMake(90.0, 10.0, 50.0, 50.0)];
-        [self.tethrsButton setTitle:@"tethrs" forState:UIControlStateNormal];
-        self.tethrsButton.titleLabel.font = mission;
-        [self.tethrsButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
-        [self.tethrsButton setNormalColor:[UIColor clearColor]];
-        [self.tethrsButton setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
-        [self.tethrsButton setTitleEdgeInsets:UIEdgeInsetsMake(20.0, 0.0, 0.0, 0.0)];
-        
-        UILabel *tethrsLabel = [[UILabel alloc] initWithFrame:CGRectMake(10.0, 5.0, 50.0, 15)];
-        tethrsLabel.text = [NSString stringWithFormat:@"%d", self.user.tethrCount];
-        tethrsLabel.font = montserrat;
-        [self.tethrsButton addSubview:tethrsLabel];
-        
-        [headerView addSubview:self.tethrsButton];
-        
-        self.followersButton = [[TethrButton alloc] initWithFrame:CGRectMake(150.0, 10.0, 70.0, 50.0)];
-        [self.followersButton addTarget:self action:@selector(viewFollowers:) forControlEvents:UIControlEventTouchUpInside];
-        [self.followersButton setTitle:@"followers" forState:UIControlStateNormal];
-        self.followersButton.titleLabel.font = mission;
-        [self.followersButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
-        [self.followersButton setNormalColor:[UIColor clearColor]];
-        [self.followersButton setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
-        [self.followersButton setTitleEdgeInsets:UIEdgeInsetsMake(20.0, 0.0, 0.0, 0.0)];
-        
-        UILabel *followersLabel = [[UILabel alloc] initWithFrame:CGRectMake(10.0, 5.0, 50.0, 15.0)];
-        followersLabel.text = [NSString stringWithFormat:@"%d", MAX(0,[self.user.followersArray count] - 1)];
-        followersLabel.font = montserrat;
-        [self.followersButton addSubview:followersLabel];
-        
-        [headerView addSubview:self.followersButton];
-        
-        self.followingButton = [[TethrButton alloc] initWithFrame:CGRectMake(230.0, 10.0, 70.0, 50.0)];
-        [self.followingButton setTitle:@"following" forState:UIControlStateNormal];
-        self.followingButton.titleLabel.font = mission;
-        [self.followingButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
-        [self.followingButton setNormalColor:[UIColor clearColor]];
-        [self.followingButton setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
-        [self.followingButton setTitleEdgeInsets:UIEdgeInsetsMake(20.0, 0.0, 0.0, 0.0)];
-        
-        UILabel *followingLabel = [[UILabel alloc] initWithFrame:CGRectMake(10.0, 5.0, 50.0, 15.0)];
-        followingLabel.text = [NSString stringWithFormat:@"%d", MAX(0, [self.user.friendsArray count] - 1)];
-        followingLabel.font = montserrat;
-        [self.followingButton addSubview:followingLabel];
-        
-        [headerView addSubview:self.followingButton];
-        
-        if (self.user.statusMessage && ![self.user.statusMessage isEqualToString:@""]) {
-            self.statusLabel = [[UILabel alloc] init];
-            self.statusLabel.text = [NSString stringWithFormat:@"\"%@\"", self.user.statusMessage];
-            self.statusLabel.font = montserrat;
-            self.statusLabel.adjustsFontSizeToFitWidth = YES;
-            CGSize size = [self.statusLabel.text sizeWithAttributes:@{NSFontAttributeName:montserrat}];
-            self.statusLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2.0, 60.0, MIN(self.view.frame.size.width - LEFT_PADDING*2, size.width), size.height);
-            [headerView addSubview:self.statusLabel];
-        }
-        
-        if (!self.isCurrentUser) {
-            self.messageButton = [[TethrButton alloc] initWithFrame:CGRectMake(0.0, 120.0, self.view.frame.size.width / 2.0, 60.0)];
-            [self.messageButton addTarget:self action:@selector(messageClicked:) forControlEvents:UIControlEventTouchUpInside];
-            [self.messageButton setTitle:@"message" forState:UIControlStateNormal];
-            self.messageButton.titleLabel.font = mission;
-            [self.messageButton setTitleEdgeInsets:UIEdgeInsetsMake(15.0, 0.0, 0.0, 0.0)];
-            [self.messageButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
-            [self.messageButton setNormalColor:[UIColor clearColor]];
-            [self.messageButton setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
-            [headerView addSubview:self.messageButton];
-            
-            if (self.isPrivate) {
-                [self.messageButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateDisabled];
-                [self.messageButton setEnabled:NO];
-            }
-            
-            UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(self.view.frame.size.width / 2.0, 125.0, 1.0, 35.0)];
-            [separator setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
-            [headerView addSubview:separator];
-            
-            self.followButton = [[TethrButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width / 2.0, 120.0, self.view.frame.size.width / 2.0, 60.0)];
-            [self.followButton addTarget:self action:@selector(followClicked:) forControlEvents:UIControlEventTouchUpInside];
-            Datastore *sharedDataManager = [Datastore sharedDataManager];
-            UIImageView * pinImageView = [[UIImageView alloc] initWithFrame:CGRectMake(((self.view.frame.size.width - PADDING * 2) / 2.0 - 25.0) / 2.0, 0.0, 30.0, 30.0)];
-            pinImageView.contentMode = UIViewContentModeScaleAspectFit;
-            [self.followButton addSubview:pinImageView];
-            
-            if ([sharedDataManager.tetherFriends containsObject:self.user.friendID]) {
-                pinImageView.image = [UIImage imageNamed:@"PinIcon"];
-                [self.followButton setTitle:@"following" forState:UIControlStateNormal];
-            } else {
-            pinImageView.image = [UIImage imageNamed:@"GreyPinIcon"];
-                [self.followButton setTitle:@"follow" forState:UIControlStateNormal];
-            }
-            self.followButton.titleLabel.font = mission;
-            [self.followButton setTitleEdgeInsets:UIEdgeInsetsMake(15.0, 0.0, 0.0, 0.0)];
-            [self.followButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
-            [self.followButton setNormalColor:[UIColor clearColor]];
-            [self.followButton setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
-            [headerView addSubview:self.followButton];
-        } else {
-            NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-            BOOL goingOut = [userDetails boolForKey:@"status"];
-            UIFont *montserratLarge = [UIFont fontWithName:@"Montserrat" size:16.0f];
-            self.goingOutLabel = [[UILabel alloc] init];
-            self.goingOutLabel.text = @"Going out";
-            
-            self.goingOutSwitch = [[UISwitch alloc] init];
-            self.goingOutSwitch.frame = CGRectMake(self.view.frame.size.width - 125.0, 80.0, 0, 0);
-            [self.goingOutSwitch setOnTintColor:UIColorFromRGB(0x8e0528)];
-            [self.goingOutSwitch addTarget:self action:@selector(switchChange:) forControlEvents:UIControlEventValueChanged];
-            self.goingOutSwitch.on = goingOut;
-            [headerView addSubview:self.goingOutSwitch];
-            
-            self.goingOutLabel.font = montserratLarge;
-            self.goingOutLabel.textColor = UIColorFromRGB(0x1d1d1d);
-            CGSize size = [self.goingOutLabel.text sizeWithAttributes:@{NSFontAttributeName: montserratLarge}];
-            self.goingOutLabel.frame = CGRectMake(self.goingOutSwitch.frame.origin.x - size.width - PADDING, 85.0, size.width, size.height);
-            [headerView addSubview:self.goingOutLabel];
-            
-            if (self.statusLabel) {
-                CGRect frame = self.statusLabel.frame;
-                frame.origin.y = self.goingOutLabel.frame.origin.y + self.goingOutLabel.frame.size.height + PADDING;
-                self.statusLabel.frame = frame;
-            }
-            
-            self.cityLabel = [[UILabel alloc] init];
-            NSString *location = [NSString stringWithFormat:@"%@, %@",[userDetails objectForKey:@"city"], [userDetails objectForKey:@"state"]];
-            if ([userDetails objectForKey:@"city"] == NULL || [userDetails objectForKey:@"state"] == NULL) {
-                location = @"Edit profile to set your location";
-            }
-            [self.cityLabel setText:location];
-            self.cityLabel.textColor = UIColorFromRGB(0x1d1d1d);
-            self.cityLabel.font = montserrat;
-            size = [self.cityLabel.text sizeWithAttributes:@{NSFontAttributeName: montserrat}];
-            CGFloat originY;
-            if (self.statusLabel) {
-                originY = self.statusLabel.frame.origin.y + self.statusLabel.frame.size.height;
-            } else {
-                originY = self.goingOutLabel.frame.origin.y + self.goingOutLabel.frame.size.height;
-            }
-            self.cityLabel.frame = CGRectMake((self.view.frame.size.width - size.width) / 2.0, originY + PADDING, size.width, size.height);
-            [headerView addSubview:self.cityLabel];
-        }
-        
-        [cell addSubview:headerView];
+        cell.delegate = self;
+        [cell setActivityObject:[self.activityArray objectAtIndex:indexPath.row - 1]];
         return cell;
+    } else {
+        if (indexPath.section == 0 && self.requestsArray) {
+            FollowRequestCell *cell = [[FollowRequestCell alloc] init];
+            cell.delegate = self;
+            [cell setRequestObject:[self.requestsArray objectAtIndex:indexPath.row]];
+            [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+            return cell;
+        } else {
+            NotificationCell *cell = [[NotificationCell alloc] init];
+            cell.delegate = self;
+            [cell setNotificationObject:[self.notificationsArray objectAtIndex:indexPath.row]];
+            [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+            return cell;
+        }
     }
-    
-    ActivityCell *cell = [[ActivityCell alloc] init];
-    [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-    cell.delegate = self;
-    [cell setActivityObject:[self.activityArray objectAtIndex:indexPath.row - 1]];
-    return cell;
+}
+
+-(IBAction)showFeed:(id)sender {
+    [self.activityTableView setScrollEnabled:YES];
+    [self.notificationTableView setHidden:YES];
+}
+
+-(IBAction)showNotifications:(id)sender {
+    [self loadRequests];
+    [self.activityTableView setScrollEnabled:NO];
+    [self.notificationTableView setHidden:NO];
+}
+
+-(void)loadRequests {
+    PFQuery *query = [PFQuery queryWithClassName:@"Request"];
+    [query whereKey:@"toUser" equalTo:[PFUser currentUser]];
+    [query orderByDescending:@"createdAt"];
+    [query includeKey:@"fromUser"];
+    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+        if (!error) {
+            self.requestsArray = [[NSMutableArray alloc] init];
+            self.requestsArray = [objects mutableCopy];
+            [self loadNotifications];
+        } else {
+            [self loadNotifications];
+        }
+    }];
+}
+
+-(void)loadNotifications {
+    PFQuery *query = [PFQuery queryWithClassName:@"PersonalNotification"];
+    [query whereKey:@"toUser" equalTo:[PFUser currentUser]];
+    [query includeKey:@"fromUser"];
+    [query orderByDescending:@"createdAt"];
+    [query setLimit:100];
+    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+        if (!error) {
+            self.notificationsArray = [[NSMutableArray alloc] init];
+            
+            self.notificationsArray = [objects mutableCopy];
+        }
+        [self.notificationTableView reloadData];
+    }];
 }
 
 - (void)switchChange:(UISwitch *)theSwitch {

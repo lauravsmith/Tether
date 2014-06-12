@@ -40,6 +40,8 @@
 @property (nonatomic, strong) NSString *content;
 @property (nonatomic, strong) NSString *feedType;
 @property (nonatomic, strong) UIButton *settingsButton;
+@property (nonatomic, strong) UIImageView *heartImageView;
+@property (nonatomic, assign) BOOL animating;
 - (void)prepareForReuse;
 @end
 
@@ -73,6 +75,8 @@
         [self addSubview:self.commentButton];
         self.commentCountButton = [[UIButton alloc] init];
         [self addSubview:self.commentCountButton];
+        self.heartImageView = [[UIImageView alloc] init];
+        [self addSubview:self.heartImageView];
     }
     return self;
 }
@@ -95,6 +99,7 @@
     UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:12.0f];
     self.timeLabel.font = montserratSmall;
     self.timeLabel.textColor = UIColorFromRGB(0xc8c8c8);
+    
     
     if ([[self.activityObject objectForKey:@"type"] isEqualToString:@"photo"]) {
         if ([self.feedType isEqualToString:@"place"]) {
@@ -121,7 +126,7 @@
             [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(openProfile)];
             [self.contentLabel addGestureRecognizer:tapGesture];
             self.contentLabel.userInteractionEnabled = YES;
-        } else {
+        } else if ([self.feedType isEqualToString:@"profile"]) {
             self.placeButton = [[UIButton alloc] init];
             [self.placeButton addTarget:self action:@selector(openPlace) forControlEvents:UIControlEventTouchUpInside];
             [self.placeButton setTitle:[self.activityObject objectForKey:@"placeName"] forState:UIControlStateNormal];
@@ -149,6 +154,30 @@
                             range:[self.placeButton.titleLabel.text
                                    rangeOfString:[self.activityObject objectForKey:@"placeName"]]];
             self.placeButton.titleLabel.attributedText = attrStr;
+        } else {
+            NSString *contentString = @"";
+            if ([self.activityObject objectForKey:@"content"]) {
+                contentString = [NSString stringWithFormat:@"%@ posted a photo to %@: \n\"%@\"",  [[self.activityObject objectForKey:@"user"] objectForKey:@"firstName"], [self.activityObject objectForKey:@"placeName"], [self.activityObject objectForKey:@"content"]];
+            } else {
+                contentString = [NSString stringWithFormat:@"%@ posted a photo to %@",  [[self.activityObject objectForKey:@"user"] objectForKey:@"firstName"], [self.activityObject objectForKey:@"placeName"]];
+            }
+            NSMutableAttributedString *attrStr = [[NSMutableAttributedString alloc] initWithString:contentString];
+            [attrStr addAttribute:NSForegroundColorAttributeName
+                            value:UIColorFromRGB(0x8e0528)
+                            range:[contentString
+                                   rangeOfString:[self.activityObject objectForKey:@"placeName"]]];
+            self.contentLabel.attributedText = attrStr;
+            CGRect textRect = [contentString boundingRectWithSize:CGSizeMake(self.frame.size.width - 60.0, 1000.0)
+                                                          options:NSStringDrawingUsesLineFragmentOrigin
+                                                       attributes:@{NSFontAttributeName:montserrat}
+                                                          context:nil];
+            self.contentLabel.frame = CGRectMake(60.0, 10.0, textRect.size.width, textRect.size.height);
+            self.timeLabel.frame = CGRectMake(self.contentLabel.frame.origin.x, self.contentLabel.frame.origin.y + self.contentLabel.frame.size.height + 5.0, 40.0, 10.0);
+            
+            UITapGestureRecognizer *tapGesture =
+            [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(openPlace)];
+            [self.contentLabel addGestureRecognizer:tapGesture];
+            self.contentLabel.userInteractionEnabled = YES;
         }
     } else if ([[self.activityObject objectForKey:@"type"] isEqualToString:@"comment"]){
         NSMutableAttributedString* attrStr;
@@ -245,35 +274,40 @@
         self.timeLabel.frame = CGRectMake(self.contentLabel.frame.origin.x, self.contentLabel.frame.origin.y + self.contentLabel.frame.size.height + 5.0, 40.0, 10.0);
     }
 
-    if (self.activityObject && [[self.activityObject objectForKey:@"type"] isEqualToString:@"photo"]) {
-        if ([self.feedType isEqualToString:@"place"]) {
-            self.likeButton.frame = CGRectMake(60.0, self.frame.size.width + self.contentLabel.frame.size.height + 40.0, 20.0, 20.0);
+    if (!self.animating) {
+        if (self.activityObject && [[self.activityObject objectForKey:@"type"] isEqualToString:@"photo"]) {
+            if ([self.feedType isEqualToString:@"place"]) {
+                self.likeButton.frame = CGRectMake(60.0, self.frame.size.width + self.contentLabel.frame.size.height + 40.0, 20.0, 20.0);
+            } else if ([self.feedType isEqualToString:@"profile"]){
+                self.likeButton.frame = CGRectMake(60.0, self.frame.size.width + self.contentLabel.frame.size.height + 60.0, 20.0, 20.0);
+            } else {
+                self.likeButton.frame = CGRectMake(60.0, self.frame.size.width + self.contentLabel.frame.size.height + 40.0, 20.0, 20.0);
+            }
         } else {
-            self.likeButton.frame = CGRectMake(60.0, self.frame.size.width + self.contentLabel.frame.size.height + 60.0, 20.0, 20.0);
+            self.likeButton.frame = CGRectMake(self.contentLabel.frame.origin.x, self.timeLabel.frame.origin.y + self.timeLabel.frame.size.height + 10.0, 20.0, 20.0);
         }
-    } else {
-        self.likeButton.frame = CGRectMake(self.contentLabel.frame.origin.x, self.timeLabel.frame.origin.y + self.timeLabel.frame.size.height + 10.0, 20.0, 20.0);
-    }
-    
-    [self.likeButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    if ([self.likesSet containsObject:sharedDataManager.facebookId]) {
-        [self.likeButton setImage:[UIImage imageNamed:@"redHeart"] forState:UIControlStateNormal];
-        self.likeButton.tag = 1;
-    } else {
-        [self.likeButton setImage:[UIImage imageNamed:@"greyHeart"] forState:UIControlStateNormal];
-        self.likeButton.tag = 0;
-    }
-    [self.likeButton addTarget:self action:@selector(likeClicked:) forControlEvents:UIControlEventTouchUpInside];
+        
+        [self.likeButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+        if ([self.likesSet containsObject:sharedDataManager.facebookId]) {
+            [self.heartImageView setImage:[UIImage imageNamed:@"redHeart.png"]];
+            self.likeButton.tag = 1;
+        } else {
+            [self.heartImageView setImage:[UIImage imageNamed:@"greyHeart.png"]];
+            self.likeButton.tag = 0;
+        }
+        self.heartImageView.frame = self.likeButton.frame;
+        [self.likeButton addTarget:self action:@selector(likeClicked:) forControlEvents:UIControlEventTouchUpInside];
+
     
     self.commentButton.frame = CGRectMake(self.likeButton.frame.origin.x + self.likeButton.frame.size.width + 15.0, self.likeButton.frame.origin.y, 20.0, 20.0);
     [self.commentButton addTarget:self action:@selector(showComments) forControlEvents:UIControlEventTouchUpInside];
     [self.commentButton setImage:[UIImage imageNamed:@"Comment.png"] forState:UIControlStateNormal];
     
-    if ([self.activityObject objectForKey:@"commentCount"]) {
+    if ([self.activityObject objectForKey:@"commentCount"] && [[self.activityObject objectForKey:@"commentCount"] integerValue] > 0) {
         int count = [[self.activityObject objectForKey:@"commentCount"] intValue];
         [self.commentCountButton addTarget:self action:@selector(showComments) forControlEvents:UIControlEventTouchUpInside];
         [self.commentCountButton setTitle:[NSString stringWithFormat:@"%d", count] forState:UIControlStateNormal];
-        self.commentCountButton.titleLabel.textColor = UIColorFromRGB(0x1d1d1d);
+        [self.commentCountButton setTitleColor:UIColorFromRGB(0x1d1d1d) forState:UIControlStateNormal];
         self.commentCountButton.titleLabel.font = montserratSmall;
         CGSize size = [self.commentCountButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratSmall}];
         self.commentCountButton.frame = CGRectMake(self.commentButton.frame.origin.x + self.commentButton.frame.size.width + 4.0, self.commentButton.frame.origin.y + 2.0, size.width, size.height);
@@ -293,6 +327,7 @@
         self.settingsButton.layer.cornerRadius = 2.0;
         self.settingsButton.layer.masksToBounds = YES;
     }
+    }
 }
 
 -(void)setFile:(PFFile *)file {
@@ -306,6 +341,7 @@
                 [self setImage:image];
                 self.imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0.0, self.placeButton.frame.size.height + self.contentLabel.frame.size.height + 30.0, self.frame.size.width, self.frame.size.width)];
                 [self.imageView setImage:self.image];
+                self.imageView.contentMode = UIViewContentModeScaleAspectFit;
                 [self addSubview:self.imageView];
 
                 [self setNeedsDisplay];
@@ -363,7 +399,7 @@
     self.friendProfilePictureView.tag = 0;
     [self addSubview:self.friendProfilePictureView];
     
-    if ([self.feedType isEqualToString:@"place"]) {
+    if (![self.feedType isEqualToString:@"profile"]) {
         UITapGestureRecognizer *tapGesture =
         [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(openProfile)];
         [self.friendProfilePictureView addGestureRecognizer:tapGesture];
@@ -397,7 +433,31 @@
         [set addObject:sharedDataManager.facebookId];
         self.likesSet = set;
         self.likeButton.tag = 1;
-        [self.likeButton setImage:[UIImage imageNamed:@"redHeart"] forState:UIControlStateNormal];
+        
+        CGRect frameNormal = self.likeButton.frame;
+        CGRect frameLarge = self.likeButton.frame;
+        frameLarge.size.width = 35.0;
+        frameLarge.size.height = 35.0;
+        frameLarge.origin.x = frameNormal.origin.x - 7.0;
+        frameLarge.origin.y = frameNormal.origin.y - 7.0;
+
+        self.animating = YES;
+    [UIView animateWithDuration:0.2
+                         animations:^{
+                              self.likeButton.frame = frameLarge;
+                             self.heartImageView.frame = self.likeButton.frame;
+                              [self.heartImageView setImage:[UIImage imageNamed:@"redHeartBig.png"]];
+
+                         } completion:^(BOOL finished) {
+                             [UIView animateWithDuration:0.2
+                                              animations:^{
+                                                  self.likeButton.frame = frameNormal;
+                                                  self.heartImageView.frame = frameNormal;
+                                                  [self.heartImageView setImage:[UIImage imageNamed:@"redHeart.png"]];
+                                                  self.animating = NO;
+                                              }];
+    }];
+        
         [self sendLikePush];
     } else {
         if ([self.activityObject objectForKey:@"likes"]) {
@@ -406,7 +466,7 @@
         [set removeObject:sharedDataManager.facebookId];
         self.likesSet = set;
         self.likeButton.tag = 0;
-        [self.likeButton setImage:[UIImage imageNamed:@"greyHeart"] forState:UIControlStateNormal];
+      [self.heartImageView setImage:[UIImage imageNamed:@"greyHeart.png"]];
     }
     
     if ([self.likesSet count] > 0) {
@@ -432,7 +492,7 @@
     }
     self.likeCountButton.titleLabel.font = montserratSmall;
     CGSize size = [self.likeCountButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratSmall}];
-    self.likeCountButton.frame = CGRectMake(self.frame.size.width - size.width - 35.0, self.likeButton.frame.origin.y, size.width, size.height + 2.0);
+    self.likeCountButton.frame = CGRectMake(self.frame.size.width - size.width - 35.0, self.commentButton.frame.origin.y, size.width, size.height + 2.0);
     [self.likeCountButton.titleLabel setTextColor:UIColorFromRGB(0x1d1d1d)];
     [self.likeCountButton setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
     UIImage *smallHeart= [UIImage imageNamed:@"smallRedHeart"];
@@ -455,10 +515,25 @@
 }
 
 -(void)sendLikePush {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    
+    NSString *type = [self.activityObject objectForKey:@"type"];
+    if ([type isEqualToString:@"createLocation"]) {
+        type = @"location";
+    }
+    
+    NSString *messageHeader = [NSString stringWithFormat:@"%@ liked your %@", sharedDataManager.firstName, type];
+    PFObject *personalNotificationObject = [PFObject objectWithClassName:@"PersonalNotification"];
+    [personalNotificationObject setObject:[PFUser currentUser] forKey:@"fromUser"];
+    [personalNotificationObject setObject:[self.activityObject objectForKey:@"user"] forKey:@"toUser"];
+    [personalNotificationObject setObject:messageHeader forKey:@"content"];
+    [personalNotificationObject setObject:self.activityObject forKey:@"activity"];
+    [personalNotificationObject setObject:@"like" forKey:@"type"];
+    [personalNotificationObject saveInBackground];
+    
     PFQuery *pushQuery = [PFInstallation query];
     [pushQuery whereKey:@"owner" equalTo:[self.activityObject objectForKey:@"user"]];
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
-    NSString *messageHeader = [NSString stringWithFormat:@"%@ liked your %@", sharedDataManager.name, [self.activityObject objectForKey:@"type"]];
+
     NSDictionary *data = [NSDictionary dictionaryWithObjectsAndKeys:
                           messageHeader, @"alert",
                           @"like", @"type",
@@ -475,6 +550,18 @@
 -(void)postSettingsClicked {
     if ([self.delegate respondsToSelector:@selector(postSettingsClicked)]) {
         [self.delegate postSettingsClicked];
+    }
+}
+
+#pragma mark TTTAttributedLabelDelegate
+
+- (void)attributedLabel:(TTTAttributedLabel *)label didSelectLinkWithURL:(NSURL *)url {
+    if ([[url scheme] hasPrefix:@"action"]) {
+        if ([[url host] hasPrefix:@"show-place"]) {
+            [self openPlace];
+        } else {
+            [self openProfile];
+        }
     }
 }
 

@@ -17,8 +17,8 @@
 @property (nonatomic, weak) id<ProfileViewControllerDelegate> delegate;
 @property (nonatomic, retain) Friend *user;
 @property (nonatomic, retain) NSString *postId;
+@property (nonatomic, assign) BOOL openComment;
 -(void)scrollToPost:(NSString*)postId;
-
 @end
 
 @protocol ProfileViewControllerDelegate <NSObject>
@@ -32,4 +32,5 @@
 -(void)pollDatabase;
 -(void)userChangedSettingsToUseCurrentLocation;
 -(void)userChangedLocationInSettings:(CLLocation*)newLocation;
+-(void)blockFriend:(Friend*)friend block:(BOOL)block;
 @end

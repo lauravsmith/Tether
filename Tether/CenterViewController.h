@@ -42,6 +42,8 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 -(void)showYourProfileScrollToPost:(NSString*)postId;
 -(void)openNewPlaceWithId:(NSString*)placeId;
 -(void)showProfileOfFriend:(Friend*)user;
+-(void)confirmPosting:(NSString*)postType;
+-(void)reloadActivity;
 @end
 
 @interface CenterViewController : ViewController <MKMapViewDelegate>
@@ -75,8 +77,11 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 @property (assign, nonatomic) bool dragging;
 @property (retain, nonatomic) UIView * switchBar;
 @property (strong, nonatomic) UIView *searchBarBackground;
+@property (retain, nonatomic) UIView * coverView;
 @property (retain, nonatomic) UIActivityIndicatorView *activityIndicatorView;
+@property (nonatomic, strong) UITableView *followingActivitytsTableView;
 - (IBAction)mapClicked:(id)sender;
+- (IBAction)feedClicked:(id)sender;
 -(void)updateLocation;
 -(void)setCityFromCLLocation:(CLLocation*)location;
 -(void)layoutNumberButton;
@@ -86,4 +91,5 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 - (void)movePanelLeft:(UIGestureRecognizer*)recognizer;
 -(void)setUserLocationToCity:(NSString*)city;
 -(void)refreshComplete;
+-(void)loadFollowingActivity;
 @end

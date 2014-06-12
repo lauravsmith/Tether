@@ -193,7 +193,7 @@
 
             sharedDataManager.friendsToPlacesMap = [[NSMutableDictionary alloc] init];
             for (PFObject *object in objects) {
-                if (![object objectForKey:@"placeOwner"] || [[object objectForKey:@"placeOwner"] isEqualToString:@""] || ![[object objectForKey:@"private"] boolValue] ||[friendsArrayWithMe containsObject:[object objectForKey:@"placeOwner"]]) {
+                if (![object objectForKey:@"placeOwner"] || [[object objectForKey:@"placeOwner"] isEqualToString:@""] || ![[object objectForKey:@"privatePlace"] boolValue] ||[friendsArrayWithMe containsObject:[object objectForKey:@"placeOwner"]]) {
                     Place *place = [[Place alloc] init];
                     geoPoint = [object objectForKey:kCommitmentGeoPointKey];
                     id friendID =[object objectForKey:kUserFacebookIDKey];
@@ -213,8 +213,8 @@
                         place = [tempDictionary objectForKey:[object objectForKey:kCommitmentPlaceIDKey]];
                     }
                     
-                    if ([object objectForKey:@"private"]) {
-                        place.isPrivate = [object objectForKey:@"private"];
+                    if ([object objectForKey:@"privatePlace"]) {
+                        place.isPrivate = [object objectForKey:@"privatePlace"];
                     }
                     
                     NSDate *commitmentTime = [object objectForKey:kCommitmentDateKey];

@@ -14,6 +14,7 @@
 @property (nonatomic, strong) CenterViewController *centerViewController;
 @property (strong, nonatomic) NSMutableDictionary *friendsDictionary;
 @property (assign, nonatomic) BOOL openMessage;
+@property (assign, nonatomic) BOOL openComment;
 -(void)pollDatabase;
 -(void)movePanelLeft;
 -(void)loadNotifications;
@@ -24,5 +25,6 @@
 -(void)setupView;
 -(void)queryFriendsStatus;
 -(void)showPostFromPush:(NSString*)postId;
+-(void)showCommentPostFromPush:(NSString*)postId;
 -(void)openMessageWithThreadId:(NSString*)threadId;
 @end

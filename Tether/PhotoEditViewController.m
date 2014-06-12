@@ -298,6 +298,12 @@
 - (void)shareButtonAction:(id)sender {
     [self resignFirstResponder];
     
+    [self.delegate closePhotoEditView];
+    
+    if ([self.delegate respondsToSelector:@selector(confirmPosting:)]) {
+        [self.delegate confirmPosting:@"Posting your photo"];
+    }
+    
     NSString *trimmedComment = [self.commentTextView.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
     
     // Make sure there were no errors creating the image files
@@ -362,7 +368,11 @@
             }
             
             if (self.place.isPrivate) {
-                [activity setObject:[NSNumber numberWithBool:self.place.isPrivate] forKey:@"private"];
+                [activity setObject:[NSNumber numberWithBool:self.place.isPrivate] forKey:@"privatePlace"];
+            }
+            
+            if (!self.sliderOn) {
+                [activity setObject:[NSNumber numberWithBool:YES] forKey:@"private"];
             }
             
             [activity saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
@@ -381,8 +391,6 @@
         }
         [[UIApplication sharedApplication] endBackgroundTask:self.photoPostBackgroundTaskId];
     }];
-    
-    [self.delegate closePhotoEditView];
 }
 
 #pragma mark UITableViewDelegate
