@@ -182,7 +182,7 @@
     } else if ([[self.activityObject objectForKey:@"type"] isEqualToString:@"comment"]){
         NSMutableAttributedString* attrStr;
         if ([self.feedType isEqualToString:@"place"]) {
-            attrStr  = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@ commented: \n\n\"%@\"", [[self.activityObject objectForKey:@"user"] objectForKey:@"firstName"], [self.activityObject objectForKey:@"content"]]];
+            attrStr  = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@ commented: \n\"%@\"", [[self.activityObject objectForKey:@"user"] objectForKey:@"firstName"], [self.activityObject objectForKey:@"content"]]];
 
             [attrStr addAttribute:NSForegroundColorAttributeName
                             value:UIColorFromRGB(0x8e0528)
@@ -195,7 +195,7 @@
             NSString *userName = [[self.activityObject objectForKey:@"user"] objectForKey:@"firstName"];
             NSString * placeName = [self.activityObject objectForKey:@"placeName"];
             NSString *content = [self.activityObject objectForKey:@"content"];
-            attrStr  = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@ commented on %@: \n\n\"%@\"", userName, placeName, content]];
+            attrStr  = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@ commented on %@: \n\"%@\"", userName, placeName, content]];
             [attrStr addAttribute:NSForegroundColorAttributeName
                             value:UIColorFromRGB(0x8e0528)
                             range:[self.contentLabel.text
@@ -436,10 +436,10 @@
         
         CGRect frameNormal = self.likeButton.frame;
         CGRect frameLarge = self.likeButton.frame;
-        frameLarge.size.width = 35.0;
-        frameLarge.size.height = 35.0;
-        frameLarge.origin.x = frameNormal.origin.x - 7.0;
-        frameLarge.origin.y = frameNormal.origin.y - 7.0;
+        frameLarge.size.width = 25.0;
+        frameLarge.size.height = 25.0;
+        frameLarge.origin.x = frameNormal.origin.x - 2.5;
+        frameLarge.origin.y = frameNormal.origin.y - 2.5;
 
         self.animating = YES;
     [UIView animateWithDuration:0.2

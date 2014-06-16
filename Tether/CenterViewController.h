@@ -27,7 +27,6 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 - (void)movePanelRight;
 - (void)movePanelLeft;
 - (void)movePanelToOriginalPosition;
-- (void)showSettingsView;
 -(void)showListView;
 -(void)finishedResettingNewLocation;
 -(void)saveCity:(NSString*)city state:(NSString*)state;
@@ -54,6 +53,7 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 @property (strong, nonatomic) UILabel *tethrLabel;
 @property (strong, nonatomic) UIActivityIndicatorView * spinner;
 @property (retain, nonatomic) UIButton * numberButton;
+@property (strong, nonatomic) UIImageView *switchPicker;
 @property (strong, nonatomic) UIButton *leftPanelButtonLarge;
 @property (retain, nonatomic) UIButton * triangleButton;
 @property (strong, nonatomic) TethrButton *listViewButton;
@@ -92,4 +92,6 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 -(void)setUserLocationToCity:(NSString*)city;
 -(void)refreshComplete;
 -(void)loadFollowingActivity;
+-(void)showHeader;
+-(void)hideHeader;
 @end

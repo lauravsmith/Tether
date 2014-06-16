@@ -27,5 +27,6 @@
 -(void)selectAnnotationForPlace:(Place*)place;
 -(void)refreshList;
 -(void)showProfileOfFriend:(Friend*)user;
+-(void)openMessageWithThreadId:(NSString*)threadId;
 
 @end

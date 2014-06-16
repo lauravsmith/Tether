@@ -27,7 +27,6 @@
 #import "PlacesViewController.h"
 #import "ProfileViewController.h"
 #import "RightPanelViewController.h"
-#import "SettingsViewController.h"
 #import "ShareViewController.h"
 #import "TetherAnnotation.h"
 #import "TetherAnnotationView.h"
@@ -47,11 +46,10 @@
 #define PANEL_WIDTH 45.0
 #define POLLING_INTERVAL 30
 
-@interface MainViewController () <CenterViewControllerDelegate, DecisionViewControllerDelegate, FriendsListViewControllerDelegate, InviteViewControllerDelegate, LeftPanelViewControllerDelegate, PlacesViewControllerDelegate, RightPanelViewControllerDelegate, SettingsViewControllerDelegate, ShareViewControllerDelegate, UIGestureRecognizerDelegate, MessageViewControllerDelegate, NewMessageViewControllerDelegate, ProfileViewControllerDelegate, UIActionSheetDelegate, UIImagePickerControllerDelegate, PhotoEditViewControllerDelegate>
+@interface MainViewController () <CenterViewControllerDelegate, DecisionViewControllerDelegate, FriendsListViewControllerDelegate, InviteViewControllerDelegate, LeftPanelViewControllerDelegate, PlacesViewControllerDelegate, RightPanelViewControllerDelegate, ShareViewControllerDelegate, UIGestureRecognizerDelegate, MessageViewControllerDelegate, NewMessageViewControllerDelegate, ProfileViewControllerDelegate, UIActionSheetDelegate, UIImagePickerControllerDelegate, PhotoEditViewControllerDelegate>
 
 @property (nonatomic, strong) LeftPanelViewController *leftPanelViewController;
 @property (nonatomic, strong) DecisionViewController *decisionViewController;
-@property (nonatomic, strong) SettingsViewController *settingsViewController;
 @property (nonatomic, strong) PlacesViewController *placesViewController;
 @property (nonatomic, strong) RightPanelViewController *rightPanelViewController;
 @property (nonatomic, strong) InviteViewController *inviteViewController;
@@ -78,7 +76,6 @@
 @property (retain, nonatomic) UIView *confirmationView;
 @property (retain, nonatomic) UIActivityIndicatorView *activityIndicatorView;
 @property (nonatomic, assign) BOOL openingPlacePage;
-@property (nonatomic, strong) UIPanGestureRecognizer *panRecognizerBottom;
 @property (retain, nonatomic) ShareViewController *shareVC;
 @property (retain, nonatomic) PhotoEditViewController *photoEditVC;
 @property (nonatomic, assign) BOOL hasLoadedFriends;
@@ -361,9 +358,6 @@
                self.centerViewController.userProfilePictureView.frame = CGRectMake(7.0, (self.centerViewController.bottomBar.frame.size.height - 28.0) / 2.0, 28.0, 28.0);
                 
                 self.centerViewController.userProfilePictureView.tag = 1;
-                UITapGestureRecognizer *userProfileTapGesture =
-                [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(showSettingsView)];
-                [self.centerViewController.userProfilePictureView addGestureRecognizer:userProfileTapGesture];
                 [self.centerViewController.bottomBar addSubview:self.centerViewController.userProfilePictureView];
                 [self.centerViewController.bottomBar addSubview:self.centerViewController.settingsButtonLarge];
                 [self.centerViewController.bottomBar bringSubviewToFront:self.centerViewController.notificationsLabel];
@@ -555,7 +549,7 @@
                 }
                 
                 if ([userDetails boolForKey:@"isNew"]) {
-                    [self notifyFriendsInCity];
+                    [userDetails setBool:NO forKey:@"isNew"];
                 }
                 
                 self.hasLoadedFriends = YES;
@@ -596,40 +590,6 @@
     [userDetails synchronize];
     
     sharedDataManager.hasUpdatedFriends = YES;
-}
-
--(void)notifyFriendsInCity {
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
-    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
-    
-    for (id key in sharedDataManager.tetherFriendsNearbyDictionary) {
-        Friend *friend = [sharedDataManager.tetherFriendsNearbyDictionary objectForKey:key];
-        if (![friend.friendID isEqualToString:sharedDataManager.facebookId]) {
-            PFQuery *friendQuery = [PFUser query];
-            [friendQuery whereKey:kUserFacebookIDKey equalTo:friend.friendID];
-            
-            [friendQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
-                if (!error) {
-                    // Create our Installation query
-                    PFUser * user = [objects objectAtIndex:0];
-                    PFQuery *pushQuery = [PFInstallation query];
-                    [pushQuery whereKey:@"owner" equalTo:user]; //change this to use friends installation
-                    NSString *messageHeader = [NSString stringWithFormat:@"Your Facebook friend %@ just joined tethr", sharedDataManager.name];
-                    NSDictionary *data = [NSDictionary dictionaryWithObjectsAndKeys:
-                                          messageHeader, @"alert",
-                                          @"Increment", @"badge",
-                                          nil];
-                    
-                    // Send push notification to query
-                    PFPush *push = [[PFPush alloc] init];
-                    [push setQuery:pushQuery]; // Set our Installation query
-                    [push setData:data];
-                    [push sendPushInBackground];
-                }
-            }];
-        }
-    }
-    [userDetails setBool:NO forKey:@"isNew"];
 }
 
 -(void)sortTetherFriends {
@@ -777,9 +737,6 @@
             [self.centerViewController.userProfilePictureView.layer setBorderColor:[[UIColor whiteColor] CGColor]];
             self.centerViewController.userProfilePictureView.frame = CGRectMake(7.0, (self.centerViewController.bottomBar.frame.size.height - 28.0) / 2.0, 28.0, 28.0);
             self.centerViewController.userProfilePictureView.tag = 1;
-            UITapGestureRecognizer *userProfileTapGesture =
-            [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(showSettingsView)];
-            [self.centerViewController.userProfilePictureView addGestureRecognizer:userProfileTapGesture];
             [self.centerViewController.bottomBar addSubview:self.centerViewController.userProfilePictureView];
             [self.centerViewController.bottomBar addSubview:self.centerViewController.settingsButtonLarge];
             [self.centerViewController.bottomBar bringSubviewToFront:self.centerViewController.notificationsLabel];
@@ -843,6 +800,7 @@
     } else {
         self.centerViewController.searchBarBackground.hidden = NO;
         self.centerViewController.switchBar.hidden = NO;
+        self.centerViewController.switchPicker.hidden = NO;
         [self.centerViewController feedClicked:nil];
     }
 }
@@ -974,22 +932,10 @@
     [panRecognizerEdgeRight setDelegate:self];
     
     [_centerViewController.view addGestureRecognizer:panRecognizerEdgeRight];
-    
-    UIScreenEdgePanGestureRecognizer *panRecognizerEdgeBottom = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(showSettingsView)];
-    [panRecognizerEdgeBottom setEdges:UIRectEdgeTop];
-    [panRecognizerEdgeBottom setDelegate:self];
-    
-    [_centerViewController.bottomBar addGestureRecognizer:panRecognizerEdgeBottom];
-    
-    self.panRecognizerBottom = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(showSettingsView)];
-    [self.panRecognizerBottom setMinimumNumberOfTouches:1];
-    [self.panRecognizerBottom setMaximumNumberOfTouches:1];
-    [self.panRecognizerBottom setDelegate:self];
-    [self.centerViewController.bottomBar addGestureRecognizer:self.panRecognizerBottom];
 }
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer  shouldRecognizeSimultaneouslyWithGestureRecognizer :(UIGestureRecognizer *)otherGestureRecognizer {
-    if ([gestureRecognizer isKindOfClass:[UIScreenEdgePanGestureRecognizer class]] || gestureRecognizer == self.panRecognizerBottom) {
+    if ([gestureRecognizer isKindOfClass:[UIScreenEdgePanGestureRecognizer class]]) {
         return YES;
     }
     return NO;
@@ -1063,33 +1009,6 @@
 }
 
 #pragma mark CenterViewControllerDelegate Actions
-
--(void)showSettingsView
-{
-    if (!self.settingsViewController) {
-        self.settingsViewController = [[SettingsViewController alloc] init];
-        self.settingsViewController.delegate = self;
-        Datastore *sharedDataManager = [Datastore sharedDataManager];
-        self.settingsViewController.userProfilePictureView = [[FBProfilePictureView alloc] initWithProfileID:(NSString *)sharedDataManager.facebookId pictureCropping:FBProfilePictureCroppingSquare];
-    }
-    
-    [self addChildViewController:self.settingsViewController];
-    [self.settingsViewController didMoveToParentViewController:self];
-    [self.settingsViewController.view setFrame:CGRectMake(0.0f, self.view.frame.size.height, self.view.frame.size.width, self.view.frame.size.height)]; //notice this is OFF screen!
-    [self.view addSubview:self.settingsViewController.view];
-    
-    [UIView animateWithDuration:SLIDE_TIMING*1.2
-                          delay:0.0
-         usingSpringWithDamping:1.0
-          initialSpringVelocity:1.0
-                        options:UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
-                            [self.settingsViewController.view setFrame:CGRectMake( 0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
-                     }
-                     completion:^(BOOL finished) {
-                          [Flurry logEvent:@"User_views_Settings_Page"];
-                     }];
-}
 
 -(void)showListView
 {
@@ -1511,6 +1430,7 @@
             [self pollDatabase];
             self.centerViewController.searchBarBackground.hidden = NO;
             self.centerViewController.switchBar.hidden = NO;
+            self.centerViewController.switchPicker.hidden = NO;
             [self.centerViewController feedClicked:nil];
         }];
 
@@ -1524,10 +1444,6 @@
     [user saveInBackground];
     
     [self.centerViewController updateLocation];
-    
-    if (self.settingsViewController) {
-        self.settingsViewController.goingOutSwitch.on = choice;
-    }
     
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
     [formatter setDateFormat:@"YYMMddhh"];
@@ -1544,23 +1460,7 @@
     }
 }
 
-#pragma mark SettingsViewControllerDelegate
-
--(void)closeSettings {
-    [UIView animateWithDuration:SLIDE_TIMING*1.2
-                          delay:0.0
-         usingSpringWithDamping:1.0
-          initialSpringVelocity:1.0
-                        options:UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
-                            [self.settingsViewController.view setFrame:CGRectMake(0.0f, self.view.frame.size.height + 40.0, self.view.frame.size.width, self.view.frame.size.height)];
-                     }
-                     completion:^(BOOL finished) {
-                         [self.settingsViewController.view removeFromSuperview];
-                         [self.settingsViewController removeFromParentViewController];
-                         self.listsHaveChanged = YES;
-                     }];
-}
+#pragma mark ProfileViewControllerDelegate
 
 -(void)userChangedLocationToCityName:(NSString*)city{
     CLGeocoder *geo = [[CLGeocoder alloc] init];
@@ -1971,6 +1871,7 @@
         [self closeNewMessageView];
     }
     
+    [self.centerViewController showHeader];
     [self.centerViewController mapClicked:nil];
     
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
@@ -2193,8 +2094,6 @@
                 [user setObject:[NSNumber numberWithBool:YES] forKey:kUserStatusKey];
                 [user setObject:[NSDate date] forKey:kUserTimeLastUpdatedKey];
                 [user saveInBackground];
-                
-                self.settingsViewController.goingOutSwitch.on = YES;
                 
                 self.committingToPlace = YES;
                 [commitment saveEventually:^(BOOL succeeded, NSError *error) {

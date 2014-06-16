@@ -123,6 +123,12 @@
     UIFont *helveticaNeue = [UIFont fontWithName:@"HelveticaNeue-Bold" size:30];
     CGSize size = [self.numberLabel.text sizeWithAttributes:@{NSFontAttributeName:helveticaNeue}];
     self.numberLabel.frame = CGRectMake(PADDING, STATUS_BAR_HEIGHT + (TOP_BAR_HEIGHT - STATUS_BAR_HEIGHT - size.height) / 2.0, size.width, size.height);
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    if ([sharedDataManager.tetherFriendsGoingOut count] + [sharedDataManager.tetherFriendsNotGoingOut count] == 0) {
+        [self.numberLabel setHidden:YES];
+    } else {
+        [self.numberLabel setHidden:NO];
+    }
     [self.topBar addSubview:self.numberLabel];
 }
 

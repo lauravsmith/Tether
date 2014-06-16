@@ -38,7 +38,6 @@
 @property (retain, nonatomic) UILabel * followersLabel;
 @property (nonatomic, strong) TethrButton *followingButton;
 @property (retain, nonatomic) UILabel * followingLabel;
-@property (retain, nonatomic) UIView * separatorBar;
 @property (nonatomic, strong) FBProfilePictureView *userProfilePictureView;
 @property (retain, nonatomic) TethrButton * messageButton;
 @property (retain, nonatomic) TethrButton * followButton;
@@ -58,12 +57,15 @@
 @property (retain, nonatomic) PFObject * postToDelete;
 @property (retain, nonatomic) CommentViewController * commentVC;
 @property (retain, nonatomic) UIImageView * followImageView;
+@property (retain, nonatomic) UIImageView * messageImageView;
 @property (assign, nonatomic) BOOL isFriend;
 @property (assign, nonatomic) BOOL isPrivate;
 @property (nonatomic, strong) UITableView *notificationTableView;
 @property (nonatomic, strong) UITableViewController *notificationsTableViewController;
 @property (retain, nonatomic) NSMutableArray * notificationsArray;
 @property (retain, nonatomic) NSMutableArray * requestsArray;
+@property (retain, nonatomic) UIButton *feedButton;
+@property (retain, nonatomic) UIButton *bellButton;
 
 @end
 
@@ -144,10 +146,6 @@
         self.settingsButton.layer.masksToBounds = YES;
         [self.topBar addSubview:self.settingsButton];
     }
-    
-    self.separatorBar = [[UIView alloc] initWithFrame:CGRectMake(0, TOP_BAR_HEIGHT - 1.0, self.view.frame.size.width, 1.0)];
-    [self.separatorBar setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
-    [self.topBar addSubview:self.separatorBar];
     
     self.activityTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, TOP_BAR_HEIGHT, self.view.frame.size.width, self.view.frame.size.height - TOP_BAR_HEIGHT)];
     [self.activityTableView setDataSource:self];
@@ -347,7 +345,7 @@
             self.followButton.tag = 1;
         } else {
              self.isFriend = YES;
-            self.followersLabel.text = [NSString stringWithFormat:@"%d", MAX(0,[self.user.followersArray count] - 1)];
+            self.followersLabel.text = [NSString stringWithFormat:@"%lu", MAX(0,[self.user.followersArray count] - 1)];
         }
         
         [self setupFollowButton];
@@ -741,12 +739,12 @@
                                                         options:NSStringDrawingUsesLineFragmentOrigin
                                                      attributes:@{NSFontAttributeName:montserrat}
                                                         context:nil];
-                return self.view.frame.size.width + 100.0 + textRect.size.height;
+                return self.view.frame.size.width + 90.0 + textRect.size.height;
             } else if ([[object objectForKey:@"type"] isEqualToString:@"comment"]) {
                 NSString *userName = [[object objectForKey:@"user"] objectForKey:@"firstName"];
                 NSString * placeName = [object objectForKey:@"placeName"];
                 NSString *content = [object objectForKey:@"content"];
-                NSString *contentString = [NSString stringWithFormat:@"%@ commented on %@: \n\n\"%@\"", userName, placeName, content];
+                NSString *contentString = [NSString stringWithFormat:@"%@ commented on %@: \n\"%@\"", userName, placeName, content];
                 UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
                 CGRect textRect = [contentString boundingRectWithSize:CGSizeMake(self.view.frame.size.width - 60.0, 1000.0)
                                                               options:NSStringDrawingUsesLineFragmentOrigin
@@ -911,6 +909,17 @@
                     [self.messageButton setEnabled:NO];
                 }
                 
+                self.messageImageView = [[UIImageView alloc] initWithFrame:CGRectMake(((self.view.frame.size.width - PADDING * 2) / 2.0 - 25.0) / 2.0, 0.0, 30.0, 30.0)];
+                [self.messageImageView setImage:[UIImage imageNamed:@"ChatIconRed.png"]];
+                self.messageImageView.contentMode = UIViewContentModeScaleAspectFit;
+                [self.messageButton addSubview:self.messageImageView];
+                
+                if (!self.isFriend && self.user.isPrivate) {
+                    [self.messageButton setNormalColor:UIColorFromRGB(0xc8c8c8)];
+                    [self.messageButton setEnabled:NO];
+                    [self.messageImageView setImage:[UIImage imageNamed:@"ChatIcon.png"]];
+                }
+                
                 UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(self.view.frame.size.width / 2.0, 125.0, 1.0, 35.0)];
                 [separator setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
                 [headerView addSubview:separator];
@@ -933,6 +942,7 @@
                 self.followImageView.image = [UIImage imageNamed:@"GreyPinIcon"];
                     [self.followButton setTitle:@"follow" forState:UIControlStateNormal];
                 }
+                
                 self.followButton.titleLabel.font = mission;
                 [self.followButton setTitleEdgeInsets:UIEdgeInsetsMake(15.0, 0.0, 0.0, 0.0)];
                 [self.followButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
@@ -987,16 +997,15 @@
                 [separator setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
                 [headerView addSubview:separator];
                 
-                UIButton *feedButton = [[UIButton alloc] initWithFrame:CGRectMake(0.0, 140.0, self.view.frame.size.width / 2.0, 40.0)];
-                [feedButton addTarget:self action:@selector(showFeed:) forControlEvents:UIControlEventTouchUpInside];
-                [feedButton setBackgroundColor:UIColorFromRGB(0xf8f8f8)];
-                [feedButton setImage:[UIImage imageNamed:@"LineNavigator.png"] forState:UIControlStateNormal];
-                [headerView addSubview:feedButton];
+                self.feedButton = [[UIButton alloc] initWithFrame:CGRectMake(0.0, 140.0, self.view.frame.size.width / 2.0, 40.0)];
+                [self.feedButton addTarget:self action:@selector(showFeed:) forControlEvents:UIControlEventTouchUpInside];
+                [self.feedButton setImage:[UIImage imageNamed:@"PersonalFeedRed.png"] forState:UIControlStateNormal];
+                [headerView addSubview:self.feedButton];
                 
-                UIButton *bellButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width / 2.0, 140.0, self.view.frame.size.width / 2.0, 40.0)];
-                [bellButton addTarget:self action:@selector(showNotifications:) forControlEvents:UIControlEventTouchUpInside];
-                [bellButton setImage:[UIImage imageNamed:@"Bell.png"] forState:UIControlStateNormal];
-                [headerView addSubview:bellButton];
+                self.bellButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width / 2.0, 140.0, self.view.frame.size.width / 2.0, 40.0)];
+                [self.bellButton addTarget:self action:@selector(showNotifications:) forControlEvents:UIControlEventTouchUpInside];
+                [self.bellButton setImage:[UIImage imageNamed:@"Bell.png"] forState:UIControlStateNormal];
+                [headerView addSubview:self.bellButton];
                 
                 self.notificationTableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, 180., self.view.frame.size.width, self.view.frame.size.height - 180.0 - TOP_BAR_HEIGHT)];
                 [self.notificationTableView setDataSource:self];
@@ -1042,12 +1051,16 @@
 -(IBAction)showFeed:(id)sender {
     [self.activityTableView setScrollEnabled:YES];
     [self.notificationTableView setHidden:YES];
+    [self.feedButton setImage:[UIImage imageNamed:@"PersonalFeedRed.png"] forState:UIControlStateNormal];
+    [self.bellButton setImage:[UIImage imageNamed:@"Bell.png"] forState:UIControlStateNormal];
 }
 
 -(IBAction)showNotifications:(id)sender {
     [self loadRequests];
     [self.activityTableView setScrollEnabled:NO];
     [self.notificationTableView setHidden:NO];
+    [self.feedButton setImage:[UIImage imageNamed:@"PersonalFeed.png"] forState:UIControlStateNormal];
+    [self.bellButton setImage:[UIImage imageNamed:@"BellRed.png"] forState:UIControlStateNormal];
 }
 
 -(void)loadRequests {

@@ -642,6 +642,12 @@
     }
 }
 
+-(void)openMessageWithThreadId:(NSString*)threadId {
+    if ([self.delegate respondsToSelector:@selector(openMessageWithThreadId:)]) {
+        [self.delegate openMessageWithThreadId:threadId];
+    }
+}
+
 #pragma mark InviteViewControllerDelegate
 -(void)closeInviteView {
     for (UIViewController *childViewController in self.childViewControllers) {
@@ -1030,10 +1036,26 @@
     [formatter setDateFormat:@"YYYYMMdd"];
     NSString *today = [formatter stringFromDate:[NSDate date]];
     
+    NSString *city = [self.userDetails objectForKey:@"city"];
+    NSString *state = [self.userDetails objectForKey:@"state"];
+    
+    // check if city name contains illegal characters
+    NSCharacterSet * set = [[NSCharacterSet characterSetWithCharactersInString:@"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLKMNOPQRSTUVWXYZ0123456789"] invertedSet];
+    
+    if ([city rangeOfCharacterFromSet:set].location != NSNotFound) {
+        NSLog(@"This string contains illegal characters");
+        
+        city = [self removeIllegalCharactersFromString:city];
+    }
+    
+    if ([state rangeOfCharacterFromSet:set].location != NSNotFound) {
+        state = [self removeIllegalCharactersFromString:state];
+    }
+    
     NSString *urlString1 = @"https://api.foursquare.com/v2/venues/search?near=";
     NSString *urlString2 = @"&query=";
     NSString *urlString3 = @"&limit=50&client_id=VLMUFMIAUWTTEVXXFQEQNKFDMCOFYEHTZU1U53IPQCI1PONX&client_secret=RH1CZUW0WWVM5LIEGZNFLU133YZX1ZMESAJ4PWNSDDSFMGYS&v=";
-    NSString *joinString=[NSString stringWithFormat:@"%@%@%@%@%@%@%@%@",urlString1,[self.userDetails objectForKey:@"city"] ,@"%20",[self.userDetails objectForKey:@"state"],urlString2, search, urlString3, today];
+    NSString *joinString=[NSString stringWithFormat:@"%@%@%@%@%@%@%@%@",urlString1, city, @"%20", state, urlString2, search, urlString3, today];
     joinString = [joinString stringByReplacingOccurrencesOfString:@" " withString:@"%20"];
     
     NSURL *url = [NSURL URLWithString:joinString];

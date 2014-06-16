@@ -7,6 +7,7 @@
 //
 
 #import "Friend.h"
+#import "MessageThread.h"
 #import "Place.h"
 #import <UIKit/UIKit.h>
 
@@ -22,6 +23,7 @@
 @property (retain, nonatomic) UIButton *sendButton;
 @property (retain, nonatomic) NSMutableDictionary *friendsInvitedDictionary;
 @property (retain, nonatomic) UISearchBar *placeSearchBar;
+@property (retain, nonatomic) MessageThread *thread;
 -(void)addFriend:(Friend *)friend;
 -(void)layoutFriendsInvitedView;
 - (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar;

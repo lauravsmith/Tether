@@ -43,5 +43,6 @@
 -(void)selectAnnotationForPlace:(Place*)place;
 -(void)dismissConfirmation;
 -(void)showProfileOfFriend:(Friend*)user;
+-(void)openMessageWithThreadId:(NSString*)threadId;
 
 @end

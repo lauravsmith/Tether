@@ -979,6 +979,11 @@
                              [self.inviteViewController.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
                          }
                          completion:^(BOOL finished) {
+                             if (self.inviteViewController.thread) {
+                                 if ([self.delegate respondsToSelector:@selector(openMessageWithThreadId:)]) {
+                                     [self.delegate openMessageWithThreadId:self.inviteViewController.thread.threadId];
+                                 }
+                             }
                              [self.inviteViewController.view removeFromSuperview];
                              [self.inviteViewController removeFromParentViewController];
                              self.inviteViewController = nil;
@@ -1249,7 +1254,7 @@
         } else if ([[object objectForKey:@"type"] isEqualToString:@"comment"]) {
             NSString *userName = [[object objectForKey:@"user"] objectForKey:@"firstName"];
             NSString *content = [object objectForKey:@"content"];
-            NSString *contentString = [NSString stringWithFormat:@"%@ commented: \n\n\"%@\"", userName, content];
+            NSString *contentString = [NSString stringWithFormat:@"%@ commented: \n\"%@\"", userName, content];
             UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
             CGRect textRect = [contentString boundingRectWithSize:CGSizeMake(self.view.frame.size.width - 60.0, 1000.0)
                                                           options:NSStringDrawingUsesLineFragmentOrigin

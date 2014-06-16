@@ -74,7 +74,7 @@
 
 - (void)setFriend:(Friend *)friend {
     _friend = friend;
-    self.friendNameLabel.text = friend.name;
+    self.friendNameLabel.text = friend.firstName;
     self.friendID = friend.friendID;
     self.friendProfilePictureView = [[FBProfilePictureView alloc] initWithProfileID:(NSString *)self.friendID pictureCropping:FBProfilePictureCroppingSquare];
     

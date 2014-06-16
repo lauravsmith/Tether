@@ -69,7 +69,6 @@
 @property (retain, nonatomic) CommentViewController * commentVC;
 @property (retain, nonatomic) PFObject * postToDelete;
 @property (strong, nonatomic) UIView *separatorBar;
-@property (strong, nonatomic) UIImageView *switchPicker;
 @property (strong, nonatomic) UIButton *popularSwitchButton;
 @property (strong, nonatomic) UIButton *mapSwitchButton;
 @property (strong, nonatomic) UIButton *feedSwitchButton;
@@ -313,11 +312,12 @@
     [self.settingsButtonLarge addTarget:self action:@selector(settingsPressed:) forControlEvents:UIControlEventTouchDown];
     
     // notifications button to open right panel setup
-    self.notificationsButton = [[TethrButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 37.0, (self.bottomBar.frame.size.height - 40.0) / 2.0, 30.0, 40.0)];
+    self.notificationsButton = [[TethrButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 35.0, (self.bottomBar.frame.size.height - 25.0) / 2.0, 25.0, 25.0)];
     [self.notificationsButton setNormalColor:[UIColor clearColor]];
     [self.notificationsButton setHighlightedColor:UIColorFromRGB(0xc8c8c8)];
     [self.notificationsButton addTarget:self action:@selector(btnMovePanelLeft:) forControlEvents:UIControlEventTouchUpInside];
-    [self.notificationsButton setImage:[UIImage imageNamed:@"Bell"] forState:UIControlStateNormal];
+    [self.notificationsButton setImage:[UIImage imageNamed:@"ChatIcon.png"] forState:UIControlStateNormal];
+    [self.notificationsButton setImage:[UIImage imageNamed:@"ChatIconRed.png"] forState:UIControlStateSelected];
     [self.bottomBar addSubview:self.notificationsButton];
     
     self.notificationsButtonLarge = [[UIButton alloc] initWithFrame:CGRectMake(self.bottomBar.frame.size.width - self.bottomBar.frame.size.width / 4.0, 0.0, self.bottomBar.frame.size.width / 4.0, self.bottomBar.frame.size.height)];
@@ -375,6 +375,7 @@
     
     self.switchPicker = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"RedPicker"]];
     self.switchPicker.frame = CGRectMake((self.view.frame.size.width - 11.0) / 2.0, self.switchBar.frame.origin.y + self.switchBar.frame.size.height - 1.0, 11.0, 5.0);
+    self.switchPicker.hidden = YES;
     [self.backView addSubview:self.switchPicker];
     
     self.feedSearchBar = [[UISearchBar alloc] initWithFrame:CGRectMake((self.view.frame.size.width - SEARCH_BAR_WIDTH) / 2.0, 0.0, SEARCH_BAR_WIDTH,SEARCH_BAR_HEIGHT)];
@@ -563,6 +564,17 @@
         [components setHour:5.0];
         return [calendar dateByAddingComponents:deltaComps toDate:[calendar dateFromComponents:components] options:0];
     }
+}
+
+-(NSString*)removeIllegalCharactersFromString:(NSString*)string {
+    NSData *asciiEncoded = [string dataUsingEncoding:NSASCIIStringEncoding
+                                allowLossyConversion:YES];
+    
+    // take the data object and recreate a string using the lossy conversion
+    NSString *other = [[NSString alloc] initWithData:asciiEncoded
+                                            encoding:NSASCIIStringEncoding];
+    
+    return other;
 }
 
 #pragma UIGestureRecognizers
@@ -1573,7 +1585,7 @@
             NSString *userName = [[object objectForKey:@"user"] objectForKey:@"firstName"];
             NSString * placeName = [object objectForKey:@"placeName"];
             NSString *content = [object objectForKey:@"content"];
-            NSString *contentString = [NSString stringWithFormat:@"%@ commented on %@: \n\n\"%@\"", userName, placeName, content];
+            NSString *contentString = [NSString stringWithFormat:@"%@ commented on %@: \n\"%@\"", userName, placeName, content];
             UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:14.0f];
             CGRect textRect = [contentString boundingRectWithSize:CGSizeMake(self.view.frame.size.width - 60.0, 1000.0)
                                                           options:NSStringDrawingUsesLineFragmentOrigin
@@ -1693,6 +1705,21 @@
     }
 }
 
+-(void)showHeader {
+    [UIView animateWithDuration:0.2
+                     animations:^{
+                         self.backView.frame = CGRectMake(0.0, 0.0, self.view.frame.size.width, self.view.frame.size.height);
+                         self.difference = 0.0;
+                     }];
+}
+
+-(void)hideHeader {
+    [UIView animateWithDuration:0.2
+                     animations:^{
+                         self.backView.frame = CGRectMake(0.0, -82.0, self.view.frame.size.width, self.view.frame.size.height + 20.0);
+                     }];
+}
+
 -(void)scrollViewDidScroll:(UIScrollView *)scrollView {
     
     if (scrollView == self.followingActivitytsTableView || scrollView == self.nearbyActivitytsTableView) {
@@ -1700,10 +1727,7 @@
             if (self.lastContentOffset < scrollView.contentOffset.y) {
                 self.difference = 0.0;
                 if (self.backView.frame.origin.y == 0.0) {
-                    [UIView animateWithDuration:0.2
-                                     animations:^{
-                                         self.backView.frame = CGRectMake(0.0, -82.0, self.view.frame.size.width, self.view.frame.size.height + 20.0);
-                                     }];
+                    [self hideHeader];
                 }
                 self.lastContentOffset = scrollView.contentOffset.y;
             } else if (self.lastContentOffset > scrollView.contentOffset.y) {
@@ -1717,11 +1741,7 @@
                     }
                     
                     if (self.difference > 200.0 || offset < 40.0) {
-                        [UIView animateWithDuration:0.2
-                                         animations:^{
-                                             self.backView.frame = CGRectMake(0.0, 0.0, self.view.frame.size.width, self.view.frame.size.height);
-                                             self.difference = 0.0;
-                                         }];
+                        [self showHeader];
                     }
                 }
                 self.lastContentOffset = scrollView.contentOffset.y;
@@ -1764,6 +1784,21 @@
 // Search foursquare data call
 - (void)loadPlacesForSearch:(NSString*)search {
     NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    NSString *city = [userDetails objectForKey:@"city"];
+    NSString *state = [userDetails objectForKey:@"state"];
+    
+    // check if city name contains illegal characters
+    NSCharacterSet * set = [[NSCharacterSet characterSetWithCharactersInString:@"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLKMNOPQRSTUVWXYZ0123456789"] invertedSet];
+    
+    if ([city rangeOfCharacterFromSet:set].location != NSNotFound) {
+        NSLog(@"This string contains illegal characters");
+        
+        city = [self removeIllegalCharactersFromString:city];
+    }
+    
+    if ([state rangeOfCharacterFromSet:set].location != NSNotFound) {
+        state = [self removeIllegalCharactersFromString:state];
+    }
     
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
     [formatter setDateFormat:@"YYYYMMdd"];
@@ -1772,7 +1807,7 @@
     NSString *urlString1 = @"https://api.foursquare.com/v2/venues/search?near=";
     NSString *urlString2 = @"&query=";
     NSString *urlString3 = @"&limit=50&client_id=VLMUFMIAUWTTEVXXFQEQNKFDMCOFYEHTZU1U53IPQCI1PONX&client_secret=RH1CZUW0WWVM5LIEGZNFLU133YZX1ZMESAJ4PWNSDDSFMGYS&v=";
-    NSString *joinString=[NSString stringWithFormat:@"%@%@%@%@%@%@%@%@",urlString1,[userDetails objectForKey:@"city"] ,@"%20",[userDetails objectForKey:@"state"],urlString2, search, urlString3, today];
+    NSString *joinString=[NSString stringWithFormat:@"%@%@%@%@%@%@%@%@",urlString1, city,@"%20", state, urlString2, search, urlString3, today];
     joinString = [joinString stringByReplacingOccurrencesOfString:@" " withString:@"%20"];
     
     NSURL *url = [NSURL URLWithString:joinString];

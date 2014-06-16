@@ -228,7 +228,39 @@
     }];
     
     [self.delegate newsTapped:self];
+    
+    if (self.place.owner && self.place) {
+        [self sendOwnerPush];
+    }
+    
     [self closeView];
+}
+
+-(void)sendOwnerPush {
+    PFQuery *userQuery = [PFQuery queryWithClassName:@"User"];
+    [userQuery whereKey:@"facebookId" equalTo:self.place.owner];
+    
+    [userQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+        if (!error && [objects count] > 0) {
+            PFUser *user = [objects objectAtIndex:0];
+            Datastore *sharedDataManager = [Datastore sharedDataManager];
+            NSString *messageHeader = [NSString stringWithFormat:@"%@ commented on %@", sharedDataManager.firstName, self.place.name];
+            PFQuery *pushQuery = [PFInstallation query];
+            [pushQuery whereKey:@"owner" equalTo:user];
+            
+            NSDictionary *data = [NSDictionary dictionaryWithObjectsAndKeys:
+                                  messageHeader, @"alert",
+                                  @"placeComment", @"type",
+                                  self.place.placeId, @"placeId",
+                                  nil];
+            
+            // Send push notification to query
+            PFPush *push = [[PFPush alloc] init];
+            [push setQuery:pushQuery]; // Set our Installation query
+            [push setData:data];
+            [push sendPushInBackground];
+        }
+    }];
 }
 
 #pragma mark TextViewDelegate

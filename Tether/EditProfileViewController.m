@@ -17,6 +17,7 @@
 #define SEARCH_RESULTS_CELL_HEIGHT 60.0
 #define SEGMENT_HEIGHT 45.0
 #define SLIDE_TIMING 0.6
+#define SPINNER_SIZE 30.0
 #define STATUS_BAR_HEIGHT 20.0
 #define TOP_BAR_HEIGHT 70.0
 
@@ -46,6 +47,7 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 @property (nonatomic, strong) UITableViewController *searchResultsTableViewController;
 @property (nonatomic, strong) NSMutableArray *searchResultsArray;
 @property (nonatomic, retain) ILGeoNamesLookup *geocoder;
+@property (nonatomic, retain) UIActivityIndicatorView *activityIndicatorView;
 
 @end
 
@@ -313,6 +315,10 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     self.searchResultsTableViewController = [[UITableViewController alloc] init];
     self.searchResultsTableViewController.tableView = self.searchResultsTableView;
     
+    self.activityIndicatorView = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake((self.view.frame.size.width - SPINNER_SIZE) / 2.0, SEARCH_RESULTS_CELL_HEIGHT, SPINNER_SIZE, SPINNER_SIZE)];
+    self.activityIndicatorView.color = UIColorFromRGB(0xc8c8c8);
+    [self.searchResultsTableView addSubview:self.activityIndicatorView];
+    
     [UIView animateWithDuration:SLIDE_TIMING*0.5
                           delay:0.0
          usingSpringWithDamping:1.0
@@ -516,6 +522,8 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
 	}
     
 	[self.searchResultsTableView reloadData];
+    
+    [self.activityIndicatorView stopAnimating];
     // when the table view is repopulated, its significant enough that a screen change notification should be posted
     UIAccessibilityPostNotification(UIAccessibilityLayoutChangedNotification, nil);
     UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, nil);
@@ -557,6 +565,8 @@ static NSString *kGeoNamesAccountName = @"lsmit87";
     // Delay the search 1 second to minimize outstanding requests
     [NSObject cancelPreviousPerformRequestsWithTarget:self];
     [self performSelector:@selector(delayedSearch:) withObject:self.searchBar.text afterDelay:0.5];
+    
+    [self.activityIndicatorView startAnimating];
 }
 
 - (void)delayedSearch:(NSString*)searchString

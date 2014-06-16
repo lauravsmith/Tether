@@ -14,7 +14,6 @@
 #import "MessageThread.h"
 #import "MessageThreadCell.h"
 #import "Notification.h"
-#import "NotificationCell.h"
 #import "RightPanelViewController.h"
 
 #import <Parse/Parse.h>
@@ -26,7 +25,7 @@
 #define SPINNER_SIZE 30.0
 #define STATUS_BAR_HEIGHT 20.0
 
-@interface RightPanelViewController () <NotificationCellDelegate, UITableViewDataSource, UITableViewDelegate>
+@interface RightPanelViewController () <UITableViewDataSource, UITableViewDelegate>
 @property (retain, nonatomic) UIRefreshControl * refreshControl;
 @property (retain, nonatomic) UIView * deleteConfirmationView;
 @property (retain, nonatomic) UILabel * deleteConfirmationLabel;

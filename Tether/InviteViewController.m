@@ -14,6 +14,7 @@
 #import "FriendAtPlaceCell.h"
 #import "FriendLabel.h"
 #import "InviteViewController.h"
+#import "Message.h"
 #import "SearchResultCell.h"
 #import "TethrButton.h"
 
@@ -404,12 +405,9 @@
 }
 
 -(IBAction)sendButtonClicked:(id)sender {
-    [self.sendButton setBackgroundColor:[UIColor whiteColor]];
-    
     if (!self.place || [self.friendsInvitedDictionary count] < 1) {
         return;
     }
-    Datastore *sharedDataManager = [Datastore sharedDataManager];
     
     NSMutableArray *friendsInvited = [[NSMutableArray alloc] init];
     for (id key in self.friendsInvitedDictionary) {
@@ -417,85 +415,286 @@
         [friendsInvited addObject:friend.friendID];
     }
     
-    NSString * friendListString = @"";
-
-    for (NSString *friendID in friendsInvited) {
-        Friend *friend = [self.friendsInvitedDictionary objectForKey:friendID];
-        if ([friendsInvited indexOfObject:friendID] == 0) {
-            friendListString = [NSString stringWithFormat:@" %@", friend.name];
-        } else if ([friendsInvited indexOfObject:friendID] == [friendsInvited count] - 1) {
-            friendListString = [NSString stringWithFormat:@"%@ and %@", friendListString, friend.name];
-        } else {
-            friendListString = [NSString stringWithFormat:@"%@,%@", friendListString, friend.name];
+    NSMutableSet *set = [[NSMutableSet alloc] initWithArray:friendsInvited];
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    [set addObject:sharedDataManager.facebookId];
+    MessageThread *exisitingThread;
+    
+    for (id key in sharedDataManager.messageThreadDictionary) {
+        MessageThread *thread = [sharedDataManager.messageThreadDictionary objectForKey:key];
+        if ([thread.participantIds isEqualToSet:set]) {
+            exisitingThread = thread;
+            self.thread = thread;
+            break;
         }
     }
     
-    friendListString = [NSString stringWithFormat:@"You invited%@ to %@",friendListString, self.place.name];
-    
-    if([self.messageTextView.text isEqualToString:@"Compose a message"]) {
-        self.messageTextView.text = @"";
+    if (!exisitingThread) {
+        // start new thread with invite
+        // create message object associated with the thread object
+        PFObject *inviteObject = [PFObject objectWithClassName:@"Invite"];
+        [inviteObject setObject:self.place.name forKey:@"placeName"];
+        [inviteObject setObject:self.place.placeId forKey:@"placeId"];
+        [inviteObject setObject:self.place.city forKey:@"city"];
+        [inviteObject setObject:self.place.state forKey:@"state"];
+        
+        [self startNewConversationWithMessage:[NSString stringWithFormat:@"%@ invited you to %@", sharedDataManager.name, self.place.name] orInviteObject:inviteObject];
+    } else {
+        // send invite in exisiting thread
+        [self inviteToPlace:self.place];
     }
+    // open message thread
     
-    // add notification to be seen in current users activity feed
-    PFObject *receipt = [PFObject objectWithClassName:kNotificationClassKey];
-    [receipt setObject:sharedDataManager.facebookId forKey:kNotificationSenderKey];
-    [receipt setObject:self.place.name forKey:kNotificationPlaceNameKey];
-    [receipt setObject:self.place.placeId forKey:kNotificationPlaceIdKey];
-    [receipt setObject:friendListString forKey:kNotificationMessageHeaderKey];
-    [receipt setObject:self.messageTextView.text forKey:kNotificationMessageContentKey];
-    [receipt setObject:sharedDataManager.facebookId forKey:kNotificationRecipientKey];
-    [receipt setObject:friendsInvited forKey:kNotificationAllRecipientsKey];
-    [receipt setObject:@"receipt" forKey:kNotificationTypeKey];
-    [receipt setObject:self.place.city forKey:kNotificationCityKey];
-    [receipt saveInBackground];
+    [self.sendButton setBackgroundColor:[UIColor whiteColor]];
     
+    [self confirmInvitationsSent];
+}
+
+-(void)startNewConversationWithMessage:(NSString*)content orInviteObject:(PFObject*)inviteObject{
+    // check if exisiting message thread with same participants
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    PFObject *threadObject = [PFObject objectWithClassName:@"MessageThread"];
+    [threadObject setObject:content forKey:@"recentMessage"];
+    
+    NSMutableArray *friendsInvitedArray = [[NSMutableArray alloc] init];
     for (id key in self.friendsInvitedDictionary) {
         Friend *friend = [self.friendsInvitedDictionary objectForKey:key];
+        [friendsInvitedArray addObject:friend];
+    }
+    
+    NSMutableArray *friendNamesArray = [[NSMutableArray alloc] initWithCapacity:[friendsInvitedArray count] + 1];
+    NSMutableArray *friendFirstNamesArray = [[NSMutableArray alloc] initWithCapacity:[friendsInvitedArray count] + 1];
+    NSMutableArray *friendIdsArray = [[NSMutableArray alloc] initWithCapacity:[friendsInvitedArray count] + 1];
+    [friendNamesArray addObject:sharedDataManager.name];
+    [friendFirstNamesArray addObject:sharedDataManager.firstName];
+    [friendIdsArray addObject:sharedDataManager.facebookId];
+    
+    for (Friend *friend in friendsInvitedArray) {
+        [friendNamesArray addObject:friend.name];
+        [friendFirstNamesArray addObject:friend.firstName];
+        [friendIdsArray addObject:friend.friendID];
+    }
+    
+    [threadObject setObject:friendNamesArray forKey:@"participantNames"];
+    [threadObject setObject:friendFirstNamesArray forKey:@"participantFirstNames"];
+    [threadObject setObject:friendIdsArray forKey:@"participantIds"];
+    
+    [threadObject saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+        
+        Datastore *sharedDataManager = [Datastore sharedDataManager];
+        Message *newMessage = [[Message alloc] init];
+        if (inviteObject) {
+            newMessage.content = [NSString stringWithFormat:@"You sent an invite to %@", [inviteObject objectForKey:@"placeName"]];
+        } else {
+            newMessage.content = content;
+        }
+        newMessage.date = [NSDate date];
+        newMessage.userId = sharedDataManager.facebookId;
+        newMessage.userName = sharedDataManager.name;
+        newMessage.threadId = self.thread.threadId;
+        
+        MessageThread *thread = [[MessageThread alloc] init];
+        thread.threadId = threadObject.objectId;
+        thread.threadObject = threadObject;
+        thread.recentMessageDate = threadObject.updatedAt;
+        thread.recentMessage = [threadObject objectForKey:@"recentMessage"];
+        if (sharedDataManager.name) {
+            if ([thread.recentMessage rangeOfString:sharedDataManager.name].location != NSNotFound) {
+                thread.recentMessage = [thread.recentMessage stringByReplacingOccurrencesOfString:sharedDataManager.name withString:@"You"];
+                
+            }
+        }
+        
+        thread.participantIds = [NSMutableSet setWithArray:[threadObject objectForKey:@"participantIds"]];
+        thread.participantNames = [NSMutableSet setWithArray:[threadObject objectForKey:@"participantNames"]];
+        if ([thread.participantIds count] > 2) {
+            thread.isGroupMessage = YES;
+            thread.participantNames = [NSMutableSet setWithArray:[threadObject objectForKey:@"participantFirstNames"]];
+        } else {
+            thread.isGroupMessage = NO;
+        }
+        
+        thread.messages = [[NSMutableDictionary alloc] init];
+        self.thread = thread;
+        
+        PFObject *myParticipantObject = [PFObject objectWithClassName:@"MessageParticipant"];
+        [myParticipantObject setObject:threadObject forKey:@"threadId"];
+        [myParticipantObject setObject:sharedDataManager.facebookId forKey:@"facebookId"];
+        [myParticipantObject setObject:sharedDataManager.name forKey:@"name"];
+        [myParticipantObject setObject:sharedDataManager.firstName forKey:@"firstName"];
+        [myParticipantObject setObject:[NSNumber numberWithBool:NO] forKey:@"unread"];
+        [myParticipantObject saveInBackground];
+        
+        for (Friend *friend in friendsInvitedArray) {
+            PFObject *participantObject = [PFObject objectWithClassName:@"MessageParticipant"];
+            [participantObject setObject:threadObject forKey:@"threadId"];
+            [participantObject setObject:friend.friendID forKey:@"facebookId"];
+            [participantObject setObject:friend.name forKey:@"name"];
+            [participantObject setObject:friend.firstName forKey:@"firstName"];
+            [participantObject setObject:[NSNumber numberWithBool:YES] forKey:@"unread"];
+            [participantObject saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+            }];
+        }
+        
+        PFObject * messageObject = [PFObject objectWithClassName:@"Message"];
+        [messageObject setObject:threadObject forKey:@"threadId"];
+        [messageObject setObject:sharedDataManager.facebookId forKey:@"facebookId"];
+        if (inviteObject) {
+            [messageObject setObject:inviteObject forKey:@"invite"];
+        }
+        [messageObject setObject:sharedDataManager.name forKey:@"name"];
+        [messageObject setObject:content forKey:@"message"];
+        [messageObject saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+            PFQuery *friendQuery = [PFUser query];
+            NSMutableArray *recipientsArray = [[self.thread.participantIds allObjects] mutableCopy];
+            [recipientsArray removeObject:sharedDataManager.facebookId];
+            [friendQuery whereKey:@"facebookId" containedIn:recipientsArray];
+            
+            [friendQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+                if (!error) {
+                    // Create our Installation query
+                    PFUser * user = [objects objectAtIndex:0];
+                    PFQuery *pushQuery = [PFInstallation query];
+                    [pushQuery whereKey:@"owner" equalTo:user]; //change this to use friends installation
+                    NSString *messageHeader = [NSString stringWithFormat:@"%@: %@", sharedDataManager.name, content];
+                    NSDictionary *data = [NSDictionary dictionaryWithObjectsAndKeys:
+                                          messageHeader, @"alert",
+                                          @"Increment", @"badge",
+                                          nil];
+                    
+                    // Send push notification to query
+                    PFPush *push = [[PFPush alloc] init];
+                    [push setQuery:pushQuery]; // Set our Installation query
+                    [push setData:data];
+                    [push sendPushInBackground];
+                    
+                    if (![self.messageTextView.text isEqualToString:@""] && ![self.messageTextView.text isEqualToString:@"Compose a message"]) {
+                        PFObject * contentMessageObject = [PFObject objectWithClassName:@"Message"];
+                        [contentMessageObject setObject:threadObject forKey:@"threadId"];
+                        [contentMessageObject setObject:sharedDataManager.facebookId forKey:@"facebookId"];
+                        [contentMessageObject setObject:sharedDataManager.name forKey:@"name"];
+                        [contentMessageObject setObject:self.messageTextView.text forKey:@"message"];
+                        [contentMessageObject saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+                        }];
+                    }
+                    
+                }
+            }];
+        }];
+    }];
+}
+
+-(void)inviteToPlace:(Place*) place {
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    Message *newMessage = [[Message alloc] init];
+    newMessage.content = [NSString stringWithFormat:@"You sent an invite to %@", place.name];
+    newMessage.date = [NSDate date];
+    newMessage.userId = sharedDataManager.facebookId;
+    newMessage.userName = sharedDataManager.name;
+    newMessage.threadId = self.thread.threadId;
+    
+    Invite *invite = [[Invite alloc] init];
+    invite.place = place;
+    newMessage.invite = invite;
+    
+    // create message object associated with the thread object
+    PFObject *inviteObject = [PFObject objectWithClassName:@"Invite"];
+    [inviteObject setObject:place.name forKey:@"placeName"];
+    [inviteObject setObject:place.placeId forKey:@"placeId"];
+    [inviteObject setObject:place.city forKey:@"city"];
+    [inviteObject setObject:place.state forKey:@"state"];
+    
+    if (place.country) {
+        [inviteObject setObject:place.country forKey:@"country"];
+    }
+    
+    if (place.memo) {
+        [inviteObject setObject:place.memo forKey:@"memo"];
+    }
+    
+    if (place.address) {
+        [inviteObject setObject:place.address forKey:@"address"];
+    }
+    
+    if (place.isPrivate) {
+        [inviteObject setObject:[NSNumber numberWithBool:place.isPrivate] forKey:@"private"];
+    }
+    
+    [inviteObject setObject:[PFGeoPoint geoPointWithLatitude:place.coord.latitude
+                                                   longitude:place.coord.longitude] forKey:@"coordinate"];
+    
+    [inviteObject saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+        newMessage.invite.inviteObject = inviteObject;
+        [self sendMessage:newMessage withInvite:inviteObject];
+    }];
+}
+
+-(void)sendMessage:(Message*)message withInvite:(PFObject*)inviteObject{
+    Datastore *sharedDataManager = [Datastore sharedDataManager];
+    
+    // create message object associated with the thread object
+    PFObject *messageObject = [PFObject objectWithClassName:@"Message"];
+    NSString *recentMessage = @"";
+    recentMessage = [NSString stringWithFormat:@"%@ invited you to %@", sharedDataManager.name, [inviteObject objectForKey:@"placeName"]];
+    [messageObject setObject:recentMessage forKey:@"message"];
+    [messageObject setObject:message.userId forKey:@"facebookId"];
+    [messageObject setObject:message.userName forKey:@"name"];
+    [messageObject setObject:self.thread.threadObject forKey:@"threadId"];
+    if (inviteObject) {
+        [messageObject setObject:inviteObject forKey:@"invite"];
+    }
+    
+    [messageObject saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
         PFQuery *friendQuery = [PFUser query];
-        [friendQuery whereKey:kUserFacebookIDKey equalTo:friend.friendID];
+        NSMutableArray *recipientsArray = [[self.thread.participantIds allObjects] mutableCopy];
+        [recipientsArray removeObject:sharedDataManager.facebookId];
+        [friendQuery whereKey:@"facebookId" containedIn:recipientsArray];
         
         [friendQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
             if (!error) {
-            // Create our Installation query
-            PFUser * user = [objects objectAtIndex:0];
-            PFQuery *pushQuery = [PFInstallation query];
-            [pushQuery whereKey:@"owner" equalTo:user]; //change this to use friends installation
-            NSString *messageHeader = [NSString stringWithFormat:@"%@ invited you to %@", sharedDataManager.name, self.place.name];
-            NSDictionary *data = [NSDictionary dictionaryWithObjectsAndKeys:
-                                  messageHeader, @"alert",
-                                  @"Increment", @"badge",
-                                  nil];
-            
-            // Send push notification to query
-            PFPush *push = [[PFPush alloc] init];
-            [push setQuery:pushQuery]; // Set our Installation query
-            [push setData:data];
-            [push sendPushInBackground];
-            
-            PFObject *invitation = [PFObject objectWithClassName:kNotificationClassKey];
-            [invitation setObject:sharedDataManager.facebookId forKey:kNotificationSenderKey];
-            [invitation setObject:self.place.name forKey:kNotificationPlaceNameKey];
-            [invitation setObject:self.place.placeId forKey:kNotificationPlaceIdKey];
-            [invitation setObject:messageHeader forKey:kNotificationMessageHeaderKey];
-            [invitation setObject:self.messageTextView.text forKey:kNotificationMessageContentKey];
-            [invitation setObject:friend.friendID forKey:kNotificationRecipientKey];
-            [invitation setObject:friendsInvited forKey:kNotificationAllRecipientsKey];
-            [invitation setObject:@"invitation" forKey:kNotificationTypeKey];
-            [invitation setObject:self.place.city forKey:kNotificationCityKey];
-            [invitation saveInBackground];
+                // Create our Installation query
+                PFUser * user = [objects objectAtIndex:0];
+                PFQuery *pushQuery = [PFInstallation query];
+                [pushQuery whereKey:@"owner" equalTo:user]; //change this to use friends installation
+                NSString *messageHeader = [NSString stringWithFormat:@"%@: %@", sharedDataManager.name, message.content];
+                NSDictionary *data = [NSDictionary dictionaryWithObjectsAndKeys:
+                                      messageHeader, @"alert",
+                                      @"Increment", @"badge",
+                                      @"msg", @"type",
+                                      self.thread.threadObject.objectId, @"threadId",
+                                      nil];
+                
+                // Send push notification to query
+                PFPush *push = [[PFPush alloc] init];
+                [push setQuery:pushQuery]; // Set our Installation query
+                [push setData:data];
+                [push sendPushInBackground];
             }
         }];
-    }
+        
+        PFObject * contentMessageObject = [PFObject objectWithClassName:@"Message"];
+        [contentMessageObject setObject:self.thread.threadObject forKey:@"threadId"];
+        [contentMessageObject setObject:sharedDataManager.facebookId forKey:@"facebookId"];
+        [contentMessageObject setObject:sharedDataManager.name forKey:@"name"];
+        [contentMessageObject setObject:self.messageTextView.text forKey:@"message"];
+        [contentMessageObject saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+        }];
+    }];
     
-    NSDictionary *inviteParams = [NSDictionary dictionaryWithObjectsAndKeys:
-                                  @"NumberFriends", [NSString stringWithFormat:@"%lu",(unsigned long)[friendsInvited count]],
-                                  @"Message", self.messageTextView.text,
-                                  @"City", self.place.city,
-                                  @"Place", self.place.name,
-     nil];
+    PFQuery *participantQuery = [PFQuery queryWithClassName:@"MessageParticipant"];
+    [participantQuery whereKey:@"facebookId" containedIn:[self.thread.participantIds allObjects]];
+    [participantQuery whereKey:@"facebookId" notEqualTo:sharedDataManager.facebookId];
+    [participantQuery whereKey:@"threadId" equalTo:self.thread.threadObject];
+    [participantQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+        for (PFObject *participantObject in objects) {
+            [participantObject setObject:[NSNumber numberWithBool:YES] forKey:@"unread"];
+            [participantObject saveInBackground];
+        }
+    }];
     
-    [Flurry logEvent:@"User_Sent_Invite" withParameters:inviteParams];
-    [self confirmInvitationsSent];
+    // update recent message value of thread
+    [self.thread.threadObject setObject:recentMessage forKey:@"recentMessage"];
+    [self.thread.threadObject saveEventually];
 }
 
 -(IBAction)removeFriend:(id)sender {
@@ -597,6 +796,7 @@
                         } completion:^(BOOL finished) {
                                 [self.confirmationView removeFromSuperview];
                                 [self closeView];
+                                
     }];
 }
 

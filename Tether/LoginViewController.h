@@ -13,6 +13,6 @@
 @interface LoginViewController : UIViewController
 @property (strong, nonatomic) UIActivityIndicatorView *spinner;
 @property (strong, nonatomic) TethrButton *loginButton;
--(void)loginPerformed:(BOOL)loggedIn;
+-(void)loginPerformed:(BOOL)loggedIn withError:(NSError *)error;
 -(void)loginFailed;
 @end
