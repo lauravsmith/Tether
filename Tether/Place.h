@@ -19,6 +19,7 @@
 @property (nonatomic, strong) NSString *country;
 @property (nonatomic, strong) NSString *phoneNumber;
 @property (nonatomic, strong) NSMutableSet *friendsCommitted;
+@property (nonatomic, strong) NSMutableSet *othersCommitted;
 @property (nonatomic, assign) int numberCommitments;
 @property (nonatomic, assign) int numberPastCommitments;
 @property (nonatomic, strong) NSString *memo;

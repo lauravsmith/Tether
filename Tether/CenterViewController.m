@@ -1171,7 +1171,7 @@
         UIView *backgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, size.width + 10.0, 45.0)];
 
         if ([p.friendsCommitted count] == 0) {
-            UIImage *pinImage = [UIImage imageNamed:@"DarkGreyPin"];
+            UIImage *pinImage = [UIImage imageNamed:@"DarkGreyPin.png"];
             pinView.tag = 1;
             pinView.image = NULL;
             pinView.frame = CGRectMake(0, 0, 40.0, 40.0);
@@ -1591,7 +1591,7 @@
                                                           options:NSStringDrawingUsesLineFragmentOrigin
                                                        attributes:@{NSFontAttributeName:montserrat}
                                                           context:nil];
-            return textRect.size.height + 70.0;
+            return textRect.size.height + 65.0;
         } else {
             NSString *userName = [[object objectForKey:@"user"] objectForKey:@"firstName"];
             NSString * placeName = [object objectForKey:@"placeName"];
@@ -1601,7 +1601,7 @@
                                                           options:NSStringDrawingUsesLineFragmentOrigin
                                                        attributes:@{NSFontAttributeName:montserrat}
                                                           context:nil];
-            return textRect.size.height + 70.0;
+            return textRect.size.height + 65.0;
         }
     }
 }

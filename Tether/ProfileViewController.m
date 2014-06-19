@@ -750,7 +750,7 @@
                                                               options:NSStringDrawingUsesLineFragmentOrigin
                                                            attributes:@{NSFontAttributeName:montserrat}
                                                               context:nil];
-                return textRect.size.height + 80.0;
+                return textRect.size.height + 65.0;
             } else {
                 NSString *userName = [[object objectForKey:@"user"] objectForKey:@"firstName"];
                 NSString * placeName = [object objectForKey:@"placeName"];
@@ -760,7 +760,7 @@
                                                               options:NSStringDrawingUsesLineFragmentOrigin
                                                            attributes:@{NSFontAttributeName:montserrat}
                                                               context:nil];
-                return textRect.size.height + 70.0;
+                return textRect.size.height + 65.0;
             }
         }
     } else {

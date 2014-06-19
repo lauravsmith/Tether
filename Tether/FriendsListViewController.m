@@ -1250,7 +1250,7 @@
                                                     options:NSStringDrawingUsesLineFragmentOrigin
                                                  attributes:@{NSFontAttributeName:montserrat}
                                                     context:nil];
-            return self.view.frame.size.width + 100.0 + textRect.size.height;
+            return self.view.frame.size.width + 87.0 + textRect.size.height;
         } else if ([[object objectForKey:@"type"] isEqualToString:@"comment"]) {
             NSString *userName = [[object objectForKey:@"user"] objectForKey:@"firstName"];
             NSString *content = [object objectForKey:@"content"];
@@ -1260,7 +1260,7 @@
                                                           options:NSStringDrawingUsesLineFragmentOrigin
                                                        attributes:@{NSFontAttributeName:montserrat}
                                                           context:nil];
-            return textRect.size.height + 80.0;
+            return textRect.size.height + 65.0;
         } else {
             NSString *userName = [[object objectForKey:@"user"] objectForKey:@"firstName"];
             NSString *contentString = [NSString stringWithFormat:@"%@ tethred here", userName];
@@ -1269,7 +1269,7 @@
                                                           options:NSStringDrawingUsesLineFragmentOrigin
                                                        attributes:@{NSFontAttributeName:montserrat}
                                                           context:nil];
-            return textRect.size.height + 80.0;
+            return textRect.size.height + 65.0;
         }
     }
 }

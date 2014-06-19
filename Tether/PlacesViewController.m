@@ -175,10 +175,10 @@
     userState = [self.userDetails objectForKey:kUserDefaultsStateKey];
     
     PFQuery *query = [PFQuery queryWithClassName:kCommitmentClassKey];
-    [query whereKey:kUserFacebookIDKey containedIn:friendsArrayWithMe];        
-    if ([self.userDetails boolForKey:@"cityFriendsOnly"]) {
-        [query whereKey:kCommitmentCityKey equalTo:userCity];
-    }
+//    [query whereKey:kUserFacebookIDKey containedIn:friendsArrayWithMe];        
+//    if ([self.userDetails boolForKey:@"cityFriendsOnly"]) {
+//        [query whereKey:kCommitmentCityKey equalTo:userCity];
+//    }
         
     NSDate *startTime = [self getStartTime];
         
@@ -207,6 +207,7 @@
                         place.numberCommitments = 0;
                         place.numberPastCommitments = 0;
                         place.friendsCommitted = [[NSMutableSet alloc] init];
+                        place.othersCommitted = [[NSMutableSet alloc] init];
                         place.memo = [object objectForKey:@"memo"];
                         place.owner = [object objectForKey:@"placeOwner"];
                     } else {
@@ -220,7 +221,11 @@
                     NSDate *commitmentTime = [object objectForKey:kCommitmentDateKey];
                     if (commitmentTime != nil && [startTime compare:commitmentTime] == NSOrderedAscending) {
                         // commitment for tonight
-                        [place.friendsCommitted addObject:[object objectForKey:kUserFacebookIDKey]];
+                        if ([sharedDataManager.tetherFriendsDictionary objectForKey:[object objectForKey:kUserFacebookIDKey]]) {
+                            [place.friendsCommitted addObject:[object objectForKey:kUserFacebookIDKey]];
+                        } else {
+                            [place.othersCommitted addObject:[object objectForKey:kUserFacebookIDKey]];
+                        }
                         if ([object objectForKey:kCommitmentPlaceIDKey]) {
                             [tempDictionary setObject:place forKey:[object objectForKey:kCommitmentPlaceIDKey]];
                         }

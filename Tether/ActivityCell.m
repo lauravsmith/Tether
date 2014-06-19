@@ -436,25 +436,35 @@
         
         CGRect frameNormal = self.likeButton.frame;
         CGRect frameLarge = self.likeButton.frame;
-        frameLarge.size.width = 25.0;
-        frameLarge.size.height = 25.0;
-        frameLarge.origin.x = frameNormal.origin.x - 2.5;
-        frameLarge.origin.y = frameNormal.origin.y - 2.5;
+        frameLarge.size.width = 21.0;
+        frameLarge.size.height = 21.0;
+        frameLarge.origin.x = frameNormal.origin.x - 0.5;
+        frameLarge.origin.y = frameNormal.origin.y - 0.5;
 
         self.animating = YES;
     [UIView animateWithDuration:0.2
                          animations:^{
                               self.likeButton.frame = frameLarge;
                              self.heartImageView.frame = self.likeButton.frame;
-                              [self.heartImageView setImage:[UIImage imageNamed:@"redHeartBig.png"]];
-
                          } completion:^(BOOL finished) {
-                             [UIView animateWithDuration:0.2
+                             [UIView animateWithDuration:0.1
                                               animations:^{
-                                                  self.likeButton.frame = frameNormal;
-                                                  self.heartImageView.frame = frameNormal;
-                                                  [self.heartImageView setImage:[UIImage imageNamed:@"redHeart.png"]];
-                                                  self.animating = NO;
+                                                  CGRect frameMax = self.likeButton.frame;
+                                                  frameMax.size.width = 22.0;
+                                                  frameMax.size.height = 22.0;
+                                                  frameMax.origin.x = frameNormal.origin.x - 1.0;
+                                                  frameMax.origin.y = frameNormal.origin.y - 1.0;
+                                                  self.likeButton.frame = frameMax;
+                                                  self.heartImageView.frame = self.likeButton.frame;
+                                                [self.heartImageView setImage:[UIImage imageNamed:@"redHeartBig.png"]];
+                                              } completion:^(BOOL finished) {
+                                                  [UIView animateWithDuration:0.2
+                                                                   animations:^{
+                                                                       self.likeButton.frame = frameNormal;
+                                                                       self.heartImageView.frame = frameNormal;
+                                                                       [self.heartImageView setImage:[UIImage imageNamed:@"redHeart.png"]];
+                                                                       self.animating = NO;
+                                                                   }];
                                               }];
     }];
         
@@ -483,7 +493,7 @@
 }
 
 -(void)setupLikeCount {
-    UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:12.0f];
+    UIFont *montserratSmall = [UIFont fontWithName:@"Montserrat" size:10.0f];
     [self.likeCountButton addTarget:self action:@selector(showLikes) forControlEvents:UIControlEventTouchUpInside];
     if ([self.likesSet count] > 1) {
         [self.likeCountButton setTitle:[NSString stringWithFormat:@" %d LIKES ", [self.likesSet count]] forState:UIControlStateNormal];
@@ -492,13 +502,13 @@
     }
     self.likeCountButton.titleLabel.font = montserratSmall;
     CGSize size = [self.likeCountButton.titleLabel.text sizeWithAttributes:@{NSFontAttributeName:montserratSmall}];
-    self.likeCountButton.frame = CGRectMake(self.frame.size.width - size.width - 35.0, self.commentButton.frame.origin.y, size.width, size.height + 2.0);
+    self.likeCountButton.frame = CGRectMake(self.frame.size.width - size.width - 40.0, self.commentButton.frame.origin.y, size.width + 6.0, 17.0);
     [self.likeCountButton.titleLabel setTextColor:UIColorFromRGB(0x1d1d1d)];
     [self.likeCountButton setBackgroundColor:UIColorFromRGB(0xc8c8c8)];
     UIImage *smallHeart= [UIImage imageNamed:@"smallRedHeart"];
     self.likeCountImage.image = smallHeart;
     self.likeCountImage.frame = CGRectMake(self.likeCountButton.frame.origin.x - 25.0, self.likeCountButton.frame.origin.y - 2.0, 20.0, 20.0);
-    self.likeCountButton.layer.cornerRadius = 4.0;
+    self.likeCountButton.layer.cornerRadius = 2.0;
     self.likeCountButton.layer.masksToBounds = YES;
 }
 

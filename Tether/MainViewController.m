@@ -10,6 +10,7 @@
 #import "CenterViewController.h"
 #import "Constants.h"
 #import "DecisionViewController.h"
+#import "FindFriendsViewController.h"
 #import "Flurry.h"
 #import "Friend.h"
 #import "FriendsListViewController.h"
@@ -46,7 +47,7 @@
 #define PANEL_WIDTH 45.0
 #define POLLING_INTERVAL 30
 
-@interface MainViewController () <CenterViewControllerDelegate, DecisionViewControllerDelegate, FriendsListViewControllerDelegate, InviteViewControllerDelegate, LeftPanelViewControllerDelegate, PlacesViewControllerDelegate, RightPanelViewControllerDelegate, ShareViewControllerDelegate, UIGestureRecognizerDelegate, MessageViewControllerDelegate, NewMessageViewControllerDelegate, ProfileViewControllerDelegate, UIActionSheetDelegate, UIImagePickerControllerDelegate, PhotoEditViewControllerDelegate>
+@interface MainViewController () <CenterViewControllerDelegate, DecisionViewControllerDelegate, FriendsListViewControllerDelegate, InviteViewControllerDelegate, LeftPanelViewControllerDelegate, PlacesViewControllerDelegate, RightPanelViewControllerDelegate, ShareViewControllerDelegate, UIGestureRecognizerDelegate, MessageViewControllerDelegate, NewMessageViewControllerDelegate, ProfileViewControllerDelegate, UIActionSheetDelegate, UIImagePickerControllerDelegate, PhotoEditViewControllerDelegate, FindFriendsViewControllerDelegate>
 
 @property (nonatomic, strong) LeftPanelViewController *leftPanelViewController;
 @property (nonatomic, strong) DecisionViewController *decisionViewController;
@@ -79,6 +80,7 @@
 @property (retain, nonatomic) ShareViewController *shareVC;
 @property (retain, nonatomic) PhotoEditViewController *photoEditVC;
 @property (nonatomic, assign) BOOL hasLoadedFriends;
+@property (retain, nonatomic) FindFriendsViewController *findFriendsVC;
 
 @end
 
@@ -304,6 +306,12 @@
     [self.currentUser setObject:sharedDataManager.facebookFriends forKey:kUserFacebookFriendsKey];
     [self.currentUser saveInBackground];
     
+    // if new
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    if ([userDetails boolForKey:@"isNew"]) {
+        [self showFindFriendsViewController];
+    }
+    
     [self queryFriendsStatus];
 }
 
@@ -452,6 +460,9 @@
     NSMutableArray *facebookFriends = [[NSMutableArray alloc] init];
     sharedDataManager.hasUpdatedFriends = YES;
     facebookFriends = [userDetails objectForKey:@"tethrFriends"];
+    if (!facebookFriends) {
+        facebookFriends = [[PFUser currentUser] objectForKey:@"tethrFriends"];
+    }
 
     if (![self.currentUser objectForKey:kUserCityKey]) {
         [self saveCity:city state:state];
@@ -548,10 +559,6 @@
                     [self loadFriendsOfFriends];
                 }
                 
-                if ([userDetails boolForKey:@"isNew"]) {
-                    [userDetails setBool:NO forKey:@"isNew"];
-                }
-                
                 self.hasLoadedFriends = YES;
             } else {
                 // The network was inaccessible and we have no cached data for r
@@ -561,6 +568,34 @@
             }
         }];
     }
+}
+
+-(void)showFindFriendsViewController {
+    if (!self.findFriendsVC) {
+    self.findFriendsVC = [[FindFriendsViewController alloc] init];
+    self.findFriendsVC.delegate = self;
+    [self.findFriendsVC.view setHidden:YES];
+    [self.findFriendsVC.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+    [self.view addSubview:self.findFriendsVC.view];
+    [self addChildViewController:self.findFriendsVC];
+    [self.findFriendsVC didMoveToParentViewController:self];
+    
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.findFriendsVC.view setFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                     }];
+    } else {
+        [self.view bringSubviewToFront:self.findFriendsVC.view];
+    }
+
+    NSUserDefaults *userDetails = [NSUserDefaults standardUserDefaults];
+    [userDetails setBool:NO forKey:@"isNew"];
 }
 
 -(void) loadFriendsOfFriends {
@@ -1458,6 +1493,10 @@
         
         [Flurry logEvent:@"User_Input_Decision_Page" withParameters:decisionParams];
     }
+    
+    if (self.findFriendsVC) {
+        [self.findFriendsVC.view setHidden:NO];
+    }
 }
 
 #pragma mark ProfileViewControllerDelegate
@@ -2250,6 +2289,24 @@
                              [friendsListVC removeFromParentViewController];
                               self.centerViewController.listViewOpen = NO;
                          }];
+}
+
+#pragma mark FindFriendsViewControllerDelegate
+
+-(void)closeFindFriendsVC {
+    [UIView animateWithDuration:SLIDE_TIMING
+                          delay:0.0
+         usingSpringWithDamping:1.0
+          initialSpringVelocity:1.0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self.findFriendsVC.view setFrame:CGRectMake(self.view.frame.size.width, 0.0f, self.view.frame.size.width, self.view.frame.size.height)];
+                     }
+                     completion:^(BOOL finished) {
+                         [self.findFriendsVC.view removeFromSuperview];
+                         [self.findFriendsVC removeFromParentViewController];
+                         self.findFriendsVC = nil;
+                     }];
 }
 
 - (void)didReceiveMemoryWarning

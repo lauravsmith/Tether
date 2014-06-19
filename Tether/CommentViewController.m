@@ -97,7 +97,6 @@
     self.textView = [[UITextView alloc] initWithFrame:CGRectMake(10.0,(self.bottomBar.frame.size.height - MESSAGE_FIELD_HEIGHT) / 2.0, MESSAGE_FIELD_WIDTH, MESSAGE_FIELD_HEIGHT)];
     self.textView.delegate = self;
     self.textView.text = @"";
-    [self.textView setScrollEnabled:NO];
     [[self.textView layer] setBorderColor:UIColorFromRGB(0xc8c8c8).CGColor];
     [[self.textView layer] setBorderWidth:0.5];
     [[self.textView layer] setCornerRadius:4.0];
@@ -109,6 +108,7 @@
     
     self.postButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width - SEND_BUTTON_WIDTH, 0.0, SEND_BUTTON_WIDTH, self.bottomBar.frame.size.height)];
     [self.postButton setTitle:@"Post" forState:UIControlStateNormal];
+    [self.postButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
     [self.postButton setTitleColor:UIColorFromRGB(0xc8c8c8) forState:UIControlStateDisabled];
     self.postButton.titleLabel.font = montserratLarge;
     [self.postButton addTarget:self action:@selector(postClicked) forControlEvents:UIControlEventTouchUpInside];
@@ -260,6 +260,8 @@
     if(self.textView.text.length == 0){
         self.textView.tag = 0;
         [self.postButton setEnabled:NO];
+    } else {
+        [self.postButton setEnabled:YES];
     }
     UIFont *montserrat = [UIFont fontWithName:@"Montserrat" size:16.0f];
     
@@ -289,9 +291,6 @@
         frame.origin.y = self.view.frame.size.height - frame.size.height;
     }
     self.bottomBar.frame = frame;
-    
-    [self.postButton setTitleColor:UIColorFromRGB(0x8e0528) forState:UIControlStateNormal];
-    [self.postButton setEnabled:YES];
 }
 
 - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {

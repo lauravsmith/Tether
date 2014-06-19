@@ -221,6 +221,8 @@
 		477BFE7A193637D2003C0E99 /* ParticipantsListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 477BFE79193637D2003C0E99 /* ParticipantsListViewController.m */; };
 		477C0CD5193384B7009A58F9 /* ProfileViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 477C0CD4193384B7009A58F9 /* ProfileViewController.m */; };
 		477C0CDA1933A509009A58F9 /* PhotoEditViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 477C0CD91933A509009A58F9 /* PhotoEditViewController.m */; };
+		477C2486195096AE00054272 /* FindFriendsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 477C2485195096AE00054272 /* FindFriendsViewController.m */; };
+		477C24891950995A00054272 /* FindFriendCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 477C24881950995A00054272 /* FindFriendCell.m */; };
 		477EC7C8194F75DD00D2BF73 /* ChatIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 477EC7C6194F75DD00D2BF73 /* ChatIcon.png */; };
 		477EC7C9194F75DD00D2BF73 /* ChatIcon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 477EC7C7194F75DD00D2BF73 /* ChatIcon@2x.png */; };
 		477EC7CC194F762500D2BF73 /* Camera.png in Resources */ = {isa = PBXBuildFile; fileRef = 477EC7CA194F762500D2BF73 /* Camera.png */; };
@@ -589,6 +591,10 @@
 		477C0CD4193384B7009A58F9 /* ProfileViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ProfileViewController.m; sourceTree = "<group>"; };
 		477C0CD81933A509009A58F9 /* PhotoEditViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PhotoEditViewController.h; sourceTree = "<group>"; };
 		477C0CD91933A509009A58F9 /* PhotoEditViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PhotoEditViewController.m; sourceTree = "<group>"; };
+		477C2484195096AE00054272 /* FindFriendsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FindFriendsViewController.h; sourceTree = "<group>"; };
+		477C2485195096AE00054272 /* FindFriendsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FindFriendsViewController.m; sourceTree = "<group>"; };
+		477C24871950995A00054272 /* FindFriendCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FindFriendCell.h; sourceTree = "<group>"; };
+		477C24881950995A00054272 /* FindFriendCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FindFriendCell.m; sourceTree = "<group>"; };
 		477EC7C6194F75DD00D2BF73 /* ChatIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ChatIcon.png; sourceTree = "<group>"; };
 		477EC7C7194F75DD00D2BF73 /* ChatIcon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ChatIcon@2x.png"; sourceTree = "<group>"; };
 		477EC7CA194F762500D2BF73 /* Camera.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Camera.png; sourceTree = "<group>"; };
@@ -740,6 +746,8 @@
 				4773708D193FAB7C00DCC060 /* CommentCell.m */,
 				478426DF194A48D100DDE682 /* FollowRequestCell.h */,
 				478426E0194A48D100DDE682 /* FollowRequestCell.m */,
+				477C24871950995A00054272 /* FindFriendCell.h */,
+				477C24881950995A00054272 /* FindFriendCell.m */,
 			);
 			name = View;
 			sourceTree = "<group>";
@@ -1003,6 +1011,8 @@
 				47737087193F650E00DCC060 /* PlaceCommentViewController.m */,
 				47737089193F9D8100DCC060 /* CommentViewController.h */,
 				4773708A193F9D8100DCC060 /* CommentViewController.m */,
+				477C2484195096AE00054272 /* FindFriendsViewController.h */,
+				477C2485195096AE00054272 /* FindFriendsViewController.m */,
 			);
 			name = Controller;
 			sourceTree = "<group>";
@@ -1583,6 +1593,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				477C24891950995A00054272 /* FindFriendCell.m in Sources */,
 				4773708B193F9D8100DCC060 /* CommentViewController.m in Sources */,
 				472392A718649298000D0C7E /* Notification.m in Sources */,
 				47059D8E18444CBE00CEC50E /* Friend.m in Sources */,
@@ -1621,6 +1632,7 @@
 				4773708E193FAB7C00DCC060 /* CommentCell.m in Sources */,
 				47064C96183D9E3800E9228A /* AppDelegate.m in Sources */,
 				47064C92183D9E3800E9228A /* main.m in Sources */,
+				477C2486195096AE00054272 /* FindFriendsViewController.m in Sources */,
 				4702441618575E14001C19AC /* ILGeoNamesLookup.m in Sources */,
 				470A33B71842CB98006E48F9 /* DecisionViewController.m in Sources */,
 				4771B19E191413E700A99E05 /* MessageThread.m in Sources */,
